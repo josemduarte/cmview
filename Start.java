@@ -189,7 +189,9 @@ public class Start extends JFrame implements ActionListener{
 				mod = new Model(this);
 				String title = "Contact Map";
 				pc = new PaintController(mod, view);
-				View view = new View(this, mod, title, pc, mypymol);
+				
+				String wintitle = this.getAccessionCode();
+				View view = new View(this, mod, wintitle, pc, mypymol);
 				
 				msd = new Msdsd2Pdb();
 				try{
@@ -223,6 +225,14 @@ public class Start extends JFrame implements ActionListener{
 			  return pdbFileName;
 		  }
 		  
+		  /** returns the pdb-filename */
+		  public String getAccessionCode(){
+			  
+			 
+			  String ac = val[0];
+			  return ac;
+		  }
+		  
 		  /** returns the complete SQL String*/
 		  public String getSQLString(){
 			  // String for getting the data out of the db.
@@ -249,7 +259,7 @@ public class Start extends JFrame implements ActionListener{
 				  			+" from single_model_edge, single_model_graph, chain_graph "
 				  			+ " where chain_graph.accession_code = '" + accession_code + "' and chain_graph.chain_pdb_code "+ chain_pdb_code 
 				  			+" and chain_graph.graph_id = single_model_graph.pgraph_id and single_model_graph.CT = '" + CT 
-				  			+ "' and single_model_graph.graph_id = single_model_edge.graph_id and i_num > j_num;";
+				  			+ "' and single_model_graph.graph_id = single_model_edge.graph_id and i_num > j_num order by i_num, j_num;";
 			  
 			  return sql2;
 		  }
