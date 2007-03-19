@@ -21,7 +21,7 @@ import tools.*;
 
 
 public class View extends JFrame implements ActionListener{
-	JButton send, square, fill, loadPDB;
+	JButton send, square, fill, loadPDB, comNei;
 	JTextField tx, ty;
 
 	JPanel bpl; // Button Panel
@@ -39,11 +39,15 @@ public class View extends JFrame implements ActionListener{
 	public int[] pos = new int[2];
 	public String[] text = new String[2];
 	public String s1, s2;
+	private MouseEvent evt;
+
 
 
 	public View(Start start, Model mod, String title, PaintController pc, PyMol mypymol){
 		super(title);
-		this.start= start;	
+		this.start= start;
+		
+	
 		this.mod = mod;
 		this.pc=pc;
 		
@@ -69,6 +73,7 @@ public class View extends JFrame implements ActionListener{
 		fill = new JButton("Fill Selection");
 		loadPDB = new JButton("Load PDB File");
 		send = new JButton("Send Selection");
+		comNei = new JButton("Show Common Neighbours");
 
 		pc = new PaintController(mod, this);
 
@@ -76,6 +81,7 @@ public class View extends JFrame implements ActionListener{
 
 		square.addActionListener(this);
 		fill.addActionListener(this);
+		comNei.addActionListener(this);
 		loadPDB.addActionListener(this);
 		send.addActionListener(this);
 		
@@ -83,6 +89,7 @@ public class View extends JFrame implements ActionListener{
 
 		bpl.add(square);
 		bpl.add(fill);
+		bpl.add(comNei);
 		bpl.add(loadPDB);
 		bpl.add(send);
 
@@ -112,6 +119,12 @@ public class View extends JFrame implements ActionListener{
 			  
 				selval = 2;
 				selINK = selINK +1;
+		  }
+		  
+		  if (e.getSource() == comNei){
+			  System.out.println("Show comman neighbours");
+			  
+			  	selval = 3;
 		  }
 		  
 		  if (e.getSource() == loadPDB){
