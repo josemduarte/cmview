@@ -29,6 +29,7 @@ public class MyTestPyMol {
 	
 
 		public String pdbFileName;
+		public String accessionCode;
 	
 		private PaintController pc;
 		public int[][] matrix = new int[0][];
@@ -62,6 +63,7 @@ public class MyTestPyMol {
 			
 			if(start == null) System.out.println("Start is null");
 			pdbFileName = start.getPDBString();
+			accessionCode= start.getAccessionCode();
 
 			//pdbFileName = "/project/StruPPi/jose/tinker/benchmarking/1bxy_A.pdb";
 
@@ -91,6 +93,7 @@ public class MyTestPyMol {
 			if(pc == null) System.out.println("Paint is null");
 			selrec = pc.getSelectRect();
 	
+			
 			int xs = selrec[0]; //starting point: upper left, x-direction
 			int ys = selrec[1]; //starting point: upper left, y-direction
 			int rw = selrec[2]; //endpoint lower right, x-direction
@@ -105,8 +108,8 @@ public class MyTestPyMol {
 						int resi2 = j;
 						System.out.println("i: "+ i + " j: "+j);
 						
-						//inserts an edge between the selected resiues 
-						mypymol.setDistance(resi1, resi2,k);
+						//inserts an edge between the selected residues 
+						mypymol.setDistance(resi1, resi2,accessionCode, k);
 						
 					}
 					
@@ -120,7 +123,7 @@ public class MyTestPyMol {
 		
 		public void FillCommands(){
 			int i,j;
-/*
+			/*int k = view.getSelNum();
 			
 			if(pc == null) System.out.println("Paint is null");
 			matrix = pc.getSelectMatrix();	
@@ -137,7 +140,7 @@ public class MyTestPyMol {
 						int resi1 = i;
 						int resi2 = j;
 						//inserts an edge between the selected residues 
-						mypymol.setDistance(resi1, resi2);
+						mypymol.setDistance(resi1, resi2, accessionCode, k);
 						
 					}
 					
@@ -146,8 +149,8 @@ public class MyTestPyMol {
 			}
 
 			Out.println("cmd.hide('labels')");
-			*/
 			
+			*/
 		}
 		
 		//public static void main(String[] args) {
