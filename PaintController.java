@@ -6,6 +6,7 @@ import java.lang.Math.*;
 import java.awt.event.MouseEvent.*;
 
 import javax.swing.JTextField;
+import java.awt.image.BufferedImage;
 
 
 public class PaintController extends Canvas
@@ -23,14 +24,17 @@ public class PaintController extends Canvas
 
  	private boolean mouseIn;
  	private boolean selected;
-
+ 	private boolean pressed;
 
 	private Model mod;
 	private View view;
 	private boolean changeWin;
 
-	public Graphics g;
-
+	public Graphics g; 	//buffered Graphic
+	public Graphics bufferGraphics; 	//Canvas Graphic
+	public Image offscreen;
+	private BufferedImage buffer;
+	
 	public int i,j, width, height, rw, rh;
 	public int rwidth, rheight; 	// distance from xs t x in x-direction (respectively ys and y)
 	
@@ -40,8 +44,9 @@ public class PaintController extends Canvas
 	public int[] selrec = new int[4]; // points of selected Rectangle
 	public int [][] admatrix = new int[0][];
 	public int[][] selmatrix = new int[0][];
-	public String[] multiSel = new String[1];
 	public int selNum;
+	
+	// all actions done, i.e. selections,... , refer to the buffer
 
 	
 
@@ -52,6 +57,7 @@ public class PaintController extends Canvas
 		this.view=view;
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
+
 	}
 	
 	
@@ -108,89 +114,96 @@ public class PaintController extends Canvas
 	 
    public void update(Graphics g, MouseEvent evt) {
 	   paint(g, evt);
-	  
-	 
    }
-   
-   public void myUpdate(Graphics g) {
-	   myPaint(g);
-   }
-   
-   
-   /** Creating contact map and mapping the contacts */ 
-   public void myPaint(Graphics g) {
-	  dim = mod.getMatrixSize();
-	  int[] dims = this.getMyMinimumSize();
-	  
-      width = dims[0];   // Width of the Contact Map
-      height = dims[1];  // Height of the Contact Map.
-  
-      ratio = (double)width/dim[0];
-      
-      g= getGraphics();
-      admatrix = mod.getMatrix();            
-    
-    
-      g.setColor(Color.white);
-      g.fillRect(0, 0, dims[0],dims[1]);
 
-     g.setColor(Color.black);
-
-      for (i= 0; i<dim[0]; i++){
-          for (j= 0; j<dim[1]; j++){
-        	  
-        	  if (admatrix[i][j] ==1){
-        		  // if there is a contact, draw a rectangle
- 
-        		  g.drawRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
-        		  g.fillRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
-        	  }
-          }
-      }
-   }
    
    /** Allows user interaction --> selections and region growing */
    public void paint(Graphics g, MouseEvent evt){
-	  // Statement fuer controldown -- mehrfachselektion geht aber noch nicht  !!!
+
+		  dim = mod.getMatrixSize();
+		  int[] dims = this.getMyMinimumSize();
+		  
+	      width = dims[0];   // Width of the Contact Map
+	      height = dims[1];  // Height of the Contact Map.
+	  
+	      ratio = (double)width/dim[0];
+
+		  setBackground(Color.white);
+		    
+		  offscreen = createImage(winwidth, winheight);
+		  if (offscreen == null) System.out.println("screenimage null");
+		  
+		  bufferGraphics = offscreen.getGraphics(); 
+	      bufferGraphics.clearRect(0,0,(int)(dims[0]*ratio),(int)( dims[1]*ratio));
+	      admatrix = mod.getMatrix();            
+
+
+	     bufferGraphics.setColor(Color.black);
+
+	      for (i= 0; i<dim[0]; i++){
+	          for (j= 0; j<dim[1]; j++){
+	        	  
+	        	  if (admatrix[i][j] ==1){
+	        		  // if there is a contact, draw a rectangle
+	 
+	        		  bufferGraphics.drawRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
+	        		  bufferGraphics.fillRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
+	        	  }
+	          }
+	      }
+
 	   
 	   /** distinction between square-select or fill-select*/ 
 	   int selval = view.getValue();
-	   selNum= view.getSelNum();
-	  // System.out.println(selval);
+	   selmatrix = admatrix;
 	   switch(selval){
 	   
-	   case 1: squareSelect(evt, selNum);
-	   case 2: regionGrow(xs,ys);
-	   }
-
+	   case 1: squareSelect(evt);
+	   //case 2: regionGrow((int)(xs/ratio),(int)(ys/ratio));
+	   
        }
+	   /*
+	    bufferGraphics.setColor(Color.red);
+		for(int z = 0; z<= (int)(dim[0]); z++){
+			for(int p = 0; p<= (int)(dim[0]); p++){
+				if ((selmatrix[z][p]==10)){
+	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
+	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
+
+				}
+				
+			}
+			
+		}*/
+	   
+       g = this.getGraphics();
+       g.drawImage(offscreen,0,0,this);
+   }
    
    
    /** SQUARE SELECTION: from left upper to right lower corner of a rectangle */
-   public void squareSelect(MouseEvent evt, int selNum){
+   public void squareSelect(MouseEvent evt){
 	   
-	  
-       g.drawRect(xs,ys,rwidth,rheight);
+	   bufferGraphics.setColor(Color.black);
+	   bufferGraphics.drawRect(xs,ys,rwidth,rheight);
        
        // Marking the selected contacts red
-	   g.setColor(Color.red);
+	   bufferGraphics.setColor(Color.red);
 	   
        for (int xsi= (int)(xs/(double)ratio); xsi <= (int)((xs +rwidth)/(double)ratio); xsi++){
            for (int ysj= (int)(ys/(double)ratio); ysj<= (int)((ys +rheight)/(double)ratio); ysj++){
          	  
          	  if (admatrix[xsi][ysj] ==1){
          		  // if there is a contact, draw a 1-by-1 rectangle
-  
-         		  g.drawRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
-         		  g.fillRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
-
+         	
+         		bufferGraphics.drawRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
+         		bufferGraphics.fillRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
+         		//selmatrix[xsi][ysj]=10;
          	  }
-         	  
            }
-
        }
-	  
-
+       
+       //ABSPEICHERN IN M*N AARAY??????? 
        int[] selrect = {(int)(xs/(double)ratio), (int)(ys/(double)ratio), (int)((rwidth + xs)/(double)ratio), (int)((rheight +ys)/(double)ratio)};
        selrec = selrect;
        
@@ -201,62 +214,57 @@ public class PaintController extends Canvas
 		
 		System.out.println("Residues: "+ xs + "\t"+ ys + "\t"+ rw + "\t"+ rh);
 		
-		//String sel = ""+xs+","+ys+","+rw+","+rh;
-		//System.out.println(sel);
-		//multiSel[selNum]= sel;
-		//System.out.println("Sring: "+multiSel[selNum]);
-		
 		selected = true;
 	
+		
+		
    }
 
 
   
    public void regionGrow(int x, int y){
-	   x = x;
-	   y= y;
-	  
-	try{
+	   System.out.println("RegGrow: "+ x + "\t"+ y);
 	   
+/*
+	   if ((x==0) | (y==0)){
+		   System.out.println("x und y sind null");
+	   }
+	   while((x<=dim[0]) && (y<=dim[0])){
 	   if (selmatrix[x][y]==0){
+		   System.out.println("matrix ist null");
 		   return;
 	   }
 	   
 	   if (selmatrix[x][y]==10){
+		   System.out.println("matrix ist 10");
 		   return;
 	   }
 	   else {
-			  //System.out.println("Hallo");
+		   	   selmatrix[x][y]=10;	
+		   	  System.out.println("matrix ist EINS");
 			   g.setColor(Color.red);
-			   g.drawRect(x,y,1,1);
-			   g.fillRect(x,y,1,1);
-			   selmatrix[x][y]= 10;
-			//   beVisited=true;
-		
-			   int xv = x;
-			   int yv= y;
+			   g.drawRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
+			   g.fillRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
+
 			   // 1 distance
-			   regionGrow(xv-1,yv);
-			   regionGrow(xv+1,yv);
-			   regionGrow(xv,yv-1);
-			   regionGrow(xv,yv+1);
+			   regionGrow(x-1,y);
+			   regionGrow(x+1,y);
+			   regionGrow(x,y-1);
+			   regionGrow(x,y+1);
 			   
 			   // 2 distance
-			   regionGrow(xv-2,yv);
-			   regionGrow(xv+2,yv);
-			   regionGrow(xv,yv-2);
-			   regionGrow(xv,yv+2);
-			   regionGrow(xv-1,yv+1);
-			   regionGrow(xv+1,yv+1);
-			   regionGrow(xv-1,yv-1);
-			   regionGrow(xv+1,yv-1);
+			   regionGrow(x-2,y);
+			   regionGrow(x+2,y);
+			   regionGrow(x,y-2);
+			   regionGrow(x,y+2);
+			   regionGrow(x-1,y+1);
+			   regionGrow(x+1,y+1);
+			   regionGrow(x-1,y-1);
+			   regionGrow(x+1,y-1);
 		   
 		   
 	   }
-	}catch (Exception e){
-		System.out.println(e);
-	}
-	   
+	   }*/
    }
    
    /** returns the coordinates of the upper left and lower right points of the rectangle */
@@ -268,9 +276,7 @@ public class PaintController extends Canvas
 		 return  selmatrix;
 	   }
    
-   public String[] getMultiSelection(){
-		 return  multiSel;
-	   }
+
    
 /** ############################################### */
 /** ############    MOUSE EVENTS   ################ */
@@ -284,6 +290,14 @@ public class PaintController extends Canvas
 	   
 	   //System.out.println(pos[0] + "\t"+pos[1]);
 	   dragging = true;
+	   pressed = true;
+	   
+	   
+	   int sel = view.getValue();
+	   
+	   if (sel ==3){
+	   this.commonNeighbours(evt);
+	   }
 
 	}
    
@@ -294,7 +308,7 @@ public class PaintController extends Canvas
 
    public void mouseReleased(MouseEvent evt) {
            // Called whenever the user releases the mouse button.
-	   g = getGraphics();
+	   
        if (dragging == false)
           return;  // Nothing to do because the user isn't drawing.
       
@@ -305,7 +319,7 @@ public class PaintController extends Canvas
        rh = Math.abs(y-ys);
        
        /** Creating the Contact Map for Selections */
-       myPaint(g);
+       //myPaint(g);
        /** Doing some Selections */
        paint(g, evt);
     
@@ -344,50 +358,80 @@ public class PaintController extends Canvas
 	   int[] posxy = {xpos, ypos};
 	   pos = posxy;
 	   this.update(g, evt);
-	   this.myUpdate(g);
+
 	   this.drawCoordinates();
-	   /*
-	   if (selected==true){
-		   int[][] mat = mod.getMatrix();
-		   int[] srect = this.getSelectRect();
-			int xs = (int)(srect[0]*ratio);
-			int ys = (int)(srect[1]*ratio);
-			int rw = (int)(srect[2]*ratio);
-			int rh = (int)(srect[3]*ratio);
-			
-			g=getGraphics();
-		    g.setColor(Color.red);
+	   
 
-		      for (int m= xs; m<rw; m++){
-		          for (int n= ys; n<rh; n++){
-		        	  
-		        	  if (admatrix[m][n] ==1){
-		        		  g.drawRect(m,n,(int)(1*ratio), (int)(1*ratio));
-		        		  g.fillRect(m,n,(int)(1*ratio), (int)(1*ratio));
-		        	  }
-			
-		          }}
-			
-	   }*/
-
-   } 
+	   
+	   }
+   
    
    
    public void drawCoordinates(){
 
-	   g= getGraphics();
-	   g.setColor(Color.red);
+       //bufferGraphics = offscreen.getGraphics(); 
+	   bufferGraphics.setColor(Color.red);
 	   int[] temp = this.getPosition();
 	   
 	   if ((mouseIn == true) && (xpos <= winwidth) && (ypos <= winheight)){
 	  // writing the coordinates at lower left corner
-	  g.setColor(Color.blue);
-	  g.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
+	  bufferGraphics.setColor(Color.blue);
+	  bufferGraphics.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
 	  // drawing the cross-hair
-	  g.setColor(Color.green);
-	  g.drawLine(xpos, 0, xpos, winheight);
-	  g.drawLine(0, ypos, winwidth, ypos);
+	  bufferGraphics.setColor(Color.green);
+	  bufferGraphics.drawLine(xpos, 0, xpos, winheight);
+	  bufferGraphics.drawLine(0, ypos, winwidth, ypos);
 	   }
+	  g = this.getGraphics();
+	  g.drawImage(offscreen,0,0,this);
+   }
+   
+   public void commonNeighbours(MouseEvent evt){
+
+	   System.out.println("Show: "+ xs+"\t"+ys);
+	   int radius =10;
+	   xs = (int)(xs/ratio);
+	   ys = (int)(ys/ratio);
+	   System.out.println("Show: "+ xs+"\t"+ys);
+	   // searching in vertical direction
+	   bufferGraphics.setColor(Color.blue);
+	   bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+	   
+	   for (int m = 0; m<= dim[0]; m++){
+		   System.out.println("Searching for contacts: "+ xs + "\t"+ys);
+		   //searching the whole y-axis on x-position
+
+		   if(admatrix[xs][m]==1){
+			   int lowtri = m;
+			   int xnew = m;
+			   System.out.println("Found contact, Searching for matching residue: " + xs + "\t"+ lowtri);
+			  
+			   if (admatrix[xnew][ys]==1){
+				   System.out.println("Found next contact of residue: " + xnew + "\t"+ ys);
+				   
+				   bufferGraphics.setColor(Color.blue);
+				   bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((lowtri)*ratio)-10, radius,radius);
+				   bufferGraphics.setColor(Color.blue);
+				   bufferGraphics.drawOval((int)((xnew)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+				   
+				   bufferGraphics.setColor(Color.red);
+				   bufferGraphics.drawLine((int)(xs*ratio),(int)( ys*ratio), (int)(xs*ratio), (int)(lowtri*ratio));
+				   bufferGraphics.drawLine((int)(xs*ratio),(int)( lowtri*ratio), (int)(xnew*ratio), (int)(ys*ratio));
+				   bufferGraphics.drawLine((int)(xnew*ratio),(int)( ys*ratio), (int)(xs*ratio), (int)(ys*ratio));
+				   
+				   radius = radius + 5;
+				   
+				   bufferGraphics.setColor(Color.gray);
+				   bufferGraphics.drawLine(0,(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(lowtri*ratio));
+
+			   }
+			   
+		   }
+  
+	   }
+	      g = this.getGraphics();
+	      g.drawImage(offscreen,0,0,this);
+
    }
    
  
