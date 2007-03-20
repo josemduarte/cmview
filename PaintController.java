@@ -24,7 +24,8 @@ public class PaintController extends Canvas
 
  	private boolean mouseIn;
  	private boolean selected;
- 	private boolean pressed;
+ 	public boolean mousemoved;
+
 
 	private Model mod;
 	private View view;
@@ -44,6 +45,7 @@ public class PaintController extends Canvas
 	public int[] selrec = new int[4]; // points of selected Rectangle
 	public int [][] admatrix = new int[0][];
 	public int[][] selmatrix = new int[0][];
+	public int[][] triangles = new int[0][];
 	public int selNum;
 	
 	// all actions done, i.e. selections,... , refer to the buffer
@@ -62,37 +64,38 @@ public class PaintController extends Canvas
 	
 	
 	  public Dimension getMinimumSize() {
-	  return new Dimension(width, height);
+	  //return new Dimension(width, height);
+		  return new Dimension(1200, 800);
 	  }
 	/** Window Size */
 	  public int[] getMyMinimumSize() {
+		 // Get the size of the default screen
+		 Dimension screendim = new Dimension (1200, 800);
+		 //System.out.println(screendim.getWidth() + "\t"+ screendim.getHeight());
 		 dim = mod.getMatrixSize();
 		 
 		 winwidth = getWidth();
 		 winheight = getHeight();
+		 // create new Dimension of application window
+		 Dimension appdim = new Dimension(dim[0]*4, dim[1]*4); 
 		 
-		 if (winwidth>=dim[0] && winheight >=dim[1]){
+		 if (appdim.getHeight() > screendim.getHeight() ){
+			 // Contact Map should always be a square --> height is smaller size to 
+			 // create an optimal map
+			 double screenratio = (double)(screendim.getHeight()/ appdim.getHeight());
+
+			 appdim.setSize(appdim.getHeight()*screenratio, appdim.getHeight()*screenratio);
+			 
+		 }
+		 
+		 if (winwidth>=appdim.getWidth() || winheight >= appdim.getHeight()){
 			 // windowsize has chenged
 			 changeWin =true;
+			 appdim = new Dimension(winheight, winheight);
 		 }
-		 else {
-			 winwidth = dim[0];
-			 winheight = dim[1];
-		 }
-		 if (changeWin==true){
-
-			 // building a squared rectangle
-			 if (winwidth<= winheight){
-				 winheight=winwidth;
-			 }
-			 else {
-				 winwidth = winheight;
-			 }
 			  
-		 }
-		
-		 
-		 int[]dimsi= {winwidth, winheight};
+
+		 int[]dimsi= {(int)appdim.getHeight(), (int)appdim.getHeight()};
 		  return dimsi;
 	  }
 	  
@@ -122,15 +125,16 @@ public class PaintController extends Canvas
 
 		  dim = mod.getMatrixSize();
 		  int[] dims = this.getMyMinimumSize();
+
 		  
 	      width = dims[0];   // Width of the Contact Map
 	      height = dims[1];  // Height of the Contact Map.
-	  
+	 
 	      ratio = (double)width/dim[0];
 
 		  setBackground(Color.white);
 		    
-		  offscreen = createImage(winwidth, winheight);
+		  offscreen = createImage(width, height);
 		  if (offscreen == null) System.out.println("screenimage null");
 		  
 		  bufferGraphics = offscreen.getGraphics(); 
@@ -145,7 +149,6 @@ public class PaintController extends Canvas
 	        	  
 	        	  if (admatrix[i][j] ==1){
 	        		  // if there is a contact, draw a rectangle
-	 
 	        		  bufferGraphics.drawRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
 	        		  bufferGraphics.fillRect((int)(ratio*i),(int)(ratio*j),(int)(ratio*1),(int)(ratio*1));
 	        	  }
@@ -290,14 +293,14 @@ public class PaintController extends Canvas
 	   
 	   //System.out.println(pos[0] + "\t"+pos[1]);
 	   dragging = true;
-	   pressed = true;
+
 	   
-	   
+	   /*
 	   int sel = view.getValue();
 	   
 	   if (sel ==3){
 	   this.commonNeighbours(evt);
-	   }
+	   }*/
 
 	}
    
@@ -324,6 +327,12 @@ public class PaintController extends Canvas
        paint(g, evt);
     
        dragging = false;
+       
+	   int sel = view.getValue();
+	   
+	   if (sel ==3){
+	   this.commonNeighbours(evt);
+	   }
 	  
    }
 
@@ -351,7 +360,7 @@ public class PaintController extends Canvas
    public void mouseClicked(MouseEvent evt) {
    }   
    public void mouseMoved(MouseEvent evt) {
-	  
+	   mousemoved = true;
 	   xpos = evt.getX();
 	   ypos = evt.getY();
 	   
@@ -360,11 +369,7 @@ public class PaintController extends Canvas
 	   this.update(g, evt);
 
 	   this.drawCoordinates();
-	   
-
-	   
 	   }
-   
    
    
    public void drawCoordinates(){
@@ -376,6 +381,8 @@ public class PaintController extends Canvas
 	   if ((mouseIn == true) && (xpos <= winwidth) && (ypos <= winheight)){
 	  // writing the coordinates at lower left corner
 	  bufferGraphics.setColor(Color.blue);
+	  bufferGraphics.drawString("( X   " + ",  Y )", 0, winheight-50);
+	  bufferGraphics.drawString("(j_num   " + ",  i_num )", 0, winheight-30);
 	  bufferGraphics.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
 	  // drawing the cross-hair
 	  bufferGraphics.setColor(Color.green);
@@ -387,19 +394,50 @@ public class PaintController extends Canvas
    }
    
    public void commonNeighbours(MouseEvent evt){
-
+	   int cnabove=0, cnbetween=0, cnright=0;
+	   int trinum=0;
 	   System.out.println("Show: "+ xs+"\t"+ys);
-	   int radius =10;
 	   xs = (int)(xs/ratio);
 	   ys = (int)(ys/ratio);
-	   System.out.println("Show: "+ xs+"\t"+ys);
-	   // searching in vertical direction
+	   this.drawCorridor((int)(xs*ratio), (int)(ys*ratio));
+	   // drawing the selected point
 	   bufferGraphics.setColor(Color.blue);
-	   bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+	   //bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+	   this.markingPoints(xs,ys,ratio);
+	   System.out.println("Show: "+ xs+"\t"+ys);
+
+	   /** creating common neighbour triangle above the choosen point (red triangles) */
+	   // searching in vertical direction the y-axis till ys-position
+	   for (int m = 0; m<= ys; m++){
+
+		   if(admatrix[xs][m]==1){
+
+				   if(admatrix[ys][m]==1){
+					   	   
+						   bufferGraphics.setColor(Color.blue);
+						   this.markingPoints(xs,m,ratio);
+						   this.markingPoints(ys,m,ratio);
+					
+						   bufferGraphics.setColor(Color.red);
+						   this.drawingLine(xs, ys, xs, m, ys, m, ratio);
+						
+						   bufferGraphics.setColor(Color.lightGray);
+						   //bufferGraphics.drawRect((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
+						   
+						   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
+						   bufferGraphics.drawLine((int)(m*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
+						   
+
+						   this.fillTriangleMatrix(xs, ys, xs, m, ys, m, trinum);
+						   trinum = trinum+1;
+						   cnabove = cnabove +1;
+				   }
+		   	}
+	   }
 	   
-	   for (int m = 0; m<= dim[0]; m++){
-		   System.out.println("Searching for contacts: "+ xs + "\t"+ys);
-		   //searching the whole y-axis on x-position
+	   /** creating common neighbour triangle under the choosen point */
+	   // searching in vertical direction the y-axis from ys-position
+	   for (int m = ys; m<= dim[0]; m++){
 
 		   if(admatrix[xs][m]==1){
 			   int lowtri = m;
@@ -408,32 +446,110 @@ public class PaintController extends Canvas
 			  
 			   if (admatrix[xnew][ys]==1){
 				   System.out.println("Found next contact of residue: " + xnew + "\t"+ ys);
-				   
+				  
 				   bufferGraphics.setColor(Color.blue);
-				   bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((lowtri)*ratio)-10, radius,radius);
-				   bufferGraphics.setColor(Color.blue);
-				   bufferGraphics.drawOval((int)((xnew)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+				   this.markingPoints(xs,lowtri,ratio);
+				   this.markingPoints(xnew,ys,ratio);
 				   
-				   bufferGraphics.setColor(Color.red);
-				   bufferGraphics.drawLine((int)(xs*ratio),(int)( ys*ratio), (int)(xs*ratio), (int)(lowtri*ratio));
-				   bufferGraphics.drawLine((int)(xs*ratio),(int)( lowtri*ratio), (int)(xnew*ratio), (int)(ys*ratio));
-				   bufferGraphics.drawLine((int)(xnew*ratio),(int)( ys*ratio), (int)(xs*ratio), (int)(ys*ratio));
+				   bufferGraphics.setColor(Color.yellow);
+				   this.drawingLine(xs, ys, xs, lowtri, xnew, ys, ratio);
 				   
-				   radius = radius + 5;
-				   
-				   bufferGraphics.setColor(Color.gray);
-				   bufferGraphics.drawLine(0,(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(lowtri*ratio));
-
+				   bufferGraphics.setColor(Color.lightGray);
+				   bufferGraphics.drawLine((int)(ys*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(lowtri*ratio));
+				   bufferGraphics.drawLine((int)(lowtri*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(xs*ratio));
+				
+				   this.fillTriangleMatrix(xs, ys, xs, lowtri, xnew, ys, trinum);
+				   trinum = trinum+1;
+				   cnbetween = cnbetween +1;
 			   }
-			   
 		   }
-  
 	   }
+	   
+	   /** creating common neighbour triangle to the right of the choosen point */
+	   // searching in horizontal direction the x-axis beginning at xs-position
+	   for (int m = xs; m<= dim[0]; m++){
+
+		   if(admatrix[m][ys]==1){
+
+				   if (admatrix[m][xs]==1){
+				  
+				   bufferGraphics.setColor(Color.blue);
+				   this.markingPoints(m, ys,ratio);
+				   this.markingPoints(m,xs,ratio);
+				   
+				   bufferGraphics.setColor(Color.cyan);
+				   this.drawingLine(xs, ys, m, ys, m, xs, ratio);
+				   
+				   bufferGraphics.setColor(Color.lightGray);
+				   //bufferGraphics.drawLine(0,(int)(xs*ratio),(int)(xs*ratio), (int)(xs*ratio));
+				   bufferGraphics.drawLine((int)(m*ratio),(int)(xs*ratio),(int)(m*ratio), (int)(m*ratio));
+				   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
+				
+				   this.fillTriangleMatrix(xs, ys, m, ys, m,xs, trinum);
+				   trinum = trinum+1;
+				   cnright = cnright +1;	
+			   }
+		   }
+	   }
+	   
+	   
+	   
+	   	System.out.println("CN num = "+ cnabove+  cnbetween+cnright);	
+	   	int cnn = + cnabove+  cnbetween+cnright;
+	   	for (int p = 0; p<= cnn; p++){
+	   		System.out.println("neue Zeile");
+	   		for (int q= 0; q<=6; q++){
+	   			
+	   			System.out.println(triangles[p][q]);
+	   		}
+	   	}
 	      g = this.getGraphics();
 	      g.drawImage(offscreen,0,0,this);
 
    }
    
+   public void markingPoints(int x, int y, double ratio){
+	   
+	   bufferGraphics.drawLine((int)(x*ratio)-3, (int)(y*ratio)-3,(int)(x*ratio)+3, (int)(y*ratio)+3 );
+	   bufferGraphics.drawLine((int)(x*ratio)-3, (int)(y*ratio)+3,(int)(x*ratio)+3, (int)(y*ratio)-3 );
+	   bufferGraphics.drawLine((int)(x*ratio)-2, (int)(y*ratio)-3,(int)(x*ratio)+2, (int)(y*ratio)+3 );
+	   bufferGraphics.drawLine((int)(x*ratio)-2, (int)(y*ratio)+3,(int)(x*ratio)+2, (int)(y*ratio)-3 );
+	    }
+   
+   // connecting left upper point(lu), right upper(ru) point and right lower(rl) points via drawline-method 
+   public void drawingLine(int xlu, int ylu, int xru, int yru, int xrl, int yrl, double ratio){
+	   
+	   bufferGraphics.drawLine((int)(xlu*ratio),(int)( ylu*ratio), (int)(xru*ratio), (int)(yru*ratio));
+	   bufferGraphics.drawLine((int)(xru*ratio),(int)( yru*ratio), (int)(xrl*ratio), (int)(yrl*ratio));
+	   bufferGraphics.drawLine((int)(xrl*ratio),(int)( yrl*ratio), (int)(xlu*ratio), (int)(ylu*ratio));
+	   
+   }
+   
+   public void drawCorridor(int x, int y){
+	   
+	  bufferGraphics.setColor(Color.gray);
+	  // Horizontal Lines
+	  bufferGraphics.drawLine(0, y, y, y);
+	  bufferGraphics.setColor(Color.green);
+	  bufferGraphics.drawLine(0, x, x, x);
+	  // vertical Lines
+	  bufferGraphics.drawLine(y,y,y,(int)(dim[0]*ratio));
+	  bufferGraphics.setColor(Color.gray);
+	  bufferGraphics.drawLine(x,x,x,(int)(dim[0]*ratio)); 
+   }
  
+   public int[][] fillTriangleMatrix(int xlu, int ylu, int xru, int yru, int xrl, int yrl,int trinum){
+	   if (triangles == null)System.out.println("triangles is null");
+	   if (trinum== 0)System.out.println("trnum null");
+	
+	   triangles[trinum] = new int[7];
+	   triangles[trinum][0]=xlu;
+	   triangles[trinum][1]=ylu;
+	   triangles[trinum][2]=xru;
+	   triangles[trinum][3]=yru;
+	   triangles[trinum][4]=xrl;
+	   triangles[trinum][5]=yrl;
+	   return triangles;
+   }
 } 
 
