@@ -60,7 +60,7 @@ public class View extends JFrame implements ActionListener{
 		
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocation(470,200);
+		setLocation(20,20);
 
 		/** Creating the Panels */
 		bpl = new JPanel(new GridLayout(2,3)); // Button Panel
