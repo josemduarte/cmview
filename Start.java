@@ -137,7 +137,7 @@ public class Start extends JFrame implements ActionListener{
 		}
 		
 		  public void actionPerformed (ActionEvent e) {
-			  
+			             
 			  
 			// radio-button selection 
 			if (backButton.isSelected() == true){
@@ -188,7 +188,7 @@ public class Start extends JFrame implements ActionListener{
 			  	// data model
 				mod = new Model(this);
 				String title = "Contact Map";
-				pc = new PaintController(mod, view);
+				pc = new PaintController(this, mod, view);
 				
 				String wintitle = this.getAccessionCode();
 				View view = new View(this, mod, wintitle, pc, mypymol);
@@ -203,7 +203,7 @@ public class Start extends JFrame implements ActionListener{
 	
 				
 				/** Starting PyMol */
-				/**
+				
 				try{
 					
 					rt = Runtime.getRuntime();
@@ -213,7 +213,7 @@ public class Start extends JFrame implements ActionListener{
 				
 				catch (IOException ex) {
 					ex.printStackTrace();
-					}*/
+					}
 		  }
 		  
 		  /** returns the pdb-filename */

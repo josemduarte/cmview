@@ -30,11 +30,13 @@ public class MyTestPyMol {
 
 		public String pdbFileName;
 		public String accessionCode;
+		public int trinum;
 	
 		private PaintController pc;
 		public int[][] matrix = new int[0][];
+		public int[][] triangle= new int[1][];
 		public int[] selrec = new int[4];
-		//public String[] mulOb = pc.getMultiSelection();
+		
 		
 		// constructor
 		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol mypymol){
@@ -119,6 +121,27 @@ public class MyTestPyMol {
 			
 			
 			Out.println("cmd.hide('labels')");
+		}
+		
+		public void showTriangles(){
+			//running python script for creating the triangles with the given residues
+			Out.println("run /amd/white/2/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py");
+			
+			if(pc == null) System.out.println("Paint is null");
+			triangle = pc.getResidues();
+			trinum = pc.getTriangleNumber();
+			
+			
+			String[] color = {"blue", "red", "yellow", "magenta", "cyan"};
+			for (int i =0; i< trinum; i++){
+				
+				int res1 = triangle[i][0];
+				int res2 = triangle[i][1];
+				int res3 = triangle[i][2];
+			
+				Out.println("triangle "+ accessionCode+"Triangle"+i + " , "+ res1+ " , "+res2 +" , "+res3+" , " + color[i]+" ,");
+			}
+			
 		}
 		
 		public void FillCommands(){

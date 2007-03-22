@@ -2,6 +2,7 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
 import java.lang.Math.*;
 import java.awt.event.MouseEvent.*;
 
@@ -17,8 +18,8 @@ public class PaintController extends Canvas
  	private int xpos, ypos;
  	public int winwidth, winheight;
  	public double ratio;
-
  	public int value;
+ 	public int trinum;
 
  	private boolean dragging;      // This is set to true while the user is drawing.
 
@@ -26,10 +27,10 @@ public class PaintController extends Canvas
  	private boolean selected;
  	public boolean mousemoved;
 
-
+ 	private Start start;
 	private Model mod;
 	private View view;
-	private boolean changeWin;
+	private Triangle2PyMol t2p;
 
 	public Graphics g; 	//buffered Graphic
 	public Graphics bufferGraphics; 	//Canvas Graphic
@@ -43,16 +44,16 @@ public class PaintController extends Canvas
 	public int[] dimsi = new int[2];
 	public int[] pos = new int[2];
 	public int[] selrec = new int[4]; // points of selected Rectangle
-	public int [][] admatrix = new int[0][];
+	public int[][] admatrix = new int[0][];
 	public int[][] selmatrix = new int[0][];
-	public int[][] triangles = new int[0][];
+	public int[][] triangles = new int[20][];
+	public int[][] resi = new int[20][];
 	public int selNum;
 	
-	// all actions done, i.e. selections,... , refer to the buffer
 
-	
 
-	public PaintController(Model mod, View view){
+	public PaintController(Start start, Model mod, View view){
+		this.start=start;
 		this.mod = mod;
 
 		mod.ModelInit();
@@ -89,8 +90,7 @@ public class PaintController extends Canvas
 		 }
 		 
 		 if (winwidth>=appdim.getWidth() || winheight >= appdim.getHeight()){
-			 // windowsize has chenged
-			 changeWin =true;
+
 			 appdim = new Dimension(winheight, winheight);
 		 }
 			  
@@ -290,18 +290,8 @@ public class PaintController extends Canvas
            // in the frame
        xs = evt.getX();   
 	   ys = evt.getY(); 
-	   
-	   //System.out.println(pos[0] + "\t"+pos[1]);
+	
 	   dragging = true;
-
-	   
-	   /*
-	   int sel = view.getValue();
-	   
-	   if (sel ==3){
-	   this.commonNeighbours(evt);
-	   }*/
-
 	}
    
   public int[] getPosition(){
@@ -393,16 +383,19 @@ public class PaintController extends Canvas
 	  g.drawImage(offscreen,0,0,this);
    }
    
+   
+   
    public void commonNeighbours(MouseEvent evt){
 	   int cnabove=0, cnbetween=0, cnright=0;
-	   int trinum=0;
+	   trinum=0;
 	   System.out.println("Show: "+ xs+"\t"+ys);
 	   xs = (int)(xs/ratio);
 	   ys = (int)(ys/ratio);
 	   this.drawCorridor((int)(xs*ratio), (int)(ys*ratio));
+	   
 	   // drawing the selected point
 	   bufferGraphics.setColor(Color.blue);
-	   //bufferGraphics.drawOval((int)((xs)*ratio)-10, (int)((ys)*ratio)-10, radius,radius);
+
 	   this.markingPoints(xs,ys,ratio);
 	   System.out.println("Show: "+ xs+"\t"+ys);
 
@@ -422,15 +415,13 @@ public class PaintController extends Canvas
 						   this.drawingLine(xs, ys, xs, m, ys, m, ratio);
 						
 						   bufferGraphics.setColor(Color.lightGray);
-						   //bufferGraphics.drawRect((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
-						   
+		
 						   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
 						   bufferGraphics.drawLine((int)(m*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
 						   
-
 						   this.fillTriangleMatrix(xs, ys, xs, m, ys, m, trinum);
+						   this.fillResidueMatrix(xs, ys, m, trinum);
 						   trinum = trinum+1;
-						   cnabove = cnabove +1;
 				   }
 		   	}
 	   }
@@ -459,8 +450,9 @@ public class PaintController extends Canvas
 				   bufferGraphics.drawLine((int)(lowtri*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(xs*ratio));
 				
 				   this.fillTriangleMatrix(xs, ys, xs, lowtri, xnew, ys, trinum);
+				   this.fillResidueMatrix(xs, ys, lowtri, trinum);
 				   trinum = trinum+1;
-				   cnbetween = cnbetween +1;
+
 			   }
 		   }
 	   }
@@ -481,31 +473,33 @@ public class PaintController extends Canvas
 				   this.drawingLine(xs, ys, m, ys, m, xs, ratio);
 				   
 				   bufferGraphics.setColor(Color.lightGray);
-				   //bufferGraphics.drawLine(0,(int)(xs*ratio),(int)(xs*ratio), (int)(xs*ratio));
 				   bufferGraphics.drawLine((int)(m*ratio),(int)(xs*ratio),(int)(m*ratio), (int)(m*ratio));
 				   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
 				
 				   this.fillTriangleMatrix(xs, ys, m, ys, m,xs, trinum);
+				   this.fillResidueMatrix(xs, ys, m, trinum);
 				   trinum = trinum+1;
-				   cnright = cnright +1;	
+
 			   }
 		   }
 	   }
-	   
-	   
-	   
-	   	System.out.println("CN num = "+ cnabove+  cnbetween+cnright);	
-	   	int cnn = + cnabove+  cnbetween+cnright;
-	   	for (int p = 0; p<= cnn; p++){
-	   		System.out.println("neue Zeile");
-	   		for (int q= 0; q<=6; q++){
-	   			
-	   			System.out.println(triangles[p][q]);
-	   		}
-	   	}
+
+	   	
+	  // 	 t2p = new Triangle2PyMol(start, this);
+	   	 
+
 	      g = this.getGraphics();
 	      g.drawImage(offscreen,0,0,this);
 
+   }
+   
+
+   public int[][] getTriangleCoordinates(){
+	   return triangles;
+   } 
+   
+   public int getTriangleNumber(){
+	   return trinum;
    }
    
    public void markingPoints(int x, int y, double ratio){
@@ -538,11 +532,23 @@ public class PaintController extends Canvas
 	  bufferGraphics.drawLine(x,x,x,(int)(dim[0]*ratio)); 
    }
  
+   public int[][] fillResidueMatrix(int res1, int res2, int res3, int trinum){
+	   resi[trinum] = new int[3];
+	   resi[trinum][0] = res1;
+	   resi[trinum][1] = res2;
+	   resi[trinum][2] = res3;
+	   return resi;
+   }
+   
+   public int [][] getResidues(){
+	   return resi;
+   }
+   
    public int[][] fillTriangleMatrix(int xlu, int ylu, int xru, int yru, int xrl, int yrl,int trinum){
 	   if (triangles == null)System.out.println("triangles is null");
-	   if (trinum== 0)System.out.println("trnum null");
+
 	
-	   triangles[trinum] = new int[7];
+	   triangles[trinum] = new int[6];
 	   triangles[trinum][0]=xlu;
 	   triangles[trinum][1]=ylu;
 	   triangles[trinum][2]=xru;

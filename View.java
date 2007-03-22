@@ -21,7 +21,7 @@ import tools.*;
 
 
 public class View extends JFrame implements ActionListener{
-	JButton send, square, fill, loadPDB, comNei;
+	JButton send, square, fill, loadPDB, comNei, triangle;
 	JTextField tx, ty;
 
 	JPanel bpl; // Button Panel
@@ -69,13 +69,14 @@ public class View extends JFrame implements ActionListener{
 
 		/** Creating the Buttons */
 
-		square = new JButton("Square Selection");
-		fill = new JButton("Fill Selection");
-		loadPDB = new JButton("Load PDB File");
-		send = new JButton("Send Selection");
-		comNei = new JButton("Show Common Neighbours");
+		square = new JButton("Square Selection on Map");
+		fill = new JButton("Fill Selection on Map");
+		loadPDB = new JButton("Load PDB File in PyMol");
+		send = new JButton("Send Selection to PyMol");
+		comNei = new JButton("Show Common Neighbours on Map");
+		triangle = new JButton("Send Common Neighbours to PyMol");
 
-		pc = new PaintController(mod, this);
+		pc = new PaintController(start, mod, this);
 
 		/** Adding the ActionListener */
 
@@ -84,6 +85,7 @@ public class View extends JFrame implements ActionListener{
 		comNei.addActionListener(this);
 		loadPDB.addActionListener(this);
 		send.addActionListener(this);
+		triangle.addActionListener(this);
 		
 		/** Adding the Buttons to the Panels */
 
@@ -92,7 +94,8 @@ public class View extends JFrame implements ActionListener{
 		bpl.add(comNei);
 		bpl.add(loadPDB);
 		bpl.add(send);
-
+		bpl.add(triangle);
+		
 		cmp.add(pc);
 		
 		/** Creating the vertical Boxes */
@@ -122,7 +125,6 @@ public class View extends JFrame implements ActionListener{
 		  }
 		  
 		  if (e.getSource() == comNei){
-			  System.out.println("Show comman neighbours");
 			  
 			  	selval = 3;
 		  }
@@ -136,16 +138,17 @@ public class View extends JFrame implements ActionListener{
 		  
 		  if (e.getSource() == send){
 			  
-				//tpm = new MyTestPyMol(start, mod, this, pc, mypymol);
-				
+		
 				   int selval = this.getValue();
-				  // System.out.println(selval);
-				  // System.out.println(selval);
 				   switch(selval){
 				   
 				   case 1: tpm.SquareCommands();
 				   case 2: tpm.FillCommands();
 				   }
+		  }
+		  
+		  if(e.getSource()== triangle){
+			  tpm.showTriangles();
 		  }
 	  }
 	  
