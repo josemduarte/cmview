@@ -40,6 +40,7 @@ public class View extends JFrame implements ActionListener{
 	public String[] text = new String[2];
 	public String s1, s2;
 	private MouseEvent evt;
+	public String selectionType;
 
 
 
@@ -47,7 +48,6 @@ public class View extends JFrame implements ActionListener{
 		super(title);
 		this.start= start;
 		
-	
 		this.mod = mod;
 		this.pc=pc;
 		
@@ -115,6 +115,8 @@ public class View extends JFrame implements ActionListener{
 			  
 				selval = 1;
 				selINK = selINK +1;
+				selectionType = "Square";
+				
 		  }
 		  
 		  if (e.getSource() == fill){
@@ -122,6 +124,7 @@ public class View extends JFrame implements ActionListener{
 			  
 				selval = 2;
 				selINK = selINK +1;
+				selectionType = "Fill";
 		  }
 		  
 		  if (e.getSource() == comNei){
@@ -158,6 +161,10 @@ public class View extends JFrame implements ActionListener{
 
 	  public int getSelNum(){
 		  return selINK;
+	  }
+	  
+	  public String getSelectionType(){
+		  return selectionType;
 	  }
 }
 
