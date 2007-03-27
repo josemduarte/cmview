@@ -30,7 +30,7 @@ public class PaintController extends Canvas
  	private Start start;
 	private Model mod;
 	private View view;
-	private Triangle2PyMol t2p;
+
 
 	public Graphics g; 	//buffered Graphic
 	public Graphics bufferGraphics; 	//Canvas Graphic
@@ -124,6 +124,7 @@ public class PaintController extends Canvas
    public void paint(Graphics g, MouseEvent evt){
 
 		  dim = mod.getMatrixSize();
+		  
 		  int[] dims = this.getMyMinimumSize();
 
 		  
@@ -140,7 +141,7 @@ public class PaintController extends Canvas
 		  bufferGraphics = offscreen.getGraphics(); 
 	      bufferGraphics.clearRect(0,0,(int)(dims[0]*ratio),(int)( dims[1]*ratio));
 	      admatrix = mod.getMatrix();            
-
+	      selmatrix = mod.getMatrix();
 
 	     bufferGraphics.setColor(Color.black);
 
@@ -158,18 +159,18 @@ public class PaintController extends Canvas
 	   
 	   /** distinction between square-select or fill-select*/ 
 	   int selval = view.getValue();
-	   selmatrix = admatrix;
+	   
 	   switch(selval){
 	   
 	   case 1: squareSelect(evt);
-	   //case 2: regionGrow((int)(xs/ratio),(int)(ys/ratio));
+	   case 2: regionGrow((int)(xs/ratio),(int)(ys/ratio));
 	   
        }
-	   /*
+	   
 	    bufferGraphics.setColor(Color.red);
 		for(int z = 0; z<= (int)(dim[0]); z++){
 			for(int p = 0; p<= (int)(dim[0]); p++){
-				if ((selmatrix[z][p]==10)){
+				if ((selmatrix[z][p]==10) || (selmatrix[z][p]==5)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 
@@ -177,7 +178,7 @@ public class PaintController extends Canvas
 				
 			}
 			
-		}*/
+		}
 	   
        g = this.getGraphics();
        g.drawImage(offscreen,0,0,this);
@@ -198,15 +199,14 @@ public class PaintController extends Canvas
          	  
          	  if (admatrix[xsi][ysj] ==1){
          		  // if there is a contact, draw a 1-by-1 rectangle
-         	
-         		bufferGraphics.drawRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
-         		bufferGraphics.fillRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
-         		//selmatrix[xsi][ysj]=10;
+         	    selmatrix[xsi][ysj]=5;
+         		//bufferGraphics.drawRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
+         		//bufferGraphics.fillRect((int)(ratio*xsi),(int)(ratio*ysj),(int)(ratio*1),(int)(ratio*1));
+
          	  }
            }
        }
        
-       //ABSPEICHERN IN M*N AARAY??????? 
        int[] selrect = {(int)(xs/(double)ratio), (int)(ys/(double)ratio), (int)((rwidth + xs)/(double)ratio), (int)((rheight +ys)/(double)ratio)};
        selrec = selrect;
        
@@ -218,9 +218,6 @@ public class PaintController extends Canvas
 		System.out.println("Residues: "+ xs + "\t"+ ys + "\t"+ rw + "\t"+ rh);
 		
 		selected = true;
-	
-		
-		
    }
 
 
@@ -228,27 +225,30 @@ public class PaintController extends Canvas
    public void regionGrow(int x, int y){
 	   System.out.println("RegGrow: "+ x + "\t"+ y);
 	   
-/*
+
 	   if ((x==0) | (y==0)){
-		   System.out.println("x und y sind null");
+		  // System.out.println("x und y sind null");
 	   }
 	   while((x<=dim[0]) && (y<=dim[0])){
+		   
 	   if (selmatrix[x][y]==0){
-		   System.out.println("matrix ist null");
+		   //System.out.println("matrix ist null");
 		   return;
 	   }
 	   
 	   if (selmatrix[x][y]==10){
-		   System.out.println("matrix ist 10");
+		   //System.out.println("matrix ist 10");
 		   return;
 	   }
 	   else {
 		   	   selmatrix[x][y]=10;	
 		   	  System.out.println("matrix ist EINS");
-			   g.setColor(Color.red);
-			   g.drawRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
-			   g.fillRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
-
+		   	  
+		   	  /*
+			   bufferGraphics.setColor(Color.red);
+			   bufferGraphics.drawRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
+			   bufferGraphics.fillRect((int)(x*ratio),(int)(y*ratio),(int)(1*ratio),(int)(1*ratio));
+*/
 			   // 1 distance
 			   regionGrow(x-1,y);
 			   regionGrow(x+1,y);
@@ -267,7 +267,9 @@ public class PaintController extends Canvas
 		   
 		   
 	   }
-	   }*/
+	   }
+	   
+	   
    }
    
    /** returns the coordinates of the upper left and lower right points of the rectangle */
@@ -279,7 +281,6 @@ public class PaintController extends Canvas
 		 return  selmatrix;
 	   }
    
-
    
 /** ############################################### */
 /** ############    MOUSE EVENTS   ################ */
@@ -386,7 +387,7 @@ public class PaintController extends Canvas
    
    
    public void commonNeighbours(MouseEvent evt){
-	   int cnabove=0, cnbetween=0, cnright=0;
+	
 	   trinum=0;
 	   System.out.println("Show: "+ xs+"\t"+ys);
 	   xs = (int)(xs/ratio);
@@ -421,6 +422,7 @@ public class PaintController extends Canvas
 						   
 						   this.fillTriangleMatrix(xs, ys, xs, m, ys, m, trinum);
 						   this.fillResidueMatrix(xs, ys, m, trinum);
+						   System.out.println(xs +"\t"+ ys+"\t"+m);
 						   trinum = trinum+1;
 				   }
 		   	}
@@ -451,6 +453,7 @@ public class PaintController extends Canvas
 				
 				   this.fillTriangleMatrix(xs, ys, xs, lowtri, xnew, ys, trinum);
 				   this.fillResidueMatrix(xs, ys, lowtri, trinum);
+				   System.out.println(xs +"\t"+ ys+"\t"+lowtri);
 				   trinum = trinum+1;
 
 			   }
@@ -478,6 +481,7 @@ public class PaintController extends Canvas
 				
 				   this.fillTriangleMatrix(xs, ys, m, ys, m,xs, trinum);
 				   this.fillResidueMatrix(xs, ys, m, trinum);
+				   System.out.println(xs +"\t"+ ys+"\t"+m);
 				   trinum = trinum+1;
 
 			   }

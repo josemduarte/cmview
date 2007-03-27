@@ -1,7 +1,7 @@
 
 
 import java.sql.*;
-
+import javax.swing.*;
 import tools.*;
 
 /**
@@ -17,12 +17,14 @@ import tools.*;
  *
  */
 
-public class Model {
+public class Model extends JFrame {
 
 	public int[] pubmsize = new int[2]; // public array for matrix size 
 	public int[][] pubmatrix = MatrixInitialiser(); // public array for adjacency matrix
 
 	private Start start;
+	private JFrame f;
+	public int a,b;
 	
 	//constructor
 	public Model(Start start){
@@ -42,19 +44,41 @@ public class Model {
     
 		/** SQL-String takes the data out of the DB */
 		String sql = start.getSQLString();
-		System.out.println(sql);
+		String ac = start.getAccessionCode();
+		String ct = start.getSelectedCT();
+		String size = "select min(num), max(num),count(num), max(num)-min(num)+1"
+						+ " from single_model_node, single_model_graph where single_model_graph.accession_code = '" +ac
+						+ "' and single_model_graph.CT = '" + ct +"' and single_model_graph.graph_id = single_model_node.graph_id;";
 		
 		/** Database Connection */
 		MySQLConnection con = new MySQLConnection("white",user,"nieve","pdb_reps_graph");
 		st = con.createStatement();
 		
-		rs = st.executeQuery(sql);
+		rs = st.executeQuery(size);
 		while (rs.next()){
-			int m = rs.getInt(3); // numbers of rows of the contact map
-			int n = rs.getInt(3); // numbers of columns of the contact map
+			a = rs.getInt(3);
+			b = rs.getInt(4);
+			
+			/**** Hier */ 
+			int m = rs.getInt(2); // numbers of rows of the contact map
+			int n = rs.getInt(2); // numbers of columns of the contact map
 			int[] msiz = {m,n};
 			pubmsize = msiz;
 		}
+		
+		if(a==b){
+			//everything is fine
+		}
+		else{
+//			custom title, warning icon
+			//JFrame f = new JFrame("Warning");
+			JOptionPane.showMessageDialog(f,
+			    "Be careful: some unobserved residues!",
+			    "Unobserved Residue Warning",
+			    JOptionPane.WARNING_MESSAGE);
+
+		}
+		
 		
 		rss = st.executeQuery(sql);
 		// initialising an empty matrix
@@ -77,7 +101,7 @@ public class Model {
 	}
 
     }
-	
+
 	
 	/** Returns matrix dimension */
 	public int[] getMatrixSize(){
