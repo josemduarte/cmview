@@ -17,7 +17,7 @@ import tools.*;
  *
  */
 
-public class Model extends JFrame {
+public class Model  {
 
 	public int[] pubmsize = new int[2]; // public array for matrix size 
 	public int[][] pubmatrix = MatrixInitialiser(); // public array for adjacency matrix

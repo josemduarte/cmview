@@ -1,13 +1,8 @@
 
-
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.OutputStream;
-import java.io.FileOutputStream;
-
 import tools.PyMol;
 import tools.PymolServerOutputStream;
-import tools.MultiOutputStream;
+import java.util.*;
 
 
 public class MyTestPyMol {
@@ -28,7 +23,7 @@ public class MyTestPyMol {
 		private Model mod;
 		private View view;
 		public PrintWriter Out = null;	
-		public PyMol mypymol;
+		public PyMol pymol;
 	
 
 		public String pdbFileName;
@@ -45,12 +40,12 @@ public class MyTestPyMol {
 		
 		
 		// constructor
-		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol mypymol){
+		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol pymol){
 			this.start=start;
 			this.mod = mod;
 			this.view=view;
 			this.pc=pc;
-			this.mypymol=mypymol;
+			this.pymol=pymol;
 		}
 		
 		public void MyTestPyMolInit(){
@@ -70,23 +65,21 @@ public class MyTestPyMol {
 			String url = "http://mauve:9123";
 			
 			pdbFileName = start.getPDBString();
+			System.out.println(pdbFileName);
 			accessionCode= start.getAccessionCode();
 			chaincode = start.getChainCode();
-			
-
-			//pdbFileName = "/project/StruPPi/jose/tinker/benchmarking/1bxy_A.pdb";
 
 			// to output only to server we would need the following PrintWriter
 			Out = new PrintWriter(new PymolServerOutputStream(url),true);
 			
 			/** Initialising PyMol */
 			
-			mypymol = new PyMol(Out);		
-			mypymol.loadPDB(pdbFileName);
-			mypymol.myHide("lines");
-			mypymol.myShow("cartoon");
-			mypymol.set("dash_gap", 0, "", true);
-			mypymol.set("dash_width", 2.5, "", true);
+			pymol = new PyMol(Out);		
+			pymol.loadPDB(pdbFileName);
+			pymol.myHide("lines");
+			pymol.myShow("cartoon");
+			pymol.set("dash_gap", 0, "", true);
+			pymol.set("dash_width", 2.5, "", true);
    
 		}
 			
@@ -105,6 +98,7 @@ public class MyTestPyMol {
 			int rw = selrec[2]; //endpoint lower right, x-direction
 			int rh = selrec[3]; //endpoint lower right, y-direction
 			
+			
 			for (i = xs; i<= rw; i++){
 				for (j = ys; j<= rh; j++){
 					
@@ -113,9 +107,8 @@ public class MyTestPyMol {
 						int resi1 = i;
 						int resi2 = j;
 						System.out.println("i: "+ i + " j: "+j);
-						
 						//inserts an edge between the selected residues 
-						mypymol.setDistance(resi1, resi2,accessionCode+ selectionType, k, chaincode);
+						pymol.setDistance(resi1, resi2,accessionCode+ selectionType, k, chaincode);
 					}
 				}
 			}
@@ -131,17 +124,19 @@ public class MyTestPyMol {
 			triangle = pc.getResidues();
 			int[] selectresi = new int[triangle.length+2];
 			trinum = pc.getTriangleNumber();
+			Random generator = new Random(trinum/2);
 			
-
-			
-			String[] color = {"blue", "red", "yellow", "magenta", "cyan"};
+			String[] color = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 			for (int i =0; i< trinum; i++){
 				
 				int res1 = triangle[i][0];
 				int res2 = triangle[i][1];
 				int res3 = triangle[i][2];
-			
-				Out.println("triangle "+ accessionCode+"Triangle"+i + " , "+ res1+ " , "+res2 +" , "+res3);
+				
+				int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
+				System.out.println("RN: "+ random);
+				
+				Out.println("triangle "+ accessionCode+"Triangle"+i + ", "+ res1+ ", "+res2 +", "+res3 +", " + color[random]);
 			}
 			
 			selectresi[0] = triangle[0][0];
@@ -159,7 +154,7 @@ public class MyTestPyMol {
 				resi_num = resi_num + "+"+selectresi[i];
 			}
 			
-			mypymol.select("Sele: "+accessionCode, resi_num);
+			pymol.select("Sele: "+accessionCode, resi_num);
 			
 		}
 		
@@ -183,7 +178,7 @@ public class MyTestPyMol {
 						int resi1 = i;
 						int resi2 = j;
 						//inserts an edge between the selected residues 
-						mypymol.setDistance(resi1, resi2, accessionCode+selectionType, k, chaincode);
+						pymol.setDistance(resi1, resi2, accessionCode+selectionType, k, chaincode);
 						
 					}
 					
@@ -196,37 +191,11 @@ public class MyTestPyMol {
 			
 		}
 		
-		//public static void main(String[] args) {
-			
-			
-			
-//			if (server){
-//				OutputStream os1 = new PymolServerOutputStream(url);
-//				OutputStream os2 = null;
-//				try {
-//					os2 = new FileOutputStream(file);
-//				} catch (FileNotFoundException e) {
-//					e.printStackTrace();
-//					System.exit(2);
-//				}
-//				OutputStream multi = new MultiOutputStream(os1, os2);
-//				Out = new PrintWriter(multi, true);
-//			} else {
-//				try {
-//					Out = new PrintWriter(new FileOutput/home/dinse/test.logStream(file),true);
-//				} catch (FileNotFoundException e) {
-//					e.printStackTrace();
-//					System.exit(1);
-//				}
-//			}
-			
-			//testPyMol tpm = new testPyMol();
-			//tpm.testPyMolInit();
-		
 
-		}
 
-//	}
+}
+
+
 
 
 
