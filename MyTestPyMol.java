@@ -141,7 +141,7 @@ public class MyTestPyMol {
 				int res2 = triangle[i][1];
 				int res3 = triangle[i][2];
 			
-				Out.println("triangle "+ accessionCode+"Triangle"+i + " , "+ res1+ " , "+res2 +" , "+res3+" , " + color[i]+" ,");
+				Out.println("triangle "+ accessionCode+"Triangle"+i + " , "+ res1+ " , "+res2 +" , "+res3);
 			}
 			
 			selectresi[0] = triangle[0][0];
