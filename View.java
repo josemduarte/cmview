@@ -41,6 +41,7 @@ public class View extends JFrame implements ActionListener{
 	public String s1, s2;
 	private MouseEvent evt;
 	public String selectionType;
+	public boolean sendpy;
 
 
 
@@ -141,7 +142,7 @@ public class View extends JFrame implements ActionListener{
 		  
 		  if (e.getSource() == send){
 			  
-		
+			  	   sendpy =true;	
 				   int selval = this.getValue();
 				   switch(selval){
 				   
@@ -161,6 +162,10 @@ public class View extends JFrame implements ActionListener{
 
 	  public int getSelNum(){
 		  return selINK;
+	  }
+	  
+	  public boolean getSendValue(){
+		  return sendpy;
 	  }
 	  
 	  public String getSelectionType(){
