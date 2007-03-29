@@ -163,9 +163,24 @@ public class PaintController extends Canvas
        }
 	   
 	    bufferGraphics.setColor(Color.red);
-		for(int z = 0; z<= (int)(dim[0]); z++){
+	/*	for(int z = 0; z<= (int)(dim[0]); z++){
+			for(int p = 0; p<= (int)(dim[0]); p++){*/
+	    
+	       for (int z= (int)(xs/(double)ratio); z <= (int)((xs +rwidth)/(double)ratio); z++){
+	           for (int p= (int)(ys/(double)ratio); p<= (int)((ys +rheight)/(double)ratio); p++){
+	         	  
+				if ((selmatrix[z][p]==5)){
+	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
+	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
+				}
+			}
+		}
+	       
+	       
+	   		for(int z = 0; z<= (int)(dim[0]); z++){
 			for(int p = 0; p<= (int)(dim[0]); p++){
-				if ((selmatrix[z][p]==10) || (selmatrix[z][p]==5)){
+	    
+				if ((selmatrix[z][p]==10)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 				}

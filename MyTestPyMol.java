@@ -136,7 +136,7 @@ public class MyTestPyMol {
 				int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
 				System.out.println("RN: "+ random);
 				
-				Out.println("triangle "+ accessionCode+"Triangle"+i + ", "+ res1+ ", "+res2 +", "+res3 +", " + color[random]);
+				Out.println("triangle('"+ accessionCode+"Triangle"+i + "', "+ res1+ ", "+res2 +", "+res3 +", '" + color[random] +"', " + 0.5+")");
 			}
 			
 			selectresi[0] = triangle[0][0];
