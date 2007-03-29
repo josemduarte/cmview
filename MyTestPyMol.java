@@ -134,9 +134,7 @@ public class MyTestPyMol {
 				int res3 = triangle[i][2];
 				
 				int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
-				System.out.println("RN: "+ random);
-				
-				Out.println("triangle('"+ accessionCode+"Triangle"+i + "', "+ res1+ ", "+res2 +", "+res3 +", '" + color[random] +"', " + 0.5+")");
+				Out.println("triangle('"+ accessionCode+"Triangle"+i + "', "+ res1+ ", "+res2 +", "+res3 +", '" + color[random] +"', " + 0.7+")");
 			}
 			
 			selectresi[0] = triangle[0][0];
@@ -179,20 +177,12 @@ public class MyTestPyMol {
 						int resi2 = j;
 						//inserts an edge between the selected residues 
 						pymol.setDistance(resi1, resi2, accessionCode+selectionType, k, chaincode);
-						
 					}
-					
 				}
-				
 			}
 
 			Out.println("cmd.hide('labels')");
-			
-			
 		}
-		
-
-
 }
 
 

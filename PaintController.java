@@ -66,29 +66,25 @@ public class PaintController extends Canvas
 	  public int[] getMyMinimumSize() {
 		 // Get the size of the default screen
 		 Dimension screendim = new Dimension (1200, 800);
-		 //System.out.println(screendim.getWidth() + "\t"+ screendim.getHeight());
 		 dim = mod.getMatrixSize();
 		 
 		 winwidth = getWidth();
 		 winheight = getHeight();
+		 
 		 // create new Dimension of application window
 		 Dimension appdim = new Dimension(dim[0]*4, dim[1]*4); 
 		 
 		 if (appdim.getHeight() > screendim.getHeight() ){
-			 // Contact Map should always be a square --> height is smaller size to 
+			 // Contact Map should always be a square --> height is smaller than size to 
 			 // create an optimal map
 			 double screenratio = (double)(screendim.getHeight()/ appdim.getHeight());
-
 			 appdim.setSize(appdim.getHeight()*screenratio, appdim.getHeight()*screenratio);
-			 
 		 }
 		 
 		 if (winwidth>=appdim.getWidth() || winheight >= appdim.getHeight()){
-
 			 appdim = new Dimension(winheight, winheight);
 		 }
 			  
-
 		 int[]dimsi= {(int)appdim.getHeight(), (int)appdim.getHeight()};
 		  return dimsi;
 	  }
@@ -102,7 +98,6 @@ public class PaintController extends Canvas
 	  public Dimension getPreferredSize() {
 		  return getMinimumSize();
 	  }
-	  
 	  
 	  public int getValue(){
 		  return value;
@@ -125,7 +120,7 @@ public class PaintController extends Canvas
 	      width = dims[0];   // Width of the Contact Map
 	      height = dims[1];  // Height of the Contact Map.
 	 
-	      ratio = (double)width/dim[0];
+	      ratio = (double)width/dim[0];		// scale factor
 
 		  setBackground(Color.white);
 		    
@@ -133,12 +128,13 @@ public class PaintController extends Canvas
 		  if (offscreen == null) System.out.println("screenimage null");
 		  
 		  bufferGraphics = offscreen.getGraphics(); 
-	      bufferGraphics.clearRect(0,0,(int)(dims[0]*ratio),(int)( dims[1]*ratio));
+		  // clearing the buffer
+	      bufferGraphics.clearRect(0,0,(int)(dims[0]*ratio),(int)( dims[1]*ratio)); 		
 	      admatrix = mod.getMatrix();            
 	      selmatrix = mod.getMatrix();
 
 	     bufferGraphics.setColor(Color.black);
-
+	     // initialising the first contact map
 	      for (i= 0; i<dim[0]; i++){
 	          for (j= 0; j<dim[1]; j++){
 	        	  
@@ -163,11 +159,9 @@ public class PaintController extends Canvas
        }
 	   
 	    bufferGraphics.setColor(Color.red);
-	/*	for(int z = 0; z<= (int)(dim[0]); z++){
-			for(int p = 0; p<= (int)(dim[0]); p++){*/
-	    
-	       for (int z= (int)(xs/(double)ratio); z <= (int)((xs +rwidth)/(double)ratio); z++){
-	           for (int p= (int)(ys/(double)ratio); p<= (int)((ys +rheight)/(double)ratio); p++){
+/*
+	   for (int z= (int)(xs/(double)ratio); z <= (int)((xs +rwidth)/(double)ratio); z++){
+	       for (int p= (int)(ys/(double)ratio); p<= (int)((ys +rheight)/(double)ratio); p++){
 	         	  
 				if ((selmatrix[z][p]==5)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
@@ -176,11 +170,11 @@ public class PaintController extends Canvas
 			}
 		}
 	       
-	       
-	   		for(int z = 0; z<= (int)(dim[0]); z++){
+	       */
+	   	for(int z = 0; z<= (int)(dim[0]); z++){
 			for(int p = 0; p<= (int)(dim[0]); p++){
 	    
-				if ((selmatrix[z][p]==10)){
+				if ((selmatrix[z][p]==10) || (selmatrix[z][p]==5)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
 				}
