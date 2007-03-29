@@ -11,11 +11,13 @@ import tools.*;
  * 
  * @author:	Juliane Dinse
  * Class: 	View
- * Package:	tools
+ * Package:	CM2PyMol
  * Date:	20/02/2007
  * 
- * View creates the Contact Map and allows user-interaction, i.e. selections and fills.
- * these selections can be send to PyMol via "Send"-Button.
+ * tasks:
+ * - preparing visualisation of contact map by providing a panel
+ * - implements the ActionListener --> Buttons for different selection options
+ * - if button is clicked --> sending signals to other programs
  *
  */
 
@@ -31,45 +33,41 @@ public class View extends JFrame implements ActionListener{
 	private Model mod;
 	private View view;
 	public PaintController pc;
-	private PyMol mypymol;
+	private PyMol pymol;
 	private MyTestPyMol tpm;
 	public int selval;
-	public int selINK=0;
+	public int selINK=0;		 // incrementation numbering
 	
 	public int[] pos = new int[2];
 	public String[] text = new String[2];
 	public String s1, s2;
-	private MouseEvent evt;
+	//private MouseEvent evt;
 	public String selectionType;
 	public boolean sendpy;
 
 
 
-	public View(Start start, Model mod, String title, PaintController pc, PyMol mypymol){
+	public View(Start start, Model mod, String title, PaintController pc, PyMol pymol){
 		super(title);
 		this.start= start;
-		
 		this.mod = mod;
 		this.pc=pc;
-		
 		this.ViewInit();
-		this.mypymol=mypymol;
+		this.pymol=pymol;
 
 	}
 	
 	public void ViewInit(){
-		
+		// setting the layout 
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(20,20);
 
 		/** Creating the Panels */
 		bpl = new JPanel(new GridLayout(2,3)); // Button Panel
-
 		cmp= new JPanel(new BorderLayout()); // Contact Map Panel
 
 		/** Creating the Buttons */
-
 		square = new JButton("Square Selection on Map");
 		fill = new JButton("Fill Selection on Map");
 		loadPDB = new JButton("Load PDB File in PyMol");
@@ -77,10 +75,7 @@ public class View extends JFrame implements ActionListener{
 		comNei = new JButton("Show Common Neighbours on Map");
 		triangle = new JButton("Send Common Neighbours to PyMol");
 
-		pc = new PaintController(start, mod, this);
-
 		/** Adding the ActionListener */
-
 		square.addActionListener(this);
 		fill.addActionListener(this);
 		comNei.addActionListener(this);
@@ -97,6 +92,7 @@ public class View extends JFrame implements ActionListener{
 		bpl.add(send);
 		bpl.add(triangle);
 		
+		pc = new PaintController(start, mod, this);
 		cmp.add(pc);
 		
 		/** Creating the vertical Boxes */
@@ -110,36 +106,34 @@ public class View extends JFrame implements ActionListener{
 
 	
 	  public void actionPerformed (ActionEvent e) {
-
+		  // square button clicked
 		  if (e.getSource() == square){
-			  System.out.println("geklickt S!");
 			  
 				selval = 1;
 				selINK = selINK +1;
 				selectionType = "Square";
 				
 		  }
-		  
+		  // fill button clicked
 		  if (e.getSource() == fill){
-			  System.out.println("geklickt F!");
 			  
 				selval = 2;
 				selINK = selINK +1;
 				selectionType = "Fill";
 		  }
-		  
+		  // showing com. Nei. button clicked
 		  if (e.getSource() == comNei){
 			  
 			  	selval = 3;
 		  }
-		  
+		  // loading pdb button clicked
 		  if (e.getSource() == loadPDB){
 			  
-				tpm = new MyTestPyMol(start, mod, this, pc, mypymol);
+				tpm = new MyTestPyMol(start, mod, this, pc, pymol);
 				tpm.MyTestPyMolInit();
 				
 				   }
-		  
+		  // send selection button clicked
 		  if (e.getSource() == send){
 			  
 			  	   sendpy =true;	
@@ -150,7 +144,7 @@ public class View extends JFrame implements ActionListener{
 				   case 2: tpm.FillCommands();
 				   }
 		  }
-		  
+		  // send com.Nei. button clicked
 		  if(e.getSource()== triangle){
 			  tpm.showTriangles();
 		  }
@@ -163,10 +157,7 @@ public class View extends JFrame implements ActionListener{
 	  public int getSelNum(){
 		  return selINK;
 	  }
-	  
-	  public boolean getSendValue(){
-		  return sendpy;
-	  }
+
 	  
 	  public String getSelectionType(){
 		  return selectionType;

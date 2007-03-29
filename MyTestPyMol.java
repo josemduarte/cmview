@@ -11,20 +11,21 @@ public class MyTestPyMol {
 /**
  * Test class for the PyMol class (our java to PyMol API) 
  * @param file where PyMol script will be written
- * @author duarte, updated to MyTestPyMol by: Juliane Dinse, Date: 01/03/2007
+ * @author duarte, updated to MyTestPyMol by: Juliane Dinse, Date: 29/03/2007
  * 
- * MyTestPyMol sends commands directly to Pymol.
+ * MyTestPyMol sends selected data and commands directly to Pymol.
  * 
  * - recieves (square) selections of contact map and illustrates them as PyMol-distance objects.
- * - recieves coordinates of comman neighbours of selected residues and illustrates them as triangles. 
+ * - recieves coordinates of comman neighbours of selected residues and illustrates them as triangles (CGO-object)
+ *   with integrated transparency parameter). 
  *
 		 */
 		private Start start;
 		private Model mod;
 		private View view;
+		private PaintController pc;
 		public PrintWriter Out = null;	
 		public PyMol pymol;
-	
 
 		public String pdbFileName;
 		public String accessionCode;
@@ -32,12 +33,10 @@ public class MyTestPyMol {
 		public int trinum;
 		public String selectionType;
 	
-		private PaintController pc;
 		public int[][] matrix = new int[0][];
 		public int[][] selmatrix = new int[0][];
 		public int[][] triangle= new int[1][];
 		public int[] selrec = new int[4];
-		
 		
 		// constructor
 		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol pymol){
@@ -65,7 +64,7 @@ public class MyTestPyMol {
 			String url = "http://mauve:9123";
 			
 			pdbFileName = start.getPDBString();
-			System.out.println(pdbFileName);
+
 			accessionCode= start.getAccessionCode();
 			chaincode = start.getChainCode();
 
@@ -88,10 +87,10 @@ public class MyTestPyMol {
 		public void SquareCommands(){
 			int i,j;
 			int k = view.getSelNum();
-			matrix = pc.getSelectMatrix();	
-			if(pc == null) System.out.println("Paint is null");
-			selrec = pc.getSelectRect();
 			selectionType = view.getSelectionType();
+			matrix = pc.getSelectMatrix();	
+			selrec = pc.getSelectRect();
+
 			
 			int xs = selrec[0]; //starting point: upper left, x-direction
 			int ys = selrec[1]; //starting point: upper left, y-direction
@@ -119,11 +118,11 @@ public class MyTestPyMol {
 		public void showTriangles(){
 			//running python script for creating the triangles with the given residues
 			Out.println("run /amd/white/2/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py");
-			
-			if(pc == null) System.out.println("Paint is null");
+
+			trinum = pc.getTriangleNumber();
 			triangle = pc.getResidues();
 			int[] selectresi = new int[triangle.length+2];
-			trinum = pc.getTriangleNumber();
+
 			Random generator = new Random(trinum/2);
 			
 			String[] color = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
@@ -158,12 +157,12 @@ public class MyTestPyMol {
 		
 		public void FillCommands(){
 			int i,j;
+			int [] size = mod.getMatrixSize();
 			int k = view.getSelNum();
 			selectionType = view.getSelectionType();
-			
-			if(pc == null) System.out.println("Paint is null");
 			selmatrix = pc.getSelectMatrix();	
-			int [] size = mod.getMatrixSize();
+
+			
 			int dim1 = size[0];
 			int dim2 = size[1];
 			

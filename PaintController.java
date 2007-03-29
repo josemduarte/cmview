@@ -1,9 +1,24 @@
-
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * 
+ * @author:		Juliane Dinse
+ * Class: 		PaintController
+ * Package: 	CM2PyMol
+ * Date:		20/02/2007, updated: 29/03/2007
+ * 
+ * 
+ * tasks:
+ * - drawing contact map 
+ * - works on a buffer for Double Buffering (can be more optimized)
+ * - updates contact map in case of user interaction/selection:
+ * 			- Square selection, Fill selectionon CM
+ *  - implements ALL MouseEvents
+ *  - draws cross-hair, coordinates, coloures selections, shows common neighbours
+ *  - storages all selections in matrices for further processing
+ */
 
 public class PaintController extends Canvas
                 implements MouseListener, MouseMotionListener {
@@ -12,27 +27,25 @@ public class PaintController extends Canvas
  	public int x, y;  // x and y as endpoints of square selection
  	private int xpos, ypos;
  	public int winwidth, winheight;
- 	public double ratio;
- 	public int value;
- 	public int trinum;
-
+ 	
+	public int i,j, width, height, rw, rh;
+	public int rwidth, rheight; 	// distance from xs t x in x-direction (respectively ys and y)
+	
+	
+ 	public double ratio;		// scale factor
+ 	public int value;			// value for selections: 1--> square, 2 --> fill
+ 	public int trinum;			// number of triangles
+    
  	private boolean dragging;      // This is set to true while the user is drawing.
 
  	private boolean mouseIn;
- 	public boolean mousemoved;
-
  	private Start start;
 	private Model mod;
 	private View view;
-
-
-	public Graphics g; 	//buffered Graphic
-	public Graphics bufferGraphics; 	//Canvas Graphic
-	public Image offscreen;
-	private BufferedImage buffer;
 	
-	public int i,j, width, height, rw, rh;
-	public int rwidth, rheight; 	// distance from xs t x in x-direction (respectively ys and y)
+	public Graphics g; 					// buffered Graphic (work panel)
+	public Graphics bufferGraphics; 	// Canvas Graphic
+	public Image offscreen;				// image which is shown as graphic
 	
 	public int[] dim = new int[2];
 	public int[] dimsi = new int[2];
@@ -42,10 +55,8 @@ public class PaintController extends Canvas
 	public int[][] selmatrix = new int[0][];
 	public int[][] triangles = new int[20][];
 	public int[][] resi = new int[20][];
-	public int selNum;
-	
 
-
+	// constructor
 	public PaintController(Start start, Model mod, View view){
 		this.start=start;
 		this.mod = mod;
@@ -62,7 +73,7 @@ public class PaintController extends Canvas
 	  //return new Dimension(width, height);
 		  return new Dimension(1200, 800);
 	  }
-	/** Window Size */
+	  /** Window Size */
 	  public int[] getMyMinimumSize() {
 		 // Get the size of the default screen
 		 Dimension screendim = new Dimension (1200, 800);
@@ -75,7 +86,7 @@ public class PaintController extends Canvas
 		 Dimension appdim = new Dimension(dim[0]*4, dim[1]*4); 
 		 
 		 if (appdim.getHeight() > screendim.getHeight() ){
-			 // Contact Map should always be a square --> height is smaller than size to 
+			 // Contact Map should always be a square --> height is smaller than width to 
 			 // create an optimal map
 			 double screenratio = (double)(screendim.getHeight()/ appdim.getHeight());
 			 appdim.setSize(appdim.getHeight()*screenratio, appdim.getHeight()*screenratio);
@@ -113,10 +124,8 @@ public class PaintController extends Canvas
    public void paint(Graphics g, MouseEvent evt){
 
 		  dim = mod.getMatrixSize();
-		  
 		  int[] dims = this.getMyMinimumSize();
 
-		  
 	      width = dims[0];   // Width of the Contact Map
 	      height = dims[1];  // Height of the Contact Map.
 	 
@@ -159,18 +168,7 @@ public class PaintController extends Canvas
        }
 	   
 	    bufferGraphics.setColor(Color.red);
-/*
-	   for (int z= (int)(xs/(double)ratio); z <= (int)((xs +rwidth)/(double)ratio); z++){
-	       for (int p= (int)(ys/(double)ratio); p<= (int)((ys +rheight)/(double)ratio); p++){
-	         	  
-				if ((selmatrix[z][p]==5)){
-	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
-	         		bufferGraphics.fillRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
-				}
-			}
-		}
-	       
-	       */
+
 	   	for(int z = 0; z<= (int)(dim[0]); z++){
 			for(int p = 0; p<= (int)(dim[0]); p++){
 	    
@@ -199,7 +197,7 @@ public class PaintController extends Canvas
            for (int ysj= (int)(ys/(double)ratio); ysj<= (int)((ys +rheight)/(double)ratio); ysj++){
          	  
          	  if (admatrix[xsi][ysj] ==1){
-         		  // if there is a contact, draw a 1-by-1 rectangle
+         		  // if there is a contact, mark up
          	    selmatrix[xsi][ysj]=5;
          	  }
            }
@@ -216,8 +214,6 @@ public class PaintController extends Canvas
 		System.out.println("Residues: "+ xs + "\t"+ ys + "\t"+ rw + "\t"+ rh);
 		
    }
-
-
   
    public void fillSelect(int x, int y){
 	   System.out.println("RegGrow: "+ x + "\t"+ y);
@@ -272,8 +268,8 @@ public class PaintController extends Canvas
 /** ############################################### */   
    
    public void mousePressed(MouseEvent evt) {
-           // This is called when the user presses the mouse anywhere
-           // in the frame
+       // This is called when the user presses the mouse anywhere
+       // in the frame
        xs = evt.getX();   
 	   ys = evt.getY(); 
 	
@@ -286,7 +282,7 @@ public class PaintController extends Canvas
    
 
    public void mouseReleased(MouseEvent evt) {
-           // Called whenever the user releases the mouse button.
+       // Called whenever the user releases the mouse button.
 	   
        if (dragging == false)
           return;  // Nothing to do because the user isn't drawing.
@@ -297,8 +293,6 @@ public class PaintController extends Canvas
        rw = Math.abs(x-xs); // positive difference
        rh = Math.abs(y-ys);
        
-       /** Creating the Contact Map for Selections */
-       //myPaint(g);
        /** Doing some Selections */
        paint(g, evt);
     
@@ -313,14 +307,12 @@ public class PaintController extends Canvas
    }
 
    public void mouseDragged(MouseEvent evt) {
-            // Called whenever the user moves the mouse
-            // while a mouse button is held down. 
+       // Called whenever the user moves the mouse
+       // while a mouse button is held down. 
 
        if (dragging == false)
-
-    	   return;
-         // return;  // Nothing to do because the user isn't drawing.
-       
+    	   	return;
+ 
        x = evt.getX();   // x-coordinate of mouse.
        y = evt.getY();   // y=coordinate of mouse.
 
@@ -336,31 +328,28 @@ public class PaintController extends Canvas
    public void mouseClicked(MouseEvent evt) {
    }   
    public void mouseMoved(MouseEvent evt) {
-	   mousemoved = true;
 	   xpos = evt.getX();
 	   ypos = evt.getY();
 	   
 	   int[] posxy = {xpos, ypos};
 	   pos = posxy;
 	   this.update(g, evt);
-
 	   this.drawCoordinates();
-	   
 	   }
-   
    
    public void drawCoordinates(){
 
-       //bufferGraphics = offscreen.getGraphics(); 
 	   bufferGraphics.setColor(Color.red);
 	   int[] temp = this.getPosition();
 	   
 	   if ((mouseIn == true) && (xpos <= winwidth) && (ypos <= winheight)){
+		   
 	  // writing the coordinates at lower left corner
 	  bufferGraphics.setColor(Color.blue);
 	  bufferGraphics.drawString("( X   " + ",  Y )", 0, winheight-50);
 	  bufferGraphics.drawString("(j_num   " + ",  i_num )", 0, winheight-30);
 	  bufferGraphics.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
+	  
 	  // drawing the cross-hair
 	  bufferGraphics.setColor(Color.green);
 	  bufferGraphics.drawLine(xpos, 0, xpos, winheight);
@@ -369,8 +358,6 @@ public class PaintController extends Canvas
 	  g = this.getGraphics();
 	  g.drawImage(offscreen,0,0,this);
    }
-   
-   
    
    public void commonNeighbours(MouseEvent evt){
 	
@@ -405,10 +392,8 @@ public class PaintController extends Canvas
 		
 						   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
 						   bufferGraphics.drawLine((int)(m*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
-						   
-						   this.fillTriangleMatrix(xs, ys, xs, m, ys, m, trinum);
+
 						   this.fillResidueMatrix(xs, ys, m, trinum);
-						   System.out.println(xs +"\t"+ ys+"\t"+m);
 						   trinum = trinum+1;
 				   }
 		   	}
@@ -421,8 +406,7 @@ public class PaintController extends Canvas
 		   if(admatrix[xs][m]==1){
 			   int lowtri = m;
 			   int xnew = m;
-			   System.out.println("Found contact, Searching for matching residue: " + xs + "\t"+ lowtri);
-			  
+
 			   if (admatrix[xnew][ys]==1){
 				   System.out.println("Found next contact of residue: " + xnew + "\t"+ ys);
 				  
@@ -437,9 +421,7 @@ public class PaintController extends Canvas
 				   bufferGraphics.drawLine((int)(ys*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(lowtri*ratio));
 				   bufferGraphics.drawLine((int)(lowtri*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(xs*ratio));
 				
-				   this.fillTriangleMatrix(xs, ys, xs, lowtri, xnew, ys, trinum);
 				   this.fillResidueMatrix(xs, ys, lowtri, trinum);
-				   System.out.println(xs +"\t"+ ys+"\t"+lowtri);
 				   trinum = trinum+1;
 
 			   }
@@ -465,9 +447,7 @@ public class PaintController extends Canvas
 				   bufferGraphics.drawLine((int)(m*ratio),(int)(xs*ratio),(int)(m*ratio), (int)(m*ratio));
 				   bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
 				
-				   this.fillTriangleMatrix(xs, ys, m, ys, m,xs, trinum);
 				   this.fillResidueMatrix(xs, ys, m, trinum);
-				   System.out.println(xs +"\t"+ ys+"\t"+m);
 				   trinum = trinum+1;
 
 			   }
@@ -478,11 +458,7 @@ public class PaintController extends Canvas
 	      g.drawImage(offscreen,0,0,this);
 
    }
-   
 
-   public int[][] getTriangleCoordinates(){
-	   return triangles;
-   } 
    
    public int getTriangleNumber(){
 	   return trinum;
@@ -529,19 +505,6 @@ public class PaintController extends Canvas
    public int [][] getResidues(){
 	   return resi;
    }
-   
-   public int[][] fillTriangleMatrix(int xlu, int ylu, int xru, int yru, int xrl, int yrl,int trinum){
-	   if (triangles == null)System.out.println("triangles is null");
 
-	
-	   triangles[trinum] = new int[6];
-	   triangles[trinum][0]=xlu;
-	   triangles[trinum][1]=ylu;
-	   triangles[trinum][2]=xru;
-	   triangles[trinum][3]=yru;
-	   triangles[trinum][4]=xrl;
-	   triangles[trinum][5]=yrl;
-	   return triangles;
-   }
 } 
 

@@ -11,10 +11,12 @@ import tools.*;
  * Package: 	tools
  * Date:		20/02/2007, updated: 01/03/2007
  * 
- * Model ONLY handles the DB-data and prepares them in right order to process them 
- * in different other methods. 
- * Its independent from all other classes which represent data for user-interaction.
- *
+ * tasks:
+ * - getting the data out of the database
+ * - initialising size of the contact map
+ * - creating the binary contact-map-matrix: 0 - no contact, 1 - contact
+ * - if selected pdb structure contains unobserved residues: Pop-up-window with warning message
+ * 
  */
 
 public class Model  {
@@ -70,8 +72,8 @@ public class Model  {
 			//everything is fine
 		}
 		else{
-//			custom title, warning icon
-			//JFrame f = new JFrame("Warning");
+
+			// warning pop-up if unobserved residues occur
 			JOptionPane.showMessageDialog(f,
 			    "Be careful: some unobserved residues!",
 			    "Unobserved Residue Warning",
@@ -92,8 +94,6 @@ public class Model  {
 			pubmatrix[a][b]=1;
 
 			}
-
-		
 	}
 	catch ( Exception ex ) {
         System.out.println( ex );
