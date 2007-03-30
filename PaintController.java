@@ -47,6 +47,7 @@ public class PaintController extends Canvas
 	public Graphics bufferGraphics; 	// Canvas Graphic
 	public Image offscreen;				// image which is shown as graphic
 	
+	
 	public int[] dim = new int[2];
 	public int[] dimsi = new int[2];
 	public int[] pos = new int[2];
