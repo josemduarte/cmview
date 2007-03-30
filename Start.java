@@ -4,12 +4,7 @@ import java.awt.event.*;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 import tools.Msdsd2Pdb;
 import tools.MySQLConnection;
@@ -37,6 +32,11 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   private Choice Selectorcc;	// Selector for chain pdb code
   private Choice Selectorct;	// selector for contact type
   
+  private JComboBox ComboSelAc;	// Selector for accession code
+  private JComboBox ComboSelCc;	// Selector for chain pdb code
+  private JComboBox ComboSelCt;	// selector for contact type
+  
+  
   public int numac, rownumac;		// getting the number of rows out of the DB in accession_code Column
   public int numcc, rownumcc;		// getting the number of rows out of the DB in chain-pdb-code Column
   public int numct, rownumct;		// getting the number of rows out of the DB in chain-pdb-code Column
@@ -46,11 +46,15 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   public String [] CCodeList;
   public String [] CTList;
   
-  private Font SansSerif;
-  JButton load;
-  JPanel loadpanel, selpanel;
-  private JTextField tf;
+ 
   
+  public Object [] ComboListAc;
+  
+  private Font SansSerif;
+  JButton load, check;
+  JPanel loadpanel, selpanel;
+  private JTextField tf, tfac;
+  private JFrame f;
   public String[] val = new String[4];
 
   public String sql;
@@ -78,17 +82,29 @@ public class Start extends JFrame implements ItemListener, ActionListener {
     Selectorac = new Choice ();
     Selectorcc = new Choice ();
     Selectorct = new Choice ();
-
+    
+    ComboSelAc= new JComboBox();		// ComboBox for Accession codes
+    ComboSelCc= new JComboBox();		// ComboBox for chain codes
+    ComboSelCt= new JComboBox();		// ComboBox for contact types
+    
     /* creating panel */
-	loadpanel = new JPanel(new BorderLayout());		// Panel for load-button
-	selpanel = new JPanel(new GridLayout(4,1));		// panel for selectors
+	loadpanel = new JPanel(new GridLayout(2,1));		// Panel for load-button
+	selpanel = new JPanel(new GridLayout(5,1));		// panel for selectors
 	
 	/* creating button */
 	load = new JButton("Load");
 	/* adding ActionListener to button */
 	load.addActionListener(this);
 	/* adding button to panel */
-	loadpanel.add(load, BorderLayout.SOUTH);
+	loadpanel.add(load, new GridLayout(2,1));
+	
+//	
+//	/* creating button for accession code check */
+//	check = new JButton("Check Database");
+//    /*adding ActionListener to button */
+//	check.addActionListener(this);
+//	/* adding button to panel */
+//	loadpanel.add(check, new GridLayout(1,1));
 	
 	/* Creating the Selectors */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     Selectorac.setBackground (Color.gray);
@@ -102,17 +118,23 @@ public class Start extends JFrame implements ItemListener, ActionListener {
     Selectorct.setBackground (Color.gray);
     Selectorct.setForeground (Color.lightGray);
     Selectorct.setFont (SansSerif);
-   
+
     /* creating textfield */
     tf = new JTextField();
+   // tfac = new JTextField();
             
     /* Adding selectors and textlabels to panel */
+	//selpanel.add(new JLabel("Search Access. C.:"));
+	//selpanel.add(tfac);
 	selpanel.add(new JLabel("Accession Code:"));
     selpanel.add(Selectorac);
+	//selpanel.add(ComboSelAc);
     selpanel.add(new JLabel("Chain Code:"));
     selpanel.add(Selectorcc);
+    //selpanel.add(ComboSelCc);
     selpanel.add(new JLabel("Contact Type:"));
     selpanel.add(Selectorct);
+    //selpanel.add(ComboSelCt);
     selpanel.add(new JLabel("Minimum Distance:"));
     selpanel.add(tf);
 
@@ -120,6 +142,11 @@ public class Start extends JFrame implements ItemListener, ActionListener {
     Selectorac.addItemListener (this);
     Selectorcc.addItemListener (this);
     Selectorct.addItemListener (this);
+    
+    ComboSelAc.addItemListener (this);
+    ComboSelCc.addItemListener (this);
+    ComboSelCt.addItemListener (this);
+    
     
     /* creating the front frame */
 	Box verlBox = Box.createVerticalBox();
@@ -152,21 +179,26 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			numac = rsacs.getRow();
 		}
 		
-	    rownumac = numac; 
+	  
 		ACodeList = new String [numac];
+		//ComboListAc = new Object[numac+1];
 		
 		rsac = st.executeQuery(straccesscode);
 		int k =0;
 		while (rsac.next()){
 			/* adding database output to object */
 			String acccode = rsac.getString(1);
-			
+			Object acode= rsac.getObject(1);
 			ACodeList[k]= acccode;
+			//ComboListAc[k]= acode;
 			k++;
 		}
 		/* adding object content to selector to represent it */
 	    for (int i = 0; i < ACodeList.length; i++) {
 	        Selectorac.insert (ACodeList [i], i);
+	    	//ComboSelAc.addItem(ComboListAc [i]);
+	    	
+	    
 	    }
 	  
 	}
@@ -179,12 +211,12 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   public void fillCCChoiceBox(String accession_code){
 		String user ="dinse";
         Statement  st = null;  
-	    int n=0;
+	   
 	    ResultSet  rsccs = null;	    // getting the data of the size of the chain pdb codes
 	    ResultSet  rscc = null;	    	// getting the data of the chain pdb codes
 	    
 	    try {
-	        
+	    	 int n=0;
 			/** SQL-String takes the data out of the DB */
 	    	String strchainpdb = "select distinct chain_pdb_code from chain_graph where accession_code = '"+accession_code+"' ;";
 	   
@@ -211,6 +243,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			/* adding object content to selector to represent it */
 		    for (int i = 0; i < CCodeList.length; i++) {
 		        Selectorcc.insert (CCodeList [i], i);
+		    	//ComboSelCc.add (CCodeList [i], ComboSelCc);
 		    }
 		    Selectorcc.select(0);
 	    }catch ( Exception ex ) {
@@ -222,12 +255,12 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   public void fillCTChoiceBox(String accession_code, String chain_pdb_code){
 	  String user ="dinse";
       Statement  st = null;  
-	  int n=0;
+
 	  ResultSet  rscts = null;	    // getting the data of the size of the chain pdb codes
 	  ResultSet  rsct = null;	    // getting the data of the chain pdb codes
 	    
 	    try {
-	        
+	  	  int n=0;
 			/** SQL-String takes the data out of the DB */
 	    	if (chain_pdb_code == "is null"){
 	    		chain_pdb_code = "is null";
@@ -260,6 +293,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			/* adding object content to selector to represent it */
 		    for (int i = 0; i < CTList.length; i++) {
 		        Selectorct.insert (CTList [i], i);
+		    	//ComboSelCt.add (CTList [i], ComboSelCt);
 		    }
 		    Selectorct.select(0);
 	    }catch ( Exception ex ) {
@@ -269,14 +303,16 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   
   
   public void itemStateChanged(ItemEvent e) {
-	  
+	 
+	
 	if(e.getSource() == Selectorac){  
     int selacindex = Selectorac.getSelectedIndex();
     Selectac = Selectorac.getItem(selacindex);
     System.out.println(Selectac);
- 
+   
     this.fillCCChoiceBox(Selectac);
 	}
+	
 	
 	if(e.getSource()== Selectorcc){
     int selccindex = Selectorcc.getSelectedIndex();
@@ -307,6 +343,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	  return Selectct;
   }
   
+  
   public void actionPerformed (ActionEvent e) {
 	  
 	  if (e.getSource()== load){
@@ -324,6 +361,13 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	
 		  this.Init();
 	  }
+	  
+	  if (e.getSource() == check){
+		  
+		  // comparing the input string of the user with the database
+		  // handling searching on time ... ex.: searching for 12as ... but just typed 12a_ with missing s
+	  }
+	  
   }
   
   public void Init(){
