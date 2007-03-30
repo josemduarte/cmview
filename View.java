@@ -111,7 +111,7 @@ public class View extends JFrame implements ActionListener{
 			  
 				selval = 1;
 				selINK = selINK +1;
-				selectionType = "Square";
+				selectionType = "Squa";
 				
 		  }
 		  // fill button clicked
