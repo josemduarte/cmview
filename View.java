@@ -35,6 +35,7 @@ public class View extends JFrame implements ActionListener{
 	public PaintController pc;
 	private PyMol pymol;
 	private MyTestPyMol tpm;
+	private String pyMolServerUrl;
 	public int selval;
 	public int selINK=0;		 // incrementation numbering
 	
@@ -47,13 +48,14 @@ public class View extends JFrame implements ActionListener{
 
 
 
-	public View(Start start, Model mod, String title, PaintController pc, PyMol pymol){
+	public View(Start start, Model mod, String title, PaintController pc, PyMol pymol, String pyMolServerUrl){
 		super(title);
 		this.start= start;
 		this.mod = mod;
 		this.pc=pc;
 		this.ViewInit();
 		this.pymol=pymol;
+		this.pyMolServerUrl=pyMolServerUrl;
 
 	}
 	
@@ -129,7 +131,7 @@ public class View extends JFrame implements ActionListener{
 		  // loading pdb button clicked
 		  if (e.getSource() == loadPDB){
 			  
-				tpm = new MyTestPyMol(start, mod, this, pc, pymol);
+				tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
 				tpm.MyTestPyMolInit();
 				
 				   }

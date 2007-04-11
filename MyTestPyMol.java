@@ -24,6 +24,7 @@ public class MyTestPyMol {
 		private Model mod;
 		private View view;
 		private PaintController pc;
+		private String url;
 		public PrintWriter Out = null;	
 		public PyMol pymol;
 
@@ -39,12 +40,13 @@ public class MyTestPyMol {
 		public int[] selrec = new int[4];
 		
 		// constructor
-		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol pymol){
+		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol pymol, String pyMolServerUrl){
 			this.start=start;
 			this.mod = mod;
 			this.view=view;
 			this.pc=pc;
 			this.pymol=pymol;
+			this.url=pyMolServerUrl;
 		}
 		
 		public void MyTestPyMolInit(){
@@ -59,9 +61,6 @@ public class MyTestPyMol {
 			if (args.length>1){ // two arguments: output both file and server
 				server=true;
 			}
-			
-		
-			String url = "http://mauve:9123";
 			
 			pdbFileName = start.getPDBString();
 

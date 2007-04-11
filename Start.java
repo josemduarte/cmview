@@ -11,10 +11,12 @@ import tools.MySQLConnection;
 import tools.PyMol;
 /**
  * 
- * @author:		Juliane Dinse
+ * @author		Juliane Dinse
+ * @author		Henning Stehr
  * Class: 		Start
  * Package: 	CM2PyMol
  * Date:		20/02/2007, updated: 29/03/2007
+ * 				2007-04-11 updated by HS
  * 
  * tasks:
  * - initialising the application window
@@ -25,7 +27,20 @@ import tools.PyMol;
  */
 
 public class Start extends JFrame implements ItemListener, ActionListener {
-  
+
+	/* Constants */
+	
+	static final String		DB_HOST =	"white";
+	static final String		DB_USER =	"stehr";
+	static final String		DB_PWD =	"nieve";
+	static final String		GRAPH_DB =	"pdb_reps_graph";
+	// Note: the database needs to have chain_graph and single_model_graph tables
+	// table and column names are currently hard-coded, TODO: use pdb-file/pdbase as input
+	static final String		TEMP_PATH =	"/scratch/local/"; // for temp pdb files
+	static final String		PYMOL_SERVER_URL = "http://gelb:9123";
+	// Note: The pymol server has to be running (by starting pymol -R)
+	
+	
 	/* Declaration */
   private LayoutManager Layout;
   private Choice Selectorac;	// Selector for accession code
@@ -158,7 +173,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	setVisible(true);
     
 	/** SQL preparation */
-	String user ="dinse";
+	MySQLConnection con = null;
     Statement  st = null;
     ResultSet  rsacs = null; 	// getting the data for the size of the Contact Map
     ResultSet  rsac = null;	    // getting the data of the accession codes
@@ -170,7 +185,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
     	String straccesscode = "select distinct accession_code from single_model_graph;";
 
 		/** Database Connection */
-		MySQLConnection con = new MySQLConnection("white",user,"nieve","pdb_reps_graph");
+		con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
 		st = con.createStatement();
 		
 		/** initialising the Selector for Accession Codes */
@@ -188,7 +203,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		while (rsac.next()){
 			/* adding database output to object */
 			String acccode = rsac.getString(1);
-			Object acode= rsac.getObject(1);
+			//Object acode= rsac.getObject(1);
 			ACodeList[k]= acccode;
 			//ComboListAc[k]= acode;
 			k++;
@@ -200,18 +215,22 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	    	
 	    
 	    }
-	  
+	    st.close();
+	    
 	}
 	catch ( Exception ex ) {
         System.out.println( ex );
+	}
+	finally {
+		con.close();
 	}
   }
   
   /** initialising the ChoiceBox for the Cchain code */
   public void fillCCChoiceBox(String accession_code){
-		String user ="dinse";
+	  	
+	  	MySQLConnection con;
         Statement  st = null;  
-	   
 	    ResultSet  rsccs = null;	    // getting the data of the size of the chain pdb codes
 	    ResultSet  rscc = null;	    	// getting the data of the chain pdb codes
 	    
@@ -221,7 +240,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	    	String strchainpdb = "select distinct chain_pdb_code from chain_graph where accession_code = '"+accession_code+"' ;";
 	   
 			/** Database Connection */
-			MySQLConnection con = new MySQLConnection("white",user,"nieve","pdb_reps_graph");
+	    	con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
 			st = con.createStatement();
 			
 		    /** initialising the selector for PDB chain Codes */
@@ -246,6 +265,10 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		    	//ComboSelCc.add (CCodeList [i], ComboSelCc);
 		    }
 		    Selectorcc.select(0);
+		    
+		    st.close();
+		    con.close();
+		    
 	    }catch ( Exception ex ) {
 	        System.out.println( ex );
 		}
@@ -253,9 +276,8 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   
   /** initialising the ChoiceBox for the Contact Types */
   public void fillCTChoiceBox(String accession_code, String chain_pdb_code){
-	  String user ="dinse";
+	  MySQLConnection con;
       Statement  st = null;  
-
 	  ResultSet  rscts = null;	    // getting the data of the size of the chain pdb codes
 	  ResultSet  rsct = null;	    // getting the data of the chain pdb codes
 	    
@@ -273,7 +295,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	    					+" and chain_graph.graph_id = single_model_graph.pgraph_id;";
 	   
 			/** Database Connection */
-			MySQLConnection con = new MySQLConnection("white",user,"nieve","pdb_reps_graph");
+	    	con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
 			st = con.createStatement();
 			
 		    /** initialising the selector for PDB contact types */
@@ -296,6 +318,10 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		    	//ComboSelCt.add (CTList [i], ComboSelCt);
 		    }
 		    Selectorct.select(0);
+		    
+		    st.close();
+		    con.close();
+		    
 	    }catch ( Exception ex ) {
 	        System.out.println( ex );
 		}
@@ -379,11 +405,11 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		pc = new PaintController(this, mod, view);
 		// view
 		String wintitle = "Contact Map of " + this.getAccessionCode();
-		view = new View(this, mod, wintitle, pc, mypymol);
+		view = new View(this, mod, wintitle, pc, mypymol, PYMOL_SERVER_URL);
 		
 		msd = new Msdsd2Pdb();
 		try{
-		msd.export2File(val[0], val[1], "/home/dinse/pdb/"+val[0] +".pdb", "dinse");
+		msd.export2File(val[0], val[1], TEMP_PATH + val[0] +".pdb", DB_USER);
 		} catch (Exception ex){
 			System.out.println(ex);
 		}
@@ -424,7 +450,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
   /** returns the pdb-filename */
   public String getPDBString(){
 
-	  pdbFileName  = "/home/dinse/pdb/"+val[0] + ".pdb";
+	  pdbFileName  = TEMP_PATH + val[0] + ".pdb";
 	  System.out.println(pdbFileName);
 	  return pdbFileName;
   }
