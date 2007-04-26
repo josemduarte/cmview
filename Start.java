@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.io.IOException;
 
 import javax.swing.*;
 
@@ -33,7 +34,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	/* Constants */
 
 	static final String		DB_HOST =	"white";
-	static final String		DB_USER =	"stehr";
+	static final String		DB_USER =	System.getProperty("user.name");
 	static final String		DB_PWD =	"nieve";
 	
 	// Note: the database needs to have chain_graph and single_model_graph tables
@@ -45,6 +46,8 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 
 	static String		    GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
 
+	static String			PYMOL_CMD = "pymol -R";
+	
 	/* Declaration */
 	private LayoutManager Layout;
 	private Choice Selectorac;	// Selector for accession code
@@ -470,16 +473,28 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 
 
 	public static void main(String args[]){
+		Process pymolProcess = null;
+		
 		if (args.length>0){
 			GRAPH_DB = args[0];
-		}		
+		}
 		
-		String title = "Starting Application";
+		// running pymol
+		try {
+			pymolProcess = Runtime.getRuntime().exec(PYMOL_CMD);
+		} catch(IOException e) {
+			System.err.println("Warning: Couldn't start Pymol automatically. Please manually start Pymol with the -R parameter.");
+		}
+		
+		String title = "CM2PyMol";
 		Start pstart = new Start(title);
 		pstart.PreStartInit();
 
 		String s = pstart.getSQLString();
-		System.out.println(s);
+		//System.out.println(s);
+		
+		// clean up (doesn't work at the moment)
+		if(pymolProcess != null) pymolProcess.destroy();
 
 	}
 

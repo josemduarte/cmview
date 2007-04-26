@@ -160,7 +160,6 @@ public class View extends JFrame implements ActionListener{
 		  return selINK;
 	  }
 
-	  
 	  public String getSelectionType(){
 		  return selectionType;
 	  }
