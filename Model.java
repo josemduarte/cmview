@@ -37,7 +37,6 @@ public class Model  {
 		
 	/** SQL preparation */
 		
-	String user ="dinse";
     Statement  st = null;
     ResultSet  rs = null; 	// getting the data for the size of the Contact Map
     ResultSet  rss = null;	// getting the data of the contacts
@@ -53,7 +52,7 @@ public class Model  {
 						+ "' and single_model_graph.CT = '" + ct +"' and single_model_graph.graph_id = single_model_node.graph_id;";
 		
 		/** Database Connection */
-		MySQLConnection con = new MySQLConnection("white",user,"nieve","pdb_reps_graph");
+		MySQLConnection con = new MySQLConnection(Start.DB_HOST,Start.DB_USER,Start.DB_PWD,Start.GRAPH_DB);
 		st = con.createStatement();
 		
 		rs = st.executeQuery(size);
