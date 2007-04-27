@@ -29,12 +29,12 @@ import tools.PyMol;
  * - setting the complete SQL-String
  */
 
-public class Start extends JFrame implements ItemListener, ActionListener {
+public class Start extends JFrame implements ActionListener, ItemListener {
 
-	/* Constants */
+	/* Constants, TODO: Move to configuration file */
 
 	static final String		DB_HOST =	"white";
-	static final String		DB_USER =	System.getProperty("user.name");
+	static final String		DB_USER =	getUserName();
 	static final String		DB_PWD =	"nieve";
 	
 	// Note: the database needs to have chain_graph and single_model_graph tables
@@ -49,15 +49,15 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	static String			PYMOL_CMD = "pymol -R";
 	
 	/* Declaration */
+	
 	private LayoutManager Layout;
-	private Choice Selectorac;	// Selector for accession code
-	private Choice Selectorcc;	// Selector for chain pdb code
-	private Choice Selectorct;	// selector for contact type
+//	private Choice Selectorac;	// Selector for accession code
+//	private Choice Selectorcc;	// Selector for chain pdb code
+//	private Choice Selectorct;	// selector for contact type
 
 	private JComboBox ComboSelAc;	// Selector for accession code
 	private JComboBox ComboSelCc;	// Selector for chain pdb code
 	private JComboBox ComboSelCt;	// selector for contact type
-
 
 	public int numac, rownumac;		// getting the number of rows out of the DB in accession_code Column
 	public int numcc, rownumcc;		// getting the number of rows out of the DB in chain-pdb-code Column
@@ -68,15 +68,10 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	public String [] CCodeList;
 	public String [] CTList;
 
-
-
-	public Object [] ComboListAc;
-
 	private Font SansSerif;
 	JButton load, check;
 	JPanel loadpanel, selpanel;
-	private JTextField tf, tfac;
-	private JFrame f;
+	private JTextField tf;
 	public String[] val = new String[4];
 
 	public String sql;
@@ -86,8 +81,11 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	private View view;
 	private PaintController pc;
 	private PyMol mypymol;
+	
+	private MySQLConnection conn = null;
 
-	public static String getHostName() {
+	/** get host name from operating system (to locate pymol server) */
+	private static String getHostName() {
 		String host="";
 		try {
 			host = InetAddress.getLocalHost().getHostName();
@@ -97,11 +95,29 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		}
 		return host;
 	}
+	
+	/** get user name from operating system (for use as database username) */
+	private static String getUserName() {
+		String user = null;
+		user = System.getProperty("user.name");
+		if(user == null) {
+			System.err.println("Could not get user name from operating system. Exiting");
+			System.exit(1);
+		}
+		return user;
+	}
 
+	// helper function for filling combo boxes
+	private Object makeObj(final String item)  {
+		return new Object() { public String toString() { return item; } };
+	}
+
+	/** construct a new start object with the given title */
 	public Start(String title){
 		super(title);
 	}
-
+	
+	/** main function to initialize and show GUI */
 	public void PreStartInit() {
 		/* Layout settings */
 		setLayout(new BorderLayout());
@@ -111,9 +127,6 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		/* Instantiation */
 		SansSerif = new Font ("SansSerif", Font.BOLD, 14);
 		Layout = new FlowLayout ();
-		Selectorac = new Choice ();
-		Selectorcc = new Choice ();
-		Selectorct = new Choice ();
 
 		ComboSelAc= new JComboBox();		// ComboBox for Accession codes
 		ComboSelCc= new JComboBox();		// ComboBox for chain codes
@@ -130,7 +143,6 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		/* adding button to panel */
 		loadpanel.add(load, new GridLayout(2,1));
 
-
 //		/* creating button for accession code check */
 //		check = new JButton("Check Database");
 //		/*adding ActionListener to button */
@@ -139,46 +151,54 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 //		loadpanel.add(check, new GridLayout(1,1));
 
 		/* Creating the Selectors */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-		Selectorac.setBackground (Color.gray);
-		Selectorac.setForeground (Color.lightGray);
-		Selectorac.setFont (SansSerif);
-
-		Selectorcc.setBackground (Color.gray);
-		Selectorcc.setForeground (Color.lightGray);
-		Selectorcc.setFont (SansSerif);
-
-		Selectorct.setBackground (Color.gray);
-		Selectorct.setForeground (Color.lightGray);
-		Selectorct.setFont (SansSerif);
+//		Selectorac.setBackground (Color.gray);
+//		Selectorac.setForeground (Color.lightGray);
+//		Selectorac.setFont (SansSerif);
+//
+//		Selectorcc.setBackground (Color.gray);
+//		Selectorcc.setForeground (Color.lightGray);
+//		Selectorcc.setFont (SansSerif);
+//
+//		Selectorct.setBackground (Color.gray);
+//		Selectorct.setForeground (Color.lightGray);
+//		Selectorct.setFont (SansSerif);
 
 		/* creating textfield */
 		tf = new JTextField();
-		// tfac = new JTextField();
+		tf.setText("0");
 
+		/* initialize combo boxes */
+		/* Note: this has to happen before adding the ItemListeners */
+		fillACChoiceBox();
+		fillCCChoiceBox();
+		fillCTChoiceBox();
+				
 		/* Adding selectors and textlabels to panel */
 		//selpanel.add(new JLabel("Search Access. C.:"));
 		//selpanel.add(tfac);
 		selpanel.add(new JLabel("Accession Code:"));
-		selpanel.add(Selectorac);
+		//selpanel.add(Selectorac);
+		selpanel.add(ComboSelAc);
 		//selpanel.add(ComboSelAc);
 		selpanel.add(new JLabel("Chain Code:"));
-		selpanel.add(Selectorcc);
+		//selpanel.add(Selectorcc);
+		selpanel.add(ComboSelCc);
 		//selpanel.add(ComboSelCc);
 		selpanel.add(new JLabel("Contact Type:"));
-		selpanel.add(Selectorct);
+		//selpanel.add(Selectorct);
+		selpanel.add(ComboSelCt);
 		//selpanel.add(ComboSelCt);
 		selpanel.add(new JLabel("Minimum Distance:"));
 		selpanel.add(tf);
 
 		/* Adding ItemListener to the Selectors */
-		Selectorac.addItemListener (this);
-		Selectorcc.addItemListener (this);
-		Selectorct.addItemListener (this);
-
 		ComboSelAc.addItemListener (this);
 		ComboSelCc.addItemListener (this);
 		ComboSelCt.addItemListener (this);
 
+//		ComboSelAc.addActionListener (this);
+//		ComboSelCc.addActionListener (this);
+//		ComboSelCt.addActionListener (this);
 
 		/* creating the front frame */
 		Box verlBox = Box.createVerticalBox();
@@ -188,14 +208,40 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		getContentPane().add(verlBox);
 		pack();
 		setVisible(true);
+	}
 
+	/** return the currently selected accession code */
+	public String getSelectedAC() {
+		String Selectac = ComboSelAc.getSelectedItem().toString();
+		return Selectac;
+	}
+
+	/** return the currently selected chain code */
+	public String getSelectedCC() {
+		String Selectcc = ComboSelCc.getSelectedItem().toString();
+		return Selectcc;
+	}
+
+	/** return the currently selected contact type */
+	public String getSelectedCT() {
+		String Selectct = ComboSelCt.getSelectedItem().toString();
+		return Selectct;
+	}
+	
+	// TODO: Add combo box for distance threshold
+	
+	/** initialize or refresh the values for the accession code combo box */
+	public void fillACChoiceBox() {
+		
 		/** SQL preparation */
 		MySQLConnection con = null;
 		Statement  st = null;
 		ResultSet  rsacs = null; 	// getting the data for the size of the Contact Map
 		ResultSet  rsac = null;	    // getting the data of the accession codes
 
-
+		/* clear current items for a clean refill */
+		ComboSelAc.removeAllItems();
+		
 		try {
 
 			/** SQL-String takes the data out of the DB */
@@ -227,13 +273,11 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			}
 			/* adding object content to selector to represent it */
 			for (int i = 0; i < ACodeList.length; i++) {
-				Selectorac.insert (ACodeList [i], i);
-				//ComboSelAc.addItem(ComboListAc [i]);
-
-
+				//Selectorac.insert (ACodeList [i], i);
+				ComboSelAc.addItem(makeObj(ACodeList[i]));
 			}
 			st.close();
-
+		
 		}
 		catch ( Exception ex ) {
 			System.out.println( ex );
@@ -241,16 +285,22 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		finally {
 			con.close();
 		}
-	}
 
-	/** initialising the ChoiceBox for the Cchain code */
-	public void fillCCChoiceBox(String accession_code){
+	}
+	
+	/** initialize or refresh the values for the chain code combo box */
+	public void fillCCChoiceBox(){
 
 		MySQLConnection con;
 		Statement  st = null;  
 		ResultSet  rsccs = null;	    // getting the data of the size of the chain pdb codes
 		ResultSet  rscc = null;	    	// getting the data of the chain pdb codes
 
+		String accession_code = this.getSelectedAC();
+
+		/* clear current items for a clean refill */
+		ComboSelCc.removeAllItems();
+		
 		try {
 			int n=0;
 			/** SQL-String takes the data out of the DB */
@@ -278,10 +328,10 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			}
 			/* adding object content to selector to represent it */
 			for (int i = 0; i < CCodeList.length; i++) {
-				Selectorcc.insert (CCodeList [i], i);
-				//ComboSelCc.add (CCodeList [i], ComboSelCc);
+				//Selectorcc.insert (CCodeList [i], i);
+				ComboSelCc.addItem(makeObj(CCodeList[i]));
 			}
-			Selectorcc.select(0);
+			//Selectorcc.select(0);
 
 			st.close();
 			con.close();
@@ -291,13 +341,21 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		}
 	}
 
-	/** initialising the ChoiceBox for the Contact Types */
-	public void fillCTChoiceBox(String accession_code, String chain_pdb_code){
+	/** initialize or refresh the values for the contact type combo box */
+	public void fillCTChoiceBox(){
 		MySQLConnection con;
 		Statement  st = null;  
-		ResultSet  rscts = null;	    // getting the data of the size of the chain pdb codes
+		ResultSet  rscts = null;	// getting the data of the size of the chain pdb codes
 		ResultSet  rsct = null;	    // getting the data of the chain pdb codes
-
+		
+		String accession_code = this.getSelectedAC();
+		String chain_pdb_code = this.getSelectedCC();
+		
+		/* clear current items for a clean refill */
+		ComboSelCt.setEnabled(false);
+		ComboSelCt.removeAllItems();
+		ComboSelCt.setEnabled(true);
+		
 		try {
 			int n=0;
 			/** SQL-String takes the data out of the DB */
@@ -331,10 +389,10 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			}
 			/* adding object content to selector to represent it */
 			for (int i = 0; i < CTList.length; i++) {
-				Selectorct.insert (CTList [i], i);
-				//ComboSelCt.add (CTList [i], ComboSelCt);
+				//Selectorct.insert (CTList [i], i);
+				ComboSelCt.addItem(makeObj(CTList[i]));
 			}
-			Selectorct.select(0);
+			//Selectorct.select(0);
 
 			st.close();
 			con.close();
@@ -344,51 +402,35 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 		}
 	}
 
-
+	/** action listener for combo boxes */
 	public void itemStateChanged(ItemEvent e) {
 
-
-		if(e.getSource() == Selectorac){  
-			int selacindex = Selectorac.getSelectedIndex();
-			Selectac = Selectorac.getItem(selacindex);
+		if(e.getSource() == ComboSelAc && ComboSelAc.getItemCount() > 0 && e.getStateChange() == ItemEvent.SELECTED) {  
+			Selectac = ComboSelAc.getSelectedItem().toString();
 			System.out.println(Selectac);
 
-			this.fillCCChoiceBox(Selectac);
-		}
+			this.fillCCChoiceBox();
+			// Note: Calling fillCCChoice box will fire an ItemEvent which in turn causes
+			// fillCTChoiceBox to be called.
+		} else
 
-
-		if(e.getSource()== Selectorcc){
-			int selccindex = Selectorcc.getSelectedIndex();
-			Selectcc = Selectorcc.getItem(selccindex);
+		if(e.getSource()== ComboSelCc && ComboSelCc.getItemCount() > 0 && e.getStateChange() == ItemEvent.SELECTED) {
+			Selectcc = ComboSelCc.getSelectedItem().toString();
 			System.out.println(Selectcc);
 
-			String acc = this.getSelectedAC();
+			this.fillCTChoiceBox();
+		} else
 
-			this.fillCTChoiceBox(acc, Selectcc);
-		}
-
-		if(e.getSource()== Selectorct){
-			int selctindex = Selectorct.getSelectedIndex();
-			Selectct = Selectorct.getItem(selctindex);
+		if(e.getSource()== ComboSelCt && ComboSelCt.getItemCount() > 0 && e.getStateChange() == ItemEvent.SELECTED) {
+			Selectct = ComboSelCt.getSelectedItem().toString();
 			System.out.println(Selectct);
 		}
 	} 
 
-	public String getSelectedAC(){
-		return Selectac;
-	}
-
-	public String getSelectedCC(){
-		return Selectcc;
-	}
-
-	public String getSelectedCT(){
-		return Selectct;
-	}
-
-
+	/** action listener for load button */
 	public void actionPerformed (ActionEvent e) {
-
+		
+		/* load button */
 		if (e.getSource()== load){
 			val[0]=this.getSelectedAC();
 			val[1]=this.getSelectedCC();
@@ -405,14 +447,9 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 			this.Init();
 		}
 
-		if (e.getSource() == check){
-
-			// comparing the input string of the user with the database
-			// handling searching on time ... ex.: searching for 12as ... but just typed 12a_ with missing s
-		}
-
 	}
 
+	/** load the contact map window */
 	public void Init(){
 
 		/** Initialising the application */ 
@@ -432,7 +469,7 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 	}
 
 
-	/* setting the complete SQL- String */
+	/** setting the complete SQL- String */
 	public String setSQLString(String accession_code, String chain_pdb_code, String CT, String mindist){
 
 		String sql2 = "select i_num, j_num, single_model_graph.num_nodes, chain_graph.accession_code, chain_graph.chain_pdb_code, "
@@ -449,7 +486,6 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 
 	public String getSQLString(){
 		return sql; 
-
 	}
 
 	/** returns the pdb accession code */
@@ -473,28 +509,25 @@ public class Start extends JFrame implements ItemListener, ActionListener {
 
 
 	public static void main(String args[]){
-		Process pymolProcess = null;
 		
+		// set parameters
 		if (args.length>0){
 			GRAPH_DB = args[0];
 		}
 		
-		// running pymol
+		// start pymol
 		try {
-			pymolProcess = Runtime.getRuntime().exec(PYMOL_CMD);
+			// TODO: check whether pymol is running already
+			Process pymolProcess = Runtime.getRuntime().exec(PYMOL_CMD);
+			// TODO: catch output and wait until pymol is loaded
 		} catch(IOException e) {
 			System.err.println("Warning: Couldn't start Pymol automatically. Please manually start Pymol with the -R parameter.");
 		}
 		
+		// start gui
 		String title = "CM2PyMol";
 		Start pstart = new Start(title);
 		pstart.PreStartInit();
-
-		String s = pstart.getSQLString();
-		//System.out.println(s);
-		
-		// clean up (doesn't work at the moment)
-		if(pymolProcess != null) pymolProcess.destroy();
 
 	}
 
