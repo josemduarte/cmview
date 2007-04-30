@@ -19,7 +19,7 @@ import tools.PyMol;
  * Class: 		Start
  * Package: 	CM2PyMol
  * Date:		20/02/2007, updated: 29/03/2007
- * 				2007-04-11 updated by HS
+ * 				2007-04-27 updated by HS
  * 
  * tasks:
  * - initialising the application window
@@ -27,6 +27,15 @@ import tools.PyMol;
  * 	 by Choice Boxes (Selection Lists)
  * - initiating other programs
  * - setting the complete SQL-String
+ * 
+ * TODO:
+ * - Fix problems with null chain codes (bug) [done]
+ * - Remove back references to start -> allow multiple CM windows (feature)
+ * - Move database connection to Start/main function (style)
+ * - make config file (usability)
+ * - add combo box for distance threshold (feature)
+ * - update selection rectangle and coordinates while dragging (usability)
+ * - why is the structure in pymol not being loaded automatically? (usability)
  */
 
 public class Start extends JFrame implements ActionListener, ItemListener {
@@ -36,24 +45,19 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	static final String		DB_HOST =	"white";
 	static final String		DB_USER =	getUserName();
 	static final String		DB_PWD =	"nieve";
-	
 	// Note: the database needs to have chain_graph and single_model_graph tables
 	// table and column names are currently hard-coded, TODO: use pdb-file/pdbase as input
 	static final String		TEMP_PATH =	"/scratch/local/"; // for temp pdb files
 	static final String     HOST = getHostName() ;
 	static final String		PYMOL_SERVER_URL = "http://"+HOST+":9123";
 	// Note: The pymol server has to be running (by starting pymol -R)
-
 	static String		    GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
-
 	static String			PYMOL_CMD = "pymol -R";
+	static String			NULL_CHAIN_CODE = "NULL"; // value important for Msdsd2Pdb
 	
 	/* Declaration */
 	
 	private LayoutManager Layout;
-//	private Choice Selectorac;	// Selector for accession code
-//	private Choice Selectorcc;	// Selector for chain pdb code
-//	private Choice Selectorct;	// selector for contact type
 
 	private JComboBox ComboSelAc;	// Selector for accession code
 	private JComboBox ComboSelCc;	// Selector for chain pdb code
@@ -322,13 +326,12 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 				/* adding database output to object */
 				String cccode = rscc.getString(1);
 				/* Exception handling for chain_code = "null" */
-				if(cccode ==null){cccode = "is null";}
+				if(cccode == null) {cccode = NULL_CHAIN_CODE;}
 				CCodeList[n]= cccode;
 				n++;
 			}
 			/* adding object content to selector to represent it */
 			for (int i = 0; i < CCodeList.length; i++) {
-				//Selectorcc.insert (CCodeList [i], i);
 				ComboSelCc.addItem(makeObj(CCodeList[i]));
 			}
 			//Selectorcc.select(0);
@@ -359,15 +362,18 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		try {
 			int n=0;
 			/** SQL-String takes the data out of the DB */
-			if (chain_pdb_code == "is null"){
+			if (chain_pdb_code.equals(NULL_CHAIN_CODE)){
 				chain_pdb_code = "is null";
 			}
 			else {
 				chain_pdb_code= "='"+chain_pdb_code + "'";
 			}
-			String strct = "select single_model_graph.CT from chain_graph, single_model_graph where chain_graph.accession_code = '" + accession_code 
-			+ "' and chain_graph.chain_pdb_code "+ chain_pdb_code 
-			+" and chain_graph.graph_id = single_model_graph.pgraph_id;";
+			String strct = "select distinct single_model_graph.CT from chain_graph inner join single_model_graph "
+				+ "on chain_graph.graph_id = single_model_graph.pgraph_id "
+				+ "where chain_graph.accession_code = '" + accession_code + "' " 
+				+ "and chain_graph.chain_pdb_code "
+				+ chain_pdb_code;
+				//+ (chain_pdb_code.equals(NULL_CHAIN_CODE)?"is null":("= " + chain_pdb_code));
 
 			/** Database Connection */
 			con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
@@ -437,8 +443,8 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			val[2]=this.getSelectedCT();
 			val[3]=tf.getText();
 
-			if (val[1] == "is null"){
-				sql = this.setSQLString(val[0], val[1], val[2], val[3]);
+			if (val[1].equals(NULL_CHAIN_CODE)){
+				sql = this.setSQLString(val[0], "is null", val[2], val[3]);
 			}
 			else {
 				sql = this.setSQLString(val[0], "= '"+val[1] +"'", val[2], val[3]);

@@ -56,6 +56,11 @@ public class View extends JFrame implements ActionListener{
 		this.ViewInit();
 		this.pymol=pymol;
 		this.pyMolServerUrl=pyMolServerUrl;
+		
+		// send structure to pymol - why does this not work here?
+		// TODO: Test for success
+		//tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
+		//tpm.MyTestPyMolInit();
 
 	}
 	
@@ -130,7 +135,7 @@ public class View extends JFrame implements ActionListener{
 		  }
 		  // loading pdb button clicked
 		  if (e.getSource() == loadPDB){
-			  
+		
 				tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
 				tpm.MyTestPyMolInit();
 				
