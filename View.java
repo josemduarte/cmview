@@ -23,8 +23,13 @@ import tools.*;
 
 
 public class View extends JFrame implements ActionListener{
+	
+	static final long serialVersionUID = 1l;
+	
 	JButton send, square, fill, loadPDB, comNei, triangle;
 	JTextField tx, ty;
+	public JPopupMenu popup;
+	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM;
 
 	JPanel bpl; // Button Panel
 	JPanel cmp; // Contact Map Panel
@@ -65,6 +70,8 @@ public class View extends JFrame implements ActionListener{
 	}
 	
 	public void ViewInit(){
+		JMenuItem menuItem;
+		
 		// setting the layout 
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -99,6 +106,31 @@ public class View extends JFrame implements ActionListener{
 		bpl.add(send);
 		bpl.add(triangle);
 		
+		/* Adding the context menu */
+		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		popup = new JPopupMenu();
+
+		squareM = new JMenuItem("Square Selection on Map");
+		fillM = new JMenuItem("Fill Selection on Map");
+		sendM = new JMenuItem("Send Selection to PyMol");
+		comNeiM = new JMenuItem("Show Common Neighbours");
+		triangleM = new JMenuItem("Send Common Neighbours");
+		loadPDBM = new JMenuItem("Load PDB File in PyMol");
+		
+		squareM.addActionListener(this);
+		fillM.addActionListener(this);
+		comNeiM.addActionListener(this);
+		loadPDBM.addActionListener(this);
+		sendM.addActionListener(this);
+		triangleM.addActionListener(this);		
+		
+		popup.add(squareM);
+		popup.add(fillM);
+		popup.add(sendM);
+		popup.add(comNeiM);
+		popup.add(triangleM);
+		popup.add(loadPDBM);
+		
 		pc = new PaintController(start, mod, this);
 		cmp.add(pc);
 		
@@ -114,7 +146,7 @@ public class View extends JFrame implements ActionListener{
 	
 	  public void actionPerformed (ActionEvent e) {
 		  // square button clicked
-		  if (e.getSource() == square){
+		  if (e.getSource() == square || e.getSource() == squareM) {
 			  
 				selval = 1;
 				selINK = selINK +1;
@@ -122,26 +154,26 @@ public class View extends JFrame implements ActionListener{
 				
 		  }
 		  // fill button clicked
-		  if (e.getSource() == fill){
+		  if (e.getSource() == fill || e.getSource() == fillM) {
 			  
 				selval = 2;
 				selINK = selINK +1;
 				selectionType = "Fill";
 		  }
 		  // showing com. Nei. button clicked
-		  if (e.getSource() == comNei){
+		  if (e.getSource() == comNei || e.getSource() == comNeiM) {
 			  
 			  	selval = 3;
 		  }
 		  // loading pdb button clicked
-		  if (e.getSource() == loadPDB){
+		  if (e.getSource() == loadPDB || e.getSource() == loadPDBM) {
 		
 				tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
 				tpm.MyTestPyMolInit();
 				
 				   }
 		  // send selection button clicked
-		  if (e.getSource() == send){
+		  if (e.getSource() == send || e.getSource() == sendM) {
 			  
 			  	   sendpy =true;	
 				   int selval = this.getValue();
@@ -152,7 +184,7 @@ public class View extends JFrame implements ActionListener{
 				   }
 		  }
 		  // send com.Nei. button clicked
-		  if(e.getSource()== triangle){
+		  if(e.getSource()== triangle || e.getSource()== triangleM) {
 			  tpm.showTriangles();
 		  }
 	  }

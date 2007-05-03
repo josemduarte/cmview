@@ -23,6 +23,8 @@ import java.awt.image.BufferedImage;
 public class PaintController extends Canvas
                 implements MouseListener, MouseMotionListener {
 
+	static final long serialVersionUID = 1l;
+	
 	public int xs,ys; // xs and ys as startpoints of the square selection
  	public int x, y;  // x and y as endpoints of square selection
  	private int xpos, ypos;
@@ -271,6 +273,12 @@ public class PaintController extends Canvas
    public void mousePressed(MouseEvent evt) {
        // This is called when the user presses the mouse anywhere
        // in the frame
+	   
+	   if (evt.isPopupTrigger()) {
+		   showPopup(evt);
+		   return;
+	   }
+	   
        xs = evt.getX();   
 	   ys = evt.getY(); 
 	
@@ -284,6 +292,11 @@ public class PaintController extends Canvas
 
    public void mouseReleased(MouseEvent evt) {
        // Called whenever the user releases the mouse button.
+	   
+	   if (evt.isPopupTrigger()) {
+		   showPopup(evt);
+		   return;
+	   }
 	   
        if (dragging == false)
           return;  // Nothing to do because the user isn't drawing.
@@ -317,6 +330,15 @@ public class PaintController extends Canvas
        x = evt.getX();   // x-coordinate of mouse.
        y = evt.getY();   // y=coordinate of mouse.
 
+       // show selection box and coordinates while dragging
+       
+       rwidth = x-xs; 	// difference between start and end point in x-direction
+       rheight = y-ys;	// s.o.: respectively y
+       
+       rw = Math.abs(x-xs); // positive difference
+       rh = Math.abs(y-ys);
+       
+       mouseMoved(evt);
    } 
    
  
@@ -338,6 +360,10 @@ public class PaintController extends Canvas
 	   this.drawCoordinates();
 	   }
    
+   public void showPopup(MouseEvent e) {
+       view.popup.show(e.getComponent(), e.getX(), e.getY());
+   }
+   
    public void drawCoordinates(){
 
 	   bufferGraphics.setColor(Color.red);
@@ -345,16 +371,16 @@ public class PaintController extends Canvas
 	   
 	   if ((mouseIn == true) && (xpos <= winwidth) && (ypos <= winheight)){
 		   
-	  // writing the coordinates at lower left corner
-	  bufferGraphics.setColor(Color.blue);
-	  bufferGraphics.drawString("( X   " + ",  Y )", 0, winheight-50);
-	  bufferGraphics.drawString("(j_num   " + ",  i_num )", 0, winheight-30);
-	  bufferGraphics.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
-	  
-	  // drawing the cross-hair
-	  bufferGraphics.setColor(Color.green);
-	  bufferGraphics.drawLine(xpos, 0, xpos, winheight);
-	  bufferGraphics.drawLine(0, ypos, winwidth, ypos);
+		  // writing the coordinates at lower left corner
+		  bufferGraphics.setColor(Color.blue);
+		  bufferGraphics.drawString("( X   " + ",  Y )", 0, winheight-50);
+		  bufferGraphics.drawString("(j_num   " + ",  i_num )", 0, winheight-30);
+		  bufferGraphics.drawString("(" + (int)(temp[0]/ratio)+"," + (int)(temp[1]/ratio)+")", 0, winheight-10);
+		  
+		  // drawing the cross-hair
+		  bufferGraphics.setColor(Color.green);
+		  bufferGraphics.drawLine(xpos, 0, xpos, winheight);
+		  bufferGraphics.drawLine(0, ypos, winwidth, ypos);
 	   }
 	  g = this.getGraphics();
 	  g.drawImage(offscreen,0,0,this);

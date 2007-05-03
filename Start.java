@@ -40,6 +40,8 @@ import tools.PyMol;
 
 public class Start extends JFrame implements ActionListener, ItemListener {
 
+	static final long serialVersionUID = 1l;
+	
 	/* Constants, TODO: Move to configuration file */
 
 	static final String		DB_HOST =	"white";
@@ -516,18 +518,24 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 
 	public static void main(String args[]){
 		
+		System.out.println("CM2PyMol - Interactive contact map viewer");
 		// set parameters
 		if (args.length>0){
 			GRAPH_DB = args[0];
+			System.out.println("Using database " + args[0]);
+		} else {
+			System.out.println("Using default graph database.");
+			System.out.println("(You can specify a different graph database as a command line parameter)");
 		}
 		
 		// start pymol
 		try {
+			System.out.println("Starting PyMol...");
 			// TODO: check whether pymol is running already
 			Process pymolProcess = Runtime.getRuntime().exec(PYMOL_CMD);
 			// TODO: catch output and wait until pymol is loaded
 		} catch(IOException e) {
-			System.err.println("Warning: Couldn't start Pymol automatically. Please manually start Pymol with the -R parameter.");
+			System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");
 		}
 		
 		// start gui
