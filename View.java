@@ -107,13 +107,20 @@ public class View extends JFrame implements ActionListener{
 		/* Adding the context menu */
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
+		
+		ImageIcon icon1 = new ImageIcon("icons/shape_square.png");
+		ImageIcon icon2 = new ImageIcon("icons/paintcan.png");
+		ImageIcon icon3 = new ImageIcon("icons/shape_square_go.png");
+		ImageIcon icon4 = new ImageIcon("icons/shape_flip_horizontal.png");
+		ImageIcon icon5 = new ImageIcon("icons/shape_rotate_clockwise.png");
+		ImageIcon icon6 = new ImageIcon("icons/picture_go.png");
 
-		squareM = new JMenuItem("Square Selection on Map");
-		fillM = new JMenuItem("Fill Selection on Map");
-		sendM = new JMenuItem("Send Selection to PyMol");
-		comNeiM = new JMenuItem("Show Common Neighbours");
-		triangleM = new JMenuItem("Send Common Neighbours");
-		loadPDBM = new JMenuItem("Load PDB File in PyMol");
+		squareM = new JMenuItem("Square Selection on Map", icon1);
+		fillM = new JMenuItem("Fill Selection on Map", icon2);
+		sendM = new JMenuItem("Send Selection to PyMol", icon3);
+		comNeiM = new JMenuItem("Show Common Neighbours", icon4);
+		triangleM = new JMenuItem("Send Common Neighbours", icon5);
+		loadPDBM = new JMenuItem("Load PDB File in PyMol", icon6);
 		
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
