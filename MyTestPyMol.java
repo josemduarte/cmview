@@ -20,7 +20,6 @@ public class MyTestPyMol {
  *   with integrated transparency parameter). 
  *
 		 */
-		private Start start;
 		private Model mod;
 		private View view;
 		private PaintController pc;
@@ -40,40 +39,28 @@ public class MyTestPyMol {
 		public int[] selrec = new int[4];
 		
 		// constructor
-		public MyTestPyMol(Start start, Model mod, View view, PaintController pc, PyMol pymol, String pyMolServerUrl){
-			this.start=start;
+		public MyTestPyMol(Model mod, View view, PaintController pc, String pyMolServerUrl,
+				           String pdbCode, String chainCode, String fileName){
 			this.mod = mod;
 			this.view=view;
 			this.pc=pc;
-			this.pymol=pymol;
 			this.url=pyMolServerUrl;
+			
+			this.pdbFileName = fileName;
+			this.accessionCode = pdbCode;
+			this.chaincode = chainCode;
 		}
 		
 		public void MyTestPyMolInit(){
-			String[] args = {"",""};
-			String file = "";
-			boolean server=false;
-			if (args.length<1){
-				System.err.println("Give at least one file argument");
-				System.exit(1);
-			}		
-			file = args[0];
-			if (args.length>1){ // two arguments: output both file and server
-				server=true;
-			}
-			
-			pdbFileName = start.getPDBString();
-
-			accessionCode= start.getAccessionCode();
-			chaincode = start.getChainCode();
 
 			// to output only to server we would need the following PrintWriter
 			Out = new PrintWriter(new PymolServerOutputStream(url),true);
 			
 			/** Initialising PyMol */
 			
-			pymol = new PyMol(Out);		
-			pymol.loadPDB(pdbFileName);
+			pymol = new PyMol(Out);
+			this.Out.println("load " + pdbFileName + ", " + getChainObjectName());
+			//pymol.loadPDB(pdbFileName);
 			pymol.myHide("lines");
 			pymol.myShow("cartoon");
 			pymol.set("dash_gap", 0, "", true);
@@ -81,21 +68,34 @@ public class MyTestPyMol {
    
 		}
 		
+		/** Returns the name of the object for the current chain in pymol */
+		public String getChainObjectName() {
+			String objName;		
+			if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
+				objName = this.accessionCode;
+			} else {
+				objName = this.accessionCode + this.chaincode;
+			}
+			return objName;
+		}
+		
 	    /** Creates an edge between the C-alpha atoms of the given residues in the given chain. 
-	     *  The selection in pymol will be names pdbFileName+"Sel"+selNum 
+	     *  The selection in pymol will be names pdbcodeChaincode+"Sel"+selNum 
 	     */
-	    public void setDistance(int resi1, int resi2, String pdbFilename, int selNum, String chain_pdb_code){   	
+	    public void setDistance(int resi1, int resi2, int selNum){   	
 	    	//pymol.setDistance(resi1, resi2, pdbFilename, selNum, chain_pdb_code);
-	    	this.Out.println("distance "+ pdbFilename+"Sel"+selNum+" , chain "+chain_pdb_code+" and resi " + resi1 + " and name ca, chain "+chain_pdb_code+" and resi " + resi2 + " and name ca;");
-	    }
-	    
-	    /** Creates an edge between the C-alpha atoms of the given residues.
-	     *  Use this variant if there is only one unnamed chain in the current structure.
-	     *  The selection in pymol will be names pdbFileName+"Sel"+selNum 
-	     */
-	    public void setDistance(int resi1, int resi2, String pdbFilename, int selNum){
-	    	//pymol.setDistance(resi1, resi2, pdbFilename, selNum);
-	    	this.Out.println("distance "+ pdbFilename+"Sel"+selNum+" , resi " + resi1 + " and name ca, resi " + resi2 + " and name ca;");
+	    	String pymolStr;
+	    	if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
+	    		pymolStr = "distance "+ getChainObjectName() +"Sel"+selNum+", " 
+                + getChainObjectName() + " and resi " + resi1 + " and name ca, " 
+                + getChainObjectName() + " and resi " + resi2 + " and name ca";	    		  		
+	    	} else {
+		    	pymolStr = "distance "+ getChainObjectName() +"Sel"+selNum+", " 
+                + getChainObjectName() + " and chain " + this.chaincode + " and resi " + resi1 + " and name ca, " 
+                + getChainObjectName() + " and chain " + this.chaincode + " and resi " + resi2 + " and name ca"; 
+	    	}
+	    	System.out.println(pymolStr);
+	    	this.Out.println(pymolStr);
 	    }
 		
 			// more pymol commands
@@ -106,33 +106,28 @@ public class MyTestPyMol {
 			selectionType = view.getSelectionType();
 			matrix = pc.getSelectMatrix();	
 			selrec = pc.getSelectRect();
-
 			
 			int xs = selrec[0]; //starting point: upper left, x-direction
 			int ys = selrec[1]; //starting point: upper left, y-direction
 			int rw = selrec[2]; //endpoint lower right, x-direction
 			int rh = selrec[3]; //endpoint lower right, y-direction
-			
-			
+				
 			for (i = xs; i<= rw; i++){
 				for (j = ys; j<= rh; j++){
 					
-					if (matrix[i][j] ==5){
+					if (matrix[i][j] == 5){
 						
 						int resi1 = i;
 						int resi2 = j;
 						System.out.println("i: "+ i + " j: "+j);
 						//inserts an edge between the selected residues 
-						if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
-							this.setDistance(resi1, resi2,accessionCode+ selectionType, k);							
-						} else {
-							this.setDistance(resi1, resi2,accessionCode+ selectionType, k, chaincode);
-						}
+						this.setDistance(resi1, resi2, k);							
 					}
 				}
 			}
 			
 			Out.println("cmd.hide('labels')");
+			// TODO: create selection of participating residues
 		}
 		
 		public void showTriangles(){
@@ -153,7 +148,7 @@ public class MyTestPyMol {
 				int res3 = triangle[i][2];
 				
 				int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
-				Out.println("triangle('"+ accessionCode+"Triangle"+i + "', "+ res1+ ", "+res2 +", "+res3 +", '" + color[random] +"', " + 0.7+")");
+				Out.println("triangle('"+ getChainObjectName() +"Triangle"+i + "', "+ res1+ ", "+res2 +", "+res3 +", '" + color[random] +"', " + 0.7+")");
 			}
 			
 			selectresi[0] = triangle[0][0];
@@ -162,7 +157,6 @@ public class MyTestPyMol {
 			for (int i =2; i<trinum;i++){
 				int resi = triangle[i][2];
 				selectresi[i]=resi;
-				
 			}
 			
 			String resi_num = ""+ selectresi[0];
@@ -195,16 +189,13 @@ public class MyTestPyMol {
 						int resi1 = i;
 						int resi2 = j;
 						//inserts an edge between the selected residues
-						if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
-							this.setDistance(resi1, resi2, accessionCode+selectionType, k);
-						} else {
-							this.setDistance(resi1, resi2, accessionCode+selectionType, k, chaincode);
-						}
+						this.setDistance(resi1, resi2, k);
 					}
 				}
 			}
 
 			Out.println("cmd.hide('labels')");
+			// TODO: Create selection of participating residues
 		}
 }
 

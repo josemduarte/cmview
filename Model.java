@@ -21,83 +21,127 @@ import tools.*;
 
 public class Model  {
 
+	/* constants */
+	
+	/* member variables */
+	
 	public int[] pubmsize = new int[2]; // public array for matrix size 
 	public int[][] pubmatrix = MatrixInitialiser(); // public array for adjacency matrix
 
-	private Start start;
+	public String pdbCode = null;		// pdb accession code
+	public String chainCode = null;		// pdb chain code
+	private String edgeType = null;		// contact type (BB, SC, ...)
+	private float distCutoff = 0;		// contact distance cutoff
+	private float seqSep = 0;			// minimum sequence separation
+	
+	private MySQLConnection conn = null;
+	
 	private JFrame f;
 	public int a,b;
 	
 	//constructor
-	public Model(Start start){
-		this.start = start;
+	public Model(String pdbCode, String chainCode, String edgeType, float distCutoff, int seqSep, MySQLConnection conn) {
+		this.pdbCode = pdbCode;
+		this.chainCode = chainCode;
+		this.edgeType = edgeType;
+		this.distCutoff = 4.1f;
+		this.seqSep = 0;
+		this.conn = conn;
 	}
 	
-	public void ModelInit(){
-		
-	/** SQL preparation */
-		
-    Statement  st = null;
-    ResultSet  rs = null; 	// getting the data for the size of the Contact Map
-    ResultSet  rss = null;	// getting the data of the contacts
-
-    try {
-    
-		/** SQL-String takes the data out of the DB */
-		String sql = start.getSQLString();
-		String ac = start.getAccessionCode();
-		String ct = start.getSelectedCT();
-		String size = "select min(num), max(num),count(num), max(num)-min(num)+1"
-						+ " from single_model_node, single_model_graph where single_model_graph.accession_code = '" +ac
-						+ "' and single_model_graph.CT = '" + ct +"' and single_model_graph.graph_id = single_model_node.graph_id;";
-		
-		/** Database Connection */
-		MySQLConnection con = new MySQLConnection(Start.DB_HOST,Start.DB_USER,Start.DB_PWD,Start.GRAPH_DB);
-		st = con.createStatement();
-		
-		rs = st.executeQuery(size);
-		while (rs.next()){
-			a = rs.getInt(3);
-			b = rs.getInt(4);
+	// Return the graphId of the single model graph underlying this model
+	private int getSingleModelGraphId() {
+		String query;
+		int chainGraphId;
+		int smGraphId;
+		// get chain graph id
+		query = "SELECT graph_id FROM chain_graph "
+			  + "WHERE accession_code = '" + this.pdbCode + "' "
+			  + "AND chain_pdb_code " + (chainCode.equals(Start.NULL_CHAIN_CODE)?"is null":("= '" + chainCode + "'")) + " "
+			  + "AND dist = " + this.distCutoff + ";";
+		chainGraphId = this.conn.getIntFromDb(query);
+		// get single model graph id
+		query = "SELECT graph_id FROM single_model_graph "
+			  + "WHERE pgraph_id = " + chainGraphId + " "
+		      + "AND graph_type = 'chain' "
+		      + "AND dist = " + this.distCutoff + " "
+		      + "AND CT = '" + edgeType + "'";
+		smGraphId = this.conn.getIntFromDb(query);
+		return smGraphId;
+	}
+	
+	public void ModelInit() {
+	
+	    int graphId = this.getSingleModelGraphId();
+	    
+	    try {
+	    	
+	    	/** SQL preparation */		
+	        Statement  st = null;
+	        ResultSet  rs = null;
+	        String	   query = null;
 			
-			/**** Hier */ 
-			int m = rs.getInt(2); // numbers of rows of the contact map
-			int n = rs.getInt(2); // numbers of columns of the contact map
-			int[] msiz = {m,n};
-			pubmsize = msiz;
-		}
+	        st = conn.createStatement();    	
 		
-		if(a==b){
-			//everything is fine
-		}
-		else{
-
-			// warning pop-up if unobserved residues occur
-			JOptionPane.showMessageDialog(f,
-			    "Be careful: some unobserved residues!",
-			    "Unobserved Residue Warning",
-			    JOptionPane.WARNING_MESSAGE);
-
-		}
-		
-		
-		rss = st.executeQuery(sql);
-		// initialising an empty matrix
-		pubmatrix = MatrixInitialiser();
-		while (rss.next()){
-			int a,b;
-			/** Insert the contacts */
-			a = rss.getInt(1); // 1st column
-			b = rss.getInt(2); // 2nd column
-
-			pubmatrix[a][b]=1;
-
+			// count number of nodes
+			query = "SELECT min(num), max(num),count(num), max(num)-min(num)+1 "
+				  + "FROM single_model_node "
+				  + "WHERE graph_id = " + graphId;
+					
+			rs = st.executeQuery(query);
+			
+			while (rs.next()){
+				a = rs.getInt(3);
+				b = rs.getInt(4);
+				
+				/**** Hier */ 
+				int m = rs.getInt(2); // numbers of rows of the contact map
+				int n = rs.getInt(2); // numbers of columns of the contact map
+				int[] msiz = {m,n};
+				pubmsize = msiz;
 			}
-	}
-	catch ( Exception ex ) {
-        System.out.println( ex );
-        
-	}
+			
+			if(a==b){
+				//everything is fine
+			}
+			else{
+	
+				// warning pop-up if unobserved residues occur
+				JOptionPane.showMessageDialog(f,
+				    "Be careful: some unobserved residues!",
+				    "Unobserved Residue Warning",
+				    JOptionPane.WARNING_MESSAGE);
+	
+			}
+			rs.close();
+						
+			// initialising an empty matrix
+			pubmatrix = MatrixInitialiser();
+			
+			// fill the matrix with contacts
+			query = "SELECT i_num, j_num "
+				  + "FROM single_model_edge "
+				  + "WHERE graph_id = " + graphId + " "
+				  + "AND i_num > j_num "
+				  + "AND abs(i_num - j_num) > " + seqSep + " "
+				  + "ORDER BY i_num, j_num";
+			
+			rs = st.executeQuery(query);			
+			
+			while (rs.next()){
+				int a,b;
+				/** Insert the contacts */
+				a = rs.getInt(1); // 1st column
+				b = rs.getInt(2); // 2nd column
+	
+				pubmatrix[a][b]=1;
+	
+				}
+		}
+		catch ( Exception ex ) {
+	        System.out.println( ex );
+	        
+		}
 
     }
 

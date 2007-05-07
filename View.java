@@ -5,8 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import tools.*;
-
 /**
  * 
  * @author:	Juliane Dinse
@@ -34,15 +32,16 @@ public class View extends JFrame implements ActionListener{
 	JPanel bpl; // Button Panel
 	JPanel cmp; // Contact Map Panel
 	
-	private Start start;
 	private Model mod;
-	private View view;
 	public PaintController pc;
-	private PyMol pymol;
 	private MyTestPyMol tpm;
 	private String pyMolServerUrl;
 	public int selval;
 	public int selINK=0;		 // incrementation numbering
+	
+	private String pdbCode;
+	private String chainCode;
+	private String pdbFileName;
 	
 	public int[] pos = new int[2];
 	public String[] text = new String[2];
@@ -53,14 +52,15 @@ public class View extends JFrame implements ActionListener{
 
 
 
-	public View(Start start, Model mod, String title, PaintController pc, PyMol pymol, String pyMolServerUrl){
+	public View(Model mod, String title, String pyMolServerUrl,
+			    String pdbCode, String chainCode, String fileName){
 		super(title);
-		this.start= start;
 		this.mod = mod;
-		this.pc=pc;
 		this.ViewInit();
-		this.pymol=pymol;
 		this.pyMolServerUrl=pyMolServerUrl;
+		this.pdbCode = pdbCode;
+		this.chainCode = chainCode;
+		this.pdbFileName = fileName;
 		
 		// send structure to pymol - why does this not work here?
 		// TODO: Test for success
@@ -69,9 +69,7 @@ public class View extends JFrame implements ActionListener{
 
 	}
 	
-	public void ViewInit(){
-		JMenuItem menuItem;
-		
+	public void ViewInit(){		
 		// setting the layout 
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -131,7 +129,7 @@ public class View extends JFrame implements ActionListener{
 		popup.add(triangleM);
 		popup.add(loadPDBM);
 		
-		pc = new PaintController(start, mod, this);
+		pc = new PaintController(mod, this);
 		cmp.add(pc);
 		
 		/** Creating the vertical Boxes */
@@ -168,7 +166,9 @@ public class View extends JFrame implements ActionListener{
 		  // loading pdb button clicked
 		  if (e.getSource() == loadPDB || e.getSource() == loadPDBM) {
 		
-				tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
+				// TODO: Move object creation to somewhere else
+				tpm = new MyTestPyMol(mod, this, pc, this.pyMolServerUrl,
+						              this.pdbCode, this.chainCode, this.pdbFileName);
 				tpm.MyTestPyMolInit();
 				
 				   }

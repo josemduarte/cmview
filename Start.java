@@ -11,7 +11,6 @@ import javax.swing.*;
 
 import tools.Msdsd2Pdb;
 import tools.MySQLConnection;
-import tools.PyMol;
 /**
  * 
  * @author		Juliane Dinse
@@ -19,7 +18,7 @@ import tools.PyMol;
  * Class: 		Start
  * Package: 	CM2PyMol
  * Date:		20/02/2007, updated: 29/03/2007
- * 				2007-04-27 updated by HS
+ * 				2007-05-04 updated by HS
  * 
  * tasks:
  * - initialising the application window
@@ -30,12 +29,13 @@ import tools.PyMol;
  * 
  * TODO:
  * - Fix problems with null chain codes (bug) [done]
- * - Remove back references to start -> allow multiple CM windows (feature)
+ * - Remove back references to start -> allow multiple CM windows (feature) [done]
  * - Move database connection to Start/main function (style)
  * - make config file (usability)
  * - add combo box for distance threshold (feature)
- * - update selection rectangle and coordinates while dragging (usability)
+ * - update selection rectangle and coordinates while dragging (usability) [done]
  * - why is the structure in pymol not being loaded automatically? (usability)
+ * - when sending edges to pymol, also create a selection of the respective residues (feature)
  */
 
 public class Start extends JFrame implements ActionListener, ItemListener {
@@ -44,22 +44,27 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	
 	/* Constants, TODO: Move to configuration file */
 
-	static final String		DB_HOST =	"white";
-	static final String		DB_USER =	getUserName();
-	static final String		DB_PWD =	"nieve";
 	// Note: the database needs to have chain_graph and single_model_graph tables
 	// table and column names are currently hard-coded, TODO: use pdb-file/pdbase as input
-	static final String		TEMP_PATH =	"/scratch/local/"; // for temp pdb files
-	static final String     HOST = getHostName() ;
-	static final String		PYMOL_SERVER_URL = "http://"+HOST+":9123";
-	// Note: The pymol server has to be running (by starting pymol -R)
-	static String		    GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
-	static String			PYMOL_CMD = "pymol -R";
-	static String			NULL_CHAIN_CODE = "NULL"; // value important for Msdsd2Pdb
+	
+	public static final String		DB_HOST =			"white";
+	public static final String		DB_USER =			getUserName();
+	public static final String		DB_PWD =			"nieve";
+	public static final String		TEMP_PATH =			"/scratch/local/"; // for temp pdb files
+	public static final String      HOST = 				getHostName() ;
+	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
+	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
+	public static final String		PYMOL_CMD = 		"pymol -R";
+	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
+	
+	public static float 			DEFAULT_DISTANCE_CUTOFF = 4.1f; // for now, assume all graphs are like this
+																	// later, let user choose (add text field)
+	
+	public static String 			graphDb = DEFAULT_GRAPH_DB;
 	
 	/* Declaration */
 	
-	private LayoutManager Layout;
+	//private LayoutManager Layout;
 
 	private JComboBox ComboSelAc;	// Selector for accession code
 	private JComboBox ComboSelCc;	// Selector for chain pdb code
@@ -74,19 +79,17 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	public String [] CCodeList;
 	public String [] CTList;
 
-	private Font SansSerif;
+	//private Font SansSerif;
 	JButton load, check;
 	JPanel loadpanel, selpanel;
 	private JTextField tf;
-	public String[] val = new String[4];
 
 	public String sql;
 	public String pdbFileName;
 
 	private Model mod;
 	private View view;
-	private PaintController pc;
-	private PyMol mypymol;
+	//private PaintController pc;
 	
 	private MySQLConnection conn = null;
 
@@ -121,18 +124,27 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	/** construct a new start object with the given title */
 	public Start(String title){
 		super(title);
+		
+		// open database connection
+		try {
+			this.conn = new MySQLConnection(DB_HOST, DB_USER, DB_PWD, graphDb);
+		} catch (Exception e) {
+			System.err.println("Error: Could not open database connection");
+			e.printStackTrace();
+		}
 	}
 	
 	/** main function to initialize and show GUI */
 	public void PreStartInit() {
+		
 		/* Layout settings */
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(300,200);
 
 		/* Instantiation */
-		SansSerif = new Font ("SansSerif", Font.BOLD, 14);
-		Layout = new FlowLayout ();
+		//SansSerif = new Font ("SansSerif", Font.BOLD, 14);
+		//Layout = new FlowLayout ();
 
 		ComboSelAc= new JComboBox();		// ComboBox for Accession codes
 		ComboSelCc= new JComboBox();		// ComboBox for chain codes
@@ -234,13 +246,23 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		return Selectct;
 	}
 	
+	/* return the chosen contact distance cutoff */
+	public float getSelectedDistanceCutoff() {
+		return DEFAULT_DISTANCE_CUTOFF;
+	}
+	
+	/* return the chosen minimum sequence separation */
+	public int getSelectedMinimumSequenceSeparation() {
+		int seqSep = Integer.valueOf(tf.getText());
+		return seqSep;
+	}
+	
 	// TODO: Add combo box for distance threshold
 	
 	/** initialize or refresh the values for the accession code combo box */
 	public void fillACChoiceBox() {
 		
 		/** SQL preparation */
-		MySQLConnection con = null;
 		Statement  st = null;
 		ResultSet  rsacs = null; 	// getting the data for the size of the Contact Map
 		ResultSet  rsac = null;	    // getting the data of the accession codes
@@ -254,8 +276,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			String straccesscode = "select distinct accession_code from single_model_graph;";
 
 			/** Database Connection */
-			con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
-			st = con.createStatement();
+			st = conn.createStatement();
 
 			/** initialising the Selector for Accession Codes */
 			rsacs = st.executeQuery(straccesscode);
@@ -288,16 +309,11 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		catch ( Exception ex ) {
 			System.out.println( ex );
 		}
-		finally {
-			con.close();
-		}
 
 	}
 	
 	/** initialize or refresh the values for the chain code combo box */
 	public void fillCCChoiceBox(){
-
-		MySQLConnection con;
 		Statement  st = null;  
 		ResultSet  rsccs = null;	    // getting the data of the size of the chain pdb codes
 		ResultSet  rscc = null;	    	// getting the data of the chain pdb codes
@@ -313,8 +329,8 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			String strchainpdb = "select distinct chain_pdb_code from chain_graph where accession_code = '"+accession_code+"' ;";
 
 			/** Database Connection */
-			con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
-			st = con.createStatement();
+			//con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,graphDb);
+			st = this.conn.createStatement();
 
 			/** initialising the selector for PDB chain Codes */
 			rsccs = st.executeQuery(strchainpdb);
@@ -339,7 +355,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			//Selectorcc.select(0);
 
 			st.close();
-			con.close();
 
 		}catch ( Exception ex ) {
 			System.out.println( ex );
@@ -348,7 +363,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 
 	/** initialize or refresh the values for the contact type combo box */
 	public void fillCTChoiceBox(){
-		MySQLConnection con;
 		Statement  st = null;  
 		ResultSet  rscts = null;	// getting the data of the size of the chain pdb codes
 		ResultSet  rsct = null;	    // getting the data of the chain pdb codes
@@ -378,8 +392,8 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 				//+ (chain_pdb_code.equals(NULL_CHAIN_CODE)?"is null":("= " + chain_pdb_code));
 
 			/** Database Connection */
-			con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,GRAPH_DB);
-			st = con.createStatement();
+			//con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD, graphDb);
+			st = conn.createStatement();
 
 			/** initialising the selector for PDB contact types */
 			rscts = st.executeQuery(strct);
@@ -403,7 +417,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			//Selectorct.select(0);
 
 			st.close();
-			con.close();
 
 		}catch ( Exception ex ) {
 			System.out.println( ex );
@@ -440,17 +453,17 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		
 		/* load button */
 		if (e.getSource()== load){
-			val[0]=this.getSelectedAC();
-			val[1]=this.getSelectedCC();
-			val[2]=this.getSelectedCT();
-			val[3]=tf.getText();
+//			val[0]=this.getSelectedAC();
+//			val[1]=this.getSelectedCC();
+//			val[2]=this.getSelectedCT();
+			//val[3]=tf.getText();
 
-			if (val[1].equals(NULL_CHAIN_CODE)){
-				sql = this.setSQLString(val[0], "is null", val[2], val[3]);
-			}
-			else {
-				sql = this.setSQLString(val[0], "= '"+val[1] +"'", val[2], val[3]);
-			}
+//			if (val[1].equals(NULL_CHAIN_CODE)){
+//				sql = this.setSQLString(val[0], "is null", val[2], val[3]);
+//			}
+//			else {
+//				sql = this.setSQLString(val[0], "= '"+val[1] +"'", val[2], val[3]);
+//			}
 
 			this.Init();
 		}
@@ -462,56 +475,31 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 
 		/** Initialising the application */ 
 		// data
-		mod = new Model(this);
-		// paint controller 
-		pc = new PaintController(this, mod, view);
+		mod = new Model(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
+				        this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
+				        this.conn);
+		// paint controller --> will be initialized in view.ViewInit()
+		// pc = new PaintController(mod, view);
 		// view
-		String wintitle = "Contact Map of " + this.getAccessionCode();
-		view = new View(this, mod, wintitle, pc, mypymol, PYMOL_SERVER_URL);
+		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
+		view = new View(mod, wintitle, PYMOL_SERVER_URL, this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName());
+		if(view == null) {
+			System.out.println("Couldn't initialize view. Exiting");
+			System.exit(-1);
+		}
 
 		try{
-			Msdsd2Pdb.export2File(val[0], val[1], TEMP_PATH + val[0] +".pdb", DB_USER);
+			Msdsd2Pdb.export2File(this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName(), DB_USER);
 		} catch (Exception ex){
+			System.err.println("Error: Couldn't export PDB file from MSD");
 			System.out.println(ex);
 		}
 	}
 
+	/* returns the name of the temporary pdb file */
+	public String getTempPDBFileName(){
 
-	/** setting the complete SQL- String */
-	public String setSQLString(String accession_code, String chain_pdb_code, String CT, String mindist){
-
-		String sql2 = "select i_num, j_num, single_model_graph.num_nodes, chain_graph.accession_code, chain_graph.chain_pdb_code, "
-			+"chain_graph.graph_id, single_model_graph.pgraph_id, single_model_graph.graph_id, single_model_graph.CT,"
-			+" single_model_edge.graph_id "
-			+" from single_model_edge, single_model_graph, chain_graph "
-			+ " where chain_graph.accession_code = '" + accession_code + "' and chain_graph.chain_pdb_code "+ chain_pdb_code 
-			+" and chain_graph.graph_id = single_model_graph.pgraph_id and single_model_graph.CT = '" + CT 
-			+ "' and single_model_graph.graph_id = single_model_edge.graph_id and i_num > j_num"
-			+" and i_num-j_num> '" + mindist + "' order by i_num, j_num;";
-
-		return sql2;
-	}
-
-	public String getSQLString(){
-		return sql; 
-	}
-
-	/** returns the pdb accession code */
-	public String getAccessionCode(){
-		String ac = val[0];
-		return ac;
-	}
-	/** returns the pdb chain code */
-	public String getChainCode(){
-		String cc = val[1];
-		return cc;
-	}
-
-	/** returns the pdb-filename */
-	public String getPDBString(){
-
-		pdbFileName  = TEMP_PATH + val[0] + ".pdb";
-		System.out.println(pdbFileName);
+		pdbFileName  = TEMP_PATH + this.getSelectedAC() + ".pdb";
 		return pdbFileName;
 	}
 
@@ -521,7 +509,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		System.out.println("CM2PyMol - Interactive contact map viewer");
 		// set parameters
 		if (args.length>0){
-			GRAPH_DB = args[0];
+			graphDb = args[0];
 			System.out.println("Using database " + args[0]);
 		} else {
 			System.out.println("Using default graph database.");
@@ -533,6 +521,9 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			System.out.println("Starting PyMol...");
 			// TODO: check whether pymol is running already
 			Process pymolProcess = Runtime.getRuntime().exec(PYMOL_CMD);
+			if(pymolProcess == null) {
+				throw new IOException("pymolProcess Object is null");
+			}
 			// TODO: catch output and wait until pymol is loaded
 		} catch(IOException e) {
 			System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");

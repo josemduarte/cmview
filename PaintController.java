@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 
 /**
  * 
@@ -41,7 +40,6 @@ public class PaintController extends Canvas
  	private boolean dragging;      // This is set to true while the user is drawing.
 
  	private boolean mouseIn;
- 	private Start start;
 	private Model mod;
 	private View view;
 	
@@ -60,8 +58,7 @@ public class PaintController extends Canvas
 	public int[][] resi = new int[20][];
 
 	// constructor
-	public PaintController(Start start, Model mod, View view){
-		this.start=start;
+	public PaintController(Model mod, View view){
 		this.mod = mod;
 
 		mod.ModelInit();
