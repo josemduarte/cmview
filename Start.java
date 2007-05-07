@@ -18,7 +18,7 @@ import tools.MySQLConnection;
  * Class: 		Start
  * Package: 	CM2PyMol
  * Date:		20/02/2007, updated: 29/03/2007
- * 				2007-05-04 updated by HS
+ * 				2007-May-07 updated by HS
  * 
  * tasks:
  * - initialising the application window
@@ -54,7 +54,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
-	public static final String		PYMOL_CMD = 		"pymol -R";
+	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R";
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
 	
 	public static float 			DEFAULT_DISTANCE_CUTOFF = 4.1f; // for now, assume all graphs are like this
@@ -453,28 +453,23 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		
 		/* load button */
 		if (e.getSource()== load){
-//			val[0]=this.getSelectedAC();
-//			val[1]=this.getSelectedCC();
-//			val[2]=this.getSelectedCT();
-			//val[3]=tf.getText();
-
-//			if (val[1].equals(NULL_CHAIN_CODE)){
-//				sql = this.setSQLString(val[0], "is null", val[2], val[3]);
-//			}
-//			else {
-//				sql = this.setSQLString(val[0], "= '"+val[1] +"'", val[2], val[3]);
-//			}
-
 			this.Init();
 		}
 
 	}
 
-	/** load the contact map window */
-	public void Init(){
+	/** spawn a new contact map window */
+	private void Init(){
 
-		/** Initialising the application */ 
-		// data
+		/** Initialising the application */
+		// pdb file
+		try{
+			Msdsd2Pdb.export2File(this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName(), DB_USER);
+		} catch (Exception ex){
+			System.err.println("Error: Couldn't export PDB file from MSD");
+			System.out.println(ex);
+		}	
+		// contact map data
 		mod = new Model(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
 				        this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
 				        this.conn);
@@ -484,16 +479,15 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
 		view = new View(mod, wintitle, PYMOL_SERVER_URL, this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName());
 		if(view == null) {
-			System.out.println("Couldn't initialize view. Exiting");
+			System.out.println("Error: Couldn't initialize contact map window");
 			System.exit(-1);
 		}
-
-		try{
-			Msdsd2Pdb.export2File(this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName(), DB_USER);
-		} catch (Exception ex){
-			System.err.println("Error: Couldn't export PDB file from MSD");
-			System.out.println(ex);
-		}
+		System.out.println(wintitle + " loaded.");
+		
+		// load structure in pymol
+		view.loadPDB.doClick();
+		view.pc.showContactMap();
+		
 	}
 
 	/* returns the name of the temporary pdb file */
@@ -512,8 +506,8 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			graphDb = args[0];
 			System.out.println("Using database " + args[0]);
 		} else {
-			System.out.println("Using default graph database.");
-			System.out.println("(You can specify a different graph database as a command line parameter)");
+			System.out.print("Using default graph database ");
+			System.out.println("(You can specify a different graph database as a command line parameter).");
 		}
 		
 		// start pymol

@@ -56,16 +56,11 @@ public class View extends JFrame implements ActionListener{
 			    String pdbCode, String chainCode, String fileName){
 		super(title);
 		this.mod = mod;
-		this.ViewInit();
 		this.pyMolServerUrl=pyMolServerUrl;
 		this.pdbCode = pdbCode;
 		this.chainCode = chainCode;
 		this.pdbFileName = fileName;
-		
-		// send structure to pymol - why does this not work here?
-		// TODO: Test for success
-		//tpm = new MyTestPyMol(start, mod, this, pc, pymol, this.pyMolServerUrl);
-		//tpm.MyTestPyMolInit();
+		this.ViewInit();
 
 	}
 	

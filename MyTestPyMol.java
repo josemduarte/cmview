@@ -94,7 +94,7 @@ public class MyTestPyMol {
                 + getChainObjectName() + " and chain " + this.chaincode + " and resi " + resi1 + " and name ca, " 
                 + getChainObjectName() + " and chain " + this.chaincode + " and resi " + resi2 + " and name ca"; 
 	    	}
-	    	System.out.println(pymolStr);
+	    	//System.out.println(pymolStr);
 	    	this.Out.println(pymolStr);
 	    }
 		

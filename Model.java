@@ -123,7 +123,7 @@ public class Model  {
 				  + "FROM single_model_edge "
 				  + "WHERE graph_id = " + graphId + " "
 				  + "AND i_num > j_num "
-				  + "AND abs(i_num - j_num) > " + seqSep + " "
+				  + "AND abs(i_num - j_num) >= " + seqSep + " "
 				  + "ORDER BY i_num, j_num";
 			
 			rs = st.executeQuery(query);			
@@ -145,7 +145,6 @@ public class Model  {
 
     }
 
-	
 	/** Returns matrix dimension */
 	public int[] getMatrixSize(){
 		return pubmsize;

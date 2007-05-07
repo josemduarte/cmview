@@ -39,7 +39,7 @@ public class PaintController extends Canvas
     
  	private boolean dragging;      // This is set to true while the user is drawing.
 
- 	private boolean mouseIn;
+ 	public boolean mouseIn;
 	private Model mod;
 	private View view;
 	
@@ -60,12 +60,10 @@ public class PaintController extends Canvas
 	// constructor
 	public PaintController(Model mod, View view){
 		this.mod = mod;
-
-		mod.ModelInit();
 		this.view=view;
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
-
+		mod.ModelInit();
 	}
 	
 	
@@ -206,17 +204,17 @@ public class PaintController extends Canvas
        int[] selrect = {(int)(xs/(double)ratio), (int)(ys/(double)ratio), (int)((rwidth + xs)/(double)ratio), (int)((rheight +ys)/(double)ratio)};
        selrec = selrect;
        
-		int xs = selrec[0];
-		int ys = selrec[1];
-		int rw = selrec[2];
-		int rh = selrec[3];
-		
-		System.out.println("Residues: "+ xs + "\t"+ ys + "\t"+ rw + "\t"+ rh);
+//		int xs = selrec[0];
+//		int ys = selrec[1];
+//		int rw = selrec[2];
+//		int rh = selrec[3];
+//		
+//		System.out.println("Residues: "+ xs + "\t"+ ys + "\t"+ rw + "\t"+ rh);
 		
    }
   
    public void fillSelect(int x, int y){
-	   System.out.println("RegGrow: "+ x + "\t"+ y);
+	   //System.out.println("RegGrow: "+ x + "\t"+ y);
 	   
 
 	   if ((x==0) | (y==0)){
@@ -356,6 +354,17 @@ public class PaintController extends Canvas
 	   this.update(g, evt);
 	   this.drawCoordinates();
 	   }
+   
+   /** Method to show the contact map just after application is started */
+   public void showContactMap() {
+	   mouseIn = true;
+	   xpos = 100;
+	   ypos = 100;
+	   int[] posxy = {xpos, ypos};
+	   pos = posxy;
+	   this.update(g, null);
+	   this.drawCoordinates();
+   }
    
    public void showPopup(MouseEvent e) {
        view.popup.show(e.getComponent(), e.getX(), e.getY());
