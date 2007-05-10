@@ -9,13 +9,8 @@ import java.awt.event.*;
  * 
  * @author:	Juliane Dinse
  * Class: 	View
- * Package:	CM2PyMol
+ * Package:	cm2pymol
  * Date:	20/02/2007
- * 
- * tasks:
- * - preparing visualisation of contact map by providing a panel
- * - implements the ActionListener --> Buttons for different selection options
- * - if button is clicked --> sending signals to other programs
  *
  */
 

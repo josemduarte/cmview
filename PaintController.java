@@ -5,18 +5,9 @@ import java.awt.event.*;
  * 
  * @author:		Juliane Dinse
  * Class: 		PaintController
- * Package: 	CM2PyMol
- * Date:		20/02/2007, updated: 29/03/2007
+ * Package: 	cm2pymol
+ * Date:		20/02/2007, last updated: 10/05/2007
  * 
- * 
- * tasks:
- * - drawing contact map 
- * - works on a buffer for Double Buffering (can be more optimized)
- * - updates contact map in case of user interaction/selection:
- * 			- Square selection, Fill selectionon CM
- *  - implements ALL MouseEvents
- *  - draws cross-hair, coordinates, coloures selections, shows common neighbours
- *  - storages all selections in matrices for further processing
  */
 
 public class PaintController extends Canvas

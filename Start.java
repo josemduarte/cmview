@@ -15,26 +15,20 @@ import tools.MySQLConnection;
  * 
  * @author		Juliane Dinse
  * @author		Henning Stehr
+ * @version		0.3 Build 0
  * Class: 		Start
- * Package: 	CM2PyMol
+ * Package: 	cm2pymol
  * Date:		20/02/2007, updated: 29/03/2007
- * 				2007-May-07 updated by HS
- * 
- * tasks:
- * - initialising the application window
- * - getting the input parameters (accession code, chain code, contact type, minimum distance) 
- * 	 by Choice Boxes (Selection Lists)
- * - initiating other programs
- * - setting the complete SQL-String
+ * 				2007-05-10 last updated by HS
  * 
  * TODO:
  * - Fix problems with null chain codes (bug) [done]
  * - Remove back references to start -> allow multiple CM windows (feature) [done]
- * - Move database connection to Start/main function (style)
+ * - Move database connection to Start/main function (style) [done]
  * - make config file (usability)
  * - add combo box for distance threshold (feature)
  * - update selection rectangle and coordinates while dragging (usability) [done]
- * - why is the structure in pymol not being loaded automatically? (usability)
+ * - why is the structure in pymol not being loaded automatically? (usability) [done]
  * - when sending edges to pymol, also create a selection of the respective residues (feature)
  */
 
@@ -161,26 +155,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		/* adding button to panel */
 		loadpanel.add(load, new GridLayout(2,1));
 
-//		/* creating button for accession code check */
-//		check = new JButton("Check Database");
-//		/*adding ActionListener to button */
-//		check.addActionListener(this);
-//		/* adding button to panel */
-//		loadpanel.add(check, new GridLayout(1,1));
-
-		/* Creating the Selectors */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-//		Selectorac.setBackground (Color.gray);
-//		Selectorac.setForeground (Color.lightGray);
-//		Selectorac.setFont (SansSerif);
-//
-//		Selectorcc.setBackground (Color.gray);
-//		Selectorcc.setForeground (Color.lightGray);
-//		Selectorcc.setFont (SansSerif);
-//
-//		Selectorct.setBackground (Color.gray);
-//		Selectorct.setForeground (Color.lightGray);
-//		Selectorct.setFont (SansSerif);
-
 		/* creating textfield */
 		tf = new JTextField();
 		tf.setText("0");
@@ -213,10 +187,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		ComboSelAc.addItemListener (this);
 		ComboSelCc.addItemListener (this);
 		ComboSelCt.addItemListener (this);
-
-//		ComboSelAc.addActionListener (this);
-//		ComboSelCc.addActionListener (this);
-//		ComboSelCt.addActionListener (this);
 
 		/* creating the front frame */
 		Box verlBox = Box.createVerticalBox();
@@ -293,14 +263,11 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			while (rsac.next()){
 				/* adding database output to object */
 				String acccode = rsac.getString(1);
-				//Object acode= rsac.getObject(1);
 				ACodeList[k]= acccode;
-				//ComboListAc[k]= acode;
 				k++;
 			}
 			/* adding object content to selector to represent it */
 			for (int i = 0; i < ACodeList.length; i++) {
-				//Selectorac.insert (ACodeList [i], i);
 				ComboSelAc.addItem(makeObj(ACodeList[i]));
 			}
 			st.close();
@@ -329,7 +296,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			String strchainpdb = "select distinct chain_pdb_code from chain_graph where accession_code = '"+accession_code+"' ;";
 
 			/** Database Connection */
-			//con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,graphDb);
 			st = this.conn.createStatement();
 
 			/** initialising the selector for PDB chain Codes */
@@ -352,7 +318,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			for (int i = 0; i < CCodeList.length; i++) {
 				ComboSelCc.addItem(makeObj(CCodeList[i]));
 			}
-			//Selectorcc.select(0);
 
 			st.close();
 
@@ -392,7 +357,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 				//+ (chain_pdb_code.equals(NULL_CHAIN_CODE)?"is null":("= " + chain_pdb_code));
 
 			/** Database Connection */
-			//con = new MySQLConnection(DB_HOST,DB_USER,DB_PWD, graphDb);
 			st = conn.createStatement();
 
 			/** initialising the selector for PDB contact types */
@@ -414,7 +378,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 				//Selectorct.insert (CTList [i], i);
 				ComboSelCt.addItem(makeObj(CTList[i]));
 			}
-			//Selectorct.select(0);
 
 			st.close();
 
@@ -474,7 +437,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 				        this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
 				        this.conn);
 		// paint controller --> will be initialized in view.ViewInit()
-		// pc = new PaintController(mod, view);
 		// view
 		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
 		view = new View(mod, wintitle, PYMOL_SERVER_URL, this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName());
@@ -497,7 +459,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		return pdbFileName;
 	}
 
-
+	/** main function */
 	public static void main(String args[]){
 		
 		System.out.println("CM2PyMol - Interactive contact map viewer");
@@ -527,7 +489,6 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		String title = "CM2PyMol";
 		Start pstart = new Start(title);
 		pstart.PreStartInit();
-
 	}
 
 }

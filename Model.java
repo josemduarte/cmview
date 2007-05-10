@@ -6,16 +6,10 @@ import tools.*;
 
 /**
  * 
- * @author:		Juliane Dinse
+ * @author		Juliane Dinse
  * Class: 		Model
- * Package: 	tools
- * Date:		20/02/2007, updated: 01/03/2007
- * 
- * tasks:
- * - getting the data out of the database
- * - initialising size of the contact map
- * - creating the binary contact-map-matrix: 0 - no contact, 1 - contact
- * - if selected pdb structure contains unobserved residues: Pop-up-window with warning message
+ * Package: 	cm2pymol
+ * Date:		20/02/2007, last updated: 10/05/2007
  * 
  */
 

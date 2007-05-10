@@ -9,9 +9,13 @@ public class MyTestPyMol {
 	
 
 /**
- * Test class for the PyMol class (our java to PyMol API) 
- * @param file where PyMol script will be written
- * @author duarte, updated to MyTestPyMol by: Juliane Dinse, Date: 29/03/2007
+ * Class for communication with PyMol 
+ * 
+ * @author Jose Duarte
+ * @author Juliane Dinse
+ * Class: MyTestPyMol
+ * Package: cm2pymol
+ * Date: 29/03/2007, last updated: 10/05/2007
  * 
  * MyTestPyMol sends selected data and commands directly to Pymol.
  * 
