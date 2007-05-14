@@ -1,6 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.JPanel;
+//import javax.swing.JPanel;
 
 /**
  * 
@@ -32,7 +32,7 @@ public class PaintController extends Canvas
  	private boolean dragging;      // This is set to true while the user is drawing.
 
  	public boolean mouseIn;
-	private Model mod;
+	private ModelTemp mod;
 	private View view;
 	
 	public Graphics g; 					// buffered Graphic (work panel)
@@ -40,7 +40,7 @@ public class PaintController extends Canvas
 	public Image offscreen;				// image which is shown as graphic
 	
 	
-	public int[] dim = new int[2];
+	public int dim;
 	public int[] dimsi = new int[2];
 	public int[] pos = new int[2];
 	public int[] selrec = new int[4]; // points of selected Rectangle
@@ -50,12 +50,12 @@ public class PaintController extends Canvas
 	public int[][] resi = new int[20][];
 
 	// constructor
-	public PaintController(Model mod, View view){
+	public PaintController(ModelTemp mod, View view){
 		this.mod = mod;
-		this.view=view;
+		this.view = view;
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
-		mod.ModelInit();
+		//mod.ModelInit();
 	}
 	
 	
@@ -73,7 +73,7 @@ public class PaintController extends Canvas
 		 winheight = getHeight();
 		 
 		 // create new Dimension of application window
-		 Dimension appdim = new Dimension(dim[0]*4, dim[1]*4); 
+		 Dimension appdim = new Dimension(dim*4, dim*4); 
 		 
 		 if (appdim.getHeight() > screendim.getHeight() ){
 			 // Contact Map should always be a square --> height is smaller than width to 
@@ -119,7 +119,7 @@ public class PaintController extends Canvas
 	      width = dims[0];   // Width of the Contact Map
 	      height = dims[1];  // Height of the Contact Map.
 	 
-	      ratio = (double)width/dim[0];		// scale factor
+	      ratio = (double)width/dim;		// scale factor
 
 		  setBackground(Color.white);
 		    
@@ -134,8 +134,8 @@ public class PaintController extends Canvas
 
 	     bufferGraphics.setColor(Color.black);
 	     // initialising the first contact map
-	      for (i= 0; i<dim[0]; i++){
-	          for (j= 0; j<dim[1]; j++){
+	      for (i= 0; i<dim; i++){
+	          for (j= 0; j<dim; j++){
 	        	  
 	        	  if (admatrix[i][j] ==1){
 	        		  // if there is a contact, draw a rectangle
@@ -159,8 +159,8 @@ public class PaintController extends Canvas
 	   
 	    bufferGraphics.setColor(Color.red);
 
-	   	for(int z = 0; z<= (int)(dim[0]); z++){
-			for(int p = 0; p<= (int)(dim[0]); p++){
+	   	for(int z = 0; z<= (int)(dim); z++){
+			for(int p = 0; p<= (int)(dim); p++){
 	    
 				if ((selmatrix[z][p]==10) || (selmatrix[z][p]==5)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
@@ -211,7 +211,7 @@ public class PaintController extends Canvas
 
 	   if ((x==0) | (y==0)){
 	   }
-	   while((x<=dim[0]) && (y<=dim[0])){
+	   while((x<=dim) && (y<=dim)){
 		   
 	   if (selmatrix[x][y]==0){
 		   return;
@@ -426,7 +426,7 @@ public class PaintController extends Canvas
 	   
 	   /** creating common neighbour triangle under the choosen point */
 	   // searching in vertical direction the y-axis from ys-position
-	   for (int m = ys; m<= dim[0]; m++){
+	   for (int m = ys; m<= dim; m++){
 
 		   if(admatrix[xs][m]==1){
 			   int lowtri = m;
@@ -455,7 +455,7 @@ public class PaintController extends Canvas
 	   
 	   /** creating common neighbour triangle to the right of the choosen point */
 	   // searching in horizontal direction the x-axis beginning at xs-position
-	   for (int m = xs; m<= dim[0]; m++){
+	   for (int m = xs; m<= dim; m++){
 
 		   if(admatrix[m][ys]==1){
 
@@ -514,9 +514,9 @@ public class PaintController extends Canvas
 	  bufferGraphics.setColor(Color.green);
 	  bufferGraphics.drawLine(0, x, x, x);
 	  // vertical Lines
-	  bufferGraphics.drawLine(y,y,y,(int)(dim[0]*ratio));
+	  bufferGraphics.drawLine(y,y,y,(int)(dim*ratio));
 	  bufferGraphics.setColor(Color.gray);
-	  bufferGraphics.drawLine(x,x,x,(int)(dim[0]*ratio)); 
+	  bufferGraphics.drawLine(x,x,x,(int)(dim*ratio)); 
    }
  
    public int[][] fillResidueMatrix(int res1, int res2, int res3, int trinum){

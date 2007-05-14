@@ -212,18 +212,17 @@ public class MyTestPyMol {
 			// TODO: Call createSelectionObject instead
 		
 		}
-			
-		//public void FillCommands(){
-		public void FillCommands(int selNum, int[][] selmatrix, int[] matrixSize){
+		
+		//public void FillCommands() {
+		public void FillCommands(int selNum, int[][] selmatrix, int matrixSize){
 			int i,j;
 			//int [] size = mod.getMatrixSize();
 			//int k = view.getSelNum();
 			//selectionType = view.getSelectionType();
 			//selmatrix = pc.getSelectMatrix();	
 		
-			int dim1 = matrixSize[0];
-			int dim2 = matrixSize[1];
-			
+			int dim1 = matrixSize;
+			int dim2 = matrixSize;
 			
 			for (i = 0; i<= dim1; i++){
 				for (j = 0; j<= dim2; j++){

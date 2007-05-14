@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import javax.swing.*;
 
-import tools.Msdsd2Pdb;
 import tools.MySQLConnection;
 /**
  * 
@@ -59,33 +58,27 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	public static String 			graphDb = DEFAULT_GRAPH_DB;
 	
 	/* Declaration */
-	
-	//private LayoutManager Layout;
 
 	private JComboBox ComboSelAc;	// Selector for accession code
 	private JComboBox ComboSelCc;	// Selector for chain pdb code
 	private JComboBox ComboSelCt;	// selector for contact type
 
-	public int numac, rownumac;		// getting the number of rows out of the DB in accession_code Column
-	public int numcc, rownumcc;		// getting the number of rows out of the DB in chain-pdb-code Column
-	public int numct, rownumct;		// getting the number of rows out of the DB in chain-pdb-code Column
+	private int numac;		// getting the number of rows out of the DB in accession_code Column
+	private int numcc;		// getting the number of rows out of the DB in chain-pdb-code Column
+	private int numct;		// getting the number of rows out of the DB in chain-pdb-code Column
 
-	public String Selectac, Selectcc, Selectct;
-	public String [] ACodeList;
-	public String [] CCodeList;
-	public String [] CTList;
+	private String Selectac, Selectcc, Selectct;
+	private String [] ACodeList;
+	private String [] CCodeList;
+	private String [] CTList;
 
 	//private Font SansSerif;
 	JButton load, check;
 	JPanel loadpanel, selpanel;
 	private JTextField tf;
 
-	public String sql;
-	public String pdbFileName;
-
-	private Model mod;
+	private ModelTemp mod;
 	private View view;
-	//private PaintController pc;
 	
 	private MySQLConnection conn = null;
 
@@ -427,21 +420,14 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	private void Init(){
 
 		/** Initialising the application */
-		// pdb file
-		try{
-			Msdsd2Pdb.export2File(this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName(), DB_USER);
-		} catch (Exception ex){
-			System.err.println("Error: Couldn't export PDB file from MSD");
-			System.out.println(ex);
-		}	
 		// contact map data
-		mod = new Model(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
+		mod = new OldModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
 				        this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
-				        this.conn);
+				        this.conn, graphDb);
 		// paint controller --> will be initialized in view.ViewInit()
 		// view
 		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
-		view = new View(mod, wintitle, PYMOL_SERVER_URL, this.getSelectedAC(), this.getSelectedCC(), this.getTempPDBFileName());
+		view = new View(mod, wintitle, PYMOL_SERVER_URL);
 		if(view == null) {
 			System.out.println("Error: Couldn't initialize contact map window");
 			System.exit(-1);
@@ -454,12 +440,12 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		
 	}
 
-	/* returns the name of the temporary pdb file */
-	public String getTempPDBFileName(){
-
-		pdbFileName  = TEMP_PATH + this.getSelectedAC() + ".pdb";
-		return pdbFileName;
-	}
+//	/* returns the name of the temporary pdb file */
+//	public String getTempPDBFileName(){
+//
+//		pdbFileName  = TEMP_PATH + this.getSelectedAC() + ".pdb";
+//		return pdbFileName;
+//	}
 
 	/** main function */
 	public static void main(String args[]){

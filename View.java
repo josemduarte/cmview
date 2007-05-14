@@ -30,34 +30,33 @@ public class View extends JFrame implements ActionListener{
 	JLabel bpl;
 	JPanel cmp; // Contact Map Panel
 	
-	private Model mod;
-	public PaintController pc;
+	private ModelTemp mod;
+	public PaintController pc;      // used by Start
 	private MyTestPyMol tpm;
 	private String pyMolServerUrl;
-	public int selval;
-	public int selINK=0;		 // incrementation numbering
+	private int selval;
+	private int selINK=0;		 // incrementation numbering
 	
-	private String pdbCode;
-	private String chainCode;
+	//private String pdbCode;
+	//private String chainCode;
 	private String pdbFileName;
 	
-	public int[] pos = new int[2];
-	public String[] text = new String[2];
-	public String s1, s2;
+	//private int[] pos = new int[2];
+	//private String[] text = new String[2];
+	//private String s1, s2;
 	//private MouseEvent evt;
-	public String selectionType;
-	public boolean sendpy;
+	private String selectionType;
+	//private boolean sendpy;
 
 
 
-	public View(Model mod, String title, String pyMolServerUrl,
-			    String pdbCode, String chainCode, String fileName){
+	public View(ModelTemp mod, String title, String pyMolServerUrl) {
 		super(title);
 		this.mod = mod;
 		this.pyMolServerUrl=pyMolServerUrl;
-		this.pdbCode = pdbCode;
-		this.chainCode = chainCode;
-		this.pdbFileName = fileName;
+		//this.pdbCode = pdbCode;
+		//this.chainCode = chainCode;
+		this.pdbFileName = mod.getTempPDBFileName();
 		this.ViewInit();
 
 	}
@@ -211,8 +210,8 @@ public class View extends JFrame implements ActionListener{
 		// Help menu
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);
-		menuItem = new JMenuItem("Help");
-		menu.add(menuItem);			
+//		menuItem = new JMenuItem("Help");
+//		menu.add(menuItem);			
 		menuItem = new JMenuItem("About");
 		menu.add(menuItem);		
 		menuBar.add(menu);
@@ -255,14 +254,15 @@ public class View extends JFrame implements ActionListener{
 		
 				// TODO: Move object creation to somewhere else
 				tpm = new MyTestPyMol(this.pyMolServerUrl,
-						              this.pdbCode, this.chainCode, this.pdbFileName);
+									  mod.getPDBCode(), mod.getChainCode(), this.pdbFileName);
+						              //this.pdbCode, this.chainCode, this.pdbFileName);
 				tpm.MyTestPyMolInit();
 				
 				   }
 		  // send selection button clicked
 		  if (e.getSource() == send || e.getSource() == sendM || e.getSource() == sendP) {
 			  
-			  	   sendpy =true;	
+			  	   //sendpy =true;	
 				   int selval = this.getValue();
 				   switch(selval){		   
 				   

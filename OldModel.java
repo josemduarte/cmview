@@ -2,9 +2,12 @@
 
 import java.sql.*;
 import javax.swing.*;
+import tools.Msdsd2Pdb;
 import tools.*;
 
-/**
+/** 
+ * A contact map data model based on a graph database (single_model_graphs derived from MSD).
+ * This is the model that was used in previous versions of CM2Pymol (hence the "old").
  * 
  * @author		Juliane Dinse
  * Class: 		Model
@@ -12,35 +15,39 @@ import tools.*;
  * Date:		20/02/2007, last updated: 10/05/2007
  * 
  */
-
-public class Model  {
+public class OldModel implements ModelTemp {
 
 	/* constants */
 	
 	/* member variables */
 	
-	public int[] pubmsize = new int[2]; // public array for matrix size 
-	public int[][] pubmatrix = MatrixInitialiser(); // public array for adjacency matrix
+	private int pubmsize = 0; // size of data matrix 
+	private int[][] pubmatrix = null; // public array for adjacency matrix
 
-	public String pdbCode = null;		// pdb accession code
-	public String chainCode = null;		// pdb chain code
-	private String edgeType = null;		// contact type (BB, SC, ...)
-	private float distCutoff = 0;		// contact distance cutoff
-	private float seqSep = 0;			// minimum sequence separation
-	
+	private String pdbCode = null;			// pdb accession code
+	private String chainCode = null;		// pdb chain code
+	private String edgeType = null;			// contact type (BB, SC, ...)
+	private float distCutoff = 0;			// contact distance cutoff
+	private float seqSep = 0;				// minimum sequence separation
 	private MySQLConnection conn = null;
+	private String db;						// the database to read from
+	private boolean unobservedResidues;		// are there any in this structure?
 	
 	private JFrame f;
-	public int a,b;
 	
-	//constructor
-	public Model(String pdbCode, String chainCode, String edgeType, float distCutoff, int seqSep, MySQLConnection conn) {
+	/* Create a new model object */
+	public OldModel(String pdbCode, String chainCode, String edgeType, float distCutoff, int seqSep, MySQLConnection conn, String db) {
 		this.pdbCode = pdbCode;
 		this.chainCode = chainCode;
 		this.edgeType = edgeType;
 		this.distCutoff = 4.1f;
 		this.seqSep = 0;
 		this.conn = conn;
+		this.db = db;
+		conn.setDbname(this.db);
+		this.unobservedResidues = false;
+		
+		this.ModelInit();
 	}
 	
 	// Return the graphId of the single model graph underlying this model
@@ -64,10 +71,20 @@ public class Model  {
 		return smGraphId;
 	}
 	
-	public void ModelInit() {
+	private void ModelInit() {
 	
 	    int graphId = this.getSingleModelGraphId();
+	    int a = 0, b = 0;
 	    
+		// write temp pdb file
+		try{
+			Msdsd2Pdb.export2File(this.pdbCode, this.chainCode, this.getTempPDBFileName(), Start.DB_USER);
+		} catch (Exception ex){
+			System.err.println("Error: Couldn't export PDB file from MSD");
+			System.out.println(ex);
+		}	
+	    
+		// load contact map from database
 	    try {
 	    	
 	    	/** SQL preparation */		
@@ -89,17 +106,14 @@ public class Model  {
 				b = rs.getInt(4);
 				
 				/**** Hier */ 
-				int m = rs.getInt(2); // numbers of rows of the contact map
-				int n = rs.getInt(2); // numbers of columns of the contact map
-				int[] msiz = {m,n};
-				pubmsize = msiz;
+				pubmsize = rs.getInt(2); // numbers of rows of the contact map
 			}
 			
 			if(a==b){
 				//everything is fine
 			}
 			else{
-	
+				unobservedResidues = true;
 				// warning pop-up if unobserved residues occur
 				JOptionPane.showMessageDialog(f,
 				    "Be careful: some unobserved residues!",
@@ -123,7 +137,6 @@ public class Model  {
 			rs = st.executeQuery(query);			
 			
 			while (rs.next()){
-				int a,b;
 				/** Insert the contacts */
 				a = rs.getInt(1); // 1st column
 				b = rs.getInt(2); // 2nd column
@@ -133,29 +146,59 @@ public class Model  {
 				}
 		}
 		catch ( Exception ex ) {
-	        System.out.println( ex );
-	        
+	        System.out.println( ex );   
 		}
-
     }
 
-	/** Returns matrix dimension */
-	public int[] getMatrixSize(){
+	/* (non-Javadoc)
+	 * @see Model#getMatrixSize()
+	 */
+	public int getMatrixSize(){
 		return pubmsize;
 	}
 	
-	
-	/** Returns the matrix */
+	/* (non-Javadoc)
+	 * @see Model#getMatrix()
+	 */
 	public int[][] getMatrix(){
 		return pubmatrix;
 	}
 	
+	/* (non-Javadoc)
+	 * @see Model#getPDBCode()
+	 */
+	public String getPDBCode() {
+		return this.pdbCode;
+	}
+	
+	/* (non-Javadoc)
+	 * @see Model#getChainCode()
+	 */
+	public String getChainCode() {
+		return this.chainCode;
+	}
+	
+	/* (non-Javadoc)
+	 * @see Model#getTempPDBFileName()
+	 */
+	public String getTempPDBFileName(){
+		String pdbFileName;
+		pdbFileName  = Start.TEMP_PATH + this.pdbCode + ".pdb";
+		return pdbFileName;
+	}
+	
+	/* (non-Javadoc)
+	 * @see Model#hasUnobservedResidues()
+	 */
+	public boolean hasUnobservedResidues() {
+		return unobservedResidues;
+	}
 	
 	/** Initialises an empty matrix of the size of the protein sequence */
-	public int[][] MatrixInitialiser(){
-		int [] msize = getMatrixSize();
-		int m = msize[0]+1;
-		int n = msize[1]+1;
+	private int[][] MatrixInitialiser(){
+		int msize = getMatrixSize();
+		int m = msize+1;
+		int n = msize+1;
 		
 		int[][] matrix = new int[m][];
 		
