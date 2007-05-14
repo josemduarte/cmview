@@ -15,7 +15,7 @@ import tools.*;
  * Date:		20/02/2007, last updated: 10/05/2007
  * 
  */
-public class OldModel implements ModelTemp {
+public class OldModel implements Model {
 
 	/* constants */
 	

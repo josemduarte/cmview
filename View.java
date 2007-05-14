@@ -30,7 +30,7 @@ public class View extends JFrame implements ActionListener{
 	JLabel bpl;
 	JPanel cmp; // Contact Map Panel
 	
-	private ModelTemp mod;
+	private Model mod;
 	public PaintController pc;      // used by Start
 	private MyTestPyMol tpm;
 	private String pyMolServerUrl;
@@ -50,7 +50,7 @@ public class View extends JFrame implements ActionListener{
 
 
 
-	public View(ModelTemp mod, String title, String pyMolServerUrl) {
+	public View(Model mod, String title, String pyMolServerUrl) {
 		super(title);
 		this.mod = mod;
 		this.pyMolServerUrl=pyMolServerUrl;

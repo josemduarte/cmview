@@ -77,7 +77,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	JPanel loadpanel, selpanel;
 	private JTextField tf;
 
-	private ModelTemp mod;
+	private Model mod;
 	private View view;
 	
 	private MySQLConnection conn = null;

@@ -7,7 +7,7 @@
  * Date:		14/05/2007, last updated: 14/05/2007
  * 
  */
-public interface ModelTemp {
+public interface Model {
 
 	/** Returns the size of the data matrix */
 	public abstract int getMatrixSize();

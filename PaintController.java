@@ -32,7 +32,7 @@ public class PaintController extends Canvas
  	private boolean dragging;      // This is set to true while the user is drawing.
 
  	public boolean mouseIn;
-	private ModelTemp mod;
+	private Model mod;
 	private View view;
 	
 	public Graphics g; 					// buffered Graphic (work panel)
@@ -50,7 +50,7 @@ public class PaintController extends Canvas
 	public int[][] resi = new int[20][];
 
 	// constructor
-	public PaintController(ModelTemp mod, View view){
+	public PaintController(Model mod, View view){
 		this.mod = mod;
 		this.view = view;
 	    addMouseListener(this);
