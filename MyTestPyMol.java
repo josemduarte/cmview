@@ -9,7 +9,7 @@ public class MyTestPyMol {
 	
 
 /**
- * Class for communication with PyMol 
+ * Encapsulates the communication with a particular PyMol server instance 
  * 
  * @author Jose Duarte
  * @author Juliane Dinse
@@ -24,9 +24,9 @@ public class MyTestPyMol {
  *   with integrated transparency parameter). 
  *
 		 */
-		private Model mod;
-		private View view;
-		private PaintController pc;
+		//private Model mod;
+		//private View view;
+		//private PaintController pc;
 		private String url;
 		public PrintWriter Out = null;	
 		public PyMol pymol;
@@ -34,20 +34,21 @@ public class MyTestPyMol {
 		public String pdbFileName;
 		public String accessionCode;
 		public String chaincode;
-		public int trinum;
-		public String selectionType;
+		//public int trinum;
+		//public String selectionType;
 	
 		public int[][] matrix = new int[0][];
 		public int[][] selmatrix = new int[0][];
-		public int[][] triangle= new int[1][];
+		//public int[][] triangle= new int[1][];
 		public int[] selrec = new int[4];
 		
-		// constructor
-		public MyTestPyMol(Model mod, View view, PaintController pc, String pyMolServerUrl,
+		/** Create a new PymolCommunication object */
+		// TODO: Remove dependencies
+		public MyTestPyMol(String pyMolServerUrl,
 				           String pdbCode, String chainCode, String fileName){
-			this.mod = mod;
-			this.view=view;
-			this.pc=pc;
+			//this.mod = mod;
+			//this.view=view;
+			//this.pc=pc;
 			this.url=pyMolServerUrl;
 			
 			this.pdbFileName = fileName;
@@ -73,6 +74,7 @@ public class MyTestPyMol {
 		}
 		
 		/** Returns the name of the object for the current chain in pymol */
+		// TODO: Move these two functions to calling object to make this independent of chain
 		public String getChainObjectName() {
 			String objName;		
 			if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
@@ -81,6 +83,17 @@ public class MyTestPyMol {
 				objName = this.accessionCode + this.chaincode;
 			}
 			return objName;
+		}
+		
+		/** Return the pymol selection string for the current chain */
+		public String getChainSelector() {
+			String selStr;
+			if(this.chaincode.equals(Start.NULL_CHAIN_CODE)) {
+				selStr = getChainObjectName();
+			} else {
+				selStr = getChainObjectName() + " and chain " + this.chaincode;
+			}
+			return selStr;			
 		}
 		
 	    /** Creates an edge between the C-alpha atoms of the given residues in the given chain. 
@@ -102,14 +115,32 @@ public class MyTestPyMol {
 	    	this.Out.println(pymolStr);
 	    }
 		
+		/** Create an object from a selection of residues in pymol 
+		 * Return false on error */
+		public boolean createSelectionObject(String objName, String parent, int[] residues) {
+			String resString = "";
+			int res;
+			if(residues.length == 0) return false;
+			
+			resString += residues[0];
+			for(int i = 1; i < residues.length; i++) {
+				res = residues[i];
+				resString += "," + res;
+			}
+			
+			Out.println("create " + objName + ", (" + parent + " and resi " + resString + " and name ca)");
+			return true;
+		}
+	    
 			// more pymol commands
 
-		public void SquareCommands(){
+		//public void SquareCommands(){
+		public void SquareCommands(int selNum, int[][] matrix, int[] selrec){
 			int i,j;
-			int k = view.getSelNum();
-			selectionType = view.getSelectionType();
-			matrix = pc.getSelectMatrix();	
-			selrec = pc.getSelectRect();
+			//int k = view.getSelNum();
+			//selectionType = view.getSelectionType();
+			//matrix = pc.getSelectMatrix();	
+			//selrec = pc.getSelectRect();
 			
 			int xs = selrec[0]; //starting point: upper left, x-direction
 			int ys = selrec[1]; //starting point: upper left, y-direction
@@ -125,7 +156,7 @@ public class MyTestPyMol {
 						int resi2 = j;
 						System.out.println("i: "+ i + " j: "+j);
 						//inserts an edge between the selected residues 
-						this.setDistance(resi1, resi2, k);							
+						this.setDistance(resi1, resi2, selNum);							
 					}
 				}
 			}
@@ -134,12 +165,20 @@ public class MyTestPyMol {
 			// TODO: create selection of participating residues
 		}
 		
-		public void showTriangles(){
+		//public void showTriangles(){
+		public void showTriangles(int trinum, int[][] triangle){
+			
+			if(trinum == 0) {
+				System.err.println("Warning: No common neighbourhood selected");
+				return;
+			}
+			
 			//running python script for creating the triangles with the given residues
+			// TODO: Can this be run once on startup? + move constant to Start
 			Out.println("run /amd/white/2/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py");
-
-			trinum = pc.getTriangleNumber();
-			triangle = pc.getResidues();
+			
+			//trinum = pc.getTriangleNumber();
+			//triangle = pc.getResidues();
 			int[] selectresi = new int[triangle.length+2];
 
 			Random generator = new Random(trinum/2);
@@ -170,19 +209,20 @@ public class MyTestPyMol {
 			}
 			
 			pymol.select("Sele: "+accessionCode, resi_num);
-			
-		}
+			// TODO: Call createSelectionObject instead
 		
-		public void FillCommands(){
-			int i,j;
-			int [] size = mod.getMatrixSize();
-			int k = view.getSelNum();
-			selectionType = view.getSelectionType();
-			selmatrix = pc.getSelectMatrix();	
-
+		}
 			
-			int dim1 = size[0];
-			int dim2 = size[1];
+		//public void FillCommands(){
+		public void FillCommands(int selNum, int[][] selmatrix, int[] matrixSize){
+			int i,j;
+			//int [] size = mod.getMatrixSize();
+			//int k = view.getSelNum();
+			//selectionType = view.getSelectionType();
+			//selmatrix = pc.getSelectMatrix();	
+		
+			int dim1 = matrixSize[0];
+			int dim2 = matrixSize[1];
 			
 			
 			for (i = 0; i<= dim1; i++){
@@ -193,7 +233,7 @@ public class MyTestPyMol {
 						int resi1 = i;
 						int resi2 = j;
 						//inserts an edge between the selected residues
-						this.setDistance(resi1, resi2, k);
+						this.setDistance(resi1, resi2, selNum);
 					}
 				}
 			}

@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.JPanel;
 
 /**
  * 
@@ -26,7 +27,7 @@ public class PaintController extends Canvas
 	
  	public double ratio;		// scale factor
  	public int value;			// value for selections: 1--> square, 2 --> fill
- 	public int trinum;			// number of triangles
+ 	public int trinum = 0;			// number of triangles
     
  	private boolean dragging;      // This is set to true while the user is drawing.
 

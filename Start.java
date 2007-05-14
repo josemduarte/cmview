@@ -15,7 +15,7 @@ import tools.MySQLConnection;
  * 
  * @author		Juliane Dinse
  * @author		Henning Stehr
- * @version		0.3 Build 0
+ * @version		0.4 Build 0
  * Class: 		Start
  * Package: 	cm2pymol
  * Date:		20/02/2007, updated: 29/03/2007
@@ -30,6 +30,8 @@ import tools.MySQLConnection;
  * - update selection rectangle and coordinates while dragging (usability) [done]
  * - why is the structure in pymol not being loaded automatically? (usability) [done]
  * - when sending edges to pymol, also create a selection of the respective residues (feature)
+ * - change canvas to JPanel (style)
+ * - make dropdown menus (usability)
  */
 
 public class Start extends JFrame implements ActionListener, ItemListener {
