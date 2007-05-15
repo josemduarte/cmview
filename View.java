@@ -1,11 +1,9 @@
-
-
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 /**
+ * The main GUI window.
  * 
  * @author:	Juliane Dinse
  * Class: 	View
@@ -13,8 +11,6 @@ import java.awt.event.*;
  * Date:	20/02/2007
  *
  */
-
-
 public class View extends JFrame implements ActionListener{
 	
 	static final long serialVersionUID = 1l;

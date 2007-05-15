@@ -3,17 +3,25 @@ import java.awt.event.*;
 //import javax.swing.JPanel;
 
 /**
+ * The panel containing the contact map and associated event handling.
  * 
  * @author:		Juliane Dinse
  * Class: 		PaintController
  * Package: 	cm2pymol
  * Date:		20/02/2007, last updated: 10/05/2007
  * 
+ * TODO:
+ * - use JPanel instead of Canvas
+ * - draw crosshair and coordinates on separate Panel so that the contact map can be saved as image
  */
 
 public class PaintController extends Canvas
                 implements MouseListener, MouseMotionListener {
 
+	// constants
+	
+	public static final int FILL_VALUE = 10;
+	
 	static final long serialVersionUID = 1l;
 	
 	public int xs,ys; // xs and ys as startpoints of the square selection
@@ -55,6 +63,7 @@ public class PaintController extends Canvas
 		this.view = view;
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
+	    dim = mod.getMatrixSize();
 		//mod.ModelInit();
 	}
 	
@@ -159,8 +168,10 @@ public class PaintController extends Canvas
 	   
 	    bufferGraphics.setColor(Color.red);
 
-	   	for(int z = 0; z<= (int)(dim); z++){
-			for(int p = 0; p<= (int)(dim); p++){
+//	   	for(int z = 0; z<= dim; z++){
+//			for(int p = 0; p<= dim; p++){
+	   	for(int z = 0; z< dim; z++){
+	   		for(int p = 0; p< dim; p++){
 	    
 				if ((selmatrix[z][p]==10) || (selmatrix[z][p]==5)){
 	         		bufferGraphics.drawRect((int)(ratio*z),(int)(ratio*p),(int)(ratio*1),(int)(ratio*1));
@@ -207,29 +218,29 @@ public class PaintController extends Canvas
   
    public void fillSelect(int x, int y){
 	   //System.out.println("RegGrow: "+ x + "\t"+ y);
-	   
 
-	   if ((x==0) | (y==0)){
-	   }
-	   while((x<=dim) && (y<=dim)){
-		   
-	   if (selmatrix[x][y]==0){
+
+	   if ((x < 0) || (y < 0) || (x >= dim) || (y >= dim)) {
 		   return;
-	   }
-	   
-	   if (selmatrix[x][y]==10){
-		   return;
-	   }
-	   else {
-		   	   selmatrix[x][y]=10;	
-		   	  System.out.println("matrix ist EINS");
-		   	  
+	   } else {
+
+		   if (selmatrix[x][y]==0){
+			   return;
+		   }
+
+		   if (selmatrix[x][y]==FILL_VALUE){
+			   return;
+		   }
+		   else {
+			   selmatrix[x][y]=FILL_VALUE;	
+			   //System.out.println("matrix ist EINS");
+
 			   // 1 distance
 			   fillSelect(x-1,y);
 			   fillSelect(x+1,y);
 			   fillSelect(x,y-1);
 			   fillSelect(x,y+1);
-			   
+
 			   // 2 distance
 			   fillSelect(x-2,y);
 			   fillSelect(x+2,y);
@@ -239,7 +250,7 @@ public class PaintController extends Canvas
 			   fillSelect(x+1,y+1);
 			   fillSelect(x-1,y-1);
 			   fillSelect(x+1,y-1);
-	   		}
+		   }
 	   }
    }
    
@@ -426,7 +437,7 @@ public class PaintController extends Canvas
 	   
 	   /** creating common neighbour triangle under the choosen point */
 	   // searching in vertical direction the y-axis from ys-position
-	   for (int m = ys; m<= dim; m++){
+	   for (int m = ys; m< dim; m++){
 
 		   if(admatrix[xs][m]==1){
 			   int lowtri = m;
@@ -455,7 +466,7 @@ public class PaintController extends Canvas
 	   
 	   /** creating common neighbour triangle to the right of the choosen point */
 	   // searching in horizontal direction the x-axis beginning at xs-position
-	   for (int m = xs; m<= dim; m++){
+	   for (int m = xs; m< dim; m++){
 
 		   if(admatrix[m][ys]==1){
 

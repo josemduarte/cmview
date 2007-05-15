@@ -1,8 +1,9 @@
 
 
+
 import java.sql.*;
-import javax.swing.*;
-import tools.Msdsd2Pdb;
+import javax.swing.*;import tools.Msdsd2Pdb;
+
 import tools.*;
 
 /** 
@@ -15,7 +16,7 @@ import tools.*;
  * Date:		20/02/2007, last updated: 10/05/2007
  * 
  */
-public class OldModel implements Model {
+public class OldModel extends Model {
 
 	/* constants */
 	
@@ -27,7 +28,7 @@ public class OldModel implements Model {
 	private String pdbCode = null;			// pdb accession code
 	private String chainCode = null;		// pdb chain code
 	private String edgeType = null;			// contact type (BB, SC, ...)
-	private float distCutoff = 0;			// contact distance cutoff
+	private double distCutoff = 0;			// contact distance cutoff
 	private float seqSep = 0;				// minimum sequence separation
 	private MySQLConnection conn = null;
 	private String db;						// the database to read from
@@ -36,11 +37,11 @@ public class OldModel implements Model {
 	private JFrame f;
 	
 	/* Create a new model object */
-	public OldModel(String pdbCode, String chainCode, String edgeType, float distCutoff, int seqSep, MySQLConnection conn, String db) {
+	public OldModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, MySQLConnection conn, String db) {
 		this.pdbCode = pdbCode;
 		this.chainCode = chainCode;
 		this.edgeType = edgeType;
-		this.distCutoff = 4.1f;
+		this.distCutoff = distCutoff;
 		this.seqSep = 0;
 		this.conn = conn;
 		this.db = db;
@@ -50,7 +51,7 @@ public class OldModel implements Model {
 		this.ModelInit();
 	}
 	
-	// Return the graphId of the single model graph underlying this model
+	/** Return the graphId of the single_model_graph underlying this model */
 	private int getSingleModelGraphId() {
 		String query;
 		int chainGraphId;
@@ -69,6 +70,27 @@ public class OldModel implements Model {
 		      + "AND CT = '" + edgeType + "'";
 		smGraphId = this.conn.getIntFromDb(query);
 		return smGraphId;
+	}
+
+	/** Initialises an empty matrix of the size of the protein sequence */
+	private int[][] MatrixInitialiser(){
+		int msize = getMatrixSize();
+		int m = msize+1;
+		int n = msize+1;
+		
+		int[][] matrix = new int[m][];
+		
+		for (int x=0; x< m; x++){
+			/** create rows */ 
+			matrix[x]= new int[n];
+			
+			for (int y=0; y< n; y++){
+			 /** create columns */
+				matrix [x][y]=0;
+			
+			}
+		}
+		return matrix;
 	}
 	
 	private void ModelInit() {
@@ -194,25 +216,11 @@ public class OldModel implements Model {
 		return unobservedResidues;
 	}
 	
-	/** Initialises an empty matrix of the size of the protein sequence */
-	private int[][] MatrixInitialiser(){
-		int msize = getMatrixSize();
-		int m = msize+1;
-		int n = msize+1;
-		
-		int[][] matrix = new int[m][];
-		
-		for (int x=0; x< m; x++){
-			/** create rows */ 
-			matrix[x]= new int[n];
-			
-			for (int y=0; y< n; y++){
-			 /** create columns */
-				matrix [x][y]=0;
-			
-			}
-		}
-		return matrix;
+	/* (non-Javadoc)
+	 * @see Model#writeToContactMapFile()
+	 */	
+	public void writeToContactMapFile(String fileName) {
+		System.err.println("writing to contact map file not implemented in this model");
 	}
 
 }

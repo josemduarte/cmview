@@ -9,7 +9,7 @@ public class MyTestPyMol {
 	
 
 /**
- * Encapsulates the communication with a particular PyMol server instance 
+ * Encapsulates the code for communication with a particular PyMol server instance. 
  * 
  * @author Jose Duarte
  * @author Juliane Dinse
@@ -154,7 +154,7 @@ public class MyTestPyMol {
 						
 						int resi1 = i;
 						int resi2 = j;
-						System.out.println("i: "+ i + " j: "+j);
+						//System.out.println("i: "+ i + " j: "+j);
 						//inserts an edge between the selected residues 
 						this.setDistance(resi1, resi2, selNum);							
 					}
@@ -224,8 +224,8 @@ public class MyTestPyMol {
 			int dim1 = matrixSize;
 			int dim2 = matrixSize;
 			
-			for (i = 0; i<= dim1; i++){
-				for (j = 0; j<= dim2; j++){
+			for (i = 0; i < dim1; i++){
+				for (j = 0; j < dim2; j++){
 					
 					if (selmatrix[i][j] ==10){
 						

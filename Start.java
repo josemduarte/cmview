@@ -52,7 +52,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R";
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
 	
-	public static float 			DEFAULT_DISTANCE_CUTOFF = 4.1f; // for now, assume all graphs are like this
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // for now, assume all graphs are like this
 																	// later, let user choose (add text field)
 	
 	public static String 			graphDb = DEFAULT_GRAPH_DB;
@@ -212,7 +212,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 	}
 	
 	/* return the chosen contact distance cutoff */
-	public float getSelectedDistanceCutoff() {
+	public double getSelectedDistanceCutoff() {
 		return DEFAULT_DISTANCE_CUTOFF;
 	}
 	
@@ -424,6 +424,18 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		mod = new OldModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
 				        this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
 				        this.conn, graphDb);
+//		mod = new PdbaseModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
+//						this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
+//						"pdbase");
+//		mod = new MsdsdModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
+//						this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
+//						"msdsd_00_07_a");
+//		String fileName = "/project/StruPPi/BiO/DBd/PDB/data/structures/unzipped/all/pdb/pdb1hen.ent";
+//		mod = new PdbFileModel(fileName, this.getSelectedCC(), this.getSelectedCT(),
+//						this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation());
+//		mod = new GraphDbModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
+//		        		this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
+//		        		graphDb);		
 		// paint controller --> will be initialized in view.ViewInit()
 		// view
 		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
@@ -432,7 +444,7 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 			System.out.println("Error: Couldn't initialize contact map window");
 			System.exit(-1);
 		}
-		System.out.println(wintitle + " loaded.");
+		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
 		
 		// load structure in pymol
 		view.loadPDB.doClick();
