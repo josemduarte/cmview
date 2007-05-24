@@ -23,16 +23,21 @@ public class ContactMapFileModel extends Model {
 		}
 		
 		String pdbCode = graph.accode;
-		String chainCode = graph.chain;
+		//String chainCode = graph.chain;
 		String chainPdbCode = graph.chaincode;
 //		String contactType = graph.ct;
 //		double distCutoff = graph.cutoff;
 		int seqSep = 0;
 		
+		// check whether sequence info exists
+		if(graph.sequence == "") {
+			System.err.println("File contains no sequence information. Cannot show contact map.");
+		}
+		
 		// load structure from pdbase if possible
 		if(!pdbCode.equals("") && !chainPdbCode.equals("")) {
 			try {
-				this.pdb = new Pdb(pdbCode, chainCode); // by default loading from pdbase
+				this.pdb = new Pdb(pdbCode, chainPdbCode); // by default loading from pdbase
 			} catch (PdbaseAcCodeNotFoundError e) {
 				System.err.println("Error: Accession code not found in structure loaded from Pdbase");
 			} catch (MsdsdAcCodeNotFoundError e) {
@@ -42,12 +47,15 @@ public class ContactMapFileModel extends Model {
 			} catch (PdbaseInconsistencyError e) {
 				System.err.println("Warning: Inconsistency in structure loaded from Pdbase");
 			}
+			super.writeTempPdbFile();
+		} else
+		{
+			System.out.println("No pdb code and/or chain code found. Can not load structure.");
 		}
 		
-		super.writeTempPdbFile();
 		super.initializeContactMap();
 		super.filterContacts(seqSep);
-		super.printWarnings(chainCode);
+		//super.printWarnings(chainCode); // doesn't make sense here
 	}
 	
 }

@@ -1,7 +1,4 @@
-import tools.MySQLConnection;
 import proteinstructure.*;
-
-import java.io.IOException;
 
 /** 
  * A contact map data model based on a structure loaded from Pdbase.
@@ -15,7 +12,7 @@ import java.io.IOException;
 public class MsdsdModel extends Model {
 
 	public MsdsdModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
-
+		
 		// load structure from MSD
 		try {
 			this.pdb = new Pdb(pdbCode, chainCode, db);

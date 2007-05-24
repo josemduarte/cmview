@@ -1,8 +1,6 @@
 import java.io.IOException;
-
 import proteinstructure.Graph;
 import proteinstructure.Pdb;
-import proteinstructure.ContactMap;
 
 /** 
  * A contact map data model. Derived classes have to implement the constructor in which
@@ -22,10 +20,10 @@ public abstract class Model {
 	// structure and contact map data
 	protected Pdb pdb;
 	protected Graph graph;
-	protected ContactMap cm;
 	protected int[][] dataMatrix;
 	protected int matrixSize;
-	protected int unobservedResidues;	
+	protected int unobservedResidues;
+	protected int seqSep = -1; // store this here because the graph object doesn't have it yet
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -50,19 +48,34 @@ public abstract class Model {
 	 * exception will be thrown.
 	 */
 	protected void initializeContactMap() {
-	 	cm = graph.getCM();
-		dataMatrix = cm.getIntMatrix();
-		matrixSize = cm.l;
-		unobservedResidues = (cm.l - cm.numObsStandAA);
+		dataMatrix = graph.getIntMatrix();
+		matrixSize = graph.fullLength;
+		unobservedResidues = (graph.fullLength - graph.obsLength);
 	 }	
 	
-	/** Filter out unwanted contacts */
+	/** 
+	 * Filter out unwanted contacts and initializes the seqSep variable. 
+	 * Note: this causes trouble for directed graphs 
+	 */
 	protected void filterContacts(int seqSep) {
 		for(int i=0; i < matrixSize; i++) {
 			for(int j=0; j < matrixSize; j++) {
-				if(i-j < seqSep) dataMatrix[i][j] = 0;
+				if(Math.abs(j-i) < seqSep) dataMatrix[i][j] = 0;
 			}
 		}
+		this.seqSep = seqSep;
+		
+		// hack: transpose matrix until displaying is fixed
+	    for (int row = 0; row < matrixSize; row++)
+        {
+            for (int col = 0; col < row; col++)
+            {
+                int temp = dataMatrix[row][col];
+                dataMatrix[row][col] = dataMatrix[col][row];
+                dataMatrix[col][row] = temp;
+            }
+        }
+	    
 	}
 	
 	/** Print some warnings if necessary */
@@ -82,6 +95,21 @@ public abstract class Model {
 	public int[][] getMatrix(){
 		return this.dataMatrix;
 	}
+	
+	public int getNumberOfContacts() {
+//		int num = 0;
+//		for(int i = 0; i < getMatrixSize(); i++) {
+//			for(int j = 0; j < getMatrixSize(); j++) {
+//				if(this.dataMatrix[i][j] > 0) num++;
+//			}
+//		}
+//		return num;
+		return graph.numContacts;
+	}
+	
+	public boolean isDirected() {
+		return graph.directed;
+	}
 
 	/** Returns the pdb code of the underlying structure */
 	public String getPDBCode() {
@@ -91,6 +119,18 @@ public abstract class Model {
 	/** Returns the chain code of the underlying structure */
 	public String getChainCode() {
 		return graph.chain; // gets the internal chain code (may be != pdb chain code)
+	}
+	
+	public String getContactType() {
+		return graph.ct;
+	}
+	
+	public double getDistanceCutoff() {
+		return graph.cutoff;
+	}
+	
+	public int getSequenceSeparation() {
+		return this.seqSep;
 	}
 
 	/** 
@@ -118,7 +158,7 @@ public abstract class Model {
 	/** Write the current contact map to a contact map file */
 	public void writeToContactMapFile(String fileName) throws IOException {
 		try {
-			this.graph.write_contacts_to_file(fileName);
+			this.graph.write_graph_to_file(fileName);
 		} catch (IOException e) {
 			System.err.println("Error when trying to write contact map file");
 			throw e;

@@ -12,7 +12,7 @@ import proteinstructure.*;
 public class PdbaseModel extends Model {
 	
 	public PdbaseModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
-
+		
 		// load structure from Pdbase
 		try {
 			this.pdb = new Pdb(pdbCode, chainCode, db);

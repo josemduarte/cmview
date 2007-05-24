@@ -16,7 +16,7 @@ public class PdbFileModel extends Model {
 		
 		// load PDB file
 		try {
-			this.pdb = new Pdb(fileName); // TODO: add chain code parameter
+			this.pdb = new Pdb(fileName, chainCode, false); // TODO: add chain code parameter
 		} catch (IOException e) {
 			System.err.println("Error while loading from PDB file.");
 		}

@@ -435,7 +435,10 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 //						this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation());
 //		mod = new GraphDbModel(this.getSelectedAC(), this.getSelectedCC(), this.getSelectedCT(),
 //		        		this.getSelectedDistanceCutoff(), this.getSelectedMinimumSequenceSeparation(),
-//		        		graphDb);		
+//		        		graphDb);
+//		String fileName = "/project/StruPPi/BiO/Research/NPotential/PDBRepsDataset/ReconstructionDecoys/Scratch/tin_1nf1_A_run_20.011.pdb";
+//		mod = new PdbFileModel(fileName, "NULL", "Cb", 9.0, 0);
+//		mod = new PdbaseModel("1nf1", "A", "Cb", 9.0, 0, "pdbase");		
 		// paint controller --> will be initialized in view.ViewInit()
 		// view
 		String wintitle = "Contact Map of " + this.getSelectedAC() + " " + this.getSelectedCC();
@@ -447,8 +450,8 @@ public class Start extends JFrame implements ActionListener, ItemListener {
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
 		
 		// load structure in pymol
-		view.loadPDB.doClick();
-		view.pc.showContactMap();
+		view.loadPDBM.doClick();
+		//view.pc.showContactMap();
 		
 	}
 

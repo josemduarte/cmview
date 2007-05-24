@@ -29,10 +29,10 @@ public class OldModel extends Model {
 	private String chainCode = null;		// pdb chain code
 	private String edgeType = null;			// contact type (BB, SC, ...)
 	private double distCutoff = 0;			// contact distance cutoff
-	private float seqSep = 0;				// minimum sequence separation
+	private int seqSep = 0;					// minimum sequence separation
 	private MySQLConnection conn = null;
 	private String db;						// the database to read from
-	private boolean unobservedResidues;		// are there any in this structure?
+	private int unobservedResidues;		// are there any in this structure?
 	
 	private JFrame f;
 	
@@ -46,7 +46,6 @@ public class OldModel extends Model {
 		this.conn = conn;
 		this.db = db;
 		conn.setDbname(this.db);
-		this.unobservedResidues = false;
 		
 		this.ModelInit();
 	}
@@ -135,7 +134,7 @@ public class OldModel extends Model {
 				//everything is fine
 			}
 			else{
-				unobservedResidues = true;
+				unobservedResidues = b-a;
 				// warning pop-up if unobserved residues occur
 				JOptionPane.showMessageDialog(f,
 				    "Be careful: some unobserved residues!",
@@ -200,6 +199,26 @@ public class OldModel extends Model {
 		return this.chainCode;
 	}
 	
+	public String getContactType() {
+		return this.edgeType;
+	}
+	
+	public double getDistanceCutoff() {
+		return this.distCutoff;
+	}
+	
+	public int getSequenceSeparation() {
+		return this.seqSep;
+	}
+	
+	public String getSequence() {
+		return "";
+	}
+	
+	public boolean isDirected() {
+		return false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see Model#getTempPDBFileName()
 	 */
@@ -209,11 +228,18 @@ public class OldModel extends Model {
 		return pdbFileName;
 	}
 	
-	/* (non-Javadoc)
-	 * @see Model#hasUnobservedResidues()
-	 */
-	public boolean hasUnobservedResidues() {
+	public int getNumberOfUnobservedResidues() {
 		return unobservedResidues;
+	}
+	
+	public int getNumberOfContacts() {
+		int num = 0;
+		for(int i = 0; i < pubmsize; i++) {
+			for(int j = 0; j < pubmsize; j++) {
+				if(this.pubmatrix[i][j] > 0) num++;
+			}
+		}
+		return num;
 	}
 	
 	/* (non-Javadoc)

@@ -44,16 +44,40 @@ public class GraphDbModel extends Model {
 	/** Create a GraphDbModel given the id of a single model graph */
 	public GraphDbModel(int graphId, String db) {
 		
-		// load graph from graph database
-		// if possible:
-		// 		load structure from MSD
-		// 		super.writeTempPdbFile();
-		// super.initializeContactMap();
-		// seqSep = 0;
-		// super.filterContacts();
-		// super.printWarnings();
+		// load contact graph from user specified graph database
+		try {
+			graph = new Graph(db, graphId);
+		} catch (GraphIdNotFoundError e) {
+			System.err.println("Error: Failed to load graph from database.");
+		}
+
+		// read information about structure from graph object
+		String pdbCode = graph.accode;
+		String chainCode = graph.chaincode;
+		System.out.println("pdb_code=" + pdbCode);
+		System.out.println("chain_code=" + chainCode);		
+		int seqSep = 0; // for the moment don't allow to change this
 		
-		System.err.println("Loading from Graph database using graph id not implemented yet.");
+		// TODO: check whether loading from MSD makes sense
+		
+		// load structure from MSD (if possible)
+		try {
+			this.pdb = new Pdb(pdbCode, chainCode, "msdsd_00_07_a");
+		} catch (PdbaseAcCodeNotFoundError e) {
+			System.err.println("Error: Accession code not found in structure loaded from Pdbase");
+		} catch (MsdsdAcCodeNotFoundError e) {
+			System.err.println("Error: Accession code not found in structure loaded from MSD");
+		} catch (MsdsdInconsistentResidueNumbersError e) {
+			System.err.println("Warning: Inconsistent residue numbering in structure loaded from MSD");
+		} catch (PdbaseInconsistencyError e) {
+			System.err.println("Warning: Inconsistency in structure loaded from Pdbase");
+		}
+				
+		super.writeTempPdbFile();
+		super.initializeContactMap();
+		super.filterContacts(seqSep);
+		super.printWarnings(chainCode);		
+		
 	}
 
 }
