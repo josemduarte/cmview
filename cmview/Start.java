@@ -34,9 +34,8 @@ public class Start {
 	
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // for now, assume all graphs are like this
 																	// later, let user choose (add text field)
-	
-	public static String 			graphDb = DEFAULT_GRAPH_DB;
-	
+	public static String 			graphDb = 			DEFAULT_GRAPH_DB;
+	public static boolean			DO_LOAD_PYMOL = 	true; // if true then pymol is loaded on startup
 
 	/** get host name from operating system (to locate pymol server) */
 	private static String getHostName() {
@@ -65,17 +64,19 @@ public class Start {
 		
 		System.out.println("CM2PyMol - Interactive contact map viewer");
 		
-		// start pymol
-		try {
-			System.out.println("Starting PyMol...");
-			// TODO: check whether pymol is running already
-			Process pymolProcess = Runtime.getRuntime().exec(Start.PYMOL_CMD);
-			if(pymolProcess == null) {
-				throw new IOException("pymolProcess Object is null");
+		if(DO_LOAD_PYMOL) {
+			// start pymol
+			try {
+				System.out.println("Starting PyMol...");
+				// TODO: check whether pymol is running already
+				Process pymolProcess = Runtime.getRuntime().exec(Start.PYMOL_CMD);
+				if(pymolProcess == null) {
+					throw new IOException("pymolProcess Object is null");
+				}
+				// TODO: catch output and wait until pymol is loaded
+			} catch(IOException e) {
+				System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");
 			}
-			// TODO: catch output and wait until pymol is loaded
-		} catch(IOException e) {
-			System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");
 		}
 					
 		// start myself without a model

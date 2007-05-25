@@ -12,11 +12,7 @@ import cmview.datasources.Model;
  * @author:		Henning Stehr
  * Class: 		ContactMapPane (replaces PaintController)
  * Package: 	cm2pymol
- * Date:		22/05/2007, last updated: 22/05/2007
- * 
- * TODO:
- * - use JPanel instead of Canvas
- * - draw crosshair and coordinates on separate Panel so that the contact map can be saved as image
+ * Date:		22/05/2007, last updated: 25/05/2007
  */
 
 public class ContactMapPane extends JPanel
@@ -412,11 +408,13 @@ public class ContactMapPane extends JPanel
    } 
    
  
-   public void mouseEntered(MouseEvent evt) { 
+   public void mouseEntered(MouseEvent evt) {
 	   mouseIn=true;
 	   
    }   
    public void mouseExited(MouseEvent evt) {
+	   mouseIn=false;
+	   this.repaint();
    }    											
    public void mouseClicked(MouseEvent evt) {
    }   
@@ -448,10 +446,9 @@ public class ContactMapPane extends JPanel
    
    public void drawCoordinates(Graphics2D bufferGraphics){
 
-	   bufferGraphics.setColor(Color.red);
 	   int[] temp = this.getPosition();
 	   
-	   if ((mouseIn == true) && (xpos <= winsize) && (ypos <= winsize)){
+	   if (mouseIn && (xpos <= winsize) && (ypos <= winsize)){
 		   
 		  // writing the coordinates at lower left corner
 		  bufferGraphics.setColor(Color.blue);

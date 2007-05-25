@@ -1,4 +1,4 @@
-Main-Class: Start
+Main-Class: cmview.Start
 Class-Path: /project/StruPPi/jars/mysql-connector-java.jar /project/StruPPi/jars/aglappe.jar /project/StruPPi/jars/xmlrpc-2.0.jar /project/StruPPi/jars/commons-codec-1.3.jar
 Name: CM2PyMol
 Specification-Title: Interactive contact map viewer

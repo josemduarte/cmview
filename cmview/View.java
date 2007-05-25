@@ -21,10 +21,10 @@ import cmview.datasources.PdbaseModel;
  * @author	Juliane Dinse
  * Class: 	View
  * Package:	cm2pymol
- * Date:	20/02/2007 last update 22/05/2007
+ * Date:	20/02/2007 last update 25/05/2007
  *
  */
-public class View extends JFrame implements ActionListener{
+public class View extends JFrame implements ActionListener {
 
 	static final long serialVersionUID = 1l;
 
@@ -81,8 +81,7 @@ public class View extends JFrame implements ActionListener{
 
 		// Creating the Panels
 		bpl = new JLabel("Click right mouse button for context menu");
-		bpl.setAlignmentX(SwingConstants.LEFT);
-		cmp= new JPanel(new BorderLayout()); // Contact Map Panel
+		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
 
 		// Adding the context menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -119,7 +118,7 @@ public class View extends JFrame implements ActionListener{
 		popup.add(sendP);
 		popup.add(comNeiP);
 		popup.add(triangleP);
-		popup.add(loadPDBP);
+		//popup.add(loadPDBP); // this is now being done automatically
 
 		if(mod != null) {
 			this.pdbFileName = mod.getTempPDBFileName();
@@ -220,7 +219,7 @@ public class View extends JFrame implements ActionListener{
 		menu.add(sendM);
 		menu.add(comNeiM);
 		menu.add(triangleM);
-		menu.add(loadPDBM);
+		//menu.add(loadPDBM);  // this is now being done automatically
 
 		menuBar.add(menu);
 
@@ -233,12 +232,13 @@ public class View extends JFrame implements ActionListener{
 		menuBar.add(menu);
 
 		this.setJMenuBar(menuBar);
+		this.add(cmp);
 
-		// Creating the vertical Boxes
-		Box verlBox = Box.createVerticalBox();
-		verlBox.add(cmp, BorderLayout.CENTER);
-		//verlBox.add(bpl, BorderLayout.SOUTH);
-		getContentPane().add(verlBox);
+//		// Creating the vertical Boxes
+//		Box verlBox = Box.createVerticalBox();
+//		verlBox.add(cmp, BorderLayout.CENTER);
+//		//verlBox.add(bpl, BorderLayout.SOUTH);
+//		getContentPane().add(verlBox);
 
 		// Show GUI
 		pack();
