@@ -5,7 +5,7 @@ import tools.PymolServerOutputStream;
 import java.util.*;
 
 
-public class MyTestPyMol {
+public class PyMolAdaptor {
 	
 
 /**
@@ -44,7 +44,7 @@ public class MyTestPyMol {
 		
 		/** Create a new PymolCommunication object */
 		// TODO: Remove dependencies
-		public MyTestPyMol(String pyMolServerUrl,
+		public PyMolAdaptor(String pyMolServerUrl,
 				           String pdbCode, String chainCode, String fileName){
 			//this.mod = mod;
 			//this.view=view;

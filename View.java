@@ -39,7 +39,7 @@ public class View extends JFrame implements ActionListener{
 	private Model mod;
 	//public PaintController pc;      // used by Start (load structure in pymol)
 	public ContactMapPane pc;
-	private MyTestPyMol tpm;
+	private PyMolAdaptor tpm;
 	private String pyMolServerUrl;
 	private int selval;
 	private int selINK=0;		 	// for incrementation numbering TODO: move to Model
@@ -303,7 +303,7 @@ public class View extends JFrame implements ActionListener{
 		  if (e.getSource() == loadPDBM || e.getSource() == loadPDBP) {
 		
 				// TODO: Move object creation to somewhere else
-				tpm = new MyTestPyMol(this.pyMolServerUrl,
+				tpm = new PyMolAdaptor(this.pyMolServerUrl,
 									  mod.getPDBCode(), mod.getChainCode(), this.pdbFileName);
 						              //this.pdbCode, this.chainCode, this.pdbFileName);
 				tpm.MyTestPyMolInit();
@@ -640,28 +640,6 @@ public class View extends JFrame implements ActionListener{
 		  return selectionType;
 	  }
 	  
-		public static void main(String args[]){
-			
-			System.out.println("CM2PyMol - Interactive contact map viewer");
-			
-			// start pymol
-			try {
-				System.out.println("Starting PyMol...");
-				// TODO: check whether pymol is running already
-				Process pymolProcess = Runtime.getRuntime().exec(Start.PYMOL_CMD);
-				if(pymolProcess == null) {
-					throw new IOException("pymolProcess Object is null");
-				}
-				// TODO: catch output and wait until pymol is loaded
-			} catch(IOException e) {
-				System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");
-			}
-						
-			// start myself without a model
-			String wintitle = "Contact Map Viewer";
-			Model mod = null;
-			new View(mod, wintitle, Start.PYMOL_SERVER_URL);
 
-		}
 }
 
