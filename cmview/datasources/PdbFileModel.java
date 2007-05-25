@@ -1,3 +1,4 @@
+package cmview.datasources;
 import proteinstructure.*;
 import java.io.IOException;
 

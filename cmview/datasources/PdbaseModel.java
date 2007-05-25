@@ -1,19 +1,20 @@
+package cmview.datasources;
 import proteinstructure.*;
 
 /** 
  * A contact map data model based on a structure loaded from Pdbase.
  * 
  * @author		Henning
- * Class: 		MsdsdModel
+ * Class: 		PdbaseModel
  * Package: 	cm2pymol
- * Date:		14/05/2007, last updated: 15/05/2007
+ * Date:		14/05/2007, last updated: 14/05/2007
  * 
  */
-public class MsdsdModel extends Model {
-
-	public MsdsdModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
+public class PdbaseModel extends Model {
+	
+	public PdbaseModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
 		
-		// load structure from MSD
+		// load structure from Pdbase
 		try {
 			this.pdb = new Pdb(pdbCode, chainCode, db);
 		} catch (PdbaseAcCodeNotFoundError e) {
@@ -33,7 +34,8 @@ public class MsdsdModel extends Model {
 		super.initializeContactMap();
 		super.filterContacts(seqSep);
 		super.printWarnings(chainCode);
-	
+		
 	}
-	
+
+
 }

@@ -1,6 +1,9 @@
+package cmview;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
+
+import cmview.datasources.Model;
 
 /**
  * 
@@ -23,7 +26,6 @@ public class Start {
 	public static final String		DB_HOST =			"white";
 	public static final String		DB_USER =			getUserName();
 	public static final String		DB_PWD =			"nieve";
-	public static final String		TEMP_PATH =			"/scratch/local/"; // for temp pdb files
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line

@@ -1,3 +1,6 @@
+package cmview.datasources;
+
+
 import java.io.IOException;
 import proteinstructure.Graph;
 import proteinstructure.Pdb;
@@ -14,6 +17,8 @@ import proteinstructure.Pdb;
  * 
  */
 public abstract class Model {
+
+	public static final String		TEMP_PATH =			"/scratch/local/"; // for temp pdb files
 	
 	/*--------------------------- member variables --------------------------*/
 		
@@ -144,7 +149,7 @@ public abstract class Model {
 	/** Returns the name of the temporary pdb file */
 	public String getTempPDBFileName(){
 		String pdbFileName;
-		pdbFileName  = Start.TEMP_PATH + getPDBCode() + ".pdb";
+		pdbFileName  = TEMP_PATH + getPDBCode() + ".pdb";
 		return pdbFileName;
 	}
 

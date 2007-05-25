@@ -1,3 +1,4 @@
+package cmview;
 /**
  * This class is passed to a LoadDialog instance to specify the action that
  * will happen if the ok button is pressed. It contains only the constructor

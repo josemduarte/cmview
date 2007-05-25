@@ -1,3 +1,4 @@
+package cmview;
 
 import java.io.PrintWriter;
 import tools.PyMol;

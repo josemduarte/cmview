@@ -1,7 +1,10 @@
+package cmview;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
+
+import cmview.datasources.Model;
 
 /**
  * The panel containing the contact map and associated event handling.
