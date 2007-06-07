@@ -2,8 +2,7 @@ package cmview.datasources;
 
 
 import java.io.IOException;
-import proteinstructure.Graph;
-import proteinstructure.Pdb;
+import proteinstructure.*;
 
 /** 
  * A contact map data model. Derived classes have to implement the constructor in which
@@ -63,24 +62,10 @@ public abstract class Model {
 	 * Note: this causes trouble for directed graphs 
 	 */
 	protected void filterContacts(int seqSep) {
-		for(int i=0; i < matrixSize; i++) {
-			for(int j=0; j < matrixSize; j++) {
-				if(Math.abs(j-i) < seqSep) dataMatrix[i][j] = 0;
-			}
-		}
-		this.seqSep = seqSep;
-		
-		// hack: transpose matrix until displaying is fixed
-	    for (int row = 0; row < matrixSize; row++)
-        {
-            for (int col = 0; col < row; col++)
-            {
-                int temp = dataMatrix[row][col];
-                dataMatrix[row][col] = dataMatrix[col][row];
-                dataMatrix[col][row] = temp;
-            }
-        }
-	    
+		this.graph.restrictContactsToMinRange(seqSep);
+		dataMatrix = graph.getIntMatrix();
+		matrixSize = graph.fullLength;
+		this.seqSep = seqSep;		
 	}
 	
 	/** Print some warnings if necessary */
@@ -101,14 +86,11 @@ public abstract class Model {
 		return this.dataMatrix;
 	}
 	
+	public ContactList getContacts(){
+		return this.graph.getContacts(); // this deep copies the ContactList
+	}
+	
 	public int getNumberOfContacts() {
-//		int num = 0;
-//		for(int i = 0; i < getMatrixSize(); i++) {
-//			for(int j = 0; j < getMatrixSize(); j++) {
-//				if(this.dataMatrix[i][j] > 0) num++;
-//			}
-//		}
-//		return num;
 		return graph.numContacts;
 	}
 	

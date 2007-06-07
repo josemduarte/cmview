@@ -27,7 +27,10 @@ import cmview.datasources.PdbaseModel;
 public class View extends JFrame implements ActionListener {
 
 	static final long serialVersionUID = 1l;
-
+	protected static final int SQUARE_SEL = 1;
+	protected static final int FILL_SEL = 2;
+	protected static final int SHOW_COMMON_NBH = 3;
+	
 	// GUI components
 	JLabel bpl; 			// status bar
 	JPanel cmp; 			// contact Map Panel
@@ -49,7 +52,7 @@ public class View extends JFrame implements ActionListener {
 	public ContactMapPane pc;
 	private PyMolAdaptor tpm;
 	private String pyMolServerUrl;
-	private int selval;
+	private int currentAction;
 	private int selINK=0;		 	// for incrementation numbering TODO: move to Model
 
 	private String pdbFileName;
@@ -67,7 +70,7 @@ public class View extends JFrame implements ActionListener {
 			this.setPreferredSize(new Dimension(800,800));
 		}
 		this.initGUI();
-
+		this.currentAction = SQUARE_SEL;
 	}
 
 	/** Initialize and show the main GUI window */
@@ -255,7 +258,7 @@ public class View extends JFrame implements ActionListener {
 		// square button clicked
 		if (e.getSource() == squareM || e.getSource() == squareP) {
 
-			selval = 1;
+			currentAction = SQUARE_SEL;
 			selINK = selINK +1;
 			selectionType = "Squa";
 
@@ -263,14 +266,14 @@ public class View extends JFrame implements ActionListener {
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP) {
 
-			selval = 2;
+			currentAction = FILL_SEL;
 			selINK = selINK +1;
 			selectionType = "Fill";
 		}
 		// showing com. Nei. button clicked
 		if (e.getSource() == comNeiM || e.getSource() == comNeiP) {
 
-			selval = 3;
+			currentAction = SHOW_COMMON_NBH;
 		}
 		// loading pdb button clicked
 		if (e.getSource() == loadPDBM || e.getSource() == loadPDBP) {
@@ -279,19 +282,13 @@ public class View extends JFrame implements ActionListener {
 			tpm = new PyMolAdaptor(this.pyMolServerUrl,
 					mod.getPDBCode(), mod.getChainCode(), this.pdbFileName);
 			//this.pdbCode, this.chainCode, this.pdbFileName);
-			tpm.MyTestPyMolInit();
+			tpm.pyMolAdaptorInit();
 
 		}
 		// send selection button clicked
 		if (e.getSource() == sendM || e.getSource() == sendP) {
-
-			//sendpy =true;	
-			int selval = this.getValue();
-			switch(selval){		   
-
-			case 1: tpm.SquareCommands(this.getSelNum(), pc.getSelectMatrix(), pc.getSelectRect());
-			case 2: tpm.FillCommands(this.getSelNum(), pc.getSelectMatrix(), mod.getMatrixSize());
-			}
+	
+			tpm.edgeSelection(this.getSelNum(), pc.getSelContacts());
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
@@ -592,8 +589,8 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public int getValue(){
-		return selval;
+	public int getCurrentAction(){
+		return currentAction;
 	}
 
 	public int getSelNum(){
