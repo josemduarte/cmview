@@ -26,7 +26,6 @@ implements MouseListener, MouseMotionListener {
 	// constants
 	static final long serialVersionUID = 1l;
 
-	//private int xs, ys;              //  x, y coordinates of start point of common neighbours
 	private Point squareSelStart;   //  start point of square selection, TODO must change the name of this, it's used for square selection and for common neighbours 
 	private Point squareSelEnd;     //  end point of square selection
 	private Point pos;              //  current position of mouse
@@ -34,24 +33,21 @@ implements MouseListener, MouseMotionListener {
 	private int winsize;          // size of the effective (square) size
 
 	private double ratio;		  // scale factor
-	//private int trinum;		  // number of the current triangle
 
+	private int dim;
+	
 	private boolean dragging;     // set to true while the user is dragging
-
 	private boolean mouseIn;
+	private boolean showCommonNeighbours = false;
+	
 	//private Model mod;          //TODO not sure if we need the full Model object here, commenting it out for now
 	private Graph graph;
 	private View view;
-	private boolean showCommonNeighbours = false;
-
-	private int dim;
-
 
 	private ContactList allContacts; // contains all contacts in contact map
 	private ContactList selContacts; // contains permanent list of contacts selected
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
 
-	//private int[][] resi = new int[20][];
 
 	/**
 	 * Constructor
@@ -63,7 +59,6 @@ implements MouseListener, MouseMotionListener {
 		this.view = view;
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		//mod.ModelInit();
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		
@@ -73,8 +68,7 @@ implements MouseListener, MouseMotionListener {
 		this.selContacts = new ContactList();
 		this.dim = graph.fullLength;
 		this.pos = new Point();
-		
-		//this.trinum = 0;
+
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -234,9 +228,10 @@ implements MouseListener, MouseMotionListener {
 		return new Contact((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
-	private int screen2cm(int z){
-		return (int) Math.ceil(z/ratio);
-	}
+	// method not used right now but might be useful
+//	private int screen2cm(int z){
+//		return (int) Math.ceil(z/ratio);
+//	}
 
 	/**
 	 * Returns upper left corner of the square representing the contact
@@ -247,6 +242,11 @@ implements MouseListener, MouseMotionListener {
 		return new Point((int) Math.round((cont.j-1)*ratio), (int) Math.round((cont.i-1)*ratio));
 	}
 	
+	/**
+	 * Returns 1-dimensional screen coordinate given a contact map residue serial (node number)
+	 * @param k
+	 * @return
+	 */
 	private int cm2screen(int k){
 		return (int) Math.round((k-1)*ratio);
 	}
@@ -263,8 +263,7 @@ implements MouseListener, MouseMotionListener {
 			showPopup(evt);
 			return;
 		}
-		//xs = evt.getX();
-		//ys = evt.getY();
+
 		squareSelStart = new Point(evt.getX(),evt.getY());
 
 	}
@@ -345,15 +344,15 @@ implements MouseListener, MouseMotionListener {
 
 	public void drawCoordinates(Graphics2D bufferGraphics){
 
-		bufferGraphics.setColor(Color.red);
-
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
-
+			Contact currentCell = screen2cm(pos);
+			String i_res = graph.getResType(currentCell.i);
+			String j_res = graph.getResType(currentCell.j);
 			// writing the coordinates at lower left corner
 			bufferGraphics.setColor(Color.blue);
-			bufferGraphics.drawString("( Y   " + ",  X )", 5, winsize-50);
-			bufferGraphics.drawString("(i_num   " + ",  j_num )", 5, winsize-30);
-			bufferGraphics.drawString("(" + (int)(1+pos.y/ratio)+"," + (int)(1+pos.x/ratio)+")", 5, winsize-10);
+			bufferGraphics.drawString("    i    " + "   j    ", 5, winsize-50);
+			bufferGraphics.drawString("  "+currentCell.i+" , " + currentCell.j+"  ", 5, winsize-30);
+			bufferGraphics.drawString(" "+i_res+"   " + ",  "+j_res+" ", 5, winsize-10);
 
 			// drawing the cross-hair
 			bufferGraphics.setColor(Color.green);
@@ -444,8 +443,8 @@ implements MouseListener, MouseMotionListener {
 		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
 		Point kkPoint = cm2screen(kkCont);
 		Point endPoint = new Point();
-		if (k<j) endPoint = cm2screen(new Contact(j,k)); // if k below j, the endpoint is j,k i.e. we draw a vertical line
-		if (k>j) endPoint = cm2screen(new Contact(k,i)); // if k above j, the endpoint is k,i i.e. we draw a horizontal line
+		if (k<(j+i)/2) endPoint = cm2screen(new Contact(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
+		if (k>(j+i)/2) endPoint = cm2screen(new Contact(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
 		bufferGraphics.setColor(Color.lightGray);
 		bufferGraphics.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
