@@ -26,20 +26,21 @@ implements MouseListener, MouseMotionListener {
 	// constants
 	static final long serialVersionUID = 1l;
 
-	private int xs, ys;              //  x, y start of the square selection
-	private Point squareSelStart;   //  start point of square selection
+	//private int xs, ys;              //  x, y coordinates of start point of common neighbours
+	private Point squareSelStart;   //  start point of square selection, TODO must change the name of this, it's used for square selection and for common neighbours 
 	private Point squareSelEnd;     //  end point of square selection
 	private Point pos;              //  current position of mouse
 	
 	private int winsize;          // size of the effective (square) size
 
 	private double ratio;		  // scale factor
-	private int trinum = 0;		  // number of triangles
+	//private int trinum;		  // number of the current triangle
 
 	private boolean dragging;     // set to true while the user is dragging
 
 	private boolean mouseIn;
 	//private Model mod;          //TODO not sure if we need the full Model object here, commenting it out for now
+	private Graph graph;
 	private View view;
 	private boolean showCommonNeighbours = false;
 
@@ -50,8 +51,7 @@ implements MouseListener, MouseMotionListener {
 	private ContactList selContacts; // contains permanent list of contacts selected
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
 
-	//private int[][] triangles = new int[20][];
-	private int[][] resi = new int[20][];
+	//private int[][] resi = new int[20][];
 
 	/**
 	 * Constructor
@@ -63,14 +63,18 @@ implements MouseListener, MouseMotionListener {
 		this.view = view;
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		this.dim = mod.getMatrixSize();
 		//mod.ModelInit();
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
-
-		this.allContacts = mod.getContacts();
+		
+		// TODO we don't need to pass the Model at all but rather just the Graph object, isn't it?
+		this.graph = mod.getGraph();
+		this.allContacts = graph.getContacts();
 		this.selContacts = new ContactList();
+		this.dim = graph.fullLength;
 		this.pos = new Point();
+		
+		//this.trinum = 0;
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -230,6 +234,10 @@ implements MouseListener, MouseMotionListener {
 		return new Contact((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
+	private int screen2cm(int z){
+		return (int) Math.ceil(z/ratio);
+	}
+
 	/**
 	 * Returns upper left corner of the square representing the contact
 	 * @param cont
@@ -237,6 +245,10 @@ implements MouseListener, MouseMotionListener {
 	 */
 	private Point cm2screen(Contact cont){
 		return new Point((int) Math.round((cont.j-1)*ratio), (int) Math.round((cont.i-1)*ratio));
+	}
+	
+	private int cm2screen(int k){
+		return (int) Math.round((k-1)*ratio);
 	}
 
 	/** ############################################### */
@@ -251,7 +263,8 @@ implements MouseListener, MouseMotionListener {
 			showPopup(evt);
 			return;
 		}
-
+		//xs = evt.getX();
+		//ys = evt.getY();
 		squareSelStart = new Point(evt.getX(),evt.getY());
 
 	}
@@ -269,7 +282,6 @@ implements MouseListener, MouseMotionListener {
 			switch (view.getCurrentAction()) {
 			case View.SHOW_COMMON_NBH:
 				showCommonNeighbours = true;
-				//this.commonNeighbours(evt);
 				this.repaint();
 				return;
 				
@@ -352,157 +364,96 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public void commonNeighbours(Graphics2D bufferGraphics){
+		// getting point where mouse was clicked and common neighbours for it
+		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
+		EdgeNbh comNbh = graph.getEdgeNbh (cont.i,cont.j);
 
-		trinum=0;
-		System.out.println("Show: "+ xs+"\t"+ys);
-		xs = (int)(xs/ratio);
-		ys = (int)(ys/ratio);
-		this.drawCorridor((int)(xs*ratio), (int)(ys*ratio), bufferGraphics);
+		// drawing corridor
+		drawCorridor(cont, bufferGraphics);
+		
+		// marking the selected point with a cross
+		markPointWithCross(cont, bufferGraphics);
+		
+		// drawing triangles
+		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial)
+			if (k>cont.i && k<cont.j) {
+				//draw cyan triangles for neighbours within the box 
+				drawTriangle(k, cont, bufferGraphics, Color.cyan);
+			}
+			else { // i.e. k<cont.i || k>cont.j
+				//draw red triangles for neighbours out of the box 
+				drawTriangle(k, cont, bufferGraphics, Color.red);
+			}
+		}
 
-		// drawing the selected point
+	}
+
+	public void markPointWithCross(Contact cont, Graphics2D bufferGraphics){
+		Point point = cm2screen(cont);
+		int x = point.x;
+		int y = point.y;
 		bufferGraphics.setColor(Color.blue);
-
-		this.markingPoints(xs,ys,ratio, bufferGraphics);
-		System.out.println("Show: "+ xs+"\t"+ys);
-
-		/** creating common neighbour triangle above the choosen point (red triangles) */
-		// searching in vertical direction the y-axis till ys-position
-		for (int m = 0; m<= ys; m++){
-			Contact contxs = new Contact(xs+1,m+1);
-			//if(admatrix[xs][m]==1){
-			if (allContacts.contains(contxs)){
-				Contact contys = new Contact(ys+1,m+1);
-				//if(admatrix[ys][m]==1){
-				if (allContacts.contains(contys)){
-
-					bufferGraphics.setColor(Color.blue);
-					this.markingPoints(xs,m,ratio, bufferGraphics);
-					this.markingPoints(ys,m,ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.red);
-					this.drawingLine(xs, ys, xs, m, ys, m, ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.lightGray);
-
-					bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
-					bufferGraphics.drawLine((int)(m*ratio),(int)(m*ratio),(int)(m*ratio), (int)(xs*ratio));
-
-					this.fillResidueMatrix(xs, ys, m, trinum);
-					trinum = trinum+1;
-				}
-			}
-		}
-
-		/** creating common neighbour triangle under the choosen point */
-		// searching in vertical direction the y-axis from ys-position
-		for (int m = ys; m< dim; m++){
-			Contact contxs = new Contact(xs+1,m+1);
-			//if(admatrix[xs][m]==1){
-			if (allContacts.contains(contxs)){  
-				int lowtri = m;
-				int xnew = m;
-				Contact contys = new Contact(ys+1,m+1);
-				//if (admatrix[xnew][ys]==1){
-				if (allContacts.contains(contys)){
-					System.out.println("Found next contact of residue: " + xnew + "\t"+ ys);
-
-					bufferGraphics.setColor(Color.blue);
-					this.markingPoints(xs,lowtri,ratio, bufferGraphics);
-					this.markingPoints(xnew,ys,ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.yellow);
-					this.drawingLine(xs, ys, xs, lowtri, xnew, ys, ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.lightGray);
-					bufferGraphics.drawLine((int)(ys*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(lowtri*ratio));
-					bufferGraphics.drawLine((int)(lowtri*ratio),(int)(lowtri*ratio),(int)(lowtri*ratio), (int)(xs*ratio));
-
-					this.fillResidueMatrix(xs, ys, lowtri, trinum);
-					trinum = trinum+1;
-
-				}
-			}
-		}
-
-		/** creating common neighbour triangle to the right of the choosen point */
-		// searching in horizontal direction the x-axis beginning at xs-position
-		for (int m = xs; m< dim; m++){
-			Contact contys = new Contact(m+1,ys+1);
-			//if(admatrix[m][ys]==1){
-			if (allContacts.contains(contys)){
-				Contact contxs = new Contact(m+1,xs+1);
-				//if (admatrix[m][xs]==1){
-				if (allContacts.contains(contxs)){
-
-					bufferGraphics.setColor(Color.blue);
-					this.markingPoints(m, ys,ratio, bufferGraphics);
-					this.markingPoints(m,xs,ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.cyan);
-					this.drawingLine(xs, ys, m, ys, m, xs, ratio, bufferGraphics);
-
-					bufferGraphics.setColor(Color.lightGray);
-					bufferGraphics.drawLine((int)(m*ratio),(int)(xs*ratio),(int)(m*ratio), (int)(m*ratio));
-					bufferGraphics.drawLine((int)(ys*ratio),(int)(m*ratio),(int)(m*ratio), (int)(m*ratio));
-
-					this.fillResidueMatrix(xs, ys, m, trinum);
-					trinum = trinum+1;
-
-				}
-			}
-		}
-
-//		g = this.getGraphics();
-//		g.drawImage(offscreen,0,0,this);
-
+		bufferGraphics.drawLine(x-3, y-3,x+3, y+3 );
+		bufferGraphics.drawLine(x-3, y+3,x+3, y-3 );
+		bufferGraphics.drawLine(x-2, y-3,x+2, y+3 );
+		bufferGraphics.drawLine(x-2, y+3,x+2, y-3 );
 	}
 
-
-	public int getTriangleNumber(){
-		return trinum;
-	}
-
-	public void markingPoints(int x, int y, double ratio, Graphics2D bufferGraphics){
-
-		bufferGraphics.drawLine((int)(x*ratio)-3, (int)(y*ratio)-3,(int)(x*ratio)+3, (int)(y*ratio)+3 );
-		bufferGraphics.drawLine((int)(x*ratio)-3, (int)(y*ratio)+3,(int)(x*ratio)+3, (int)(y*ratio)-3 );
-		bufferGraphics.drawLine((int)(x*ratio)-2, (int)(y*ratio)-3,(int)(x*ratio)+2, (int)(y*ratio)+3 );
-		bufferGraphics.drawLine((int)(x*ratio)-2, (int)(y*ratio)+3,(int)(x*ratio)+2, (int)(y*ratio)-3 );
-	}
-
-	// connecting left upper point(lu), right upper(ru) point and right lower(rl) points via drawline-method 
-	public void drawingLine(int xlu, int ylu, int xru, int yru, int xrl, int yrl, double ratio, Graphics2D bufferGraphics){
-
-		bufferGraphics.drawLine((int)(xlu*ratio),(int)( ylu*ratio), (int)(xru*ratio), (int)(yru*ratio));
-		bufferGraphics.drawLine((int)(xru*ratio),(int)( yru*ratio), (int)(xrl*ratio), (int)(yrl*ratio));
-		bufferGraphics.drawLine((int)(xrl*ratio),(int)( yrl*ratio), (int)(xlu*ratio), (int)(ylu*ratio));
-
-	}
-
-	public void drawCorridor(int x, int y, Graphics2D bufferGraphics){
-
+	public void drawCorridor(Contact cont, Graphics2D bufferGraphics){
+		Point point = cm2screen(cont);
+		int x = point.x;
+		int y = point.y;
 		bufferGraphics.setColor(Color.gray);
 		// Horizontal Lines
 		bufferGraphics.drawLine(0, y, y, y);
 		bufferGraphics.setColor(Color.green);
 		bufferGraphics.drawLine(0, x, x, x);
 		// vertical Lines
-		bufferGraphics.drawLine(y,y,y,(int)(dim*ratio));
+		bufferGraphics.drawLine(y,y,y,cm2screen(dim));
 		bufferGraphics.setColor(Color.gray);
-		bufferGraphics.drawLine(x,x,x,(int)(dim*ratio)); 
+		bufferGraphics.drawLine(x,x,x,cm2screen(dim)); 
+	}
+	
+	public void drawTriangle(int k, Contact cont, Graphics2D bufferGraphics,Color color) {
+		int i = cont.i;
+		int j = cont.j;
+		// we put the i,k and j,k contacts in the right side of the contact map (upper side, i.e.j>i)
+		Contact ikCont = new Contact(Math.min(i, k), Math.max(i, k));
+		Contact jkCont = new Contact(Math.min(j, k), Math.max(j, k));
+		
+		// we mark the 2 edges i,k and j,k with a cross
+		bufferGraphics.setColor(Color.blue);
+		this.markPointWithCross(ikCont, bufferGraphics);
+		this.markPointWithCross(jkCont, bufferGraphics);
+
+		// transforming to screen coordinates
+		Point point = cm2screen(cont);
+		Point ikPoint = cm2screen(ikCont);
+		Point jkPoint = cm2screen(jkCont);
+		
+		// drawing triangle
+		bufferGraphics.setColor(color);		
+		// line between edges i,j and i,k
+		bufferGraphics.drawLine(point.x, point.y, ikPoint.x, ikPoint.y);
+		// line between edges i,j and j,k
+		bufferGraphics.drawLine(point.x, point.y, jkPoint.x, jkPoint.y);
+		// line between edges i,k and j,k
+		bufferGraphics.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
+
+		// drawing light gray common neighbour corridor markers
+		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
+		Point kkPoint = cm2screen(kkCont);
+		Point endPoint = new Point();
+		if (k<j) endPoint = cm2screen(new Contact(j,k)); // if k below j, the endpoint is j,k i.e. we draw a vertical line
+		if (k>j) endPoint = cm2screen(new Contact(k,i)); // if k above j, the endpoint is k,i i.e. we draw a horizontal line
+		bufferGraphics.setColor(Color.lightGray);
+		bufferGraphics.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
 
-	public int[][] fillResidueMatrix(int res1, int res2, int res3, int trinum){
-		resi[trinum] = new int[3];
-		resi[trinum][0] = res1;
-		resi[trinum][1] = res2;
-		resi[trinum][2] = res3;
-		return resi;
+	public EdgeNbh getCommonNbh(){
+		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
+		return graph.getEdgeNbh (cont.i,cont.j);
 	}
-
-	public int [][] getResidues(){
-		return resi;
-	}
-
+	
 } 
 

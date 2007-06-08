@@ -90,6 +90,10 @@ public abstract class Model {
 		return this.graph.getContacts(); // this deep copies the ContactList
 	}
 	
+	public Graph getGraph(){
+		return this.graph;
+	}
+	
 	public int getNumberOfContacts() {
 		return graph.numContacts;
 	}

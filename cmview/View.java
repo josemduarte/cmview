@@ -293,7 +293,7 @@ public class View extends JFrame implements ActionListener {
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
 
-			tpm.showTriangles(pc.getTriangleNumber(), pc.getResidues());
+			tpm.showTriangles(pc.getCommonNbh());
 		}
 
 		// File Menu
