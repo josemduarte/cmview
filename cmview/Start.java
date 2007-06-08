@@ -4,6 +4,7 @@ import java.net.UnknownHostException;
 import java.io.IOException;
 
 import cmview.datasources.Model;
+import cmview.datasources.PdbaseModel;
 
 /**
  * 
@@ -31,6 +32,10 @@ public class Start {
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R";
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
+	
+	public static final String      DEFAULT_EDGETYPE = "ALL";
+	public static final String      DEFAULT_PDB_DB   = "pdbase";
+	public static final int         DEFAULT_SEQSEP   = 0;
 	
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // for now, assume all graphs are like this
 																	// later, let user choose (add text field)
@@ -79,9 +84,14 @@ public class Start {
 			}
 		}
 					
-		// start myself without a model
+		// start myself without a model or take pdbCode and chainCode from command line and default values
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;
+		if (args.length==2){
+			String pdbCode = args[0];
+			String chainCode = args[1];
+			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF,DEFAULT_SEQSEP, DEFAULT_PDB_DB);
+		}
 		new View(mod, wintitle, Start.PYMOL_SERVER_URL);
 
 	}
