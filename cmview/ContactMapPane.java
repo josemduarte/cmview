@@ -38,7 +38,7 @@ implements MouseListener, MouseMotionListener {
 	
 	private boolean dragging;     // set to true while the user is dragging
 	private boolean mouseIn;
-	private boolean showCommonNeighbours = false;
+	private boolean showCommonNeighbours;
 	
 	//private Model mod;          //TODO not sure if we need the full Model object here, commenting it out for now
 	private Graph graph;
@@ -68,6 +68,9 @@ implements MouseListener, MouseMotionListener {
 		this.selContacts = new ContactList();
 		this.dim = graph.fullLength;
 		this.pos = new Point();
+		
+		this.dragging = false;
+		this.showCommonNeighbours = false;
 
 	}
 
@@ -83,7 +86,8 @@ implements MouseListener, MouseMotionListener {
 		int windowSize = this.getWindowSize();
 
 		ratio = (double)windowSize/dim;		// scale factor, = size of one contact
-
+		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
+		
 		setBackground(Color.white);
 
 		// drawing the contact map (initially and on repaint)
@@ -92,12 +96,12 @@ implements MouseListener, MouseMotionListener {
 			// if there is a contact, draw a rectangle
 			int x = cm2screen(cont).x;
 			int y = cm2screen(cont).y;
-			bufferGraphics.drawRect(x,y,(int)(ratio*1),(int)(ratio*1));
-			bufferGraphics.fillRect(x,y,(int)(ratio*1),(int)(ratio*1));
+			bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
+			bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
-		if (dragging) {
+		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
 			bufferGraphics.setColor(Color.black);
 			int xmin = Math.min(squareSelStart.x,squareSelEnd.x);
 			int ymin = Math.min(squareSelStart.y,squareSelEnd.y);
@@ -110,8 +114,8 @@ implements MouseListener, MouseMotionListener {
 				// if there is a contact, draw a rectangle
 				int x = cm2screen(cont).x;
 				int y = cm2screen(cont).y;
-				bufferGraphics.drawRect(x,y,(int)(ratio*1),(int)(ratio*1));
-				bufferGraphics.fillRect(x,y,(int)(ratio*1),(int)(ratio*1));
+				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
+				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
 		}
 
@@ -120,8 +124,8 @@ implements MouseListener, MouseMotionListener {
 		for (Contact cont:selContacts){
 			int x = cm2screen(cont).x;
 			int y = cm2screen(cont).y;
-			bufferGraphics.drawRect(x,y,(int)(ratio*1),(int)(ratio*1));
-			bufferGraphics.fillRect(x,y,(int)(ratio*1),(int)(ratio*1));
+			bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
+			bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
 
 		// drawing coordinates on lower left corner (following crosshairs)
@@ -221,7 +225,7 @@ implements MouseListener, MouseMotionListener {
 
 	/**
 	 * Returns a contact given screen coordinates
-	 * @param dim
+	 * @param point
 	 * @return
 	 */
 	private Contact screen2cm(Point point){
@@ -264,7 +268,7 @@ implements MouseListener, MouseMotionListener {
 			return;
 		}
 
-		squareSelStart = new Point(evt.getX(),evt.getY());
+		squareSelStart = evt.getPoint();
 
 	}
 
@@ -275,11 +279,12 @@ implements MouseListener, MouseMotionListener {
 			showPopup(evt);
 			return;
 		}
-		// from now only if left click (BUTTON1)
+		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 
 			switch (view.getCurrentAction()) {
 			case View.SHOW_COMMON_NBH:
+				dragging = false;
 				showCommonNeighbours = true;
 				this.repaint();
 				return;
@@ -300,6 +305,7 @@ implements MouseListener, MouseMotionListener {
 				return;
 				
 			case View.FILL_SEL:
+				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!evt.isControlDown()){
 					selContacts = new ContactList();
@@ -316,11 +322,11 @@ implements MouseListener, MouseMotionListener {
 		// while a mouse button is held down. 
 
 		dragging = true;
-		squareSelEnd = new Point(evt.getX(),evt.getY());
+		squareSelEnd = evt.getPoint();
 
 		squareSelect(screen2cm(squareSelStart), screen2cm(squareSelEnd));
-		
-		mouseMoved(evt);
+
+		mouseMoved(evt); //TODO is this necessary? I tried getting rid of it but wasn't quite working
 	} 
 
 	public void mouseEntered(MouseEvent evt) { 
@@ -334,7 +340,7 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	public void mouseMoved(MouseEvent evt) {
-		pos = new Point(evt.getX(), evt.getY());
+		pos = evt.getPoint();
 		this.repaint();
 	}
 
