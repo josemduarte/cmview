@@ -536,7 +536,7 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleHelpAbout() {
 		JOptionPane.showMessageDialog(this,
-				"           Contact Map Viewer v0.4\n" + 
+				"           Contact Map Viewer v"+Start.VERSION+"\n" + 
 				"               (C) AG Lappe 2007",
 				"About",
 				JOptionPane.PLAIN_MESSAGE);
