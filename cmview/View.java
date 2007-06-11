@@ -40,7 +40,7 @@ public class View extends JFrame implements ActionListener {
 	// Menu items
 	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM;
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP;
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadPdb, mmLoadCm;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmViewReset, mmViewColor, mmHelpAbout;
 
@@ -48,15 +48,14 @@ public class View extends JFrame implements ActionListener {
 	// Data and status variables
 
 	private Model mod;
-	//public PaintController pc;      // used by Start (load structure in pymol)
-	public ContactMapPane pc;
-	private PyMolAdaptor tpm;
+	public ContactMapPane cmPane;
+	private PyMolAdaptor pymolAdaptor;
 	private String pyMolServerUrl;
 	private int currentAction;
-	private int selINK=0;		 	// for incrementation numbering TODO: move to Model
+	private int pymolSelSerial;		 	// for incrementation numbering TODO: move to Model
+	private int pymolNbhSerial;
 
-	private String pdbFileName;
-	private String selectionType;
+	//private String pdbFileName;
 
 
 	/** Create a new View object */
@@ -64,13 +63,13 @@ public class View extends JFrame implements ActionListener {
 		super(title);
 		this.mod = mod;
 		this.pyMolServerUrl=pyMolServerUrl;
-		//this.pdbCode = pdbCode;
-		//this.chainCode = chainCode;
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(800,800));
 		}
 		this.initGUI();
 		this.currentAction = SQUARE_SEL;
+		this.pymolSelSerial = 1;
+		this.pymolNbhSerial = 1;
 	}
 
 	/** Initialize and show the main GUI window */
@@ -95,7 +94,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon3 = new ImageIcon("icons/shape_square_go.png");
 		ImageIcon icon4 = new ImageIcon("icons/shape_flip_horizontal.png");
 		ImageIcon icon5 = new ImageIcon("icons/shape_rotate_clockwise.png");
-		ImageIcon icon6 = new ImageIcon("icons/picture_go.png");
+		//ImageIcon icon6 = new ImageIcon("icons/picture_go.png");
 
 //		ImageIcon icon7 = new ImageIcon("icons/information.png");
 //		ImageIcon icon8 = new ImageIcon("icons/printer.png");
@@ -107,12 +106,10 @@ public class View extends JFrame implements ActionListener {
 		sendP = new JMenuItem("Send Selection to PyMol", icon3);
 		comNeiP = new JMenuItem("Show Common Neighbours", icon4);
 		triangleP = new JMenuItem("Send Common Neighbours", icon5);
-		loadPDBP = new JMenuItem("Load PDB File in PyMol", icon6);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
 		comNeiP.addActionListener(this);
-		loadPDBP.addActionListener(this);
 		sendP.addActionListener(this);
 		triangleP.addActionListener(this);		
 
@@ -121,13 +118,11 @@ public class View extends JFrame implements ActionListener {
 		popup.add(sendP);
 		popup.add(comNeiP);
 		popup.add(triangleP);
-		//popup.add(loadPDBP); // this is now being done automatically
 
 		if(mod != null) {
-			this.pdbFileName = mod.getTempPDBFileName();
-			//pc = new PaintController(mod, this);
-			pc = new ContactMapPane(mod, this);			
-			cmp.add(pc);
+			//this.pdbFileName = mod.getTempPDBFileName();
+			cmPane = new ContactMapPane(mod, this);			
+			cmp.add(cmPane);
 		}
 
 		// Creating the menu bar
@@ -208,12 +203,10 @@ public class View extends JFrame implements ActionListener {
 		sendM = new JMenuItem("Send Selection to PyMol", icon3);
 		comNeiM = new JMenuItem("Show Common Neighbours", icon4);
 		triangleM = new JMenuItem("Send Common Neighbours", icon5);
-		loadPDBM = new JMenuItem("Load PDB File in PyMol", icon6);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
 		comNeiM.addActionListener(this);
-		loadPDBM.addActionListener(this);
 		sendM.addActionListener(this);
 		triangleM.addActionListener(this);			
 
@@ -222,7 +215,6 @@ public class View extends JFrame implements ActionListener {
 		menu.add(sendM);
 		menu.add(comNeiM);
 		menu.add(triangleM);
-		//menu.add(loadPDBM);  // this is now being done automatically
 
 		menuBar.add(menu);
 
@@ -236,12 +228,6 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		this.add(cmp);
-
-//		// Creating the vertical Boxes
-//		Box verlBox = Box.createVerticalBox();
-//		verlBox.add(cmp, BorderLayout.CENTER);
-//		//verlBox.add(bpl, BorderLayout.SOUTH);
-//		getContentPane().add(verlBox);
 
 		// Show GUI
 		pack();
@@ -259,41 +245,29 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == squareM || e.getSource() == squareP) {
 
 			currentAction = SQUARE_SEL;
-			selINK = selINK +1;
-			selectionType = "Squa";
 
 		}
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP) {
 
 			currentAction = FILL_SEL;
-			selINK = selINK +1;
-			selectionType = "Fill";
 		}
 		// showing com. Nei. button clicked
 		if (e.getSource() == comNeiM || e.getSource() == comNeiP) {
 
 			currentAction = SHOW_COMMON_NBH;
 		}
-		// loading pdb button clicked
-		if (e.getSource() == loadPDBM || e.getSource() == loadPDBP) {
-
-			// TODO: Move object creation to somewhere else
-			tpm = new PyMolAdaptor(this.pyMolServerUrl,
-					mod.getPDBCode(), mod.getChainCode(), this.pdbFileName);
-			//this.pdbCode, this.chainCode, this.pdbFileName);
-			tpm.pyMolAdaptorInit();
-
-		}
 		// send selection button clicked
 		if (e.getSource() == sendM || e.getSource() == sendP) {
 	
-			tpm.edgeSelection(this.getSelNum(), pc.getSelContacts());
+			pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
+			this.pymolSelSerial++;
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
 
-			tpm.showTriangles(pc.getCommonNbh());
+			pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
+			this.pymolNbhSerial++;
 		}
 
 		// File Menu
@@ -364,7 +338,7 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Database:\t" + db);
 		System.out.println("Graph Id:\t" + gid);
 		Model mod = new GraphDbModel(gid, db);
-		this.setModel(mod);
+		this.spawnNewViewWindow(mod);
 	}
 
 	private void handleLoadFromPdbase() {
@@ -393,7 +367,7 @@ public class View extends JFrame implements ActionListener {
 		db = "pdbase";
 		System.out.println("Database:\t" + db);	
 		Model mod = new PdbaseModel(ac, cc, ct, dist, ss, db);
-		this.setModel(mod);			  
+		this.spawnNewViewWindow(mod);			  
 	}
 
 	private void handleLoadFromMsd() {
@@ -421,7 +395,7 @@ public class View extends JFrame implements ActionListener {
 		db = "msdsd_00_07_a";
 		System.out.println("Database:\t" + db);	
 		Model mod = new MsdsdModel(ac, cc, ct, dist, ss, db);
-		this.setModel(mod);			  
+		this.spawnNewViewWindow(mod);			  
 	}	  
 
 	private void handleLoadFromPdbFile() {
@@ -446,7 +420,7 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + ss);
 		Model mod = new PdbFileModel(f, cc, ct, dist, ss);
-		this.setModel(mod);
+		this.spawnNewViewWindow(mod);
 	}	
 
 	private void handleLoadFromCmFile() {
@@ -463,7 +437,7 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Loading from Pdb file");
 		System.out.println("Filename:\t" + f);
 		Model mod = new ContactMapFileModel(f);
-		this.setModel(mod);
+		this.spawnNewViewWindow(mod);
 	}		  
 
 	private void handleSaveToGraphDb() {
@@ -500,13 +474,13 @@ public class View extends JFrame implements ActionListener {
 				File chosenFile = fileChooser.getSelectedFile();
 
 				// Create a buffered image in which to draw
-				BufferedImage bufferedImage = new BufferedImage(pc.getWidth(), pc.getHeight(), BufferedImage.TYPE_INT_RGB);
+				BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
 
 				// Create a graphics contents on the buffered image
 				Graphics2D g2d = bufferedImage.createGraphics();
 
 				// Draw the current contact map window to Image
-				pc.paintComponent(g2d);
+				cmPane.paintComponent(g2d);
 
 				try {
 					ImageIO.write(bufferedImage, "png", chosenFile);
@@ -544,7 +518,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handlePrint() {
-		PrintUtil.printComponent(this.pc);
+		PrintUtil.printComponent(this.cmPane);
 		//System.out.println("Printing not implemented yet");
 	}
 
@@ -571,7 +545,7 @@ public class View extends JFrame implements ActionListener {
 	/*---------------------------- public methods ---------------------------*/
 
 	/** Set the underlying contact map data model */
-	public void setModel(Model mod) {
+	public void spawnNewViewWindow(Model mod) {
 		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
 		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
 		if(view == null) {
@@ -581,8 +555,9 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
 
 		// load structure in pymol
-		view.loadPDBM.doClick();
-		//view.pc.showContactMap();
+		view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl,	mod.getPDBCode(), mod.getChainCode(), mod.getTempPDBFileName());
+
+		// if previous window was empty (not showing a contact map) dispose it
 		if(this.mod == null) {
 			this.setVisible(false);
 			this.dispose();
@@ -591,14 +566,6 @@ public class View extends JFrame implements ActionListener {
 
 	public int getCurrentAction(){
 		return currentAction;
-	}
-
-	public int getSelNum(){
-		return selINK;
-	}
-
-	public String getSelectionType(){
-		return selectionType;
 	}
 
 
