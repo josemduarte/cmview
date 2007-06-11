@@ -88,13 +88,14 @@ public class Start {
 		// start myself without a model or take pdbCode and chainCode from command line and default values
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;
-		if (args.length==2){
+		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
+		if (args.length>=1){
 			String pdbCode = args[0];
-			String chainCode = args[1];
+			String chainCode = NULL_CHAIN_CODE;
+			if (args.length==2) chainCode = args[1]; 
 			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF,DEFAULT_SEQSEP, DEFAULT_PDB_DB);
 		}
-		new View(mod, wintitle, Start.PYMOL_SERVER_URL);
-
+		view.spawnNewViewWindow(mod);
 	}
 
 }
