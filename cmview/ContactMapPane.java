@@ -311,6 +311,7 @@ implements MouseListener, MouseMotionListener {
 					selContacts = new ContactList();
 				}
 				fillSelect(screen2cm(new Point(evt.getX(),evt.getY())));
+				this.repaint();
 				return;
 			}
 
@@ -330,10 +331,12 @@ implements MouseListener, MouseMotionListener {
 	} 
 
 	public void mouseEntered(MouseEvent evt) { 
-		mouseIn=true;
+		mouseIn = true;
 	}
 	
 	public void mouseExited(MouseEvent evt) {
+		mouseIn = false;
+		this.repaint();
 	}
 	
 	public void mouseClicked(MouseEvent evt) {
@@ -356,9 +359,12 @@ implements MouseListener, MouseMotionListener {
 			String j_res = graph.getResType(currentCell.j);
 			// writing the coordinates at lower left corner
 			bufferGraphics.setColor(Color.blue);
-			bufferGraphics.drawString("    i    " + "   j    ", 5, winsize-50);
-			bufferGraphics.drawString("  "+currentCell.i+" , " + currentCell.j+"  ", 5, winsize-30);
-			bufferGraphics.drawString(" "+i_res+"   " + ",  "+j_res+" ", 5, winsize-10);
+			bufferGraphics.drawString("i", 20, winsize-50);
+			bufferGraphics.drawString("j", 60, winsize-50);
+			bufferGraphics.drawString(currentCell.i+"", 20, winsize-30);
+			bufferGraphics.drawString(currentCell.j+"", 60, winsize-30);
+			bufferGraphics.drawString(i_res==null?"?":i_res, 20, winsize-10);
+			bufferGraphics.drawString(j_res==null?"?":j_res, 60, winsize-10);
 
 			// drawing the cross-hair
 			bufferGraphics.setColor(Color.green);
