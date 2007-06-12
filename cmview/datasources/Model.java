@@ -2,6 +2,7 @@ package cmview.datasources;
 
 
 import java.io.IOException;
+import java.util.HashMap;
 import proteinstructure.*;
 
 /** 
@@ -173,5 +174,9 @@ public abstract class Model {
 	
 	public String getPdbResSerial(int resser){
 		return pdb.get_pdbresser_from_resser(resser);
+	}
+	
+	public HashMap<Contact,Integer> getAllEdgeNbhSizes(){
+		return graph.getAllEdgeNbhSizes();
 	}
 }

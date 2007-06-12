@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
+import java.util.HashMap;
 
 import cmview.datasources.ContactMapFileModel;
 import cmview.datasources.GraphDbModel;
@@ -14,6 +15,7 @@ import cmview.datasources.Model;
 import cmview.datasources.MsdsdModel;
 import cmview.datasources.PdbFileModel;
 import cmview.datasources.PdbaseModel;
+import proteinstructure.Contact;
 
 /**
  * The main GUI window.
@@ -49,7 +51,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmViewReset, mmViewColor, mmHelpAbout;
 
 
@@ -64,8 +66,10 @@ public class View extends JFrame implements ActionListener {
 	private int pymolNbhSerial;
 
 	private boolean doShowPdbSers;
+	private boolean highlightComNbh;
 	//private String pdbFileName;
 
+	private HashMap<Contact,Integer> comNbhSizes;
 
 	/** Create a new View object */
 	public View(Model mod, String title, String pyMolServerUrl) {
@@ -80,6 +84,7 @@ public class View extends JFrame implements ActionListener {
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
 		this.doShowPdbSers = false;
+		this.highlightComNbh = false;
 	}
 
 	/** Initialize and show the main GUI window */
@@ -196,15 +201,18 @@ public class View extends JFrame implements ActionListener {
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
-		mmViewReset= new JMenuItem("Reset");
-		mmViewColor = new JMenuItem("Color by contact type");
+		mmViewReset= new JMenuItem("Reset contact colors to black");
+		mmViewColor = new JMenuItem("Color current selection");
 		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
+		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
 		//menu.add(mmViewReset);
 		//menu.add(mmViewColor);
 		menu.add(mmViewShowPdbResSers);
+		menu.add(mmViewHighlightComNbh);
 		mmViewReset.addActionListener(this);
 		mmViewColor.addActionListener(this);
 		mmViewShowPdbResSers.addActionListener(this);
+		mmViewHighlightComNbh.addActionListener(this);
 		menuBar.add(menu);
 
 		// Action menu
@@ -330,6 +338,11 @@ public class View extends JFrame implements ActionListener {
 		}		  
 		if(e.getSource() == mmViewShowPdbResSers) {
 			doShowPdbSers = !doShowPdbSers;
+		}		  
+		if(e.getSource() == mmViewHighlightComNbh) {
+			highlightComNbh = !highlightComNbh;
+			if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
+			cmPane.repaint();
 		}		  
 		
 		// Help Menu
@@ -590,6 +603,19 @@ public class View extends JFrame implements ActionListener {
 		return doShowPdbSers;
 	}
 
+	/** Returns the status variable highlightComNbh which indicates whether cells 
+	 * should be displayed in different colors based on common neighbourhoods sizes
+	 */
+	public boolean getHighlightComNbh() {
+		return highlightComNbh;
+	}
 
+	public void setHighlightComNbh(boolean highlightComNbh) {
+		this.highlightComNbh=highlightComNbh;
+	}
+	
+	public HashMap<Contact,Integer> getComNbhSizes() {
+		return comNbhSizes;
+	}
 }
 

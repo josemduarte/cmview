@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
-import javax.swing.border.Border;
 import java.util.Hashtable;
 
 import cmview.datasources.Model;
@@ -47,6 +46,7 @@ implements MouseListener, MouseMotionListener {
 	private ContactList allContacts; // contains all contacts in contact map
 	private ContactList selContacts; // contains permanent list of currently selected contacts
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
+	private Hashtable<Contact,Color> contactColor;  // user defined contact colors
 
 	/**
 	 * Create a new ContactMapPane.
@@ -69,7 +69,7 @@ implements MouseListener, MouseMotionListener {
 		this.dragging = false;
 		this.showCommonNeighbours = false;
 		this.printing = false;
-
+		this.contactColor = new Hashtable<Contact, Color>();
 	}
 
 	/**
@@ -100,15 +100,34 @@ implements MouseListener, MouseMotionListener {
 		
 		setBackground(Color.white);
 
-		// drawing the contact map (initially and on repaint)
-		bufferGraphics.setColor(Color.black);
-		for (Contact cont:allContacts){ 
-			// if there is a contact, draw a rectangle
-			int x = cm2screen(cont).x;
-			int y = cm2screen(cont).y;
-			bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
-			bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+		if (! view.getHighlightComNbh()){
+			// drawing the contact map
+			for (Contact cont:allContacts){ 
+				// if there is a contact, draw a rectangle
+				if(contactColor.contains(cont)) bufferGraphics.setColor(contactColor.get(cont)); 
+				else bufferGraphics.setColor(Color.black);
+				int x = cm2screen(cont).x;
+				int y = cm2screen(cont).y;
+				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
+				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+			}
+		} else {
+			// showing all common neighbours
+			for (Contact cont:view.getComNbhSizes().keySet()){
+				int size = view.getComNbhSizes().get(cont);
+				Point current = cm2screen(cont);
+				int x = current.x;
+				int y = current.y;
+				if (allContacts.contains(cont)) {
+					bufferGraphics.setColor(new Color(1.0f/(float) Math.sqrt(size), 0.0f, 1.0f/(float) Math.sqrt(size)));
+				} else {
+					bufferGraphics.setColor(new Color(0.0f, 1.0f/size,0.0f));
+				}
+				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
+				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+			}
 		}
+
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
@@ -519,6 +538,6 @@ implements MouseListener, MouseMotionListener {
 		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
 		return mod.getEdgeNbh (cont.i,cont.j);
 	}
-	
+		
 } 
 
