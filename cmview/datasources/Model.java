@@ -24,7 +24,6 @@ public abstract class Model {
 	// structure and contact map data
 	protected Pdb pdb;
 	protected Graph graph;
-	protected int[][] dataMatrix;
 	protected int matrixSize;
 	protected int unobservedResidues;
 	protected int seqSep = -1; // store this here because the graph object doesn't have it yet
@@ -52,7 +51,6 @@ public abstract class Model {
 	 * exception will be thrown.
 	 */
 	protected void initializeContactMap() {
-		dataMatrix = graph.getIntMatrix();
 		matrixSize = graph.fullLength;
 		unobservedResidues = (graph.fullLength - graph.obsLength);
 	 }	
@@ -63,7 +61,6 @@ public abstract class Model {
 	 */
 	protected void filterContacts(int seqSep) {
 		this.graph.restrictContactsToMinRange(seqSep);
-		dataMatrix = graph.getIntMatrix();
 		matrixSize = graph.fullLength;
 		this.seqSep = seqSep;		
 	}
@@ -80,10 +77,6 @@ public abstract class Model {
 	/** Returns the size of the data matrix */
 	public int getMatrixSize() {
 		return this.matrixSize;
-	}
-	/** Returns the data matrix */
-	public int[][] getMatrix(){
-		return this.dataMatrix;
 	}
 	
 	/** Returns the contacts as a ContactList */
@@ -170,4 +163,15 @@ public abstract class Model {
 		}
 	}	
 	
+	public String getResType(int resser){
+		return graph.getResType(resser);
+	}
+	
+	public EdgeNbh getEdgeNbh(int i_resser, int j_resser){
+		return graph.getEdgeNbh(i_resser, j_resser);
+	}
+	
+	public String getPdbResSerial(int resser){
+		return pdb.get_pdbresser_from_resser(resser);
+	}
 }

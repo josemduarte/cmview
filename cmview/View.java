@@ -49,6 +49,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
+	JMenuItem mmViewShowPdbResSers;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmViewReset, mmViewColor, mmHelpAbout;
 
 
@@ -62,6 +63,7 @@ public class View extends JFrame implements ActionListener {
 	private int pymolSelSerial;		 	// for incrementation numbering TODO: move to Model
 	private int pymolNbhSerial;
 
+	private boolean doShowPdbSers;
 	//private String pdbFileName;
 
 
@@ -77,6 +79,7 @@ public class View extends JFrame implements ActionListener {
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
+		this.doShowPdbSers = false;
 	}
 
 	/** Initialize and show the main GUI window */
@@ -195,11 +198,14 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_V);
 		mmViewReset= new JMenuItem("Reset");
 		mmViewColor = new JMenuItem("Color by contact type");
-		menu.add(mmViewReset);
-		menu.add(mmViewColor);
+		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
+		//menu.add(mmViewReset);
+		//menu.add(mmViewColor);
+		menu.add(mmViewShowPdbResSers);
 		mmViewReset.addActionListener(this);
-		mmViewColor.addActionListener(this);		
-		//menuBar.add(menu);
+		mmViewColor.addActionListener(this);
+		mmViewShowPdbResSers.addActionListener(this);
+		menuBar.add(menu);
 
 		// Action menu
 		menu = new JMenu("Action");
@@ -322,7 +328,10 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewColor) {
 			handleViewColor();
 		}		  
-
+		if(e.getSource() == mmViewShowPdbResSers) {
+			doShowPdbSers = !doShowPdbSers;
+		}		  
+		
 		// Help Menu
 		if(e.getSource() == mmHelpAbout) {
 			handleHelpAbout();
@@ -571,8 +580,14 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	/** Returns the status variable currentAction which contains the currently selected actions */
 	public int getCurrentAction(){
 		return currentAction;
+	}
+	
+	/** Returns the status variable doShowPdbSers which indicates whether PDB serials should be displayed */
+	public boolean getShowPdbSers() {
+		return doShowPdbSers;
 	}
 
 

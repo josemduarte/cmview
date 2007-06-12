@@ -37,8 +37,7 @@ implements MouseListener, MouseMotionListener {
 	private boolean mouseIn;		// true if the mouse is currently in the contact map window (otherwise supress crosshair)
 	private boolean showCommonNeighbours; // true while common neighbourhoods should be drawn on screen
 	
-	//private Model mod;          //TODO not sure if we need the full Model object here, commenting it out for now
-	private Graph graph;
+	private Model mod;
 	private View view;
 
 	private ContactList allContacts; // contains all contacts in contact map
@@ -51,18 +50,16 @@ implements MouseListener, MouseMotionListener {
 	 * @param view
 	 */
 	public ContactMapPane(Model mod, View view){
-		//this.mod = mod;
+		this.mod = mod;
 		this.view = view;
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		
-		// TODO we don't need to pass the Model at all but rather just the Graph object, isn't it?
-		this.graph = mod.getGraph();
-		this.allContacts = graph.getContacts();
+		this.allContacts = mod.getContacts();
 		this.selContacts = new ContactList();
-		this.contactMapSize = graph.fullLength;
+		this.contactMapSize = mod.getMatrixSize();
 		this.pos = new Point();
 		
 		this.dragging = false;
@@ -378,17 +375,23 @@ implements MouseListener, MouseMotionListener {
 
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			Contact currentCell = screen2cm(pos);
-			String i_res = graph.getResType(currentCell.i);
-			String j_res = graph.getResType(currentCell.j);
+			String i_res = mod.getResType(currentCell.i);
+			String j_res = mod.getResType(currentCell.j);
 			// writing the coordinates at lower left corner
 			bufferGraphics.setColor(Color.blue);
-			bufferGraphics.drawString("i", 20, winsize-50);
-			bufferGraphics.drawString("j", 60, winsize-50);
-			bufferGraphics.drawString(currentCell.i+"", 20, winsize-30);
-			bufferGraphics.drawString(currentCell.j+"", 60, winsize-30);
-			bufferGraphics.drawString(i_res==null?"?":i_res, 20, winsize-10);
-			bufferGraphics.drawString(j_res==null?"?":j_res, 60, winsize-10);
+			bufferGraphics.drawString("i", 20, winsize-70);
+			bufferGraphics.drawString("j", 60, winsize-70);
+			bufferGraphics.drawString(currentCell.i+"", 20, winsize-50);
+			bufferGraphics.drawString(currentCell.j+"", 60, winsize-50);
+			bufferGraphics.drawString(i_res==null?"?":i_res, 20, winsize-30);
+			bufferGraphics.drawString(j_res==null?"?":j_res, 60, winsize-30);
 
+			if (view.getShowPdbSers()){
+				String i_pdbresser = mod.getPdbResSerial(currentCell.i);
+				String j_pdbresser = mod.getPdbResSerial(currentCell.j);
+				bufferGraphics.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
+				bufferGraphics.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
+			}
 			// drawing the cross-hair
 			bufferGraphics.setColor(Color.green);
 			bufferGraphics.drawLine(pos.x, 0, pos.x, winsize);
@@ -400,7 +403,7 @@ implements MouseListener, MouseMotionListener {
 	public void commonNeighbours(Graphics2D bufferGraphics){
 		// getting point where mouse was clicked and common neighbours for it
 		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
-		EdgeNbh comNbh = graph.getEdgeNbh (cont.i,cont.j);
+		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
 
 		// drawing corridor
 		drawCorridor(cont, bufferGraphics);
@@ -486,7 +489,7 @@ implements MouseListener, MouseMotionListener {
 
 	public EdgeNbh getCommonNbh(){
 		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
-		return graph.getEdgeNbh (cont.i,cont.j);
+		return mod.getEdgeNbh (cont.i,cont.j);
 	}
 	
 } 
