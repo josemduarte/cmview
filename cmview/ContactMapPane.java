@@ -448,6 +448,9 @@ implements MouseListener, MouseMotionListener {
 			bufferGraphics.drawString(currentCell.j+"", 60, winsize-50);
 			bufferGraphics.drawString(i_res==null?"?":i_res, 20, winsize-30);
 			bufferGraphics.drawString(j_res==null?"?":j_res, 60, winsize-30);
+			if(allContacts.contains(currentCell)) {
+				bufferGraphics.drawLine(48, winsize-35, 55, winsize-35);
+			}
 
 			if (view.getShowPdbSers()){
 				String i_pdbresser = mod.getPdbResSerial(currentCell.i);

@@ -52,7 +52,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewReset, mmViewColor, mmViewChooseColor;
-	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout;
+	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
 
 
 	// Data and status variables
@@ -247,7 +247,10 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpAbout = new JMenuItem("About");
+		mmHelpHelp = new JMenuItem("Help");
 		mmHelpAbout.addActionListener(this);
+		mmHelpHelp.addActionListener(this);
+		menu.add(mmHelpHelp);
 		menu.add(mmHelpAbout);
 		menuBar.add(menu);
 
@@ -347,15 +350,22 @@ public class View extends JFrame implements ActionListener {
 			doShowPdbSers = !doShowPdbSers;
 		}		  
 		if(e.getSource() == mmViewHighlightComNbh) {
-			highlightComNbh = !highlightComNbh;
-			if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
-			cmPane.repaint();
+			if(mod==null) {
+				showNoContactMapDialog();
+			} else {
+				highlightComNbh = !highlightComNbh;
+				if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
+				cmPane.repaint();
+			}
 		}		  
 		
 		// Help Menu
 		if(e.getSource() == mmHelpAbout) {
 			handleHelpAbout();
-		}		  
+		}
+		if(e.getSource() == mmHelpHelp) {
+			handleHelpHelp();
+		}		
 
 	}
 
@@ -486,7 +496,8 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleSaveToCmFile() {
 		if(this.mod == null) {
-			System.out.println("No contact map loaded yet.");
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapDialog();
 		} else {
 			int ret = fileChooser.showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
@@ -503,7 +514,8 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleSaveToPng() {
 		if(this.mod == null) {
-			System.out.println("No contact map loaded yet.");
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapDialog();
 		} else {
 			int ret = fileChooser.showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
@@ -530,7 +542,8 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleInfo() {
 		if(this.mod == null) {
-			System.out.println("No contact map loaded yet.");
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapDialog();
 		} else {
 			String seq = mod.getSequence();
 			String s = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
@@ -554,8 +567,12 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handlePrint() {
-		PrintUtil.printComponent(this.cmPane);
-		//System.out.println("Printing not implemented yet");
+		if(this.mod == null) {
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapDialog();
+		} else {
+			PrintUtil.printComponent(this.cmPane);
+		}
 	}
 
 	private void handleQuit() {
@@ -589,6 +606,39 @@ public class View extends JFrame implements ActionListener {
 				"               (C) AG Lappe 2007",
 				"About",
 				JOptionPane.PLAIN_MESSAGE);
+	}
+	
+	private void handleHelpHelp() {
+		JOptionPane.showMessageDialog(this,
+				"General\n" +
+				"- Click right mouse button in contact map for a context menu of available actions\n" +
+				"\n" +
+				"Square selection mode\n" +
+				"- Click on a contact to select it\n" +
+				"- Drag the mouse to select a rectangular area of contacts\n" +
+				"- Hold 'Ctrl' while selecting to add to the current selection\n" +
+				"- Click on a non-contact to reset the current selection\n" +
+				"\n" +
+				"Fill selection mode\n" +
+				"- Click on a contact to start a fill selection from that contact\n" +
+				"- Hold 'Ctrl' while selecting to add to the current selection\n" +
+				"\n" +
+				"Send selection to pymol\n" +
+				"- Shows the currently selected contacts as edges in Pymol\n" +
+				"\n" +
+				"Show common neigbours\n" +
+				"- Click on a contact or non-contact to see the common neighbours for that pair of residues\n" +
+				"\n" +
+				"Send common neighbours to pymol\n" +
+				"- Shows the last shown common neighbours as triangles in pymol\n",
+				"Help",
+				JOptionPane.PLAIN_MESSAGE);
+	}	
+	
+	/** Shows a dialog that no contact map is loaded yet */
+	private void showNoContactMapDialog() {
+		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Error", JOptionPane.INFORMATION_MESSAGE);
+		
 	}
 
 	/*---------------------------- public methods ---------------------------*/
