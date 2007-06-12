@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
+import javax.swing.border.Border;
+import java.util.Hashtable;
 
 import cmview.datasources.Model;
 import proteinstructure.*;
@@ -28,6 +30,7 @@ implements MouseListener, MouseMotionListener {
 	private Point pos;              //  current position of mouse
 	
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
+	private int printsize;			// size of the effective square available for printing the contact map
 
 	private double ratio;		  	// ratio of screen size and contact map size = size of each contact on screen
 
@@ -36,6 +39,7 @@ implements MouseListener, MouseMotionListener {
 	private boolean dragging;     	// set to true while the user is dragging (to display selection rectangle)
 	private boolean mouseIn;		// true if the mouse is currently in the contact map window (otherwise supress crosshair)
 	private boolean showCommonNeighbours; // true while common neighbourhoods should be drawn on screen
+	private boolean printing;		// set to true by PrintUtil to notify paintComponent to render for printer rather than for screen
 	
 	private Model mod;
 	private View view;
@@ -64,6 +68,7 @@ implements MouseListener, MouseMotionListener {
 		
 		this.dragging = false;
 		this.showCommonNeighbours = false;
+		this.printing = false;
 
 	}
 
@@ -80,9 +85,17 @@ implements MouseListener, MouseMotionListener {
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
 
-		int windowSize = this.getWindowSize();
+		int outputSize;
+		if(printing) {
+			// TODO: Instead of messing with the drawing size, draw to image, scale image and print
+			outputSize = getPrintSize();
+			//System.out.println("Setting size to " + getPrintSize() + " instead of " + getWindowSize());
+			bufferGraphics.drawRect(0, 0, outputSize, outputSize);
+		} else {
+			outputSize = getWindowSize();
+		}
 
-		ratio = (double)windowSize/contactMapSize;		// scale factor, = size of one contact
+		ratio = (double)outputSize/contactMapSize;		// scale factor, = size of one contact
 		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
 		
 		setBackground(Color.white);
@@ -150,12 +163,27 @@ implements MouseListener, MouseMotionListener {
 		return super.getMaximumSize();
 	}
 
-	/** Used by paintComponent to get the current window size */
+	/** Called by paintComponent to get the current window size for drawing on screen */
 	private int getWindowSize(){
 		winsize = Math.min(getWidth(), getHeight()); // size of drawing square
 		return winsize;
 	}
+	
+	/** Called by PrintUtil to set the right paper size for paintComponent */
+	public void setPrintSize(double height, double width) {
+		printsize = (int) Math.min(height, width);
+	}
+	
+	/** Called by paintComponent to get the size of the effective square available for printing */ 
+	private int getPrintSize() {
+		return printsize;
+	}
 
+	/** Called by PrintUtil to tell paintComponent that it should use the printsize rather than winsize for drawing */
+	public void setPrinting(boolean flag) {
+		this.printing = flag;
+	}
+	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
 	 * @param upperLeft

@@ -2,6 +2,7 @@ package cmview;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.print.*;
+import javax.swing.border.Border;
 
 /**
  * Helper class for printing Swing components.
@@ -38,9 +39,23 @@ public class PrintUtil implements Printable {
     } else {
       Graphics2D g2d = (Graphics2D)g;
       g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-      // TODO: Set the right size for printing in ContactMapPane
+      // Set the right size for printing in ContactMapPane
       disableDoubleBuffering(componentToBePrinted);
-      componentToBePrinted.paint(g2d);
+      if(componentToBePrinted instanceof ContactMapPane) {
+    	ContactMapPane p = (ContactMapPane) componentToBePrinted;
+        double h = pageFormat.getImageableHeight();
+        double w = pageFormat.getImageableWidth();
+        Border saveBorder = p.getBorder();
+        p.setBorder(null);
+    	p.setPrintSize(h,w);
+    	p.setPrinting(true);
+    	p.paint(g2d);
+    	p.setPrinting(false);
+    	p.setBorder(saveBorder);
+    	p.repaint();
+      } else {
+    	  componentToBePrinted.paint(g2d);
+      }
       enableDoubleBuffering(componentToBePrinted);
       // TODO: Reset the right size for screen output in ContactMapPane
       return(PAGE_EXISTS);
