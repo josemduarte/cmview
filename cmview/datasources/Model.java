@@ -82,7 +82,7 @@ public abstract class Model {
 	
 	/** Returns the contacts as a ContactList */
 	public ContactList getContacts(){
-		return this.graph.getContacts(); // this deep copies the ContactList
+		return this.graph.contacts; // this re-references graph's ContactList, no deep copy
 	}
 	
 	/** Returns the graph object */
