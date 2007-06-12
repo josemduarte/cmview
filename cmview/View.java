@@ -51,8 +51,8 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh;
-	JMenuItem mmInfo, mmPrint, mmQuit, mmViewReset, mmViewColor, mmHelpAbout;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewReset, mmViewColor, mmViewChooseColor;
+	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout;
 
 
 	// Data and status variables
@@ -67,7 +67,7 @@ public class View extends JFrame implements ActionListener {
 
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
-	//private String pdbFileName;
+	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
 
@@ -85,6 +85,7 @@ public class View extends JFrame implements ActionListener {
 		this.pymolNbhSerial = 1;
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
+		this.currentPaintingColor = Color.blue;
 	}
 
 	/** Initialize and show the main GUI window */
@@ -202,15 +203,18 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
 		mmViewReset= new JMenuItem("Reset contact colors to black");
-		mmViewColor = new JMenuItem("Color current selection");
+		mmViewChooseColor = new JMenuItem("Choose painting color");
+		mmViewColor = new JMenuItem("Paint current selection");
 		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
 		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
-		//menu.add(mmViewReset);
-		//menu.add(mmViewColor);
 		menu.add(mmViewShowPdbResSers);
 		menu.add(mmViewHighlightComNbh);
+		menu.add(mmViewReset);
+		menu.add(mmViewColor);
+		menu.add(mmViewChooseColor);
 		mmViewReset.addActionListener(this);
 		mmViewColor.addActionListener(this);
+		mmViewChooseColor.addActionListener(this);
 		mmViewShowPdbResSers.addActionListener(this);
 		mmViewHighlightComNbh.addActionListener(this);
 		menuBar.add(menu);
@@ -335,7 +339,10 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmViewColor) {
 			handleViewColor();
-		}		  
+		}
+		if(e.getSource() == mmViewChooseColor) {
+			handleViewSelectColor();
+		}
 		if(e.getSource() == mmViewShowPdbResSers) {
 			doShowPdbSers = !doShowPdbSers;
 		}		  
@@ -556,12 +563,25 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleViewReset() {
-		System.out.println("View:Reset not implemented yet");
+		//System.out.println("View:Reset not implemented yet");
+		cmPane.resetColorMap();
 	}	  
 
 	private void handleViewColor() {
-		System.out.println("View:Color by type not implemented yet");
+		//System.out.println("View:Color by type not implemented yet");
+		cmPane.paintCurrentSelection(currentPaintingColor);
 	}
+	private void handleViewSelectColor() {
+		//System.out.println("View:Color by type not implemented yet");
+		Color newColor = JColorChooser.showDialog(
+                this, 
+                "Choose Painting Color",
+                currentPaintingColor);
+		if(newColor != null) {
+			currentPaintingColor = newColor;
+		}
+		
+	}	
 
 	private void handleHelpAbout() {
 		JOptionPane.showMessageDialog(this,
@@ -597,6 +617,11 @@ public class View extends JFrame implements ActionListener {
 	public int getCurrentAction(){
 		return currentAction;
 	}
+	
+//	/** Returns the current painting color set by the user */
+//	public Color getCurrentPaintingColor() {
+//		return currentPaintingColor;
+//	}
 	
 	/** Returns the status variable doShowPdbSers which indicates whether PDB serials should be displayed */
 	public boolean getShowPdbSers() {

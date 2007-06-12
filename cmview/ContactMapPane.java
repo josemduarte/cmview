@@ -104,8 +104,11 @@ implements MouseListener, MouseMotionListener {
 			// drawing the contact map
 			for (Contact cont:allContacts){ 
 				// if there is a contact, draw a rectangle
-				if(contactColor.contains(cont)) bufferGraphics.setColor(contactColor.get(cont)); 
-				else bufferGraphics.setColor(Color.black);
+				if(contactColor.containsKey(cont)) {
+					bufferGraphics.setColor(contactColor.get(cont)); 
+				} else {
+					bufferGraphics.setColor(Color.black);
+				}
 				int x = cm2screen(cont).x;
 				int y = cm2screen(cont).y;
 				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
@@ -201,6 +204,19 @@ implements MouseListener, MouseMotionListener {
 	/** Called by PrintUtil to tell paintComponent that it should use the printsize rather than winsize for drawing */
 	public void setPrinting(boolean flag) {
 		this.printing = flag;
+	}
+	
+	/** Called by view to reset the color map */
+	public void resetColorMap() {
+		contactColor = new Hashtable<Contact, Color>();
+	}
+	
+	/** Set the color value in contactColor for the currently selected residues to the given color */
+	public void paintCurrentSelection(Color paintingColor) {
+		for(Contact cont:selContacts) {
+			contactColor.put(cont, paintingColor);
+		}
+		this.repaint();
 	}
 	
 	/**
