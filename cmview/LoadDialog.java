@@ -8,6 +8,7 @@ import javax.swing.*;
 /**
  * A dialog to load a contact map. This dialog is used by several load commands
  * and displays different input fields depending on the given parameters.
+ * The action to be performed when ok is pressed can be passed as a LoadAction instance.
  */
 public class LoadDialog extends JDialog implements ActionListener {
 

@@ -12,12 +12,9 @@ import proteinstructure.*;
  * 
  * @author:		Henning Stehr
  * Class: 		ContactMapPane (replaces PaintController)
- * Package: 	cm2pymol
- * Date:		22/05/2007, last updated: 22/05/2007
+ * Package: 	cmview
+ * Date:		22/05/2007, last updated: 12/06/2007
  * 
- * TODO:
- * - use JPanel instead of Canvas
- * - draw crosshair and coordinates on separate Panel so that the contact map can be saved as image
  */
 
 public class ContactMapPane extends JPanel

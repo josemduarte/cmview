@@ -4,14 +4,17 @@ import proteinstructure.*;
 /** 
  * A contact map data model based on a structure loaded from Pdbase.
  * 
- * @author		Henning
+ * @author		Henning Stehr
  * Class: 		MsdsdModel
- * Package: 	cm2pymol
+ * Package: 	cmview.datasources
  * Date:		14/05/2007, last updated: 15/05/2007
  * 
  */
 public class MsdsdModel extends Model {
 
+	/**
+	 * Overloaded constructor to load the data.
+	 */
 	public MsdsdModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
 		
 		// load structure from MSD

@@ -11,8 +11,8 @@ import proteinstructure.*;
  * 
  * @author		Henning Stehr
  * Class: 		Model
- * Package: 	cm2pymol
- * Date:		15/05/2007, last updated: 15/05/2007
+ * Package: 	cmview.datasources
+ * Date:		15/05/2007, last updated: 12/06/2007
  * 
  */
 public abstract class Model {
@@ -86,18 +86,22 @@ public abstract class Model {
 		return this.dataMatrix;
 	}
 	
+	/** Returns the contacts as a ContactList */
 	public ContactList getContacts(){
 		return this.graph.getContacts(); // this deep copies the ContactList
 	}
 	
+	/** Returns the graph object */
 	public Graph getGraph(){
 		return this.graph;
 	}
 	
+	/** Returns the number of contacts */
 	public int getNumberOfContacts() {
 		return graph.numContacts;
 	}
 	
+	/** Returns true if the graph is directed, false otherwise */
 	public boolean isDirected() {
 		return graph.directed;
 	}
@@ -107,19 +111,29 @@ public abstract class Model {
 		return graph.accode;
 	}
 
-	/** Returns the chain code of the underlying structure */
+	/** 
+	 * Returns the internal chain code of the underlying structure.
+	 * Note that the internal chain code may be different from the pdb chain code given when loading the structure.
+	 */
 	public String getChainCode() {
 		return graph.chain; // gets the internal chain code (may be != pdb chain code)
 	}
 	
+	/**
+	 * Returns the contact type 
+	 */
 	public String getContactType() {
 		return graph.ct;
 	}
 	
+	/**
+	 * Returns the distance cutoff
+	 */
 	public double getDistanceCutoff() {
 		return graph.cutoff;
 	}
 	
+	/** Returns the sequence separation of the current graph */
 	public int getSequenceSeparation() {
 		return this.seqSep;
 	}

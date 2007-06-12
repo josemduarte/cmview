@@ -6,14 +6,17 @@ import java.io.IOException;
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.
  * 
- * @author		Henning
+ * @author		Henning Stehr
  * Class: 		PdbFileModel
- * Package: 	cm2pymol
+ * Package: 	cmview.datasources
  * Date:		15/05/2007, last updated: 15/05/2007
  * 
  */
 public class ContactMapFileModel extends Model {
 	
+	/**
+	 * Overloaded constructor to load the data.
+	 */
 	public ContactMapFileModel(String fileName) {
 		
 		// load Contact graph from file
@@ -24,10 +27,7 @@ public class ContactMapFileModel extends Model {
 		}
 		
 		String pdbCode = graph.accode;
-		//String chainCode = graph.chain;
 		String chainPdbCode = graph.chaincode;
-//		String contactType = graph.ct;
-//		double distCutoff = graph.cutoff;
 		int seqSep = 0;
 		
 		// check whether sequence info exists

@@ -13,18 +13,18 @@ public class PyMolAdaptor {
 	/**
 	 * Encapsulates the code for communication with a particular PyMol server instance. 
 	 * 
-	 * @author Jose Duarte
 	 * @author Juliane Dinse
+	 * @author Henning Stehr
+	 * @author Jose Duarte
 	 * Class: PyMolAdaptor
-	 * Package: cm2view
-	 * Date: 29/03/2007, last updated: 10/05/2007
+	 * Package: cmview
+	 * Date: 29/03/2007, last updated: 12/06/2007
 	 * 
 	 * PyMolAdaptor sends selected data and commands directly to Pymol.
 	 * 
 	 * - receives edge selections (coming from square or fill select) of contact map and shows them as PyMol distance objects
 	 * - receives common neighbours (in an EdgeNbh object) and shows them as triangles (CGO-object
-	 *   with integrated transparency parameter)
-	 *
+	 *   with integrated transparency parameter.
 	 */
 	
 	// colors for triangles, one is chosen randomly from this list
@@ -39,8 +39,6 @@ public class PyMolAdaptor {
 	private String accessionCode;
 	private String chainCode;
 	private String pymolObjectName;
-
-	
 
 	/**
 	 *  Create a new PymolCommunication object 

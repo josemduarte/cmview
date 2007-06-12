@@ -18,10 +18,17 @@ import cmview.datasources.PdbaseModel;
 /**
  * The main GUI window.
  * 
+ * Initialized with mod=null, an empty window with the menu bars is shown.
+ * Initialized with a valid model, the contact map is displayed in a ContactMapPane.
+ * Multiple instances of this class are created to show multiple contact maps.
+ * 
  * @author	Juliane Dinse
+ * @author	Henning Stehr
+ * @author	Jose Duarte
+ * 
  * Class: 	View
- * Package:	cm2pymol
- * Date:	20/02/2007 last update 25/05/2007
+ * Package:	cmview
+ * Date:	20/02/2007 last update 12/06/2007
  *
  */
 public class View extends JFrame implements ActionListener {

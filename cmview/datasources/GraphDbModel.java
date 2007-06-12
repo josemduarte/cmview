@@ -4,14 +4,18 @@ import proteinstructure.*;
 /** 
  * A contact map data model based on a single_model_graph loaded from the database
  * 
- * @author		Henning
+ * @author		Henning Stehr
  * Class: 		GraphDbModel
- * Package: 	cm2pymol
+ * Package: 	cmview.datasources
  * Date:		14/05/2007, last updated: 15/05/2007
  * 
  */
 public class GraphDbModel extends Model {
-	
+
+	/**
+	 * Overloaded constructor to load the data from a graph database, where
+	 * the graph id will be looked up based on the given graph details.
+	 */
 	public GraphDbModel(String pdbCode, String chainCode, String edgeType,
 						double distCutoff, int seqSep, String db) {
 		
@@ -42,7 +46,10 @@ public class GraphDbModel extends Model {
 		
 	}
 	
-	/** Create a GraphDbModel given the id of a single model graph */
+	/**
+	 * Overloaded constructor to load the data from a graph database,
+	 * given the id of a single model graph. 
+	 */
 	public GraphDbModel(int graphId, String db) {
 		
 		// load contact graph from user specified graph database
