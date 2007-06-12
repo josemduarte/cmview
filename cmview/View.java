@@ -286,16 +286,22 @@ public class View extends JFrame implements ActionListener {
 			currentAction = SHOW_COMMON_NBH;
 		}
 		// send selection button clicked
-		if (e.getSource() == sendM || e.getSource() == sendP) {
-	
-			pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
-			this.pymolSelSerial++;
+		if (e.getSource() == sendM || e.getSource() == sendP) {	
+			if(mod==null) {
+				showNoContactMapDialog();
+			} else {
+				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
+				this.pymolSelSerial++;
+			}
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
-
-			pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
-			this.pymolNbhSerial++;
+			if(mod==null) {
+				showNoContactMapDialog();
+			} else {
+				pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
+				this.pymolNbhSerial++;
+			}
 		}
 
 		// File Menu
@@ -581,12 +587,20 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleViewReset() {
 		//System.out.println("View:Reset not implemented yet");
-		cmPane.resetColorMap();
+		if(mod==null) {
+			showNoContactMapDialog();
+		} else {
+			cmPane.resetColorMap();
+		}
 	}	  
 
 	private void handleViewColor() {
 		//System.out.println("View:Color by type not implemented yet");
-		cmPane.paintCurrentSelection(currentPaintingColor);
+		if(mod==null) {
+			showNoContactMapDialog();
+		} else {
+			cmPane.paintCurrentSelection(currentPaintingColor);
+		}
 	}
 	private void handleViewSelectColor() {
 		//System.out.println("View:Color by type not implemented yet");
