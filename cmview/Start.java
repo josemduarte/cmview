@@ -97,8 +97,8 @@ public class Start {
 			String chainCode = NULL_CHAIN_CODE;
 			if (args.length==2) chainCode = args[1]; 
 			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF,DEFAULT_SEQSEP, DEFAULT_PDB_DB);
+			view.spawnNewViewWindow(mod);
 		}
-		view.spawnNewViewWindow(mod);
 	}
 
 }

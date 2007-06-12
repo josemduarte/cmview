@@ -27,27 +27,26 @@ implements MouseListener, MouseMotionListener {
 	private Point squareSelEnd;     //  end point of square selection
 	private Point pos;              //  current position of mouse
 	
-	private int winsize;          // size of the effective (square) size
+	private int winsize;          	// size of the effective square available on screen for drawing the contact map
 
-	private double ratio;		  // scale factor
+	private double ratio;		  	// ratio of screen size and contact map size = size of each contact on screen
 
-	private int dim;
+	private int contactMapSize;
 	
-	private boolean dragging;     // set to true while the user is dragging
-	private boolean mouseIn;
-	private boolean showCommonNeighbours;
+	private boolean dragging;     	// set to true while the user is dragging (to display selection rectangle)
+	private boolean mouseIn;		// true if the mouse is currently in the contact map window (otherwise supress crosshair)
+	private boolean showCommonNeighbours; // true while common neighbourhoods should be drawn on screen
 	
 	//private Model mod;          //TODO not sure if we need the full Model object here, commenting it out for now
 	private Graph graph;
 	private View view;
 
 	private ContactList allContacts; // contains all contacts in contact map
-	private ContactList selContacts; // contains permanent list of contacts selected
+	private ContactList selContacts; // contains permanent list of currently selected contacts
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
 
-
 	/**
-	 * Constructor
+	 * Create a new ContactMapPane.
 	 * @param mod
 	 * @param view
 	 */
@@ -63,7 +62,7 @@ implements MouseListener, MouseMotionListener {
 		this.graph = mod.getGraph();
 		this.allContacts = graph.getContacts();
 		this.selContacts = new ContactList();
-		this.dim = graph.fullLength;
+		this.contactMapSize = graph.fullLength;
 		this.pos = new Point();
 		
 		this.dragging = false;
@@ -71,6 +70,10 @@ implements MouseListener, MouseMotionListener {
 
 	}
 
+	/**
+	 * Main method to draw the component on screen. This method is called each time the component has to be
+	 * (re) drawn on screen. It is called automatically by Swing or by explicitly calling cmpane.repaint().
+	 */
 	protected void paintComponent(Graphics g) {
 		Graphics2D bufferGraphics = (Graphics2D) g.create();
 
@@ -82,7 +85,7 @@ implements MouseListener, MouseMotionListener {
 
 		int windowSize = this.getWindowSize();
 
-		ratio = (double)windowSize/dim;		// scale factor, = size of one contact
+		ratio = (double)windowSize/contactMapSize;		// scale factor, = size of one contact
 		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
 		
 		setBackground(Color.white);
@@ -135,29 +138,29 @@ implements MouseListener, MouseMotionListener {
 
 	}
 
-
+	/** Method called by this component to determine its minimum size */
 	public Dimension getMinimumSize() {
 		return super.getMinimumSize();
 	}
 
+	/** Method called by this component to determine its preferred size */
 	public Dimension getPreferredSize() {
 		return new Dimension(800, 800);
 	}
 
+	/** Method called by this component to determine its maximum size */
 	public Dimension getMaximumSize() {
 		return super.getMaximumSize();
 	}
 
-	/** 
-	 * used by paintComponent to get the current window size 
-	 */
+	/** Used by paintComponent to get the current window size */
 	private int getWindowSize(){
 		winsize = Math.min(getWidth(), getHeight()); // size of drawing square
 		return winsize;
 	}
 
 	/**
-	 * Square selection: from left upper to right lower corner of a rectangle
+	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
 	 * @param upperLeft
 	 * @param lowerRight 
 	 */
@@ -178,13 +181,14 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	/**
-	 * Fill selection
+	 * Update selContacts with the result of a fill selection starting from the given contact.
 	 * @param cont contact where mouse has been clicked
+	 * TODO: Create a tmpContacts first and then copy to selContacts (if we want this behaviour)
 	 */
 	public void fillSelect(Contact cont){
 		int i = cont.i;
 		int j = cont.j;
-		if ((i < 1) || (j < 1) || (i > dim) || (j > dim)) {
+		if ((i < 1) || (j < 1) || (i > contactMapSize) || (j > contactMapSize)) {
 			return;
 		} else {
 			if (!allContacts.contains(cont)){
@@ -216,6 +220,7 @@ implements MouseListener, MouseMotionListener {
 		}
 	}
 
+	/** Return the selContacts variable */
 	public ContactList getSelContacts(){
 		return selContacts;
 	}
@@ -288,8 +293,29 @@ implements MouseListener, MouseMotionListener {
 				
 			case View.SQUARE_SEL:
 				if(!dragging) {
-					// resets selContacts when clicking mouse (not dragging)
-					selContacts = new ContactList();
+					// if clicked position is a selected contact, deselect it					
+					Contact clicked = screen2cm(new Point(evt.getX(),evt.getY()));
+					if(allContacts.contains(clicked)) {
+						if(selContacts.contains(clicked)) {
+							// if clicked position is a selected contact, deslect it
+							if(evt.isControlDown()) {
+								selContacts.remove(clicked);
+							} else {
+								selContacts = new ContactList();
+								selContacts.add(clicked);
+							}
+						} else {
+							// if clicked position is a contact but not selected, select it
+							if(!evt.isControlDown()) {
+								selContacts = new ContactList();
+							}
+							selContacts.add(clicked);
+						}
+					} else {
+						// else: if clicked position is outside of a contact, reset selContacts
+						selContacts = new ContactList();
+					}
+					this.repaint();
 				} else {
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
@@ -417,9 +443,9 @@ implements MouseListener, MouseMotionListener {
 		bufferGraphics.setColor(Color.green);
 		bufferGraphics.drawLine(0, x, x, x);
 		// vertical Lines
-		bufferGraphics.drawLine(y,y,y,cm2screen(dim));
+		bufferGraphics.drawLine(y,y,y,cm2screen(contactMapSize));
 		bufferGraphics.setColor(Color.gray);
-		bufferGraphics.drawLine(x,x,x,cm2screen(dim)); 
+		bufferGraphics.drawLine(x,x,x,cm2screen(contactMapSize)); 
 	}
 	
 	public void drawTriangle(int k, Contact cont, Graphics2D bufferGraphics,Color color) {
