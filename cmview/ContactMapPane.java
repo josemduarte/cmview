@@ -122,8 +122,10 @@ implements MouseListener, MouseMotionListener {
 				int x = current.x;
 				int y = current.y;
 				if (allContacts.contains(cont)) {
+					// coloring pinks when the cell is a contact, 1/size is simply doing the color grading: lower size lighter than higher size
 					bufferGraphics.setColor(new Color(1.0f/(float) Math.sqrt(size), 0.0f, 1.0f/(float) Math.sqrt(size)));
 				} else {
+					// coloring greens when the cell is not a contact, 1/size is simply doing the color grading: lower size lighter than higher size
 					bufferGraphics.setColor(new Color(0.0f, 1.0f/size,0.0f));
 				}
 				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
@@ -245,7 +247,7 @@ implements MouseListener, MouseMotionListener {
 	 * @param cont contact where mouse has been clicked
 	 * TODO: Create a tmpContacts first and then copy to selContacts (if we want this behaviour)
 	 */
-	public void fillSelect(Contact cont){
+	private void fillSelect(Contact cont){
 		int i = cont.i;
 		int j = cont.j;
 		if ((i < 1) || (j < 1) || (i > contactMapSize) || (j > contactMapSize)) {
@@ -294,7 +296,11 @@ implements MouseListener, MouseMotionListener {
 		return new Contact((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
-	// method not used right now but might be useful
+	/**
+	 * Returns the residue serial given a 1-dimensional screen coordinate
+	 * @param z
+	 * @return
+	 */
 //	private int screen2cm(int z){
 //		return (int) Math.ceil(z/ratio);
 //	}
@@ -313,8 +319,34 @@ implements MouseListener, MouseMotionListener {
 	 * @param k
 	 * @return
 	 */
-	private int cm2screen(int k){
-		return (int) Math.round((k-1)*ratio);
+//	private int cm2screen(int k){
+//		return (int) Math.round((k-1)*ratio);
+//	}
+	
+	/** Gets the cell (contact rectangle) center given the upper left corner coordinates (i.e. the output of the cm2screen method
+	 * @param point
+	 * @return 
+	 */
+	//TODO is it ceiling or round that we want to use here??
+	private Point getCellCenter(Point point){
+		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
+	}
+	
+	private Point getCellUpperRight(Contact cont){
+		Point point = cm2screen(cont);
+		return new Point (point.x+(int)Math.ceil(ratio),point.y);
+	}
+
+	private Point getCellLowerLeft(Contact cont){
+		Point point = cm2screen(cont);
+		return new Point (point.x,point.y+(int)Math.ceil(ratio));
+
+	}
+
+	private Point getCellLowerRight(Contact cont){
+		Point point = cm2screen(cont);
+		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
+
 	}
 
 	/** ############################################### */
@@ -434,7 +466,7 @@ implements MouseListener, MouseMotionListener {
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 
-	public void drawCoordinates(Graphics2D bufferGraphics){
+	private void drawCoordinates(Graphics2D bufferGraphics){
 
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			Contact currentCell = screen2cm(pos);
@@ -466,7 +498,7 @@ implements MouseListener, MouseMotionListener {
 
 	}
 
-	public void commonNeighbours(Graphics2D bufferGraphics){
+	private void commonNeighbours(Graphics2D bufferGraphics){
 		// getting point where mouse was clicked and common neighbours for it
 		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
 		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
@@ -475,7 +507,7 @@ implements MouseListener, MouseMotionListener {
 		drawCorridor(cont, bufferGraphics);
 		
 		// marking the selected point with a cross
-		markPointWithCross(cont, bufferGraphics);
+		drawCrossOnContact(cont, bufferGraphics, Color.yellow);
 		
 		// drawing triangles
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial)
@@ -491,33 +523,38 @@ implements MouseListener, MouseMotionListener {
 
 	}
 
-	public void markPointWithCross(Contact cont, Graphics2D bufferGraphics){
-		Point point = cm2screen(cont);
-		int x = point.x;
-		int y = point.y;
-		bufferGraphics.setColor(Color.blue);
-		bufferGraphics.drawLine(x-3, y-3,x+3, y+3 );
-		bufferGraphics.drawLine(x-3, y+3,x+3, y-3 );
-		bufferGraphics.drawLine(x-2, y-3,x+2, y+3 );
-		bufferGraphics.drawLine(x-2, y+3,x+2, y-3 );
+	private void drawCrossOnContact(Contact cont, Graphics2D bufferGraphics,Color color){
+		bufferGraphics.setColor(color);
+		if (ratio<6){ // if size of square is too small, then use fixed size 3 in each side of the cross
+			Point center = getCellCenter(cm2screen(cont)); 
+			bufferGraphics.drawLine(center.x-3, center.y-3,center.x+3, center.y+3 );
+			bufferGraphics.drawLine(center.x-3, center.y+3,center.x+3, center.y-3 );
+			bufferGraphics.drawLine(center.x-2, center.y-3,center.x+2, center.y+3 );
+			bufferGraphics.drawLine(center.x-2, center.y+3,center.x+2, center.y-3 );	
+		} else { // otherwise get upper left, lower left, upper right, lower right to draw a cross spanning the whole contact square
+			Point ul = cm2screen(cont);
+			Point ur = getCellUpperRight(cont);
+			Point ll = getCellLowerLeft(cont);
+			Point lr = getCellLowerRight(cont);
+			bufferGraphics.drawLine(ul.x,ul.y,lr.x,lr.y);
+			bufferGraphics.drawLine(ll.x,ll.y, ur.x,ur.y);
+			bufferGraphics.drawLine(ul.x+1,ul.y,lr.x-1,lr.y);
+			bufferGraphics.drawLine(ll.x+1,ll.y, ur.x-1,ur.y);
+		}
 	}
 
-	public void drawCorridor(Contact cont, Graphics2D bufferGraphics){
-		Point point = cm2screen(cont);
+	private void drawCorridor(Contact cont, Graphics2D bufferGraphics){
+		Point point = getCellCenter(cm2screen(cont));
 		int x = point.x;
 		int y = point.y;
-		bufferGraphics.setColor(Color.gray);
-		// Horizontal Lines
-		bufferGraphics.drawLine(0, y, y, y);
 		bufferGraphics.setColor(Color.green);
+		// Horizontal Line
 		bufferGraphics.drawLine(0, x, x, x);
-		// vertical Lines
-		bufferGraphics.drawLine(y,y,y,cm2screen(contactMapSize));
-		bufferGraphics.setColor(Color.gray);
-		bufferGraphics.drawLine(x,x,x,cm2screen(contactMapSize)); 
+		// vertical Line
+		bufferGraphics.drawLine(y,y,y,winsize);
 	}
 	
-	public void drawTriangle(int k, Contact cont, Graphics2D bufferGraphics,Color color) {
+	private void drawTriangle(int k, Contact cont, Graphics2D bufferGraphics,Color color) {
 		int i = cont.i;
 		int j = cont.j;
 		// we put the i,k and j,k contacts in the right side of the contact map (upper side, i.e.j>i)
@@ -525,14 +562,13 @@ implements MouseListener, MouseMotionListener {
 		Contact jkCont = new Contact(Math.min(j, k), Math.max(j, k));
 		
 		// we mark the 2 edges i,k and j,k with a cross
-		bufferGraphics.setColor(Color.blue);
-		this.markPointWithCross(ikCont, bufferGraphics);
-		this.markPointWithCross(jkCont, bufferGraphics);
+		this.drawCrossOnContact(ikCont, bufferGraphics, Color.yellow);
+		this.drawCrossOnContact(jkCont, bufferGraphics, Color.yellow);
 
 		// transforming to screen coordinates
-		Point point = cm2screen(cont);
-		Point ikPoint = cm2screen(ikCont);
-		Point jkPoint = cm2screen(jkCont);
+		Point point = getCellCenter(cm2screen(cont));
+		Point ikPoint = getCellCenter(cm2screen(ikCont));
+		Point jkPoint = getCellCenter(cm2screen(jkCont));
 		
 		// drawing triangle
 		bufferGraphics.setColor(color);		
@@ -545,10 +581,10 @@ implements MouseListener, MouseMotionListener {
 
 		// drawing light gray common neighbour corridor markers
 		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
-		Point kkPoint = cm2screen(kkCont);
+		Point kkPoint = getCellCenter(cm2screen(kkCont));
 		Point endPoint = new Point();
-		if (k<(j+i)/2) endPoint = cm2screen(new Contact(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
-		if (k>(j+i)/2) endPoint = cm2screen(new Contact(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
+		if (k<(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(j,k))); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
+		if (k>(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(k,i))); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
 		bufferGraphics.setColor(Color.lightGray);
 		bufferGraphics.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
