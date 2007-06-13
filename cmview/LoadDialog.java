@@ -4,6 +4,7 @@ import java.awt.event.*;
 import java.io.File;
 
 import javax.swing.*;
+import proteinstructure.AA;
 
 /**
  * A dialog to load a contact map. This dialog is used by several load commands
@@ -52,7 +53,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		selectSeqSep = new JTextField();
 		selectDb = new JTextField();
 		
-		String[] contactTypes = {"ALL","BB","SC","Ca","Cb","Cg"};
+		String[] contactTypes = AA.contactTypes();
 		comboCt = new JComboBox();
 		for(String ct:contactTypes) {
 			comboCt.addItem(makeObj(ct));
