@@ -63,8 +63,11 @@ implements MouseListener, MouseMotionListener {
 		
 		this.allContacts = mod.getContacts();
 		this.selContacts = new ContactList();
+		this.tmpContacts = new ContactList();
 		this.contactMapSize = mod.getMatrixSize();
 		this.pos = new Point();
+		this.squareSelStart = new Point();
+		this.squareSelEnd = new Point();
 		
 		this.dragging = false;
 		this.showCommonNeighbours = false;
@@ -503,14 +506,17 @@ implements MouseListener, MouseMotionListener {
 		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
 		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
 
+		System.out.println("Selecting common neighbours for contact "+cont);
+		System.out.println("Motif: "+comNbh);
 		// drawing corridor
 		drawCorridor(cont, bufferGraphics);
 		
 		// marking the selected point with a cross
 		drawCrossOnContact(cont, bufferGraphics, Color.yellow);
-		
+		System.out.print("Common neighbours: ");
 		// drawing triangles
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial)
+			System.out.print(k+" ");
 			if (k>cont.i && k<cont.j) {
 				//draw cyan triangles for neighbours within the box 
 				drawTriangle(k, cont, bufferGraphics, Color.cyan);
@@ -520,7 +526,7 @@ implements MouseListener, MouseMotionListener {
 				drawTriangle(k, cont, bufferGraphics, Color.red);
 			}
 		}
-
+		System.out.println();
 	}
 
 	private void drawCrossOnContact(Contact cont, Graphics2D bufferGraphics,Color color){
