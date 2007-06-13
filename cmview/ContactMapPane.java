@@ -191,7 +191,7 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	/** Called by paintComponent to get the current window size for drawing on screen */
-	private int getWindowSize(){
+	protected int getWindowSize(){
 		winsize = Math.min(getWidth(), getHeight()); // size of drawing square
 		return winsize;
 	}

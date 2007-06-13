@@ -43,6 +43,8 @@ public class View extends JFrame implements ActionListener {
 	// GUI components
 	JLabel bpl; 			// status bar
 	JPanel cmp; 			// contact Map Panel
+	JPanel topRul;
+	JPanel leftRul;
 	JPopupMenu popup; 		// context menu
 	JFileChooser fileChooser = new JFileChooser();
 
@@ -59,6 +61,8 @@ public class View extends JFrame implements ActionListener {
 
 	private Model mod;
 	public ContactMapPane cmPane;
+	public ResidueRuler topRuler;
+	public ResidueRuler leftRuler;
 	private PyMolAdaptor pymolAdaptor;
 	private String pyMolServerUrl;
 	private int currentAction;
@@ -100,7 +104,9 @@ public class View extends JFrame implements ActionListener {
 		// Creating the Panels
 		bpl = new JLabel("Click right mouse button for context menu");
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
-
+		topRul = new JPanel(new BorderLayout());
+		leftRul = new JPanel(new BorderLayout());
+		
 		// Adding the context menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
@@ -136,9 +142,12 @@ public class View extends JFrame implements ActionListener {
 		popup.add(triangleP);
 
 		if(mod != null) {
-			//this.pdbFileName = mod.getTempPDBFileName();
 			cmPane = new ContactMapPane(mod, this);			
 			cmp.add(cmPane);
+			topRuler = new ResidueRuler(cmPane,mod,this);
+			leftRuler = new ResidueRuler(cmPane,mod,this);
+			topRul.add(topRuler);
+			leftRul.add(leftRuler);
 		}
 
 		// Creating the menu bar
@@ -256,6 +265,8 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		this.add(cmp);
+		this.getContentPane().add(topRul, BorderLayout.NORTH);
+		this.getContentPane().add(leftRul, BorderLayout.WEST);
 
 		// Show GUI
 		pack();
