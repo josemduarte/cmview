@@ -26,7 +26,7 @@ public class Start {
 
 	// Note: the database needs to have chain_graph and single_model_graph tables
 	// table and column names are currently hard-coded, TODO: use pdb-file/pdbase as input
-	public static final String      VERSION = "0.5";
+	public static final String      VERSION = "0.6";
 	
 	public static final String		DB_HOST =			"white";
 	public static final String		DB_USER =			getUserName();

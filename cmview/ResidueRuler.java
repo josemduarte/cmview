@@ -7,8 +7,6 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 
 import javax.swing.JPanel;
 
@@ -22,12 +20,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	protected static final int TOP = 1;
 	protected static final int BOTTOM = 2;
 	protected static final int LEFT = 3;
-	protected static final int RIGHT = 4;
-	
-	private static String FONTNAME = "Courier Bold"; 
+	protected static final int RIGHT = 4; 
 	
 	private ContactMapPane cmPane;
-	private Model mod; //TODO not needed for now, will need it later
+	//private Model mod; //TODO not needed for now, will need it later
  	private View view;
 	private int rulerWidth;
 	private int rulerLength;
@@ -49,7 +45,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		addMouseMotionListener(this);
 		this.location = location;
 		this.cmPane = cmPane;
-		this.mod = mod;
+		//this.mod = mod;
 		this.view = view;
 		this.contactMapSize = mod.getMatrixSize();
 		this.offSet = 0;
@@ -61,7 +57,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 	
 	protected void paintComponent(Graphics g) {
-		Graphics2D bufferGraphics = (Graphics2D) g.create();
+		Graphics2D g2d = (Graphics2D) g.create();
 
 		// paint background
 		if (isOpaque()) {
@@ -83,41 +79,21 @@ public class ResidueRuler extends JPanel implements MouseListener,
 
 		setBackground(Color.white);
 		
-		// painting residue numbers/types
-		if (cmPane.getCellSize()>8) {
-			Font font = new Font(FONTNAME,Font.TRUETYPE_FONT,(int)(3*ratio/4));
-			for (int i=1;i<=contactMapSize;i++){
-				drawResidueType(bufferGraphics, font, i);
-			}
-		}
 		// painting ticks
 		int tickSeparation = 1;
 		if (cmPane.getCellSize()<5) {
 			tickSeparation = 10;
 		}
-		for (int i=1;i<=contactMapSize;i+=tickSeparation){
+		for (int i=1;i<=contactMapSize+1;i+=tickSeparation){
+			// Warning: contactMapSize+1 is not really a contact but this will draw the last
 			Point startPoint = getOuterBorderPoint(i);
 			Point endPoint = getInnerBorderPoint(i);
-			bufferGraphics.setColor(Color.blue);
-			bufferGraphics.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+			g2d.setColor(Color.blue);
+			g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
 		}
 		
 	}
 
-	private void drawCharacter(Graphics2D g2d, Font font, int k, String letter) {
-		Point point = getCellCenter(k);
-		g2d.drawString(letter, point.x-(int)(3*ratio/8), point.y+(int)(3*ratio/8));
-	}
-	
-	private void drawResidueType(Graphics2D g2d, Font font, int k) {
-		String letter = mod.getResType1Letter(k)==null?"":mod.getResType1Letter(k);
-		drawCharacter(g2d,font,k,letter);
-	}
-	
-	private void drawResidueSerial(Graphics2D g2d, Font font, int k) {
-		drawCharacter(g2d,font,k,String.valueOf(k%10));
-	}
-	
 	/**
 	 * Gives outer border point at the beginning of the k cell
 	 * @param k
@@ -165,18 +141,18 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		return point;
 	}
 
-	private Point getCellCenter(int k){
-		Point point = new Point();
-		if (location==TOP || location==BOTTOM) {
-			point.x = (int) Math.round((k-0.5)*ratio) + offSet;
-			point.y = rulerWidth/2;
-		} else {
-			point.x = rulerWidth/2;
-			point.y = (int) Math.round((k-0.5)*ratio);			
-		}
-
-		return point;
-	}
+//	private Point getCellCenter(int k){
+//		Point point = new Point();
+//		if (location==TOP || location==BOTTOM) {
+//			point.x = (int) Math.round((k-0.5)*ratio) + offSet;
+//			point.y = rulerWidth/2;
+//		} else {
+//			point.x = rulerWidth/2;
+//			point.y = (int) Math.round((k-0.5)*ratio);			
+//		}
+//
+//		return point;
+//	}
 	
 	private int screen2cm (Point point){
 		if (location==TOP || location==BOTTOM){

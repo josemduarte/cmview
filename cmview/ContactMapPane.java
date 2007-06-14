@@ -81,47 +81,48 @@ implements MouseListener, MouseMotionListener {
 	 * (re) drawn on screen. It is called automatically by Swing or by explicitly calling cmpane.repaint().
 	 */
 	protected void paintComponent(Graphics g) {
-		Graphics2D bufferGraphics = (Graphics2D) g.create();
+		Graphics2D g2d = (Graphics2D) g.create();
 
+		setBackground(Color.white);
+		
 		// paint background
 		if (isOpaque()) {
 			g.setColor(getBackground());
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
-
+		
 		// get output size and calculate scale factor
 		int outputSize;
 		if(printing) {
 			// TODO: Instead of messing with the drawing size, draw to image, scale image and print
 			outputSize = getPrintSize();
-			//System.out.println("Setting size to " + getPrintSize() + " instead of " + getWindowSize());
-			bufferGraphics.drawRect(0, 0, outputSize, outputSize);
+			// draw border square
+			g2d.setColor(Color.black);
+			g2d.drawRect(0, 0, outputSize, outputSize);
 		} else {
 			outputSize = getWindowSize();
 		}
 		ratio = (double)outputSize/contactMapSize;		// scale factor, = size of one contact
 		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
 		
-		setBackground(Color.white);
-		
 //		// draw gridlines
-//		bufferGraphics.setColor(Color.lightGray);
+//		g2d.setColor(Color.lightGray);
 //		for(int i = 10; i < contactMapSize; i+=10) {
 //			Point lowerRight = getCellLowerRight(new Contact(i,i));
-//			bufferGraphics.drawLine(lowerRight.x, 0, lowerRight.x, outputSize);
-//			bufferGraphics.drawLine(0, lowerRight.y, outputSize, lowerRight.y);
+//			g2d.drawLine(lowerRight.x, 0, lowerRight.x, outputSize);
+//			g2d.drawLine(0, lowerRight.y, outputSize, lowerRight.y);
 //		}			
 		
 //		// draw tickmarks
-//		bufferGraphics.setColor(Color.black);
+//		g2d.setColor(Color.black);
 //		int tickmarkSize = 3;
 //		for(int i = 1; i < contactMapSize; i++) {
 //			if(i % 10 == 0) tickmarkSize = 6; else tickmarkSize = 3;
 //			Point lowerRight = getCellLowerRight(new Contact(i,i));
-//			bufferGraphics.drawLine(lowerRight.x, 0, lowerRight.x, tickmarkSize);
-//			bufferGraphics.drawLine(lowerRight.x, outputSize-tickmarkSize, lowerRight.x, outputSize);
-//			bufferGraphics.drawLine(0, lowerRight.y, tickmarkSize, lowerRight.y);
-//			bufferGraphics.drawLine(outputSize-tickmarkSize, lowerRight.y, outputSize, lowerRight.y);
+//			g2d.drawLine(lowerRight.x, 0, lowerRight.x, tickmarkSize);
+//			g2d.drawLine(lowerRight.x, outputSize-tickmarkSize, lowerRight.x, outputSize);
+//			g2d.drawLine(0, lowerRight.y, tickmarkSize, lowerRight.y);
+//			g2d.drawLine(outputSize-tickmarkSize, lowerRight.y, outputSize, lowerRight.y);
 //
 //		}	
 		
@@ -130,14 +131,14 @@ implements MouseListener, MouseMotionListener {
 			for (Contact cont:allContacts){ 
 				// if there is a contact, draw a rectangle
 				if(contactColor.containsKey(cont)) {
-					bufferGraphics.setColor(contactColor.get(cont)); 
+					g2d.setColor(contactColor.get(cont)); 
 				} else {
-					bufferGraphics.setColor(Color.black);
+					g2d.setColor(Color.black);
 				}
 				int x = cm2screen(cont).x;
 				int y = cm2screen(cont).y;
-				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
-				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
 		} else {
 			// showing all common neighbours
@@ -148,43 +149,43 @@ implements MouseListener, MouseMotionListener {
 				int y = current.y;
 				if (allContacts.contains(cont)) {
 					// coloring pinks when the cell is a contact, 1/size is simply doing the color grading: lower size lighter than higher size
-					bufferGraphics.setColor(new Color(1.0f/(float) Math.sqrt(size), 0.0f, 1.0f/(float) Math.sqrt(size)));
+					g2d.setColor(new Color(1.0f/(float) Math.sqrt(size), 0.0f, 1.0f/(float) Math.sqrt(size)));
 				} else {
 					// coloring greens when the cell is not a contact, 1/size is simply doing the color grading: lower size lighter than higher size
-					bufferGraphics.setColor(new Color(0.0f, 1.0f/size,0.0f));
+					g2d.setColor(new Color(0.0f, 1.0f/size,0.0f));
 				}
-				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
-				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
 		}
 
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
-			bufferGraphics.setColor(Color.black);
+			g2d.setColor(Color.black);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
 			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
 			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
-			bufferGraphics.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
+			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
-			bufferGraphics.setColor(Color.red);
+			g2d.setColor(Color.red);
 			for (Contact cont:tmpContacts){ 
 				// if there is a contact, draw a rectangle
 				int x = cm2screen(cont).x;
 				int y = cm2screen(cont).y;
-				bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
-				bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
 		}
 
 		// showing permanent selection in red
-		bufferGraphics.setColor(Color.red);
+		g2d.setColor(Color.red);
 		for (Contact cont:selContacts){
 			int x = cm2screen(cont).x;
 			int y = cm2screen(cont).y;
-			bufferGraphics.drawRect(x,y,contactSquareSize,contactSquareSize);
-			bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
+			g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
 
 		// draw diagonal
@@ -192,10 +193,10 @@ implements MouseListener, MouseMotionListener {
 		// draw contacts as crosses
 		
 		// drawing coordinates on lower left corner (following crosshairs)
-		drawCoordinates(bufferGraphics);
+		drawCoordinates(g2d);
 		
 		if(this.showCommonNeighbours) {
-			commonNeighbours(bufferGraphics);
+			commonNeighbours(g2d);
 			this.showCommonNeighbours = false;
 		}
 
@@ -494,6 +495,8 @@ implements MouseListener, MouseMotionListener {
 				if (cont.j>cont.i){ // only if we clicked on the upper side of the matrix
 					selectNodeNbh(cont.i);
 					selectNodeNbh(cont.j);
+				} else if (cont.j==cont.i){
+					selectNodeNbh(cont.i);
 				}
 				this.repaint();
 				return;
@@ -537,39 +540,39 @@ implements MouseListener, MouseMotionListener {
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 
-	protected void drawCoordinates(Graphics2D bufferGraphics){
+	protected void drawCoordinates(Graphics2D g2d){
 
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			Contact currentCell = screen2cm(pos);
 			String i_res = mod.getResType(currentCell.i);
 			String j_res = mod.getResType(currentCell.j);
 			// writing the coordinates at lower left corner
-			bufferGraphics.setColor(Color.blue);
-			bufferGraphics.drawString("i", 20, winsize-70);
-			bufferGraphics.drawString("j", 60, winsize-70);
-			bufferGraphics.drawString(currentCell.i+"", 20, winsize-50);
-			bufferGraphics.drawString(currentCell.j+"", 60, winsize-50);
-			bufferGraphics.drawString(i_res==null?"?":i_res, 20, winsize-30);
-			bufferGraphics.drawString(j_res==null?"?":j_res, 60, winsize-30);
+			g2d.setColor(Color.blue);
+			g2d.drawString("i", 20, winsize-70);
+			g2d.drawString("j", 60, winsize-70);
+			g2d.drawString(currentCell.i+"", 20, winsize-50);
+			g2d.drawString(currentCell.j+"", 60, winsize-50);
+			g2d.drawString(i_res==null?"?":i_res, 20, winsize-30);
+			g2d.drawString(j_res==null?"?":j_res, 60, winsize-30);
 			if(allContacts.contains(currentCell)) {
-				bufferGraphics.drawLine(48, winsize-35, 55, winsize-35);
+				g2d.drawLine(48, winsize-35, 55, winsize-35);
 			}
 
 			if (view.getShowPdbSers()){
 				String i_pdbresser = mod.getPdbResSerial(currentCell.i);
 				String j_pdbresser = mod.getPdbResSerial(currentCell.j);
-				bufferGraphics.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
-				bufferGraphics.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
+				g2d.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
+				g2d.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
 			}
 			// drawing the cross-hair
-			bufferGraphics.setColor(Color.green);
-			bufferGraphics.drawLine(pos.x, 0, pos.x, winsize);
-			bufferGraphics.drawLine(0, pos.y, winsize, pos.y);
+			g2d.setColor(Color.green);
+			g2d.drawLine(pos.x, 0, pos.x, winsize);
+			g2d.drawLine(0, pos.y, winsize, pos.y);
 		}
 
 	}
 
-	private void commonNeighbours(Graphics2D bufferGraphics){
+	private void commonNeighbours(Graphics2D g2d){
 		// getting point where mouse was clicked and common neighbours for it
 		Contact cont = screen2cm(mousePressedPos); 
 		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
@@ -577,58 +580,58 @@ implements MouseListener, MouseMotionListener {
 		System.out.println("Selecting common neighbours for contact "+cont);
 		System.out.println("Motif: "+comNbh);
 		// drawing corridor
-		drawCorridor(cont, bufferGraphics);
+		drawCorridor(cont, g2d);
 		
 		// marking the selected point with a cross
-		drawCrossOnContact(cont, bufferGraphics, Color.yellow);
+		drawCrossOnContact(cont, g2d, Color.yellow);
 		System.out.print("Common neighbours: ");
 		// drawing triangles
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial)
 			System.out.print(k+" ");
 			if (k>cont.i && k<cont.j) {
 				//draw cyan triangles for neighbours within the box 
-				drawTriangle(k, cont, bufferGraphics, Color.cyan);
+				drawTriangle(k, cont, g2d, Color.cyan);
 			}
 			else { // i.e. k<cont.i || k>cont.j
 				//draw red triangles for neighbours out of the box 
-				drawTriangle(k, cont, bufferGraphics, Color.red);
+				drawTriangle(k, cont, g2d, Color.red);
 			}
 		}
 		System.out.println();
 	}
 
-	private void drawCrossOnContact(Contact cont, Graphics2D bufferGraphics,Color color){
-		bufferGraphics.setColor(color);
+	private void drawCrossOnContact(Contact cont, Graphics2D g2d,Color color){
+		g2d.setColor(color);
 		if (ratio<6){ // if size of square is too small, then use fixed size 3 in each side of the cross
 			Point center = getCellCenter(cm2screen(cont)); 
-			bufferGraphics.drawLine(center.x-3, center.y-3,center.x+3, center.y+3 );
-			bufferGraphics.drawLine(center.x-3, center.y+3,center.x+3, center.y-3 );
-			bufferGraphics.drawLine(center.x-2, center.y-3,center.x+2, center.y+3 );
-			bufferGraphics.drawLine(center.x-2, center.y+3,center.x+2, center.y-3 );	
+			g2d.drawLine(center.x-3, center.y-3,center.x+3, center.y+3 );
+			g2d.drawLine(center.x-3, center.y+3,center.x+3, center.y-3 );
+			g2d.drawLine(center.x-2, center.y-3,center.x+2, center.y+3 );
+			g2d.drawLine(center.x-2, center.y+3,center.x+2, center.y-3 );	
 		} else { // otherwise get upper left, lower left, upper right, lower right to draw a cross spanning the whole contact square
 			Point ul = cm2screen(cont);
 			Point ur = getCellUpperRight(cont);
 			Point ll = getCellLowerLeft(cont);
 			Point lr = getCellLowerRight(cont);
-			bufferGraphics.drawLine(ul.x,ul.y,lr.x,lr.y);
-			bufferGraphics.drawLine(ll.x,ll.y, ur.x,ur.y);
-			bufferGraphics.drawLine(ul.x+1,ul.y,lr.x-1,lr.y);
-			bufferGraphics.drawLine(ll.x+1,ll.y, ur.x-1,ur.y);
+			g2d.drawLine(ul.x,ul.y,lr.x,lr.y);
+			g2d.drawLine(ll.x,ll.y, ur.x,ur.y);
+			g2d.drawLine(ul.x+1,ul.y,lr.x-1,lr.y);
+			g2d.drawLine(ll.x+1,ll.y, ur.x-1,ur.y);
 		}
 	}
 
-	private void drawCorridor(Contact cont, Graphics2D bufferGraphics){
+	private void drawCorridor(Contact cont, Graphics2D g2d){
 		Point point = getCellCenter(cm2screen(cont));
 		int x = point.x;
 		int y = point.y;
-		bufferGraphics.setColor(Color.green);
+		g2d.setColor(Color.green);
 		// Horizontal Line
-		bufferGraphics.drawLine(0, x, x, x);
+		g2d.drawLine(0, x, x, x);
 		// vertical Line
-		bufferGraphics.drawLine(y,y,y,winsize);
+		g2d.drawLine(y,y,y,winsize);
 	}
 	
-	private void drawTriangle(int k, Contact cont, Graphics2D bufferGraphics,Color color) {
+	private void drawTriangle(int k, Contact cont, Graphics2D g2d,Color color) {
 		int i = cont.i;
 		int j = cont.j;
 		// we put the i,k and j,k contacts in the right side of the contact map (upper side, i.e.j>i)
@@ -636,8 +639,8 @@ implements MouseListener, MouseMotionListener {
 		Contact jkCont = new Contact(Math.min(j, k), Math.max(j, k));
 		
 		// we mark the 2 edges i,k and j,k with a cross
-		this.drawCrossOnContact(ikCont, bufferGraphics, Color.yellow);
-		this.drawCrossOnContact(jkCont, bufferGraphics, Color.yellow);
+		this.drawCrossOnContact(ikCont, g2d, Color.yellow);
+		this.drawCrossOnContact(jkCont, g2d, Color.yellow);
 
 		// transforming to screen coordinates
 		Point point = getCellCenter(cm2screen(cont));
@@ -645,13 +648,13 @@ implements MouseListener, MouseMotionListener {
 		Point jkPoint = getCellCenter(cm2screen(jkCont));
 		
 		// drawing triangle
-		bufferGraphics.setColor(color);		
+		g2d.setColor(color);		
 		// line between edges i,j and i,k
-		bufferGraphics.drawLine(point.x, point.y, ikPoint.x, ikPoint.y);
+		g2d.drawLine(point.x, point.y, ikPoint.x, ikPoint.y);
 		// line between edges i,j and j,k
-		bufferGraphics.drawLine(point.x, point.y, jkPoint.x, jkPoint.y);
+		g2d.drawLine(point.x, point.y, jkPoint.x, jkPoint.y);
 		// line between edges i,k and j,k
-		bufferGraphics.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
+		g2d.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
 
 		// drawing light gray common neighbour corridor markers
 		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
@@ -659,8 +662,8 @@ implements MouseListener, MouseMotionListener {
 		Point endPoint = new Point();
 		if (k<(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(j,k))); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
 		if (k>(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(k,i))); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
-		bufferGraphics.setColor(Color.lightGray);
-		bufferGraphics.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
+		g2d.setColor(Color.lightGray);
+		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
 
 	public EdgeNbh getCommonNbh(){

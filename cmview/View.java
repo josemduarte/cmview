@@ -55,7 +55,8 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmColorReset, mmColorPaint, mmColorChoose;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers; 
+	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
 
 
@@ -73,6 +74,7 @@ public class View extends JFrame implements ActionListener {
 
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
+	private boolean showRulers;
 	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
@@ -91,6 +93,7 @@ public class View extends JFrame implements ActionListener {
 		this.pymolNbhSerial = 1;
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
+		this.showRulers=false;
 		this.currentPaintingColor = Color.blue;
 	}
 
@@ -221,10 +224,14 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_V);
 		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
 		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
+		mmViewRulers = new JMenuItem("Toggle rulers");
 		menu.add(mmViewShowPdbResSers);
+		menu.add(mmViewRulers);
+		menu.addSeparator();
 		menu.add(mmViewHighlightComNbh);
 		mmViewShowPdbResSers.addActionListener(this);
 		mmViewHighlightComNbh.addActionListener(this);
+		mmViewRulers.addActionListener(this);
 		menuBar.add(menu);
 
 		// Color menu
@@ -282,9 +289,12 @@ public class View extends JFrame implements ActionListener {
 		menuBar.add(menu);
 
 		this.setJMenuBar(menuBar);
-		this.add(cmp);
-		this.getContentPane().add(topRul, BorderLayout.NORTH);
-		this.getContentPane().add(leftRul, BorderLayout.WEST);
+		this.getContentPane().add(cmp,BorderLayout.CENTER);
+		if(showRulers) {
+			this.getContentPane().add(topRul, BorderLayout.NORTH);
+			this.getContentPane().add(leftRul, BorderLayout.WEST);
+		}
+		//this.getContentPane().add(statusPane,BorderLayout.SOUTH);
 
 		// Show GUI
 		pack();
@@ -397,6 +407,9 @@ public class View extends JFrame implements ActionListener {
 				if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
 				cmPane.repaint();
 			}
+		}		  
+		if(e.getSource() == mmViewRulers) {
+			toggleRulers();
 		}		  
 		
 		// Help Menu
@@ -671,13 +684,18 @@ public class View extends JFrame implements ActionListener {
 				"- Click on a contact to start a fill selection from that contact\n" +
 				"- Hold 'Ctrl' while selecting to add to the current selection\n" +
 				"\n" +
-				"Send selection to pymol\n" +
+				"Node neighbourhood selection mode\n" +
+				"- Click on a residue in the ruler or in the diagonal to select its contacts\n" +
+				"- Click on a cell in the upper half to select all contacts of that pair of residues\n" +
+				"- Hold 'Ctrl' while selecting to add to the current selection\n" +				
+				"\n" +
+				"Show selected contacts in pymol\n" +
 				"- Shows the currently selected contacts as edges in Pymol\n" +
 				"\n" +
 				"Show common neigbours\n" +
 				"- Click on a contact or non-contact to see the common neighbours for that pair of residues\n" +
 				"\n" +
-				"Send common neighbours to pymol\n" +
+				"Show common neighbours in pymol\n" +
 				"- Shows the last shown common neighbours as triangles in pymol\n",
 				"Help",
 				JOptionPane.PLAIN_MESSAGE);
@@ -691,6 +709,20 @@ public class View extends JFrame implements ActionListener {
 
 	/*---------------------------- public methods ---------------------------*/
 
+	/** show/hide rulers and toggle the value of showRulers */
+	private void toggleRulers() {
+		showRulers = !showRulers;
+		if(showRulers) {
+			this.getContentPane().add(topRul, BorderLayout.NORTH);
+			this.getContentPane().add(leftRul, BorderLayout.WEST);
+		} else {
+			this.getContentPane().remove(topRul);
+			this.getContentPane().remove(leftRul);			
+		}
+		this.pack();
+		this.repaint();
+	}
+	
 	/** Set the underlying contact map data model */
 	public void spawnNewViewWindow(Model mod) {
 		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
