@@ -88,6 +88,7 @@ implements MouseListener, MouseMotionListener {
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
 
+		// get output size and calculate scale factor
 		int outputSize;
 		if(printing) {
 			// TODO: Instead of messing with the drawing size, draw to image, scale image and print
@@ -97,13 +98,33 @@ implements MouseListener, MouseMotionListener {
 		} else {
 			outputSize = getWindowSize();
 		}
-
 		ratio = (double)outputSize/contactMapSize;		// scale factor, = size of one contact
 		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
 		
 		setBackground(Color.white);
-
-		if (! view.getHighlightComNbh()){
+		
+//		// draw gridlines
+//		bufferGraphics.setColor(Color.lightGray);
+//		for(int i = 10; i < contactMapSize; i+=10) {
+//			Point lowerRight = getCellLowerRight(new Contact(i,i));
+//			bufferGraphics.drawLine(lowerRight.x, 0, lowerRight.x, outputSize);
+//			bufferGraphics.drawLine(0, lowerRight.y, outputSize, lowerRight.y);
+//		}			
+		
+//		// draw tickmarks
+//		bufferGraphics.setColor(Color.black);
+//		int tickmarkSize = 3;
+//		for(int i = 1; i < contactMapSize; i++) {
+//			if(i % 10 == 0) tickmarkSize = 6; else tickmarkSize = 3;
+//			Point lowerRight = getCellLowerRight(new Contact(i,i));
+//			bufferGraphics.drawLine(lowerRight.x, 0, lowerRight.x, tickmarkSize);
+//			bufferGraphics.drawLine(lowerRight.x, outputSize-tickmarkSize, lowerRight.x, outputSize);
+//			bufferGraphics.drawLine(0, lowerRight.y, tickmarkSize, lowerRight.y);
+//			bufferGraphics.drawLine(outputSize-tickmarkSize, lowerRight.y, outputSize, lowerRight.y);
+//
+//		}	
+		
+		if (!view.getHighlightComNbh()){
 			// drawing the contact map
 			for (Contact cont:allContacts){ 
 				// if there is a contact, draw a rectangle
@@ -165,6 +186,10 @@ implements MouseListener, MouseMotionListener {
 			bufferGraphics.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
 
+		// draw diagonal
+		
+		// draw contacts as crosses
+		
 		// drawing coordinates on lower left corner (following crosshairs)
 		drawCoordinates(bufferGraphics);
 		
@@ -350,6 +375,12 @@ implements MouseListener, MouseMotionListener {
 		Point point = cm2screen(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
 
+	}
+	
+	/** Returns the size in pixels of a single contact on screen 
+	 * TODO: Check whether this number is really the number in pixels (and not plus or minus 1) */
+	private int getCellSize() {
+		return (int) Math.round(ratio);
 	}
 
 	/** ############################################### */

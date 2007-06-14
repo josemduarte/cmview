@@ -41,8 +41,8 @@ public class View extends JFrame implements ActionListener {
 	protected static final int SHOW_COMMON_NBH = 3;
 	
 	// GUI components
-	JLabel bpl; 			// status bar
-	JPanel cmp; 			// contact Map Panel
+	JLabel statusPane; 			// status bar
+	JPanel cmp; 				// contact Map Panel
 	JPanel topRul;
 	JPanel leftRul;
 	JPopupMenu popup; 		// context menu
@@ -102,7 +102,7 @@ public class View extends JFrame implements ActionListener {
 		setLocation(20,20);
 
 		// Creating the Panels
-		bpl = new JLabel("Click right mouse button for context menu");
+		statusPane = new JLabel("Click right mouse button for context menu");
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
