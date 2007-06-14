@@ -160,7 +160,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					cmPane.resetSelContacts();
 					cmPane.selectNodeNbh(screen2cm(mousePressedPos));
 				}
-
+				cmPane.repaint();
 				
 			}
 			//dragging = false;

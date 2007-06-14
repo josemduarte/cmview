@@ -48,6 +48,7 @@ implements MouseListener, MouseMotionListener {
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
 	private Hashtable<Contact,Color> contactColor;  // user defined contact colors
 
+	
 	/**
 	 * Create a new ContactMapPane.
 	 * @param mod

@@ -55,7 +55,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewReset, mmViewColor, mmViewChooseColor;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
 
 
@@ -126,12 +126,12 @@ public class View extends JFrame implements ActionListener {
 //		ImageIcon icon10 = new ImageIcon("icons/door_open.png");
 
 
-		squareP = new JMenuItem("Square Selection on Map", icon1);
-		fillP = new JMenuItem("Fill Selection on Map", icon2);
-		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection", icon3);
-		sendP = new JMenuItem("Send Selection to PyMol", icon4);
-		comNeiP = new JMenuItem("Show Common Neighbours", icon5);
-		triangleP = new JMenuItem("Send Common Neighbours", icon6);
+		squareP = new JMenuItem("Square Selection Mode", icon1);
+		fillP = new JMenuItem("Fill Selection Mode", icon2);
+		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon3);
+		sendP = new JMenuItem("Show Selected Edges in PyMol", icon4);
+		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon5);
+		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon6);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
@@ -143,7 +143,9 @@ public class View extends JFrame implements ActionListener {
 		popup.add(squareP);
 		popup.add(fillP);
 		popup.add(nodeNbhSelP);
+		popup.addSeparator();	
 		popup.add(sendP);
+		popup.addSeparator();	
 		popup.add(comNeiP);
 		popup.add(triangleP);
 
@@ -217,33 +219,38 @@ public class View extends JFrame implements ActionListener {
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
-		mmViewReset= new JMenuItem("Reset contact colors to black");
-		mmViewChooseColor = new JMenuItem("Choose painting color");
-		mmViewColor = new JMenuItem("Paint current selection");
 		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
 		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
 		menu.add(mmViewShowPdbResSers);
 		menu.add(mmViewHighlightComNbh);
-		menu.add(mmViewReset);
-		menu.add(mmViewColor);
-		menu.add(mmViewChooseColor);
-		mmViewReset.addActionListener(this);
-		mmViewColor.addActionListener(this);
-		mmViewChooseColor.addActionListener(this);
 		mmViewShowPdbResSers.addActionListener(this);
 		mmViewHighlightComNbh.addActionListener(this);
 		menuBar.add(menu);
 
+		// Color menu
+		menu = new JMenu("Color");
+		menu.setMnemonic(KeyEvent.VK_C);
+		mmColorReset= new JMenuItem("Reset contact colors to black");
+		mmColorChoose = new JMenuItem("Choose painting color");
+		mmColorPaint = new JMenuItem("Paint current selection");
+		menu.add(mmColorReset);
+		menu.add(mmColorPaint);
+		menu.add(mmColorChoose);
+		mmColorReset.addActionListener(this);
+		mmColorPaint.addActionListener(this);
+		mmColorChoose.addActionListener(this);
+		menuBar.add(menu);
+		
 		// Action menu
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
 
-		squareM = new JMenuItem("Square Selection on Map", icon1);
-		fillM = new JMenuItem("Fill Selection on Map", icon2);
-		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection", icon3);
-		sendM = new JMenuItem("Send Selection to PyMol", icon4);
-		comNeiM = new JMenuItem("Show Common Neighbours", icon5);
-		triangleM = new JMenuItem("Send Common Neighbours", icon6);
+		squareM = new JMenuItem("Square Selection Mode", icon1);
+		fillM = new JMenuItem("Fill Selection Mode", icon2);
+		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon3);
+		sendM = new JMenuItem("Show Selected Edges in PyMol", icon4);
+		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon5);
+		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon6);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
@@ -255,7 +262,9 @@ public class View extends JFrame implements ActionListener {
 		menu.add(squareM);
 		menu.add(fillM);
 		menu.add(nodeNbhSelM);
+		menu.addSeparator();
 		menu.add(sendM);
+		menu.addSeparator();		
 		menu.add(comNeiM);
 		menu.add(triangleM);
 
@@ -368,13 +377,13 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		// View Menu
-		if(e.getSource() == mmViewReset) {
+		if(e.getSource() == mmColorReset) {
 			handleViewReset();
 		}
-		if(e.getSource() == mmViewColor) {
+		if(e.getSource() == mmColorPaint) {
 			handleViewColor();
 		}
-		if(e.getSource() == mmViewChooseColor) {
+		if(e.getSource() == mmColorChoose) {
 			handleViewSelectColor();
 		}
 		if(e.getSource() == mmViewShowPdbResSers) {
