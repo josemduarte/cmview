@@ -168,6 +168,10 @@ public abstract class Model {
 		return graph.getResType(resser);
 	}
 	
+	public String getResType1Letter(int resser){
+		return AA.threeletter2oneletter(graph.getResType(resser));
+	}	
+	
 	public NodeNbh getNodeNbh(int i_resser){
 		return graph.getNodeNbh(i_resser);
 	}

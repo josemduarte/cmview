@@ -152,8 +152,8 @@ public class View extends JFrame implements ActionListener {
 		if(mod != null) {
 			cmPane = new ContactMapPane(mod, this);			
 			cmp.add(cmPane);
-			topRuler = new ResidueRuler(cmPane,mod,this);
-			leftRuler = new ResidueRuler(cmPane,mod,this);
+			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
+			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
 			topRul.add(topRuler);
 			leftRul.add(leftRuler);
 		}

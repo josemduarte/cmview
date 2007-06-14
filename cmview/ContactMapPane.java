@@ -537,7 +537,7 @@ implements MouseListener, MouseMotionListener {
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 
-	private void drawCoordinates(Graphics2D bufferGraphics){
+	protected void drawCoordinates(Graphics2D bufferGraphics){
 
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			Contact currentCell = screen2cm(pos);
