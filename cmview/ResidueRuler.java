@@ -10,7 +10,6 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
-
 import cmview.datasources.Model;
 
 public class ResidueRuler extends JPanel implements MouseListener,
@@ -18,11 +17,9 @@ public class ResidueRuler extends JPanel implements MouseListener,
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int TICK_SEPARATION = 1;
-	
 	private ContactMapPane cmPane;
 	//private Model mod; //TODO not needed for now, will need it later
- 	//private View view; //TODO not needed for now, will need it later
+ 	private View view;
 	private int rulerWidth;
 	private int rulerLength;
 	private int contactMapSize;
@@ -31,12 +28,28 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	
 	private boolean horizontal;
 	
+	//private boolean mouseIn;
+	//private boolean dragging;
+	
+	//private Point pos;               // current mouse position
+	private Point mousePressedPos;   // position where the mouse has been pressed (in dragging is the start of drag)
+	//private Point mouseDraggingPos;  // current position of mouse dragging
+	
 	public ResidueRuler(ContactMapPane cmPane, Model mod, View view){
+		addMouseListener(this);
+		addMouseMotionListener(this);
+
 		this.cmPane = cmPane;
 		//this.mod = mod;
-		//this.view = view;
+		this.view = view;
 		this.contactMapSize = mod.getMatrixSize();
-		this.offSet=0;
+		this.offSet = 0;
+		//this.mouseIn = false;
+		//this.pos = new Point();
+		this.mousePressedPos = new Point();
+		//this.mouseDraggingPos = new Point();
+		//this.dragging = false;
+
 	}
 	
 	protected void paintComponent(Graphics g) {
@@ -64,7 +77,11 @@ public class ResidueRuler extends JPanel implements MouseListener,
 
 		setBackground(Color.white);
 		
-		for (int i=1;i<=contactMapSize;i+=TICK_SEPARATION){
+		int tickSeparation = 1;
+		if (cmPane.getCellSize()<5) {
+			tickSeparation = 10;
+		}
+		for (int i=1;i<=contactMapSize;i+=tickSeparation){
 			Point startPoint = getOuterBorderPoint(i);
 			Point endPoint = getInnerBorderPoint(i);
 			Point nextEndPoint = getInnerBorderPoint(i+1);
@@ -101,40 +118,65 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		}
 		return point;
 	}
+	
+	private int screen2cm (Point point){
+		if (horizontal){
+			return (int) Math.ceil((point.x-offSet)/ratio);
+		} else {
+			return (int) Math.ceil(point.y/ratio);
+		}
+	}
 
-	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+	
+	/** ############################################### */
+	/** ############    MOUSE EVENTS   ################ */
+	/** ############################################### */   
+	
+	public void mouseClicked(MouseEvent evt) {
+	}
+
+	public void mouseEntered(MouseEvent evt) {
+		//mouseIn= true;
+	}
+
+	public void mouseExited(MouseEvent evt) {
+		//mouseIn = false;
+		this.repaint();
+	}
+
+	public void mousePressed(MouseEvent evt) {
+		mousePressedPos = evt.getPoint();
+		System.out.println(screen2cm(mousePressedPos));
 
 	}
 
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+	public void mouseReleased(MouseEvent evt) {
+		// only if release after left click (BUTTON1)
+		if (evt.getButton()==MouseEvent.BUTTON1) {
+			if (view.getCurrentAction()==View.NODE_NBH_SEL){				
+				if (evt.isControlDown()){
+					cmPane.selectNodeNbh(screen2cm(mousePressedPos));
+				} else{
+					cmPane.resetSelContacts();
+					cmPane.selectNodeNbh(screen2cm(mousePressedPos));
+				}
+
+				
+			}
+			//dragging = false;
+		}
+		
 
 	}
 
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
+	public void mouseDragged(MouseEvent evt) {
+		//dragging = true;
+		//mouseDraggingPos = evt.getPoint();
 	}
 
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void mouseDragged(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void mouseMoved(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
+	public void mouseMoved(MouseEvent evt) {
+		//pos = evt.getPoint();
+		this.repaint();
 	}
 
 }

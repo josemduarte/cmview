@@ -168,6 +168,10 @@ public abstract class Model {
 		return graph.getResType(resser);
 	}
 	
+	public NodeNbh getNodeNbh(int i_resser){
+		return graph.getNodeNbh(i_resser);
+	}
+	
 	public EdgeNbh getEdgeNbh(int i_resser, int j_resser){
 		return graph.getEdgeNbh(i_resser, j_resser);
 	}

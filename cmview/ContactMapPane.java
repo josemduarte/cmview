@@ -311,12 +311,29 @@ implements MouseListener, MouseMotionListener {
 			}
 		}
 	}
+	
+	protected void selectNodeNbh(int i) {
+		NodeNbh nbh = mod.getNodeNbh(i);
+		System.out.println("Selecting node neighbourhood of node: "+i);
+		System.out.println("Motif: "+nbh);
+		System.out.print("Neighbours: ");
+		for (int j:nbh.keySet()){
+			System.out.print(j+" ");
+			selContacts.add(new Contact(Math.min(i, j),Math.max(i, j)));
+		}
+		System.out.println();
+		
+	}
 
 	/** Return the selContacts variable */
 	public ContactList getSelContacts(){
 		return selContacts;
 	}
 
+	protected void resetSelContacts() {
+		this.selContacts = new ContactList();
+	}
+	
 	/**
 	 * Returns a contact given screen coordinates
 	 * @param point
@@ -464,7 +481,24 @@ implements MouseListener, MouseMotionListener {
 				fillSelect(screen2cm(new Point(evt.getX(),evt.getY())));
 				this.repaint();
 				return;
+
+			case View.NODE_NBH_SEL:
+				dragging = false;
+				// resets selContacts when clicking mouse
+				if (!evt.isControlDown()){
+					selContacts = new ContactList();
+				}
+				// we select the node neighbourhoods of both i and j of the mousePressedPos
+				Contact cont = screen2cm(mousePressedPos);
+				if (cont.j>cont.i){ // only if we clicked on the upper side of the matrix
+					selectNodeNbh(cont.i);
+					selectNodeNbh(cont.j);
+				}
+				this.repaint();
+				return;
+
 			}
+			
 
 		}
 	}
