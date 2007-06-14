@@ -24,9 +24,9 @@ implements MouseListener, MouseMotionListener {
 	// constants
 	static final long serialVersionUID = 1l;
 
-	private Point squareSelStart;   //  start point of square selection, TODO must change the name of this, it's used for square selection and for common neighbours 
-	private Point squareSelEnd;     //  end point of square selection
-	private Point pos;              //  current position of mouse
+	private Point mousePressedPos;   // position where mouse where last pressed, used for start of square selection and for common neighbours 
+	private Point mouseDraggingPos;  //  current position of mouse dragging, used for end point of square selection
+	private Point pos;               //  current position of mouse
 	
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
 	private int printsize;			// size of the effective square available for printing the contact map
@@ -66,8 +66,8 @@ implements MouseListener, MouseMotionListener {
 		this.tmpContacts = new ContactList();
 		this.contactMapSize = mod.getMatrixSize();
 		this.pos = new Point();
-		this.squareSelStart = new Point();
-		this.squareSelEnd = new Point();
+		this.mousePressedPos = new Point();
+		this.mouseDraggingPos = new Point();
 		
 		this.dragging = false;
 		this.showCommonNeighbours = false;
@@ -161,10 +161,10 @@ implements MouseListener, MouseMotionListener {
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
 			bufferGraphics.setColor(Color.black);
-			int xmin = Math.min(squareSelStart.x,squareSelEnd.x);
-			int ymin = Math.min(squareSelStart.y,squareSelEnd.y);
-			int xmax = Math.max(squareSelStart.x,squareSelEnd.x);
-			int ymax = Math.max(squareSelStart.y,squareSelEnd.y);
+			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
+			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
+			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
+			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 			bufferGraphics.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
 			bufferGraphics.setColor(Color.red);
@@ -254,7 +254,9 @@ implements MouseListener, MouseMotionListener {
 	 * @param upperLeft
 	 * @param lowerRight 
 	 */
-	public void squareSelect(Contact upperLeft, Contact lowerRight){
+	public void squareSelect(){
+		Contact upperLeft = screen2cm(mousePressedPos);
+		Contact lowerRight = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts from a blank list
 		tmpContacts = new ContactList();
 
@@ -379,7 +381,7 @@ implements MouseListener, MouseMotionListener {
 	
 	/** Returns the size in pixels of a single contact on screen 
 	 * TODO: Check whether this number is really the number in pixels (and not plus or minus 1) */
-	private int getCellSize() {
+	protected int getCellSize() {
 		return (int) Math.round(ratio);
 	}
 
@@ -396,7 +398,7 @@ implements MouseListener, MouseMotionListener {
 			return;
 		}
 
-		squareSelStart = evt.getPoint();
+		mousePressedPos = evt.getPoint();
 
 	}
 
@@ -472,9 +474,9 @@ implements MouseListener, MouseMotionListener {
 		// while a mouse button is held down. 
 
 		dragging = true;
-		squareSelEnd = evt.getPoint();
+		mouseDraggingPos = evt.getPoint();
 
-		squareSelect(screen2cm(squareSelStart), screen2cm(squareSelEnd));
+		squareSelect();
 
 		mouseMoved(evt); //TODO is this necessary? I tried getting rid of it but wasn't quite working
 	} 
@@ -534,7 +536,7 @@ implements MouseListener, MouseMotionListener {
 
 	private void commonNeighbours(Graphics2D bufferGraphics){
 		// getting point where mouse was clicked and common neighbours for it
-		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
+		Contact cont = screen2cm(mousePressedPos); 
 		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
 
 		System.out.println("Selecting common neighbours for contact "+cont);
@@ -627,7 +629,7 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public EdgeNbh getCommonNbh(){
-		Contact cont = screen2cm(squareSelStart); //TODO squareSelStart variable should be renamed
+		Contact cont = screen2cm(mousePressedPos); 
 		return mod.getEdgeNbh (cont.i,cont.j);
 	}
 		
