@@ -177,6 +177,19 @@ implements MouseListener, MouseMotionListener {
 				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
+		} 
+		// drawing temp selection in red while dragging in range selection mode
+		if (dragging && view.getCurrentAction()==View.RANGE_SEL) {
+			g2d.setColor(Color.lightGray);
+			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
+			g2d.setColor(Color.red);
+			for (Contact cont:tmpContacts){ 
+				// if there is a contact, draw a rectangle
+				int x = cm2screen(cont).x;
+				int y = cm2screen(cont).y;
+				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
+			}
 		}
 
 		// showing permanent selection in red
@@ -192,9 +205,12 @@ implements MouseListener, MouseMotionListener {
 		
 		// draw contacts as crosses
 		
-		// drawing coordinates on lower left corner (following crosshairs)
-		drawCoordinates(g2d);
-		
+		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
+			// drawing coordinates on lower left corner (following crosshairs)
+			drawCoordinates(g2d);
+			// drawing cursor (cross hairs or others)
+			drawCursor(g2d);
+		}
 		if(this.showCommonNeighbours) {
 			commonNeighbours(g2d);
 			this.showCommonNeighbours = false;
@@ -260,8 +276,6 @@ implements MouseListener, MouseMotionListener {
 	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
-	 * @param upperLeft
-	 * @param lowerRight 
 	 */
 	public void squareSelect(){
 		Contact upperLeft = screen2cm(mousePressedPos);
@@ -276,6 +290,24 @@ implements MouseListener, MouseMotionListener {
 		// we loop over all contacts so time is o(number of contacts) instead of looping over the square (o(n2) being n size of square)
 		for (Contact cont:allContacts){
 			if (cont.i<=imax && cont.i>=imin && cont.j<=jmax && cont.j>=jmin){
+				tmpContacts.add(cont);
+			}
+		}
+	}
+	/**
+	 * Update tmpContacts with the contacts contained in the range selection (selection by diagonals)
+	 *
+	 */
+	public void rangeSelect(){
+		Contact startContact = screen2cm(mousePressedPos);
+		Contact endContact = screen2cm(mouseDraggingPos);
+		// we reset the tmpContacts list so every new mouse selection starts from a blank list
+		tmpContacts = new ContactList();
+		int rangeMin = Math.min(startContact.getRange(), endContact.getRange());
+		int rangeMax = Math.max(startContact.getRange(), endContact.getRange());
+		// we loop over all contacts so time is o(number of contacts) instead of looping over the square (o(n2) being n size of square)
+		for (Contact cont:allContacts){
+			if (cont.getRange()<=rangeMax && cont.getRange()>=rangeMin){
 				tmpContacts.add(cont);
 			}
 		}
@@ -446,12 +478,11 @@ implements MouseListener, MouseMotionListener {
 				return;
 				
 			case View.SQUARE_SEL:
-				if(!dragging) {
-					// if clicked position is a selected contact, deselect it					
-					Contact clicked = screen2cm(new Point(evt.getX(),evt.getY()));
-					if(allContacts.contains(clicked)) {
+				if(!dragging) {					
+					Contact clicked = screen2cm(mousePressedPos);
+					if(allContacts.contains(clicked)) { // if clicked position is a contact
 						if(selContacts.contains(clicked)) {
-							// if clicked position is a selected contact, deslect it
+							// if clicked position is a selected contact, deselect it
 							if(evt.isControlDown()) {
 								selContacts.remove(clicked);
 							} else {
@@ -507,6 +538,41 @@ implements MouseListener, MouseMotionListener {
 				}
 				this.repaint();
 				return;
+			
+			case View.RANGE_SEL:
+				if (!dragging){
+					Contact clicked = screen2cm(mousePressedPos);
+					if(allContacts.contains(clicked)) { // if clicked position is a contact
+						if(selContacts.contains(clicked)) {
+							// if clicked position is a selected contact, deselect it
+							if(evt.isControlDown()) {
+								selContacts.remove(clicked);
+							} else {
+								selContacts = new ContactList();
+								selContacts.add(clicked);
+							}
+						} else {
+							// if clicked position is a contact but not selected, select it
+							if(!evt.isControlDown()) {
+								selContacts = new ContactList();
+							}
+							selContacts.add(clicked);
+						}
+					} else {
+						// else: if clicked position is outside of a contact, reset selContacts
+						selContacts = new ContactList();
+					}
+					this.repaint();
+				}else {
+					if (evt.isControlDown()){
+						selContacts.addAll(tmpContacts);
+					} else{
+						selContacts = new ContactList();
+						selContacts.addAll(tmpContacts);
+					}
+				}
+				dragging = false;			
+				return;
 
 			}
 			
@@ -520,9 +586,15 @@ implements MouseListener, MouseMotionListener {
 
 		dragging = true;
 		mouseDraggingPos = evt.getPoint();
-
-		squareSelect();
-
+		switch (view.getCurrentAction()) {
+		case View.SQUARE_SEL:
+			squareSelect();
+			break;
+		case View.RANGE_SEL:
+			rangeSelect();
+			break;
+		}
+		
 		mouseMoved(evt); //TODO is this necessary? I tried getting rid of it but wasn't quite working
 	} 
 
@@ -548,35 +620,44 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	protected void drawCoordinates(Graphics2D g2d){
+		Contact currentCell = screen2cm(pos);
+		String i_res = mod.getResType(currentCell.i);
+		String j_res = mod.getResType(currentCell.j);
+		// writing the coordinates at lower left corner
+		g2d.setColor(Color.blue);
+		g2d.drawString("i", 20, winsize-70);
+		g2d.drawString("j", 60, winsize-70);
+		g2d.drawString(currentCell.i+"", 20, winsize-50);
+		g2d.drawString(currentCell.j+"", 60, winsize-50);
+		g2d.drawString(i_res==null?"?":i_res, 20, winsize-30);
+		g2d.drawString(j_res==null?"?":j_res, 60, winsize-30);
+		if(allContacts.contains(currentCell)) {
+			g2d.drawLine(48, winsize-35, 55, winsize-35);
+		}
+		if(view.getCurrentAction()==View.RANGE_SEL){
+			g2d.drawString("SeqSep", 100, winsize-70);
+			g2d.drawString(Math.abs(currentCell.j-currentCell.i)+"", 100, winsize-50);
+		}
 
-		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
-			Contact currentCell = screen2cm(pos);
-			String i_res = mod.getResType(currentCell.i);
-			String j_res = mod.getResType(currentCell.j);
-			// writing the coordinates at lower left corner
-			g2d.setColor(Color.blue);
-			g2d.drawString("i", 20, winsize-70);
-			g2d.drawString("j", 60, winsize-70);
-			g2d.drawString(currentCell.i+"", 20, winsize-50);
-			g2d.drawString(currentCell.j+"", 60, winsize-50);
-			g2d.drawString(i_res==null?"?":i_res, 20, winsize-30);
-			g2d.drawString(j_res==null?"?":j_res, 60, winsize-30);
-			if(allContacts.contains(currentCell)) {
-				g2d.drawLine(48, winsize-35, 55, winsize-35);
-			}
+		if (view.getShowPdbSers()){
+			String i_pdbresser = mod.getPdbResSerial(currentCell.i);
+			String j_pdbresser = mod.getPdbResSerial(currentCell.j);
+			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
+			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
+		}
+	}
+	
+	protected void drawCursor(Graphics2D g2d){
+		if (view.getCurrentAction()==View.RANGE_SEL){
+			g2d.setColor(Color.lightGray);			
+			g2d.drawLine(pos.x-pos.y, 0, getWindowSize(), getWindowSize()-(pos.x-pos.y));
 
-			if (view.getShowPdbSers()){
-				String i_pdbresser = mod.getPdbResSerial(currentCell.i);
-				String j_pdbresser = mod.getPdbResSerial(currentCell.j);
-				g2d.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
-				g2d.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
-			}
+		} else {
 			// drawing the cross-hair
 			g2d.setColor(Color.green);
 			g2d.drawLine(pos.x, 0, pos.x, winsize);
 			g2d.drawLine(0, pos.y, winsize, pos.y);
 		}
-
 	}
 
 	private void commonNeighbours(Graphics2D g2d){

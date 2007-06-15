@@ -120,6 +120,7 @@ public class PyMolAdaptor {
 
 
 	public void edgeSelection(int pymolSelSerial, ContactList selContacts){
+		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
 		String selObjName = pymolObjectName +"Sel"+pymolSelSerial;
 		for (Contact cont:selContacts){ 

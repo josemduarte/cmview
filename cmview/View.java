@@ -40,6 +40,7 @@ public class View extends JFrame implements ActionListener {
 	protected static final int FILL_SEL = 2;
 	protected static final int NODE_NBH_SEL = 3;
 	protected static final int SHOW_COMMON_NBH = 4;
+	protected static final int RANGE_SEL = 5;
 	
 	
 	// GUI components
@@ -52,8 +53,8 @@ public class View extends JFrame implements ActionListener {
 	JColorChooser colorChooser;
 
 	// Menu items
-	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM;
-	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP;
+	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM;
+	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers;
@@ -124,25 +125,28 @@ public class View extends JFrame implements ActionListener {
 
 		ImageIcon icon1 = new ImageIcon("icons/shape_square.png");
 		ImageIcon icon2 = new ImageIcon("icons/paintcan.png");
-		ImageIcon icon3 = new ImageIcon("icons/group.png");
-		ImageIcon icon4 = new ImageIcon("icons/shape_square_go.png");
-		ImageIcon icon5 = new ImageIcon("icons/shape_flip_horizontal.png");
-		ImageIcon icon6 = new ImageIcon("icons/shape_rotate_clockwise.png");
-		//ImageIcon icon7 = new ImageIcon("icons/picture_go.png");
+		ImageIcon icon3 = new ImageIcon("icons/diagonals.png");
+		ImageIcon icon4 = new ImageIcon("icons/group.png");
+		ImageIcon icon5 = new ImageIcon("icons/shape_square_go.png");
+		ImageIcon icon6 = new ImageIcon("icons/shape_flip_horizontal.png");
+		ImageIcon icon7 = new ImageIcon("icons/shape_rotate_clockwise.png");
+		//ImageIcon icon8 = new ImageIcon("icons/picture_go.png");
 
-//		ImageIcon icon8 = new ImageIcon("icons/information.png");
-//		ImageIcon icon9 = new ImageIcon("icons/printer.png");
-//		ImageIcon icon10 = new ImageIcon("icons/door_open.png");
+//		ImageIcon icon9 = new ImageIcon("icons/information.png");
+//		ImageIcon icon10 = new ImageIcon("icons/printer.png");
+//		ImageIcon icon11 = new ImageIcon("icons/door_open.png");
 
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
-		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon3);
-		sendP = new JMenuItem("Show Selected Edges in PyMol", icon4);
-		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon5);
-		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon6);
+		rangeP = new JMenuItem("Diagonal Selection Mode", icon3);
+		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
+		sendP = new JMenuItem("Show Selected Edges in PyMol", icon5);
+		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon6);
+		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
+		rangeP.addActionListener(this);
 		nodeNbhSelP.addActionListener(this);
 		comNeiP.addActionListener(this);
 		sendP.addActionListener(this);
@@ -150,6 +154,7 @@ public class View extends JFrame implements ActionListener {
 
 		popup.add(squareP);
 		popup.add(fillP);
+		popup.add(rangeP);
 		popup.add(nodeNbhSelP);
 		popup.addSeparator();	
 		popup.add(sendP);
@@ -267,13 +272,15 @@ public class View extends JFrame implements ActionListener {
 
 		squareM = new JMenuItem("Square Selection Mode", icon1);
 		fillM = new JMenuItem("Fill Selection Mode", icon2);
-		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon3);
-		sendM = new JMenuItem("Show Selected Edges in PyMol", icon4);
-		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon5);
-		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon6);
+		rangeM = new JMenuItem("Diagonal Selection Mode",icon3);
+		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
+		sendM = new JMenuItem("Show Selected Edges in PyMol", icon5);
+		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon6);
+		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
+		rangeM.addActionListener(this);
 		nodeNbhSelM.addActionListener(this);
 		comNeiM.addActionListener(this);
 		sendM.addActionListener(this);
@@ -281,6 +288,7 @@ public class View extends JFrame implements ActionListener {
 
 		menu.add(squareM);
 		menu.add(fillM);
+		menu.add(rangeM);
 		menu.add(nodeNbhSelM);
 		menu.addSeparator();
 		menu.add(sendM);
@@ -331,6 +339,11 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == fillM || e.getSource() == fillP) {
 
 			currentAction = FILL_SEL;
+		}
+		// range selection clicked
+		if (e.getSource() == rangeM || e.getSource() == rangeP) {
+
+			currentAction = RANGE_SEL;
 		}
 		// node neihbourhood selection button clicked 
 		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP ) {
