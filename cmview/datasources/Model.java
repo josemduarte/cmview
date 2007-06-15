@@ -198,4 +198,8 @@ public abstract class Model {
 	public HashMap<Contact,Integer> getAllEdgeNbhSizes(){
 		return graph.getAllEdgeNbhSizes();
 	}
+	
+	public void delEdge(Contact cont){
+		this.graph.delEdge(cont);
+	}
 }

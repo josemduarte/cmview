@@ -53,8 +53,8 @@ public class View extends JFrame implements ActionListener {
 	JColorChooser colorChooser;
 
 	// Menu items
-	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM;
-	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP;
+	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
+	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers;
@@ -130,7 +130,8 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon5 = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
 		ImageIcon icon6 = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
 		ImageIcon icon7 = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
-
+		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));
+		
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
 		rangeP = new JMenuItem("Diagonal Selection Mode", icon3);
@@ -138,6 +139,7 @@ public class View extends JFrame implements ActionListener {
 		sendP = new JMenuItem("Show Selected Edges in PyMol", icon5);
 		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon6);
 		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
+		delEdgesP = new JMenuItem("Delete selected edges", icon8);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
@@ -145,7 +147,8 @@ public class View extends JFrame implements ActionListener {
 		nodeNbhSelP.addActionListener(this);
 		comNeiP.addActionListener(this);
 		sendP.addActionListener(this);
-		triangleP.addActionListener(this);		
+		triangleP.addActionListener(this);
+		delEdgesP.addActionListener(this);
 
 		popup.add(squareP);
 		popup.add(fillP);
@@ -156,6 +159,8 @@ public class View extends JFrame implements ActionListener {
 		popup.addSeparator();	
 		popup.add(comNeiP);
 		popup.add(triangleP);
+		popup.addSeparator();
+		popup.add(delEdgesP);
 
 		if(mod != null) {
 			cmPane = new ContactMapPane(mod, this);			
@@ -272,6 +277,7 @@ public class View extends JFrame implements ActionListener {
 		sendM = new JMenuItem("Show Selected Edges in PyMol", icon5);
 		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon6);
 		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
+		delEdgesM = new JMenuItem("Delete selected edges", icon8);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
@@ -279,7 +285,8 @@ public class View extends JFrame implements ActionListener {
 		nodeNbhSelM.addActionListener(this);
 		comNeiM.addActionListener(this);
 		sendM.addActionListener(this);
-		triangleM.addActionListener(this);			
+		triangleM.addActionListener(this);
+		delEdgesM.addActionListener(this);
 
 		menu.add(squareM);
 		menu.add(fillM);
@@ -290,6 +297,8 @@ public class View extends JFrame implements ActionListener {
 		menu.addSeparator();		
 		menu.add(comNeiM);
 		menu.add(triangleM);
+		menu.addSeparator();
+		menu.add(delEdgesM);
 
 		menuBar.add(menu);
 
@@ -368,6 +377,15 @@ public class View extends JFrame implements ActionListener {
 				this.pymolNbhSerial++;
 			}
 		}
+		// delete selected edges button clicked
+		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP ) {
+			for (Contact cont:cmPane.getSelContacts()){
+				mod.delEdge(cont);
+			}
+			cmPane.reloadContacts();
+			cmPane.resetSelContacts();
+			cmPane.repaint();
+		}		
 
 		// File Menu
 		// Load

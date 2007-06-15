@@ -648,10 +648,11 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	protected void drawCursor(Graphics2D g2d){
+		// only in case of range selection we draw a diagonal cursor
 		if (view.getCurrentAction()==View.RANGE_SEL){
 			g2d.setColor(Color.lightGray);			
 			g2d.drawLine(pos.x-pos.y, 0, getWindowSize(), getWindowSize()-(pos.x-pos.y));
-
+		// all other cases cursor is a cross-hair
 		} else {
 			// drawing the cross-hair
 			g2d.setColor(Color.green);
@@ -754,6 +755,14 @@ implements MouseListener, MouseMotionListener {
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
 
+	/**
+	 * To be used whenever the contacts have been changed in the Model object (i.e. the graph object)
+	 * Called when deleting edges
+	 */
+	protected void reloadContacts() {
+		this.allContacts = mod.getContacts();
+	}
+	
 	public EdgeNbh getCommonNbh(){
 		Contact cont = screen2cm(mousePressedPos); 
 		return mod.getEdgeNbh (cont.i,cont.j);
