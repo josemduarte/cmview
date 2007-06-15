@@ -17,7 +17,7 @@ public class GraphDbModel extends Model {
 	 * the graph id will be looked up based on the given graph details.
 	 */
 	public GraphDbModel(String pdbCode, String chainCode, String edgeType,
-						double distCutoff, int seqSep, String db) {
+						double distCutoff, String db) {
 		
 		// load contact graph from user specified graph database
 		try {
@@ -41,7 +41,7 @@ public class GraphDbModel extends Model {
 				
 		super.writeTempPdbFile();
 		super.initializeContactMap();
-		super.filterContacts(seqSep);
+		//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 		super.printWarnings(chainCode);
 		
 	}
@@ -64,7 +64,6 @@ public class GraphDbModel extends Model {
 		String chainCode = graph.chaincode;
 		System.out.println("pdb_code=" + pdbCode);
 		System.out.println("chain_code=" + chainCode);		
-		int seqSep = 0; // for the moment don't allow to change this
 		
 		// TODO: check whether loading from MSD makes sense
 		
@@ -83,7 +82,7 @@ public class GraphDbModel extends Model {
 				
 		super.writeTempPdbFile();
 		super.initializeContactMap();
-		super.filterContacts(seqSep);
+		//super.filterContacts(minSeqSep, maxSeqSep);	// currently not allowed to restrict contacts
 		super.printWarnings(chainCode);		
 		
 	}

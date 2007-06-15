@@ -2,6 +2,8 @@ package cmview;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
+//import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 import cmview.datasources.Model;
 import cmview.datasources.PdbaseModel;
@@ -39,7 +41,8 @@ public class Start {
 	
 	public static final String      DEFAULT_EDGETYPE = "ALL";
 	public static final String      DEFAULT_PDB_DB   = "pdbase";
-	public static final int         DEFAULT_SEQSEP   = 0;
+	public static final int         DEFAULT_MIN_SEQSEP   = -1;
+	public static final int         DEFAULT_MAX_SEQSEP   = -1;	
 	
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // for now, assume all graphs are like this
 																	// later, let user choose (add text field)
@@ -69,9 +72,31 @@ public class Start {
 		return user;
 	}
 
+//	private static void setLookAndFeel() {
+//		try {
+//		    // Set System L&F
+//	        UIManager.setLookAndFeel(
+//	            //looks[2].getClassName());
+//	        	UIManager.getSystemLookAndFeelClassName());
+//	    } 
+//	    catch (UnsupportedLookAndFeelException e) {
+//	       System.out.println(e);
+//	    }
+//	    catch (ClassNotFoundException e) {
+//		       System.out.println(e);	       // handle exception
+//	    }
+//	    catch (InstantiationException e) {
+//		       System.out.println(e);	       // handle exception
+//	    }
+//	    catch (IllegalAccessException e) {
+//		       System.out.println(e);	       // handle exception
+//	    }
+//	}
+		
 	public static void main(String args[]){
 		
 		System.out.println("CM2PyMol - Interactive contact map viewer");
+		//setLookAndFeel();
 		
 		if(DO_LOAD_PYMOL) {
 			// start pymol
@@ -96,7 +121,7 @@ public class Start {
 			String pdbCode = args[0];
 			String chainCode = NULL_CHAIN_CODE;
 			if (args.length==2) chainCode = args[1]; 
-			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF,DEFAULT_SEQSEP, DEFAULT_PDB_DB);
+			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
 			view.spawnNewViewWindow(mod);
 		}
 	}

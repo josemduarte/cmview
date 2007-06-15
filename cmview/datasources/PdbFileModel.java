@@ -16,7 +16,7 @@ public class PdbFileModel extends Model {
 	/**
 	 * Overloaded constructor to load the data.
 	 */
-	public PdbFileModel(String fileName, String chainCode, String edgeType, double distCutoff, int seqSep) {
+	public PdbFileModel(String fileName, String chainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) {
 		
 		// load PDB file
 		try {
@@ -30,7 +30,7 @@ public class PdbFileModel extends Model {
 
 		super.writeTempPdbFile();
 		super.initializeContactMap();
-		super.filterContacts(seqSep);
+		super.filterContacts(minSeqSep, maxSeqSep);
 		super.printWarnings(chainCode);
 	}
 	

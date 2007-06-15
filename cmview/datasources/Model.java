@@ -27,7 +27,8 @@ public abstract class Model {
 	protected Graph graph;
 	protected int matrixSize;
 	protected int unobservedResidues;
-	protected int seqSep = -1; // store this here because the graph object doesn't have it yet
+	protected int minSeqSep = -1; // -1 meaning not yet set
+	protected int maxSeqSep = -1; // store this here because the graph object doesn't have it yet	
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -60,10 +61,15 @@ public abstract class Model {
 	 * Filter out unwanted contacts and initializes the seqSep variable. 
 	 * Note: this causes trouble for directed graphs 
 	 */
-	protected void filterContacts(int seqSep) {
-		this.graph.restrictContactsToMinRange(seqSep);
-		matrixSize = graph.fullLength;
-		this.seqSep = seqSep;		
+	protected void filterContacts(int minSeqSep, int maxSeqSep) {
+		if(minSeqSep > 0) {
+			this.graph.restrictContactsToMinRange(minSeqSep);
+		}
+		if(maxSeqSep > 0) {
+			this.graph.restrictContactsToMaxRange(maxSeqSep);
+		}
+		this.minSeqSep = minSeqSep; // remember values for later (info screen)
+		this.maxSeqSep = maxSeqSep; 
 	}
 	
 	/** Print some warnings if necessary */
@@ -128,8 +134,13 @@ public abstract class Model {
 	}
 	
 	/** Returns the sequence separation of the current graph */
-	public int getSequenceSeparation() {
-		return this.seqSep;
+	public int getMinSequenceSeparation() {
+		return this.minSeqSep;
+	}
+	
+	/** Returns the sequence separation of the current graph */
+	public int getMaxSequenceSeparation() {
+		return this.maxSeqSep;
 	}
 
 	/** 

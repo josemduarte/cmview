@@ -424,11 +424,11 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleLoadFromGraphDb() {
 		LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
 				view.doLoadFromGraphDb(db, gid);
 			}
-		}, null, null, null, null, null, null, "pdb_reps_graph", "");
+		}, null, null, null, null, null, null, null, "pdb_reps_graph", "");
 		dialog.showIt();
 	}
 
@@ -447,25 +447,26 @@ public class View extends JFrame implements ActionListener {
 //		double distCutoff = 8.0;
 //		int seqSep = 0;
 		LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
-				view.doLoadFromPdbase(ac, cc, ct, dist, ss, db);
+				view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db);
 			}
-		}, null, "", "", "", "", "", null, null);
+		}, null, "", "", "", "", "", "", null, null);
 		dialog.showIt();		  
 
 	}
 
-	public void doLoadFromPdbase(String ac, String cc, String ct, double dist, int ss, String db) {
+	public void doLoadFromPdbase(String ac, String cc, String ct, double dist, int minss, int maxss, String db) {
 		System.out.println("Loading from Pdbase");
 		System.out.println("PDB code:\t" + ac);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + ss);
+		System.out.println("Min. Seq. Sep.:\t" + minss);
+		System.out.println("Max. Seq. Sep.:\t" + maxss);
 		db = "pdbase";
 		System.out.println("Database:\t" + db);	
-		Model mod = new PdbaseModel(ac, cc, ct, dist, ss, db);
+		Model mod = new PdbaseModel(ac, cc, ct, dist, minss, maxss, db);
 		this.spawnNewViewWindow(mod);			  
 	}
 
@@ -476,24 +477,25 @@ public class View extends JFrame implements ActionListener {
 //		double distCutoff = 8.0;
 //		int seqSep = 0;
 		LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
-				view.doLoadFromMsd(ac, cc, ct, dist, ss, db);
+				view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db);
 			}
-		}, null, "", "", "", "", "", null, null);
+		}, null, "", "", "", "", "", "", null, null);
 		dialog.showIt();
 	}
 
-	public void doLoadFromMsd(String ac, String cc, String ct, double dist, int ss, String db) {
+	public void doLoadFromMsd(String ac, String cc, String ct, double dist, int minss, int maxss, String db) {
 		System.out.println("Loading from MSD");
 		System.out.println("PDB code:\t" + ac);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + ss);
+		System.out.println("Min. Seq. Sep.:\t" + minss);
+		System.out.println("Max. Seq. Sep.:\t" + maxss);
 		db = "msdsd_00_07_a";
 		System.out.println("Database:\t" + db);	
-		Model mod = new MsdsdModel(ac, cc, ct, dist, ss, db);
+		Model mod = new MsdsdModel(ac, cc, ct, dist, minss, maxss, db);
 		this.spawnNewViewWindow(mod);			  
 	}	  
 
@@ -503,32 +505,33 @@ public class View extends JFrame implements ActionListener {
 //		double distCutoff = 8.0;
 //		int seqSep = 0;
 		LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
-				view.doLoadFromPdbFile(f, cc, ct, dist, ss);
+				view.doLoadFromPdbFile(f, cc, ct, dist, minss, maxss);
 			}
-		}, "", null, "", "", "", "", null, null);
+		}, "", null, "", "", "", "", "", null, null);
 		dialog.showIt();
 	}
 
-	public void doLoadFromPdbFile(String f, String cc, String ct, double dist, int ss) {
+	public void doLoadFromPdbFile(String f, String cc, String ct, double dist, int minss, int maxss) {
 		System.out.println("Loading from Pdb file");
 		System.out.println("Filename:\t" + f);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + ss);
-		Model mod = new PdbFileModel(f, cc, ct, dist, ss);
+		System.out.println("Min. Seq. Sep.:\t" + minss);
+		System.out.println("Max. Seq. Sep.:\t" + maxss);
+		Model mod = new PdbFileModel(f, cc, ct, dist, minss, maxss);
 		this.spawnNewViewWindow(mod);
 	}	
 
 	private void handleLoadFromCmFile() {
 		LoadDialog dialog = new LoadDialog(this, "Load from Contact map file", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
 				view.doLoadFromCmFile(f);
 			}
-		}, "", null, null, null, null, null, null, null);
+		}, "", null, null, null, null, null, null, null, null);
 		dialog.showIt();		  
 	}
 
@@ -604,7 +607,8 @@ public class View extends JFrame implements ActionListener {
 			+ "Chain code: " + mod.getChainCode() + "\n"
 			+ "Contact type: " + mod.getContactType() + "\n"
 			+ "Distance cutoff: " + mod.getDistanceCutoff() + "\n"
-			+ "Min Seq Sep: " + mod.getSequenceSeparation() + "\n"
+			+ "Min Seq Sep: " + mod.getMinSequenceSeparation() + "\n"
+			+ "Max Seq Sep: " + mod.getMaxSequenceSeparation() + "\n"
 			+ "\n"
 			+ "Contact map size: " + mod.getMatrixSize() + "\n"
 			+ "Unobserved Residues: " + mod.getNumberOfUnobservedResidues() + "\n"

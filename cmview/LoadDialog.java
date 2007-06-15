@@ -16,7 +16,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 	static final long serialVersionUID = 1l;
 	
 	private JButton loadButton, cancelButton, fileChooserButton;
-	private JTextField selectFileName, selectGraphId, selectAc, selectCc, selectCt, selectDist, selectSeqSep, selectDb;
+	private JTextField selectFileName, selectGraphId, selectAc, selectCc, selectCt, selectDist, selectMinSeqSep, selectMaxSeqSep, selectDb;
 	private LoadAction loadAction;
 	private JFrame parentFrame;
 	private JComboBox comboCt;
@@ -29,7 +29,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 	/** construct a new start object with the given title */
 	public LoadDialog(JFrame f, String title, LoadAction a,
 			String showFileName, String showAc, String showCc, String showCt,
-			String showDist, String showSeqSep, String showDb, String showGraphId) {
+			String showDist, String showMinSeqSep, String showMaxSeqSep, String showDb, String showGraphId) {
 		super(f, title, true);
 		this.loadAction = a;
 		this.parentFrame = f;
@@ -50,7 +50,8 @@ public class LoadDialog extends JDialog implements ActionListener {
 		selectCc = new JTextField();
 		selectCt = new JTextField();
 		selectDist = new JTextField();
-		selectSeqSep = new JTextField();
+		selectMinSeqSep = new JTextField();
+		selectMaxSeqSep = new JTextField();		
 		selectDb = new JTextField();
 		
 		String[] contactTypes = AA.contactTypes();
@@ -71,8 +72,10 @@ public class LoadDialog extends JDialog implements ActionListener {
 		JLabel labelCt = new JLabel("Contact type:");
 		JLabel labelDist = new JLabel("Distance cutoff:");
 		JLabel labelAfterDist = new JLabel("e.g. 8.0");
-		JLabel labelSeqSep = new JLabel("Min. Seq. Sep.:");
-		JLabel labelAfterSeqSep = new JLabel("e.g. 0");
+		JLabel labelMinSeqSep = new JLabel("Min. Seq. Sep.:");
+		JLabel labelMaxSeqSep = new JLabel("Max. Seq. Sep.:");		
+		JLabel labelAfterMinSeqSep = new JLabel("e.g. 0");
+		JLabel labelAfterMaxSeqSep = new JLabel("e.g. 50");		
 		JLabel labelDb = new JLabel("Database:");
 		
 		int fields = 0;
@@ -116,12 +119,20 @@ public class LoadDialog extends JDialog implements ActionListener {
 			selectDist.setText(showDist);
 			fields++;
 		}
-		if(showSeqSep != null) {
-			inputPane.add(labelSeqSep);
-			inputPane.add(selectSeqSep);
-			inputPane.add(labelAfterSeqSep);
+		if(showMinSeqSep != null) {
+			inputPane.add(labelMinSeqSep);
+			inputPane.add(selectMinSeqSep);
+			inputPane.add(labelAfterMinSeqSep);
 			//inputPane.add(Box.createHorizontalGlue());
-			selectSeqSep.setText(showSeqSep);
+			selectMinSeqSep.setText(showMinSeqSep);
+			fields++;
+		}
+		if(showMaxSeqSep != null) {
+			inputPane.add(labelMaxSeqSep);
+			inputPane.add(selectMaxSeqSep);
+			inputPane.add(labelAfterMaxSeqSep);
+			//inputPane.add(Box.createHorizontalGlue());
+			selectMaxSeqSep.setText(showMaxSeqSep);
 			fields++;
 		}
 		if(showDb != null) {
@@ -204,7 +215,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		return selectedCt;
 	}
 	
-	/** return the currently selected contact type */
+	/** return the currently selected distance cutoff */
 	public double getSelectedDist() {
 		double selectedDist = 0.0;
 		String selectedText = selectDist.getText();
@@ -218,27 +229,41 @@ public class LoadDialog extends JDialog implements ActionListener {
 		return selectedDist;
 	}
 	
-	/** return the currently selected contact type */
-	public int getSelectedSeqSep() {
-		int selectedSeqSep = -1;
-		String selectedText = selectSeqSep.getText();
+	/** return the currently selected min seq sep */
+	public int getSelectedMinSeqSep() {
+		int selectedMinSeqSep = -1;
+		String selectedText = selectMinSeqSep.getText();
 		if(selectedText.length() > 0) {
 			try {
-				selectedSeqSep = Integer.valueOf(selectSeqSep.getText());
+				selectedMinSeqSep = Integer.valueOf(selectMinSeqSep.getText());
 			} catch(NumberFormatException e) {
-				System.err.println("Could not parse value for sequence separation.");
+				System.err.println("Could not parse value for min sequence separation.");
 			}
 		}
-		return selectedSeqSep;
+		return selectedMinSeqSep;
+	}
+	
+	/** return the currently selected max seq sep */
+	public int getSelectedMaxSeqSep() {
+		int selectedMaxSeqSep = -1;
+		String selectedText = selectMaxSeqSep.getText();
+		if(selectedText.length() > 0) {
+			try {
+				selectedMaxSeqSep = Integer.valueOf(selectMaxSeqSep.getText());
+			} catch(NumberFormatException e) {
+				System.err.println("Could not parse value for max sequence separation.");
+			}
+		}
+		return selectedMaxSeqSep;
 	}
 
-	/** return the currently selected contact type */
+	/** return the currently selected database name */
 	public String getSelectedDb() {
 		String selectedDb = selectDb.getText();
 		return selectedDb;
 	}
 	
-	/** return the currently selected contact type */
+	/** return the currently selected graph id */
 	public int getSelectedGraphId() {
 		int selectedGraphId = -1;
 		String selectedText = selectGraphId.getText();
@@ -284,7 +309,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 	private void go(){
 		this.loadAction.doit((Object) parentFrame, 
 				getSelectedFileName(), getSelectedAc(), getSelectedCc(), getSelectedCt(),
-				getSelectedDist(), getSelectedSeqSep(), getSelectedDb(), getSelectedGraphId());
+				getSelectedDist(), getSelectedMinSeqSep(), getSelectedMaxSeqSep(), getSelectedDb(), getSelectedGraphId());
 	}
 	
 	public static void main(String[] args) {
@@ -295,18 +320,19 @@ public class LoadDialog extends JDialog implements ActionListener {
 		frame.setVisible(false);
 
 	        LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction() {
-	        	public void doit (Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid) {
+	        	public void doit (Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 	        		System.out.println("You clicked the Ok button");
 	        		System.out.println("Filename:\t" + f);
 	        		System.out.println("PDB code:\t" + ac);
 	        		System.out.println("Chain code:\t" + cc);
 	        		System.out.println("Contact type:\t" + ac);
 	        		System.out.println("Dist. cutoff:\t" + dist);
-	        		System.out.println("Min. Seq. Sep.:\t" + ss);
+	        		System.out.println("Min. Seq. Sep.:\t" + minss);
+	        		System.out.println("Max. Seq. Sep.:\t" + maxss);	        		
 	        		System.out.println("Database:\t" + db);
 	        		System.out.println("Graph Id:\t" + gid);
 	        	};
-	        }, "filename", "1tdr", "B", "Ca", "8.0", "0", "pdbase", "1");
+	        }, "filename", "1tdr", "B", "Ca", "8.0", "0", "20", "pdbase", "1");
 		dialog.addWindowListener(new WindowAdapter() {
 		    public void windowClosing(WindowEvent event) {
 		        System.exit(0);

@@ -15,7 +15,7 @@ public class PdbaseModel extends Model {
 	/**
 	 * Overloaded constructor to load the data.
 	 */
-	public PdbaseModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int seqSep, String db) {
+	public PdbaseModel(String pdbCode, String chainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) {
 		
 		// load structure from Pdbase
 		try {
@@ -35,7 +35,7 @@ public class PdbaseModel extends Model {
 		
 		super.writeTempPdbFile();
 		super.initializeContactMap();
-		super.filterContacts(seqSep);
+		super.filterContacts(minSeqSep, maxSeqSep);
 		super.printWarnings(chainCode);
 		
 	}

@@ -12,6 +12,6 @@ public abstract class LoadAction {
 	public LoadAction() {
 	}
 	
-	public abstract void doit(Object o, String f, String ac, String cc, String ct, double dist, int ss, String db, int gid);
+	public abstract void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
 
 }

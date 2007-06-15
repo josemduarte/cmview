@@ -28,7 +28,6 @@ public class ContactMapFileModel extends Model {
 		
 		String pdbCode = graph.accode;
 		String chainPdbCode = graph.chaincode;
-		int seqSep = 0;
 		
 		// check whether sequence info exists
 		if(graph.sequence == "") {
@@ -55,7 +54,7 @@ public class ContactMapFileModel extends Model {
 		}
 		
 		super.initializeContactMap();
-		super.filterContacts(seqSep);
+		//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 		//super.printWarnings(chainCode); // doesn't make sense here
 	}
 	
