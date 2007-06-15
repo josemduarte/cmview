@@ -48,14 +48,16 @@ public class View extends JFrame implements ActionListener {
 	JPanel topRul;
 	JPanel leftRul;
 	JPopupMenu popup; 		// context menu
-	JFileChooser fileChooser = new JFileChooser();
+	JFileChooser fileChooser;
+	JColorChooser colorChooser;
 
 	// Menu items
 	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM;
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers; 
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers;
+	JMenuItem mmSelectAll;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
 
@@ -95,6 +97,10 @@ public class View extends JFrame implements ActionListener {
 		this.highlightComNbh = false;
 		this.showRulers=false;
 		this.currentPaintingColor = Color.blue;
+		
+		fileChooser = new JFileChooser();
+		colorChooser = new JColorChooser();
+		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
 	}
 
 	/** Initialize and show the main GUI window */
@@ -127,7 +133,6 @@ public class View extends JFrame implements ActionListener {
 //		ImageIcon icon8 = new ImageIcon("icons/information.png");
 //		ImageIcon icon9 = new ImageIcon("icons/printer.png");
 //		ImageIcon icon10 = new ImageIcon("icons/door_open.png");
-
 
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
@@ -234,15 +239,23 @@ public class View extends JFrame implements ActionListener {
 		mmViewRulers.addActionListener(this);
 		menuBar.add(menu);
 
+		// Select menu
+		menu = new JMenu("Select");
+		menu.setMnemonic(KeyEvent.VK_S);
+		mmSelectAll = new JMenuItem("All contacts");
+		menu.add(mmSelectAll);
+		mmSelectAll.addActionListener(this);
+		menuBar.add(menu);
+		
 		// Color menu
 		menu = new JMenu("Color");
 		menu.setMnemonic(KeyEvent.VK_C);
 		mmColorReset= new JMenuItem("Reset contact colors to black");
 		mmColorChoose = new JMenuItem("Choose painting color");
 		mmColorPaint = new JMenuItem("Paint current selection");
-		menu.add(mmColorReset);
-		menu.add(mmColorPaint);
 		menu.add(mmColorChoose);
+		menu.add(mmColorPaint);
+		menu.add(mmColorReset);
 		mmColorReset.addActionListener(this);
 		mmColorPaint.addActionListener(this);
 		mmColorChoose.addActionListener(this);
@@ -332,7 +345,7 @@ public class View extends JFrame implements ActionListener {
 		// send selection button clicked
 		if (e.getSource() == sendM || e.getSource() == sendP) {	
 			if(mod==null) {
-				showNoContactMapDialog();
+				showNoContactMapWarning();
 			} else {
 				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
 				this.pymolSelSerial++;
@@ -341,7 +354,7 @@ public class View extends JFrame implements ActionListener {
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
 			if(mod==null) {
-				showNoContactMapDialog();
+				showNoContactMapWarning();
 			} else {
 				pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
 				this.pymolNbhSerial++;
@@ -401,7 +414,7 @@ public class View extends JFrame implements ActionListener {
 		}		  
 		if(e.getSource() == mmViewHighlightComNbh) {
 			if(mod==null) {
-				showNoContactMapDialog();
+				showNoContactMapWarning();
 			} else {
 				highlightComNbh = !highlightComNbh;
 				if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
@@ -411,6 +424,11 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewRulers) {
 			toggleRulers();
 		}		  
+		
+		// Select menu
+		if(e.getSource() == mmSelectAll) {
+			handleSelectAll();
+		}		
 		
 		// Help Menu
 		if(e.getSource() == mmHelpAbout) {
@@ -553,7 +571,7 @@ public class View extends JFrame implements ActionListener {
 	private void handleSaveToCmFile() {
 		if(this.mod == null) {
 			//System.out.println("No contact map loaded yet.");
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			int ret = fileChooser.showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
@@ -571,7 +589,7 @@ public class View extends JFrame implements ActionListener {
 	private void handleSaveToPng() {
 		if(this.mod == null) {
 			//System.out.println("No contact map loaded yet.");
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			int ret = fileChooser.showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
@@ -599,7 +617,7 @@ public class View extends JFrame implements ActionListener {
 	private void handleInfo() {
 		if(this.mod == null) {
 			//System.out.println("No contact map loaded yet.");
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			String seq = mod.getSequence();
 			String s = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
@@ -626,7 +644,7 @@ public class View extends JFrame implements ActionListener {
 	private void handlePrint() {
 		if(this.mod == null) {
 			//System.out.println("No contact map loaded yet.");
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			PrintUtil.printComponent(this.cmPane);
 		}
@@ -639,7 +657,7 @@ public class View extends JFrame implements ActionListener {
 	private void handleViewReset() {
 		//System.out.println("View:Reset not implemented yet");
 		if(mod==null) {
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			cmPane.resetColorMap();
 		}
@@ -648,23 +666,30 @@ public class View extends JFrame implements ActionListener {
 	private void handleViewColor() {
 		//System.out.println("View:Color by type not implemented yet");
 		if(mod==null) {
-			showNoContactMapDialog();
+			showNoContactMapWarning();
 		} else {
 			cmPane.paintCurrentSelection(currentPaintingColor);
+			cmPane.resetSelContacts();
+			cmPane.repaint();
 		}
 	}
-	private void handleViewSelectColor() {
-		//System.out.println("View:Color by type not implemented yet");
-		Color newColor = JColorChooser.showDialog(
-                this, 
-                "Choose Painting Color",
-                currentPaintingColor);
-		if(newColor != null) {
-			currentPaintingColor = newColor;
-		}
-		
+	
+	private void handleViewSelectColor() {	
+		JDialog chooseDialog = JColorChooser.createDialog(this, "Choose color", true, colorChooser, 
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e){
+							Color c = colorChooser.getColor();
+							currentPaintingColor = c;
+							System.out.println("Color changed to " + c);
+					}
+				} , null); // no handler for cancel button
+		chooseDialog.setVisible(true);
 	}	
 
+	private void handleSelectAll() {
+		cmPane.selectAllContacts();
+	}
+	
 	private void handleHelpAbout() {
 		JOptionPane.showMessageDialog(this,
 				"           Contact Map Viewer v"+Start.VERSION+"\n" + 
@@ -705,8 +730,8 @@ public class View extends JFrame implements ActionListener {
 				JOptionPane.PLAIN_MESSAGE);
 	}	
 	
-	/** Shows a dialog that no contact map is loaded yet */
-	private void showNoContactMapDialog() {
+	/** Shows a window with a warning message that no contact map is loaded yet */
+	private void showNoContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Error", JOptionPane.INFORMATION_MESSAGE);
 		
 	}

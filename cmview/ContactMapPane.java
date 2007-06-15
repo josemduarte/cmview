@@ -251,6 +251,13 @@ implements MouseListener, MouseMotionListener {
 		this.repaint();
 	}
 	
+	/** Called by view to select all contacts */
+	public void selectAllContacts() {
+		selContacts = new ContactList();
+		selContacts.addAll(allContacts);
+		this.repaint();
+	}
+	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
 	 * @param upperLeft
