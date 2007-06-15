@@ -78,6 +78,8 @@ public class View extends JFrame implements ActionListener {
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
 	private boolean showRulers;
+//	private boolean showContactsAsCrosses;
+//	private boolean showContactsAsArcs;
 	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
@@ -97,6 +99,8 @@ public class View extends JFrame implements ActionListener {
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
 		this.showRulers=false;
+//		this.showContactsAsCrosses = false;
+//		this.showContactsAsArcs = false;
 		this.currentPaintingColor = Color.blue;
 		
 		fileChooser = new JFileChooser();
@@ -819,6 +823,16 @@ public class View extends JFrame implements ActionListener {
 	public boolean getHighlightComNbh() {
 		return highlightComNbh;
 	}
+	
+//	/** Returns whether showing of contacts as crosses is switched on */
+//	public boolean getShowContactsAsCrosses() {
+//		return showContactsAsCrosses;
+//	}
+//	
+//	/** Returns whether showing of contacts as arcs is switched on */
+//	public boolean getShowContactsAsArcs() {
+//		return showContactsAsArcs;
+//	}
 
 	public void setHighlightComNbh(boolean highlightComNbh) {
 		this.highlightComNbh=highlightComNbh;

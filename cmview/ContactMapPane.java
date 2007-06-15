@@ -4,6 +4,7 @@ import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
 import java.util.Hashtable;
+import java.awt.geom.Arc2D;
 
 import cmview.datasources.Model;
 import proteinstructure.*;
@@ -200,10 +201,21 @@ implements MouseListener, MouseMotionListener {
 			g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
-
-		// draw diagonal
-		
-		// draw contacts as crosses
+	
+//		// draw contacts as crosses
+//		if(view.getShowContactsAsCrosses()) {
+//			for(Contact cont: allContacts) {
+//				drawCrossOnContact(cont, g2d, Color.yellow);
+//			}
+//		}
+//		
+//		// draw contact as arcs
+//		if(view.getShowContactsAsArcs()) {
+//			g2d.setColor(Color.black);
+//			for(Contact cont: allContacts) {
+//				drawContactAsArc(cont, g2d);
+//			}
+//		}		
 		
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			// drawing coordinates on lower left corner (following crosshairs)
@@ -417,6 +429,12 @@ implements MouseListener, MouseMotionListener {
 	 */
 	//TODO is it ceiling or round that we want to use here??
 	private Point getCellCenter(Point point){
+		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
+	}
+	
+	/** Return the center of a cell on screen given its coordinates in the contact map */
+	private Point getCellCenter(Contact cont){
+		Point point = cm2screen(cont);
 		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
 	}
 	
@@ -660,6 +678,21 @@ implements MouseListener, MouseMotionListener {
 			g2d.drawLine(0, pos.y, winsize, pos.y);
 		}
 	}
+	
+//	/** visualize a contact as an arc */
+//	private void drawContactAsArc(Contact cont, Graphics2D g2d) {
+//		Point start = getCellCenter(new Contact(cont.i,cont.i));
+//		Point end = getCellCenter(new Contact(cont.j,cont.j));
+//		
+//		// draw half circle
+//		double xc = (start.x + end.x) / 2;
+//		double yc = (start.y + end.y) / 2;
+//		double radius = Math.sqrt(2) * (end.x - start.x);
+//		
+//		Arc2D arc = new Arc2D.Double();
+//		arc.setArcByCenter(xc, yc, radius, -45, 180, Arc2D.OPEN);
+//		g2d.draw(arc);
+//	}
 
 	private void commonNeighbours(Graphics2D g2d){
 		// getting point where mouse was clicked and common neighbours for it
