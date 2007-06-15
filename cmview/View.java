@@ -123,18 +123,13 @@ public class View extends JFrame implements ActionListener {
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
 
-		ImageIcon icon1 = new ImageIcon("icons/shape_square.png");
-		ImageIcon icon2 = new ImageIcon("icons/paintcan.png");
-		ImageIcon icon3 = new ImageIcon("icons/diagonals.png");
-		ImageIcon icon4 = new ImageIcon("icons/group.png");
-		ImageIcon icon5 = new ImageIcon("icons/shape_square_go.png");
-		ImageIcon icon6 = new ImageIcon("icons/shape_flip_horizontal.png");
-		ImageIcon icon7 = new ImageIcon("icons/shape_rotate_clockwise.png");
-		//ImageIcon icon8 = new ImageIcon("icons/picture_go.png");
-
-//		ImageIcon icon9 = new ImageIcon("icons/information.png");
-//		ImageIcon icon10 = new ImageIcon("icons/printer.png");
-//		ImageIcon icon11 = new ImageIcon("icons/door_open.png");
+		ImageIcon icon1 = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
+		ImageIcon icon2 = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
+		ImageIcon icon3 = new ImageIcon(this.getClass().getResource("/icons/diagonals.png"));
+		ImageIcon icon4 = new ImageIcon(this.getClass().getResource("/icons/group.png"));
+		ImageIcon icon5 = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
+		ImageIcon icon6 = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
+		ImageIcon icon7 = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
 
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
