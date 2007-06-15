@@ -46,6 +46,7 @@ public class View extends JFrame implements ActionListener {
 	// GUI components
 	JLabel statusPane; 			// status bar
 	JPanel cmp; 				// contact Map Panel
+	JLayeredPane layers;		
 	JPanel topRul;
 	JPanel leftRul;
 	JPopupMenu popup; 		// context menu
@@ -62,9 +63,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
 
-
 	// Data and status variables
-
 	private Model mod;
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
@@ -74,6 +73,7 @@ public class View extends JFrame implements ActionListener {
 	private int currentAction;
 	private int pymolSelSerial;		 	// for incrementation numbering TODO: move to Model
 	private int pymolNbhSerial;
+	private int topLayer;				// top layer in JLayeredPane
 
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
@@ -96,6 +96,7 @@ public class View extends JFrame implements ActionListener {
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
+		this.topLayer = 1;
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
 		this.showRulers=false;
@@ -120,6 +121,8 @@ public class View extends JFrame implements ActionListener {
 		// Creating the Panels
 		statusPane = new JLabel("Click right mouse button for context menu");
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
+		layers = new JLayeredPane(); // Layered Pane holding multiple contact maps
+
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
 		
@@ -169,6 +172,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod != null) {
 			cmPane = new ContactMapPane(mod, this);			
 			cmp.add(cmPane);
+			//layers.add(cmPane,topLayer);
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
 			topRul.add(topRuler);
@@ -319,6 +323,7 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
+		//this.getContentPane().add(layers,BorderLayout.CENTER);
 		if(showRulers) {
 			this.getContentPane().add(topRul, BorderLayout.NORTH);
 			this.getContentPane().add(leftRul, BorderLayout.WEST);
@@ -800,7 +805,16 @@ public class View extends JFrame implements ActionListener {
 			this.setVisible(false);
 			this.dispose();
 		}
+//		setModel(mod);
 	}
+	
+//	/** Experimental: Add a new ContactMapPane to the current view */
+//	private void setModel(Model mod) {
+//		ContactMapPane cmPane = new ContactMapPane(mod, this);
+//		layers.add(cmPane,++topLayer);
+//		this.pack();
+//		this.setVisible(true);
+//	}
 
 	/** Returns the status variable currentAction which contains the currently selected actions */
 	public int getCurrentAction(){
