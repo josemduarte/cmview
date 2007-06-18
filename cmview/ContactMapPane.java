@@ -1,12 +1,22 @@
 package cmview;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.JPanel;
-import javax.swing.BorderFactory;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+
+import proteinstructure.Contact;
+import proteinstructure.ContactList;
+import proteinstructure.EdgeNbh;
+import proteinstructure.NodeNbh;
 import cmview.datasources.Model;
-import proteinstructure.*;
 
 /**
  * The panel containing the contact map and associated event handling.
@@ -45,10 +55,22 @@ implements MouseListener, MouseMotionListener {
 	private ContactList allContacts; // contains all contacts in contact map
 	private ContactList selContacts; // contains permanent list of currently selected contacts
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
-	private Hashtable<Contact,Color> contactColor;  // user defined contact colors
+	private Hashtable<Contact,Color> userContactColors;  // user defined colors for individual contacts
 	private double[][] densityMatrix; // matrix of contact density
 	
-
+	// drawing colors
+	private Color backgroundColor;	  // background color
+	private Color contactColor;	  	  // color for contacts
+	private Color selectionColor;	  // color for selected contacts
+	private Color rectangleColor;	  // color of selection rectangle
+	private Color crosshairColor;     // color of crosshair
+	private Color diagCrosshairColor; // color of "diagonal crosshair"
+	private Color coordinatesColor;	  // color of coordinates
+	private Color inBoxTriangleColor; // color for common nbh triangles
+	private Color outBoxTriangleColor;// color for common nbh triangles
+	private Color crossOnContactColor;// color for crosses on common nbh contacts
+	private Color corridorColor;	  // color for contact corridor when showing common nbh
+	private Color nbhCorridorColor;	  // color for nbh contact corridor when showing common nbh
 	
 	/**
 	 * Create a new ContactMapPane.
@@ -74,9 +96,25 @@ implements MouseListener, MouseMotionListener {
 		this.dragging = false;
 		this.showCommonNeighbours = false;
 		this.printing = false;
-		this.contactColor = new Hashtable<Contact, Color>();
+		this.userContactColors = new Hashtable<Contact, Color>();
 		//this.densityMatrix = null;
 		this.densityMatrix = mod.getDensityMatrix();
+		
+		// set default colors
+		this.contactColor = Color.black;
+		this.selectionColor = Color.red;
+		this.backgroundColor = Color.white;
+		this.rectangleColor = Color.black;
+		this.crosshairColor = Color.green;
+		this.diagCrosshairColor = Color.lightGray;
+		this.coordinatesColor = Color.blue;
+		this.inBoxTriangleColor = Color.cyan;
+		this.outBoxTriangleColor = Color.red;
+		this.crossOnContactColor = Color.yellow;
+		this.corridorColor = Color.green;
+		this.nbhCorridorColor = Color.lightGray;
+		
+		setBackground(backgroundColor);
 
 	}
 
@@ -87,7 +125,7 @@ implements MouseListener, MouseMotionListener {
 	protected void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g.create();
 
-		setBackground(Color.white);
+		//setBackground(backgroundColor);	// is this necessary?
 		
 		// paint background
 		if (isOpaque()) {
@@ -101,7 +139,7 @@ implements MouseListener, MouseMotionListener {
 			// TODO: Instead of messing with the drawing size, draw to image, scale image and print
 			outputSize = getPrintSize();
 			// draw border square
-			g2d.setColor(Color.black);
+			g2d.setColor(contactColor);
 			g2d.drawRect(0, 0, outputSize, outputSize);
 		} else {
 			outputSize = getWindowSize();
@@ -109,28 +147,6 @@ implements MouseListener, MouseMotionListener {
 		ratio = (double)outputSize/contactMapSize;		// scale factor, = size of one contact
 		int contactSquareSize = (int)(ratio*1); // the size of the square representing a contact
 		
-//		// draw gridlines
-//		g2d.setColor(Color.lightGray);
-//		for(int i = 10; i < contactMapSize; i+=10) {
-//			Point lowerRight = getCellLowerRight(new Contact(i,i));
-//			g2d.drawLine(lowerRight.x, 0, lowerRight.x, outputSize);
-//			g2d.drawLine(0, lowerRight.y, outputSize, lowerRight.y);
-//		}			
-		
-//		// draw tickmarks
-//		g2d.setColor(Color.black);
-//		int tickmarkSize = 3;
-//		for(int i = 1; i < contactMapSize; i++) {
-//			if(i % 10 == 0) tickmarkSize = 6; else tickmarkSize = 3;
-//			Point lowerRight = getCellLowerRight(new Contact(i,i));
-//			g2d.drawLine(lowerRight.x, 0, lowerRight.x, tickmarkSize);
-//			g2d.drawLine(lowerRight.x, outputSize-tickmarkSize, lowerRight.x, outputSize);
-//			g2d.drawLine(0, lowerRight.y, tickmarkSize, lowerRight.y);
-//			g2d.drawLine(outputSize-tickmarkSize, lowerRight.y, outputSize, lowerRight.y);
-//
-//		}	
-		
-		// density matrix here
 		// drawing density matrix
 		if(view.getShowDensityMatrix()) {
 			// assuming that density matrix has values from [0,1]
@@ -138,7 +154,7 @@ implements MouseListener, MouseMotionListener {
 			for(int i = 0; i < size; i++) {
 				for(int j = i; j < size; j++) {
 					Color c = getColorFromGradient(densityMatrix[i][j]);
-					if(c != g2d.getBackground()) {
+					if(!c.equals(backgroundColor)) {
 						g2d.setColor(c);
 						Contact cont = new Contact(i+1,j+1);
 						int x = getCellUpperLeft(cont).x;
@@ -154,10 +170,10 @@ implements MouseListener, MouseMotionListener {
 			// drawing the contact map
 			for (Contact cont:allContacts){ 
 				// if there is a contact, draw a rectangle
-				if(contactColor.containsKey(cont)) {
-					g2d.setColor(contactColor.get(cont)); 
+				if(userContactColors.containsKey(cont)) {
+					g2d.setColor(userContactColors.get(cont)); 
 				} else {
-					g2d.setColor(Color.black);
+					g2d.setColor(contactColor);
 				}
 				int x = getCellUpperLeft(cont).x;
 				int y = getCellUpperLeft(cont).y;
@@ -186,14 +202,14 @@ implements MouseListener, MouseMotionListener {
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
-			g2d.setColor(Color.black);
+			g2d.setColor(rectangleColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
 			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
 			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
-			g2d.setColor(Color.red);
+			g2d.setColor(selectionColor);
 			for (Contact cont:tmpContacts){ 
 				// if there is a contact, draw a rectangle
 				int x = getCellUpperLeft(cont).x;
@@ -204,9 +220,9 @@ implements MouseListener, MouseMotionListener {
 		} 
 		// drawing temp selection in red while dragging in range selection mode
 		if (dragging && view.getCurrentAction()==View.RANGE_SEL) {
-			g2d.setColor(Color.lightGray);
+			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
-			g2d.setColor(Color.red);
+			g2d.setColor(selectionColor);
 			for (Contact cont:tmpContacts){ 
 				// if there is a contact, draw a rectangle
 				int x = getCellUpperLeft(cont).x;
@@ -217,28 +233,13 @@ implements MouseListener, MouseMotionListener {
 		}
 
 		// showing permanent selection in red
-		g2d.setColor(Color.red);
+		g2d.setColor(selectionColor);
 		for (Contact cont:selContacts){
 			int x = getCellUpperLeft(cont).x;
 			int y = getCellUpperLeft(cont).y;
 			g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
-		}
-	
-//		// draw contacts as crosses
-//		if(view.getShowContactsAsCrosses()) {
-//			for(Contact cont: allContacts) {
-//				drawCrossOnContact(cont, g2d, Color.yellow);
-//			}
-//		}
-//		
-//		// draw contact as arcs
-//		if(view.getShowContactsAsArcs()) {
-//			g2d.setColor(Color.black);
-//			for(Contact cont: allContacts) {
-//				drawContactAsArc(cont, g2d);
-//			}
-//		}		
+		}	
 		
 		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
 			// drawing coordinates on lower left corner (following crosshairs)
@@ -291,13 +292,13 @@ implements MouseListener, MouseMotionListener {
 	
 	/** Called by view to reset the color map */
 	public void resetColorMap() {
-		contactColor = new Hashtable<Contact, Color>();
+		userContactColors = new Hashtable<Contact, Color>();
 	}
 	
 	/** Set the color value in contactColor for the currently selected residues to the given color */
 	public void paintCurrentSelection(Color paintingColor) {
 		for(Contact cont:selContacts) {
-			contactColor.put(cont, paintingColor);
+			userContactColors.put(cont, paintingColor);
 		}
 		this.repaint();
 	}
@@ -642,7 +643,7 @@ implements MouseListener, MouseMotionListener {
 		String i_res = mod.getResType(currentCell.i);
 		String j_res = mod.getResType(currentCell.j);
 		// writing the coordinates at lower left corner
-		g2d.setColor(Color.blue);
+		g2d.setColor(coordinatesColor);
 		g2d.drawString("i", 20, winsize-70);
 		g2d.drawString("j", 60, winsize-70);
 		g2d.drawString(currentCell.i+"", 20, winsize-50);
@@ -668,12 +669,12 @@ implements MouseListener, MouseMotionListener {
 	protected void drawCursor(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
 		if (view.getCurrentAction()==View.RANGE_SEL){
-			g2d.setColor(Color.lightGray);			
+			g2d.setColor(diagCrosshairColor);			
 			g2d.drawLine(pos.x-pos.y, 0, getWindowSize(), getWindowSize()-(pos.x-pos.y));
 		// all other cases cursor is a cross-hair
 		} else {
 			// drawing the cross-hair
-			g2d.setColor(Color.green);
+			g2d.setColor(crosshairColor);
 			g2d.drawLine(pos.x, 0, pos.x, winsize);
 			g2d.drawLine(0, pos.y, winsize, pos.y);
 		}
@@ -705,18 +706,18 @@ implements MouseListener, MouseMotionListener {
 		drawCorridor(cont, g2d);
 		
 		// marking the selected point with a cross
-		drawCrossOnContact(cont, g2d, Color.yellow);
+		drawCrossOnContact(cont, g2d, crossOnContactColor);
 		System.out.print("Common neighbours: ");
 		// drawing triangles
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial)
 			System.out.print(k+" ");
 			if (k>cont.i && k<cont.j) {
 				//draw cyan triangles for neighbours within the box 
-				drawTriangle(k, cont, g2d, Color.cyan);
+				drawTriangle(k, cont, g2d, inBoxTriangleColor);
 			}
 			else { // i.e. k<cont.i || k>cont.j
 				//draw red triangles for neighbours out of the box 
-				drawTriangle(k, cont, g2d, Color.red);
+				drawTriangle(k, cont, g2d, outBoxTriangleColor);
 			}
 		}
 		System.out.println();
@@ -746,7 +747,7 @@ implements MouseListener, MouseMotionListener {
 		Point point = getCellCenter(cont);
 		int x = point.x;
 		int y = point.y;
-		g2d.setColor(Color.green);
+		g2d.setColor(corridorColor);
 		// Horizontal Line
 		g2d.drawLine(0, x, x, x);
 		// vertical Line
@@ -761,8 +762,8 @@ implements MouseListener, MouseMotionListener {
 		Contact jkCont = new Contact(Math.min(j, k), Math.max(j, k));
 		
 		// we mark the 2 edges i,k and j,k with a cross
-		this.drawCrossOnContact(ikCont, g2d, Color.yellow);
-		this.drawCrossOnContact(jkCont, g2d, Color.yellow);
+		this.drawCrossOnContact(ikCont, g2d, crossOnContactColor);
+		this.drawCrossOnContact(jkCont, g2d, crossOnContactColor);
 
 		// transforming to screen coordinates
 		Point point = getCellCenter(cont);
@@ -784,11 +785,11 @@ implements MouseListener, MouseMotionListener {
 		Point endPoint = new Point();
 		if (k<(j+i)/2) endPoint = getCellCenter(new Contact(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
 		if (k>(j+i)/2) endPoint = getCellCenter(new Contact(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
-		g2d.setColor(Color.lightGray);
+		g2d.setColor(nbhCorridorColor);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
 	
-	/** Given a number between zero and one, returns a color from a gradient */
+	/** Given a number between zero and one, returns a color from a gradient. */
 	// TODO: Move this to a class ColorGradient
 	private Color getColorFromGradient(double val) {
 		if(val == 0) {
