@@ -73,7 +73,7 @@ public class View extends JFrame implements ActionListener {
 	private int currentAction;
 	private int pymolSelSerial;		 	// for incrementation numbering TODO: move to Model
 	private int pymolNbhSerial;
-	private int topLayer;				// top layer in JLayeredPane
+//	private int topLayer;				// top layer in JLayeredPane
 
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
@@ -96,7 +96,7 @@ public class View extends JFrame implements ActionListener {
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
-		this.topLayer = 1;
+//		this.topLayer = 1;
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
 		this.showRulers=false;
@@ -388,12 +388,16 @@ public class View extends JFrame implements ActionListener {
 		}
 		// delete selected edges button clicked
 		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP ) {
-			for (Contact cont:cmPane.getSelContacts()){
-				mod.delEdge(cont);
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else {
+				for (Contact cont:cmPane.getSelContacts()){
+					mod.delEdge(cont);
+				}
+				cmPane.reloadContacts();
+				cmPane.resetSelContacts();
+				cmPane.repaint();
 			}
-			cmPane.reloadContacts();
-			cmPane.resetSelContacts();
-			cmPane.repaint();
 		}		
 
 		// File Menu
@@ -722,45 +726,63 @@ public class View extends JFrame implements ActionListener {
 	}	
 
 	private void handleSelectAll() {
-		cmPane.selectAllContacts();
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			cmPane.selectAllContacts();
+		}
 	}
 	
 	private void handleHelpAbout() {
 		JOptionPane.showMessageDialog(this,
-				"           Contact Map Viewer v"+Start.VERSION+"\n" + 
-				"               (C) AG Lappe 2007",
+				"<html><center>" +
+				"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
+				"Contact Map Viewer v"+Start.VERSION +
+				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" + 
+				"<p>(C) AG Lappe 2007</p>" +
+				"</center></html>",
 				"About",
 				JOptionPane.PLAIN_MESSAGE);
 	}
 	
 	private void handleHelpHelp() {
 		JOptionPane.showMessageDialog(this,
-				"General\n" +
-				"- Click right mouse button in contact map for a context menu of available actions\n" +
-				"\n" +
-				"Square selection mode\n" +
-				"- Click on a contact to select it\n" +
-				"- Drag the mouse to select a rectangular area of contacts\n" +
-				"- Hold 'Ctrl' while selecting to add to the current selection\n" +
-				"- Click on a non-contact to reset the current selection\n" +
-				"\n" +
-				"Fill selection mode\n" +
-				"- Click on a contact to start a fill selection from that contact\n" +
-				"- Hold 'Ctrl' while selecting to add to the current selection\n" +
-				"\n" +
-				"Node neighbourhood selection mode\n" +
-				"- Click on a residue in the ruler or in the diagonal to select its contacts\n" +
-				"- Click on a cell in the upper half to select all contacts of that pair of residues\n" +
-				"- Hold 'Ctrl' while selecting to add to the current selection\n" +				
-				"\n" +
-				"Show selected contacts in pymol\n" +
-				"- Shows the currently selected contacts as edges in Pymol\n" +
-				"\n" +
-				"Show common neigbours\n" +
-				"- Click on a contact or non-contact to see the common neighbours for that pair of residues\n" +
-				"\n" +
-				"Show common neighbours in pymol\n" +
-				"- Shows the last shown common neighbours as triangles in pymol\n",
+				"<html>" +
+				"General<br>" +
+				"- Click right mouse button in contact map for a context menu of available actions<br>" +
+				"<br>" +
+				"Square selection mode<br>" +
+				"- Click on a contact to select it<br>" +
+				"- Drag the mouse to select a rectangular area of contacts<br>" +
+				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
+				"- Click on a non-contact to reset the current selection<br>" +
+				"<br>" +
+				"Fill selection mode<br>" +
+				"- Click on a contact to start a fill selection from that contact<br>" +
+				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
+				"<br>" +
+				"Diagonal selection mode<br>" +
+				"- Click to select all contacts along a diagonal<br>" +
+				"- Click and drag to select multiple diagonals<br>" +
+				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
+				"<br>" +				
+				"Node neighbourhood selection mode<br>" +
+				"- Click on a residue in the ruler or in the diagonal to select its contacts<br>" +
+				"- Click on a cell in the upper half to select all contacts of that pair of residues<br>" +
+				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +				
+				"<br>" +
+				"Show selected contacts in pymol<br>" +
+				"- Shows the currently selected contacts as edges in Pymol<br>" +
+				"<br>" +
+				"Show common neigbours<br>" +
+				"- Click on a contact or non-contact to see the common neighbours for that pair of residues<br>" +
+				"<br>" +
+				"Show common neighbours in pymol<br>" +
+				"- Shows the last shown common neighbours as triangles in pymol<br>" +
+				"<br>" +
+				"Delete selected contacts<br>" +
+				"- Permanently deletes the selected contacts from the contact map<br>" +
+				"</html>",
 				"Help",
 				JOptionPane.PLAIN_MESSAGE);
 	}	

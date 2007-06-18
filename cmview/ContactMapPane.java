@@ -4,7 +4,6 @@ import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
 import java.util.Hashtable;
-import java.awt.geom.Arc2D;
 
 import cmview.datasources.Model;
 import proteinstructure.*;
@@ -136,8 +135,8 @@ implements MouseListener, MouseMotionListener {
 				} else {
 					g2d.setColor(Color.black);
 				}
-				int x = cm2screen(cont).x;
-				int y = cm2screen(cont).y;
+				int x = getCellUpperLeft(cont).x;
+				int y = getCellUpperLeft(cont).y;
 				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
@@ -145,7 +144,7 @@ implements MouseListener, MouseMotionListener {
 			// showing all common neighbours
 			for (Contact cont:view.getComNbhSizes().keySet()){
 				int size = view.getComNbhSizes().get(cont);
-				Point current = cm2screen(cont);
+				Point current = getCellUpperLeft(cont);
 				int x = current.x;
 				int y = current.y;
 				if (allContacts.contains(cont)) {
@@ -173,8 +172,8 @@ implements MouseListener, MouseMotionListener {
 			g2d.setColor(Color.red);
 			for (Contact cont:tmpContacts){ 
 				// if there is a contact, draw a rectangle
-				int x = cm2screen(cont).x;
-				int y = cm2screen(cont).y;
+				int x = getCellUpperLeft(cont).x;
+				int y = getCellUpperLeft(cont).y;
 				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
@@ -186,8 +185,8 @@ implements MouseListener, MouseMotionListener {
 			g2d.setColor(Color.red);
 			for (Contact cont:tmpContacts){ 
 				// if there is a contact, draw a rectangle
-				int x = cm2screen(cont).x;
-				int y = cm2screen(cont).y;
+				int x = getCellUpperLeft(cont).x;
+				int y = getCellUpperLeft(cont).y;
 				g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 				g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 			}
@@ -196,8 +195,8 @@ implements MouseListener, MouseMotionListener {
 		// showing permanent selection in red
 		g2d.setColor(Color.red);
 		for (Contact cont:selContacts){
-			int x = cm2screen(cont).x;
-			int y = cm2screen(cont).y;
+			int x = getCellUpperLeft(cont).x;
+			int y = getCellUpperLeft(cont).y;
 			g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}
@@ -286,6 +285,15 @@ implements MouseListener, MouseMotionListener {
 		this.repaint();
 	}
 	
+	/** Add to the current selection all contacts along the diagonal that contains cont */
+	protected void selectDiagonal(int range) {
+		for(Contact c: allContacts) {
+			if(c.getRange() == range) {
+				selContacts.add(c);
+			}
+		}
+	}
+	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
 	 */
@@ -324,7 +332,7 @@ implements MouseListener, MouseMotionListener {
 			}
 		}
 	}
-
+	
 	/**
 	 * Update selContacts with the result of a fill selection starting from the given contact.
 	 * @param cont contact where mouse has been clicked
@@ -383,6 +391,7 @@ implements MouseListener, MouseMotionListener {
 		return selContacts;
 	}
 
+	/** Resets the current selection to the empty set */
 	protected void resetSelContacts() {
 		this.selContacts = new ContactList();
 	}
@@ -397,60 +406,31 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	/**
-	 * Returns the residue serial given a 1-dimensional screen coordinate
-	 * @param z
-	 * @return
-	 */
-//	private int screen2cm(int z){
-//		return (int) Math.ceil(z/ratio);
-//	}
-
-	/**
 	 * Returns upper left corner of the square representing the contact
-	 * @param cont
-	 * @return
 	 */
-	private Point cm2screen(Contact cont){
+	private Point getCellUpperLeft(Contact cont){
 		return new Point((int) Math.round((cont.j-1)*ratio), (int) Math.round((cont.i-1)*ratio));
 	}
-	
-	/**
-	 * Returns 1-dimensional screen coordinate given a contact map residue serial (node number)
-	 * @param k
-	 * @return
-	 */
-//	private int cm2screen(int k){
-//		return (int) Math.round((k-1)*ratio);
-//	}
-	
-	/** Gets the cell (contact rectangle) center given the upper left corner coordinates (i.e. the output of the cm2screen method
-	 * @param point
-	 * @return 
-	 */
-	//TODO is it ceiling or round that we want to use here??
-	private Point getCellCenter(Point point){
-		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
-	}
-	
+			
 	/** Return the center of a cell on screen given its coordinates in the contact map */
 	private Point getCellCenter(Contact cont){
-		Point point = cm2screen(cont);
+		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
 	}
 	
 	private Point getCellUpperRight(Contact cont){
-		Point point = cm2screen(cont);
+		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y);
 	}
 
 	private Point getCellLowerLeft(Contact cont){
-		Point point = cm2screen(cont);
+		Point point = getCellUpperLeft(cont);
 		return new Point (point.x,point.y+(int)Math.ceil(ratio));
 
 	}
 
 	private Point getCellLowerRight(Contact cont){
-		Point point = cm2screen(cont);
+		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
 
 	}
@@ -519,7 +499,7 @@ implements MouseListener, MouseMotionListener {
 						selContacts = new ContactList();
 					}
 					this.repaint();
-				} else {
+				} else { // dragging
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
@@ -560,28 +540,13 @@ implements MouseListener, MouseMotionListener {
 			case View.RANGE_SEL:
 				if (!dragging){
 					Contact clicked = screen2cm(mousePressedPos);
-					if(allContacts.contains(clicked)) { // if clicked position is a contact
-						if(selContacts.contains(clicked)) {
-							// if clicked position is a selected contact, deselect it
-							if(evt.isControlDown()) {
-								selContacts.remove(clicked);
-							} else {
-								selContacts = new ContactList();
-								selContacts.add(clicked);
-							}
-						} else {
-							// if clicked position is a contact but not selected, select it
-							if(!evt.isControlDown()) {
-								selContacts = new ContactList();
-							}
-							selContacts.add(clicked);
-						}
-					} else {
-						// else: if clicked position is outside of a contact, reset selContacts
-						selContacts = new ContactList();
+					// new behaviour: select current diagonal
+					if(!evt.isControlDown()) {
+						resetSelContacts();
 					}
+					selectDiagonal(clicked.getRange());
 					this.repaint();
-				}else {
+				} else { // dragging
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
@@ -725,13 +690,13 @@ implements MouseListener, MouseMotionListener {
 	private void drawCrossOnContact(Contact cont, Graphics2D g2d,Color color){
 		g2d.setColor(color);
 		if (ratio<6){ // if size of square is too small, then use fixed size 3 in each side of the cross
-			Point center = getCellCenter(cm2screen(cont)); 
+			Point center = getCellCenter(cont); 
 			g2d.drawLine(center.x-3, center.y-3,center.x+3, center.y+3 );
 			g2d.drawLine(center.x-3, center.y+3,center.x+3, center.y-3 );
 			g2d.drawLine(center.x-2, center.y-3,center.x+2, center.y+3 );
 			g2d.drawLine(center.x-2, center.y+3,center.x+2, center.y-3 );	
 		} else { // otherwise get upper left, lower left, upper right, lower right to draw a cross spanning the whole contact square
-			Point ul = cm2screen(cont);
+			Point ul = getCellUpperLeft(cont);
 			Point ur = getCellUpperRight(cont);
 			Point ll = getCellLowerLeft(cont);
 			Point lr = getCellLowerRight(cont);
@@ -743,7 +708,7 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	private void drawCorridor(Contact cont, Graphics2D g2d){
-		Point point = getCellCenter(cm2screen(cont));
+		Point point = getCellCenter(cont);
 		int x = point.x;
 		int y = point.y;
 		g2d.setColor(Color.green);
@@ -765,9 +730,9 @@ implements MouseListener, MouseMotionListener {
 		this.drawCrossOnContact(jkCont, g2d, Color.yellow);
 
 		// transforming to screen coordinates
-		Point point = getCellCenter(cm2screen(cont));
-		Point ikPoint = getCellCenter(cm2screen(ikCont));
-		Point jkPoint = getCellCenter(cm2screen(jkCont));
+		Point point = getCellCenter(cont);
+		Point ikPoint = getCellCenter(ikCont);
+		Point jkPoint = getCellCenter(jkCont);
 		
 		// drawing triangle
 		g2d.setColor(color);		
@@ -780,10 +745,10 @@ implements MouseListener, MouseMotionListener {
 
 		// drawing light gray common neighbour corridor markers
 		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
-		Point kkPoint = getCellCenter(cm2screen(kkCont));
+		Point kkPoint = getCellCenter(kkCont);
 		Point endPoint = new Point();
-		if (k<(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(j,k))); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
-		if (k>(j+i)/2) endPoint = getCellCenter(cm2screen(new Contact(k,i))); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
+		if (k<(j+i)/2) endPoint = getCellCenter(new Contact(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
+		if (k>(j+i)/2) endPoint = getCellCenter(new Contact(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
 		g2d.setColor(Color.lightGray);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
