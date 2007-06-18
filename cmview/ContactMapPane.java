@@ -17,7 +17,6 @@ import proteinstructure.*;
  * Date:		22/05/2007, last updated: 12/06/2007
  * 
  */
-
 public class ContactMapPane extends JPanel
 implements MouseListener, MouseMotionListener {
 
@@ -47,6 +46,8 @@ implements MouseListener, MouseMotionListener {
 	private ContactList selContacts; // contains permanent list of currently selected contacts
 	private ContactList tmpContacts; // contains transient list of contacts selected while dragging
 	private Hashtable<Contact,Color> contactColor;  // user defined contact colors
+	private double[][] densityMatrix; // matrix of contact density
+	
 
 	
 	/**
@@ -74,6 +75,9 @@ implements MouseListener, MouseMotionListener {
 		this.showCommonNeighbours = false;
 		this.printing = false;
 		this.contactColor = new Hashtable<Contact, Color>();
+		//this.densityMatrix = null;
+		this.densityMatrix = mod.getDensityMatrix();
+
 	}
 
 	/**
@@ -125,6 +129,26 @@ implements MouseListener, MouseMotionListener {
 //			g2d.drawLine(outputSize-tickmarkSize, lowerRight.y, outputSize, lowerRight.y);
 //
 //		}	
+		
+		// density matrix here
+		// drawing density matrix
+		if(view.getShowDensityMatrix()) {
+			// assuming that density matrix has values from [0,1]
+			int size = densityMatrix.length;
+			for(int i = 0; i < size; i++) {
+				for(int j = i; j < size; j++) {
+					Color c = getColorFromGradient(densityMatrix[i][j]);
+					if(c != g2d.getBackground()) {
+						g2d.setColor(c);
+						Contact cont = new Contact(i+1,j+1);
+						int x = getCellUpperLeft(cont).x;
+						int y = getCellUpperLeft(cont).y;
+						g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+						g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
+					}
+				}
+			}
+		}
 		
 		if (!view.getHighlightComNbh()){
 			// drawing the contact map
@@ -292,6 +316,17 @@ implements MouseListener, MouseMotionListener {
 				selContacts.add(c);
 			}
 		}
+	}
+	
+	/** Show/hide density matrix */
+	protected void toggleDensityMatrix() {
+		view.setShowDensityMatrix(!view.getShowDensityMatrix());
+		if(view.getShowDensityMatrix()) {
+			this.densityMatrix = mod.getDensityMatrix();
+		} else {
+			this.densityMatrix = null;
+		}
+		this.repaint();
 	}
 	
 	/**
@@ -752,7 +787,30 @@ implements MouseListener, MouseMotionListener {
 		g2d.setColor(Color.lightGray);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
-
+	
+	/** Given a number between zero and one, returns a color from a gradient */
+	// TODO: Move this to a class ColorGradient
+	private Color getColorFromGradient(double val) {
+		if(val == 0) {
+			return Color.white;
+		}
+//		// matlab color map
+//		double rc = 6/8f;
+//		double gc = 4/8f;
+//		double bc = 2/8f;
+//		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
+//		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
+//		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
+		// red/blue color map
+		double rc = 5/8f;
+		double gc = 4/8f;
+		double bc = 3/8f;
+		double r = Math.max(0,Math.min(1,2.0-4*Math.abs(val-rc)));
+		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
+		double b = Math.max(0,Math.min(1,2.0-4*Math.abs(val-bc)));
+		return new Color((float) r,(float) g, (float) b);
+	}
+	
 	/**
 	 * To be used whenever the contacts have been changed in the Model object (i.e. the graph object)
 	 * Called when deleting edges

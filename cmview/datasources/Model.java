@@ -202,4 +202,93 @@ public abstract class Model {
 	public void delEdge(Contact cont){
 		this.graph.delEdge(cont);
 	}
+	
+	public double[][] getDensityMatrix() {
+		int size = getMatrixSize();
+		double[][] d = new double[size][size]; // density matrix
+		
+		// initialize matrix with contacts
+		for(Contact cont:graph.getContacts()) {
+			d[cont.i-1][cont.j-1] = 1;
+		}
+		
+		// fill diagonal - avoids artefacts near main diagonal
+		for(int i=0; i < size; i++) {
+			d[i][i] = 1;
+		}
+		
+		// starting from second diagonal, fill uppper matrix with contact counts
+		// and calculate diagonal averages
+		double[] avg = new double[size];
+		double[] std = new double[size];
+		for(int j = 2; j < size; j++) {
+			double sum = 0;
+			for(int i = 0; i < size-j; i++) {
+				d[i][i+j] = d[i+1][i+j] + d[i][i+j-1] - d[i+1][i+j-1] + d[i][i+j];
+				//          down          left          left+down       contact
+				sum += d[i][i+j]; // sum of diagonal values
+			}
+			avg[j] = sum / (size-j); // diagonal average
+			
+			// standard deviation
+			sum = 0;
+			for(int i = 0; i < size-j; i++) {
+				sum += Math.pow(d[i][i+j] - avg[j],2);
+			}
+			std[j] = Math.sqrt(sum / (size-j));
+			//System.out.println("avg(" + j + ") = " + avg[j]);
+			//System.out.println("std(" + j + ") = " + std[j]);
+
+		}
+		
+		// diagonal average and standard deviation for first off-diagonal
+		double sum = 0;
+		for(int i = 0; i < size-1; i++) {
+			sum = sum + d[i][i+1];
+		}
+		avg[1] = sum / (size-1);
+		sum = 0;
+		for(int i = 0; i < size-1; i++) {
+			sum += Math.pow(d[i][i+1] - avg[1],2);
+		}
+		std[1] = Math.sqrt(sum / (size-1));
+		
+		// calculate z-score density
+		for(int i = 0; i < size-1; i++) {
+			for(int j = i+1; j < size; j++) {
+				if(std[j-i] == 0) {
+					d[i][j] = 0;
+				} else {
+					d[i][j] = (d[i][j] - avg[j-i]) / std[j-i];
+				}
+			}
+		}
+		
+		// reset diagonal
+		for(int i=0; i < size; i++) {
+			d[i][i] = 0;
+		}
+		
+		// map values to [0,1]
+		double max = 0;
+		double min = d[0][0];		
+		for(int i = 0; i<size; i++) {
+			for(int j = 0; j < size; j++) {
+				if(d[i][j] > max) max = d[i][j];
+				if(d[i][j] < min) min = d[i][j];				
+			}
+		}
+		max = Math.min(max, 3);  // cut off at 3
+		min = Math.max(min, -3); // cut off at -3
+		assert(max >= 0);
+		assert(min <= 0);
+		if(max-min > 0) {
+			for(int i = 0; i<size; i++) {
+				for(int j = i; j < size; j++) {
+					d[i][j] = (d[i][j]-min) / (max-min);
+				}
+			}			
+		}
+		return d;
+	}
 }

@@ -58,7 +58,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewRulers;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers;
 	JMenuItem mmSelectAll;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
@@ -78,8 +78,7 @@ public class View extends JFrame implements ActionListener {
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
 	private boolean showRulers;
-//	private boolean showContactsAsCrosses;
-//	private boolean showContactsAsArcs;
+	private boolean showDensityMatrix;	// if true: show density matrix as background in contact map window
 	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
@@ -100,8 +99,7 @@ public class View extends JFrame implements ActionListener {
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
 		this.showRulers=false;
-//		this.showContactsAsCrosses = false;
-//		this.showContactsAsArcs = false;
+		this.showDensityMatrix=false;
 		this.currentPaintingColor = Color.blue;
 		
 		fileChooser = new JFileChooser();
@@ -242,14 +240,17 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_V);
 		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
 		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
+		mmViewShowDensity = new JMenuItem("Toggle show contact density");
 		mmViewRulers = new JMenuItem("Toggle rulers");
 		menu.add(mmViewShowPdbResSers);
 		menu.add(mmViewRulers);
 		menu.addSeparator();
 		menu.add(mmViewHighlightComNbh);
+		menu.add(mmViewShowDensity);
 		mmViewShowPdbResSers.addActionListener(this);
 		mmViewHighlightComNbh.addActionListener(this);
 		mmViewRulers.addActionListener(this);
+		mmViewShowDensity.addActionListener(this);
 		menuBar.add(menu);
 
 		// Select menu
@@ -459,7 +460,11 @@ public class View extends JFrame implements ActionListener {
 				if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
 				cmPane.repaint();
 			}
-		}		  
+		}
+		if(e.getSource() == mmViewShowDensity) {
+			cmPane.toggleDensityMatrix();
+		}
+		
 		if(e.getSource() == mmViewRulers) {
 			toggleRulers();
 		}		  
@@ -859,6 +864,17 @@ public class View extends JFrame implements ActionListener {
 	public boolean getHighlightComNbh() {
 		return highlightComNbh;
 	}
+	
+	/** Returns the status of the variable showDensityMatrix */
+	protected boolean getShowDensityMatrix() {
+		return this.showDensityMatrix;
+	}
+	
+	/** Sets the status of the variable showDensityMatrix */
+	protected void setShowDensityMatrix(boolean val) {
+		this.showDensityMatrix = val;
+	}
+	
 	
 //	/** Returns whether showing of contacts as crosses is switched on */
 //	public boolean getShowContactsAsCrosses() {
