@@ -15,7 +15,7 @@ import cmview.datasources.Model;
 import cmview.datasources.MsdsdModel;
 import cmview.datasources.PdbFileModel;
 import cmview.datasources.PdbaseModel;
-import proteinstructure.Contact;
+import proteinstructure.*;
 
 /**
  * The main GUI window.
@@ -58,7 +58,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
@@ -79,6 +79,7 @@ public class View extends JFrame implements ActionListener {
 	private boolean highlightComNbh;
 	private boolean showRulers;
 	private boolean showDensityMatrix;	// if true: show density matrix as background in contact map window
+	private boolean showDistMatrix;
 	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
@@ -100,6 +101,7 @@ public class View extends JFrame implements ActionListener {
 		this.highlightComNbh = false;
 		this.showRulers=false;
 		this.showDensityMatrix=false;
+		this.showDistMatrix=false;
 		this.currentPaintingColor = Color.blue;
 		
 		fileChooser = new JFileChooser();
@@ -242,15 +244,18 @@ public class View extends JFrame implements ActionListener {
 		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
 		mmViewShowDensity = new JMenuItem("Toggle show contact density");
 		mmViewRulers = new JMenuItem("Toggle rulers");
+		mmViewShowDistMatrix = new JMenuItem("Toggle show distance matrix");
 		menu.add(mmViewShowPdbResSers);
 		menu.add(mmViewRulers);
 		menu.addSeparator();
 		menu.add(mmViewHighlightComNbh);
 		menu.add(mmViewShowDensity);
+		menu.add(mmViewShowDistMatrix);
 		mmViewShowPdbResSers.addActionListener(this);
 		mmViewHighlightComNbh.addActionListener(this);
 		mmViewRulers.addActionListener(this);
 		mmViewShowDensity.addActionListener(this);
+		mmViewShowDistMatrix.addActionListener(this);
 		menuBar.add(menu);
 
 		// Select menu
@@ -468,6 +473,17 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewRulers) {
 			toggleRulers();
 		}		  
+		if(e.getSource() == mmViewShowDistMatrix) {
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
+				showCantShowDistMatrixWarning();
+			} else {
+				showDistMatrix = !showDistMatrix;
+				if (mod.getDistMatrix()==null) mod.initDistMatrix(); //this initalises Model's distMatrix member the first time
+				cmPane.repaint();
+			}
+		}
 		
 		// Select menu
 		if(e.getSource() == mmSelectAll) {
@@ -798,6 +814,12 @@ public class View extends JFrame implements ActionListener {
 		
 	}
 
+	/** Shows a window with a warning message that we can't show distance matrix for this contact type */
+	private void showCantShowDistMatrixWarning() {
+		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Error", JOptionPane.INFORMATION_MESSAGE);
+		
+	}
+
 	/*---------------------------- public methods ---------------------------*/
 
 	/** show/hide rulers and toggle the value of showRulers */
@@ -874,7 +896,12 @@ public class View extends JFrame implements ActionListener {
 	protected void setShowDensityMatrix(boolean val) {
 		this.showDensityMatrix = val;
 	}
-	
+
+	/** Returns the status of the variable showDistMatrix */
+	protected boolean getShowDistMatrix() {
+		return this.showDistMatrix;
+	}
+
 	
 //	/** Returns whether showing of contacts as crosses is switched on */
 //	public boolean getShowContactsAsCrosses() {

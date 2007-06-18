@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
+import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -153,7 +154,7 @@ implements MouseListener, MouseMotionListener {
 			int size = densityMatrix.length;
 			for(int i = 0; i < size; i++) {
 				for(int j = i; j < size; j++) {
-					Color c = getColorFromGradient(densityMatrix[i][j]);
+					Color c = colorMapRedBlue(densityMatrix[i][j]);
 					if(!c.equals(backgroundColor)) {
 						g2d.setColor(c);
 						Contact cont = new Contact(i+1,j+1);
@@ -199,6 +200,19 @@ implements MouseListener, MouseMotionListener {
 			}
 		}
 
+		// drawing distance matrix
+		if (view.getShowDistMatrix()){
+			// this actually contains all possible contacts in matrix so is doing a full loop on all cells
+			TreeMap<Contact,Double> distMatrix = mod.getDistMatrix();
+			for (Contact cont:distMatrix.keySet()){
+				Color c = colorMapBluescale(distMatrix.get(cont));
+				g2d.setColor(c);
+				Point cellUpperLeft = getCellUpperLeft(cont);
+				g2d.drawRect(cellUpperLeft.x,cellUpperLeft.y,contactSquareSize,contactSquareSize);
+				g2d.fillRect(cellUpperLeft.x,cellUpperLeft.y,contactSquareSize,contactSquareSize);
+			}
+		}
+		
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
@@ -790,7 +804,7 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	/** Given a number between zero and one, returns a color from a gradient. */
-	private Color getColorFromGradient(double val) {
+	private Color colorMapRedBlue(double val) {
 		// TODO: Move this and the following to a class ColorGradient
 		if(val == 0) {
 			return Color.white;
@@ -805,7 +819,7 @@ implements MouseListener, MouseMotionListener {
 		return new Color((float) r,(float) g, (float) b);
 	}
 
-//	/** Given a number between zero and one, returns a color from a gradient. */
+	/** Given a number between zero and one, returns a color from a gradient. */
 //	private Color colorMapMatlab(double val) {
 //		// matlab color map
 //		double rc = 6/8f;
@@ -816,11 +830,11 @@ implements MouseListener, MouseMotionListener {
 //		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
 //		return new Color((float) r,(float) g, (float) b);
 //	}
-//
-//	/** Given a number between zero and one, returns a color from a gradient. */
-//	private Color colorMapGrayscale(double val) {
-//		return new Color((float) val, (float) val, (float) val);
-//	}
+
+	/** Given a number between zero and one, returns a color from a gradient. */
+	private Color colorMapBluescale(double val) {
+		return new Color((float) (val), (float) (val), (float) Math.min(1,4*val));
+	}
 	
 	/**
 	 * To be used whenever the contacts have been changed in the Model object (i.e. the graph object)

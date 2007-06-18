@@ -3,6 +3,8 @@ package cmview.datasources;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.Collections;
 import proteinstructure.*;
 
 /** 
@@ -28,7 +30,8 @@ public abstract class Model {
 	protected int matrixSize;
 	protected int unobservedResidues;
 	protected int minSeqSep = -1; // -1 meaning not yet set
-	protected int maxSeqSep = -1; // store this here because the graph object doesn't have it yet	
+	protected int maxSeqSep = -1; // store this here because the graph object doesn't have it yet
+	protected TreeMap<Contact,Double> distMatrix; // the scaled [0-1] distance matrix
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -201,6 +204,26 @@ public abstract class Model {
 	
 	public void delEdge(Contact cont){
 		this.graph.delEdge(cont);
+	}
+	
+	public void initDistMatrix(){
+		TreeMap<Contact,Double> distMatrixAtoms = this.pdb.calculate_dist_matrix(this.getContactType());
+		TreeMap<Contact,Double> distMatrixRes = new TreeMap<Contact, Double>();
+		for (Contact cont: distMatrixAtoms.keySet()){
+			int i_resser = this.pdb.get_resser_from_atomser(cont.i);
+			int j_resser = this.pdb.get_resser_from_atomser(cont.j);
+			distMatrixRes.put(new Contact(i_resser,j_resser), distMatrixAtoms.get(cont));
+		}
+		double max = Collections.max(distMatrixRes.values());
+		double min = Collections.min(distMatrixRes.values());
+		distMatrix = new TreeMap<Contact, Double>();
+		for (Contact cont:distMatrixRes.keySet()){
+			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
+		}
+	}
+	
+	public TreeMap<Contact,Double> getDistMatrix(){
+		return distMatrix;
 	}
 	
 	public double[][] getDensityMatrix() {
