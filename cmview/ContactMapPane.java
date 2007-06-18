@@ -790,18 +790,11 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	/** Given a number between zero and one, returns a color from a gradient. */
-	// TODO: Move this to a class ColorGradient
 	private Color getColorFromGradient(double val) {
+		// TODO: Move this and the following to a class ColorGradient
 		if(val == 0) {
 			return Color.white;
 		}
-//		// matlab color map
-//		double rc = 6/8f;
-//		double gc = 4/8f;
-//		double bc = 2/8f;
-//		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
-//		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
-//		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
 		// red/blue color map
 		double rc = 5/8f;
 		double gc = 4/8f;
@@ -811,6 +804,23 @@ implements MouseListener, MouseMotionListener {
 		double b = Math.max(0,Math.min(1,2.0-4*Math.abs(val-bc)));
 		return new Color((float) r,(float) g, (float) b);
 	}
+
+//	/** Given a number between zero and one, returns a color from a gradient. */
+//	private Color colorMapMatlab(double val) {
+//		// matlab color map
+//		double rc = 6/8f;
+//		double gc = 4/8f;
+//		double bc = 2/8f;
+//		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
+//		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
+//		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
+//		return new Color((float) r,(float) g, (float) b);
+//	}
+//
+//	/** Given a number between zero and one, returns a color from a gradient. */
+//	private Color colorMapGrayscale(double val) {
+//		return new Color((float) val, (float) val, (float) val);
+//	}
 	
 	/**
 	 * To be used whenever the contacts have been changed in the Model object (i.e. the graph object)
