@@ -37,6 +37,7 @@ implements MouseListener, MouseMotionListener {
 	private Point mousePressedPos;   // position where mouse where last pressed, used for start of square selection and for common neighbours 
 	private Point mouseDraggingPos;  //  current position of mouse dragging, used for end point of square selection
 	private Point pos;               //  current position of mouse
+	private int currentRulerCoord;	 // the ruler serial that is shown if showRulerSer=true
 	
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
 	private int printsize;			// size of the effective square available for printing the contact map
@@ -47,7 +48,8 @@ implements MouseListener, MouseMotionListener {
 	
 	private boolean dragging;     	// set to true while the user is dragging (to display selection rectangle)
 	private boolean mouseIn;		// true if the mouse is currently in the contact map window (otherwise supress crosshair)
-	private boolean showCommonNeighbours; // true while common neighbourhoods should be drawn on screen
+	private boolean showCommonNeighbours; // while true, common neighbourhoods are drawn on screen
+	private boolean showRulerCoord; // while true, current ruler coordinate will be shown instead of usual coordinates
 	private boolean printing;		// set to true by PrintUtil to notify paintComponent to render for printer rather than for screen
 	
 	private Model mod;
@@ -96,6 +98,7 @@ implements MouseListener, MouseMotionListener {
 		
 		this.dragging = false;
 		this.showCommonNeighbours = false;
+		this.showRulerCoord = false;
 		this.printing = false;
 		this.userContactColors = new Hashtable<Contact, Color>();
 		//this.densityMatrix = null;
@@ -255,11 +258,13 @@ implements MouseListener, MouseMotionListener {
 			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 		}	
 		
-		if ((mouseIn == true) && (pos.x <= winsize) && (pos.y <= winsize)){
+		if (mouseIn && (pos.x <= winsize) && (pos.y <= winsize)){ // second term needed if window is not square shape
 			// drawing coordinates on lower left corner (following crosshairs)
 			drawCoordinates(g2d);
 			// drawing cursor (cross hairs or others)
 			drawCursor(g2d);
+		} else if(showRulerCoord && currentRulerCoord > 0 && currentRulerCoord <= contactMapSize) {
+			drawRulerCoord(g2d);
 		}
 		if(this.showCommonNeighbours) {
 			commonNeighbours(g2d);
@@ -307,6 +312,19 @@ implements MouseListener, MouseMotionListener {
 	/** Called by view to reset the color map */
 	public void resetColorMap() {
 		userContactColors = new Hashtable<Contact, Color>();
+	}
+	
+	/** Called by ResidueRuler to enable display of ruler coordinates in contactMapPane */
+	public void showRulerCoordinate(int resSer) {
+		showRulerCoord = true;
+		currentRulerCoord = resSer;
+		this.repaint();
+	}
+	
+	/** Called by ResidueRuler to switch off showing ruler coordinates */
+	public void hideRulerCoordinates() {
+		showRulerCoord = false;
+		this.repaint();
 	}
 	
 	/** Set the color value in contactColor for the currently selected residues to the given color */
@@ -677,6 +695,19 @@ implements MouseListener, MouseMotionListener {
 			String j_pdbresser = mod.getPdbResSerial(currentCell.j);
 			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, 20, winsize-10);
 			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, 60, winsize-10);
+		}
+	}
+	
+	// TODO: Merge this with above function?
+	private void drawRulerCoord(Graphics2D g2d) {
+		String res = mod.getResType(currentRulerCoord);
+		g2d.setColor(coordinatesColor);
+		g2d.drawString("i", 20, winsize-70);
+		g2d.drawString(currentRulerCoord+"", 20, winsize-50);
+		g2d.drawString(res==null?"?":res, 20, winsize-30);
+		if (view.getShowPdbSers()){
+			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
+			g2d.drawString(pdbresser==null?"?":pdbresser, 20, winsize-10);
 		}
 	}
 	

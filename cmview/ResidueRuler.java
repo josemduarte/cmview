@@ -33,7 +33,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	
 	private int location; 
 
-	//private boolean mouseIn;
+	private boolean mouseIn;
 	//private boolean dragging;
 	
 	//private Point pos;               // current mouse position
@@ -171,12 +171,13 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseEntered(MouseEvent evt) {
-		//mouseIn= true;
+		mouseIn= true;
 	}
 
 	public void mouseExited(MouseEvent evt) {
-		//mouseIn = false;
-		this.repaint();
+		mouseIn = false;
+		cmPane.hideRulerCoordinates();
+		//this.repaint();
 	}
 
 	public void mousePressed(MouseEvent evt) {
@@ -186,7 +187,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseReleased(MouseEvent evt) {
-		// only if release after left click (BUTTON1)
+		// only if released after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 			if (view.getCurrentAction()==View.NODE_NBH_SEL){				
 				if (evt.isControlDown()){
@@ -200,8 +201,6 @@ public class ResidueRuler extends JPanel implements MouseListener,
 			}
 			//dragging = false;
 		}
-		
-
 	}
 
 	public void mouseDragged(MouseEvent evt) {
@@ -210,8 +209,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseMoved(MouseEvent evt) {
-		//pos = evt.getPoint();
-		this.repaint();
+		Point pos = evt.getPoint();
+		int resSer = screen2cm(pos);
+		cmPane.showRulerCoordinate(resSer);
+		//this.repaint();
 	}
 
 }

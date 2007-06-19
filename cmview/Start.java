@@ -26,7 +26,7 @@ public class Start {
 	
 	/* Constants, TODO: Move to configuration file */
 	
-	public static final String      VERSION = "0.7";
+	public static final String      VERSION = "0.7.1";
 	
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
