@@ -83,6 +83,9 @@ public class View extends JFrame implements ActionListener {
 	private Color currentPaintingColor;
 
 	private HashMap<Contact,Integer> comNbhSizes;
+	
+	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
+	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/icons/bullet_blue.png"));
 
 	/** Create a new View object */
 	public View(Model mod, String title, String pyMolServerUrl) {
@@ -107,6 +110,7 @@ public class View extends JFrame implements ActionListener {
 		fileChooser = new JFileChooser();
 		colorChooser = new JColorChooser();
 		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
+		
 	}
 
 	/** Initialize and show the main GUI window */
@@ -137,7 +141,42 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon5 = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
 		ImageIcon icon6 = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
 		ImageIcon icon7 = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
-		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));
+		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
+		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
+		
+		Icon icon_color = new Icon() {
+			public void paintIcon(Component c, Graphics g, int x, int y) {
+				Color oldColor = c.getForeground();
+				g.setColor(currentPaintingColor);
+				g.translate(x, y);
+				g.fillRect(2,2,12,12);
+				g.translate(-x, -y);  //Restore Graphics object
+				g.setColor(oldColor);
+			}			
+			public int getIconHeight() {
+				return 16;
+			}
+			public int getIconWidth() {
+				return 16;
+			}
+		};
+		
+		Icon icon_black = new Icon() {
+			public void paintIcon(Component c, Graphics g, int x, int y) {
+				Color oldColor = c.getForeground();
+				g.setColor(Color.black);
+				g.translate(x, y);
+				g.fillRect(2,2,12,12);
+				g.translate(-x, -y);  //Restore Graphics object
+				g.setColor(oldColor);
+			}	
+			public int getIconHeight() {
+				return 16;
+			}
+			public int getIconWidth() {
+				return 16;
+			}
+		};
 		
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
@@ -240,11 +279,11 @@ public class View extends JFrame implements ActionListener {
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
-		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers");
-		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size");
-		mmViewShowDensity = new JMenuItem("Toggle show contact density");
-		mmViewRulers = new JMenuItem("Toggle rulers");
-		mmViewShowDistMatrix = new JMenuItem("Toggle show distance matrix");
+		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers", icon_deselected);
+		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected);
+		mmViewShowDensity = new JMenuItem("Toggle show contact density", icon_deselected);
+		mmViewRulers = new JMenuItem("Toggle rulers", icon_deselected);
+		mmViewShowDistMatrix = new JMenuItem("Toggle show distance matrix", icon_deselected);
 		menu.add(mmViewShowPdbResSers);
 		menu.add(mmViewRulers);
 		menu.addSeparator();
@@ -269,9 +308,9 @@ public class View extends JFrame implements ActionListener {
 		// Color menu
 		menu = new JMenu("Color");
 		menu.setMnemonic(KeyEvent.VK_C);
-		mmColorReset= new JMenuItem("Reset contact colors to black");
-		mmColorChoose = new JMenuItem("Choose painting color");
-		mmColorPaint = new JMenuItem("Paint current selection");
+		mmColorReset= new JMenuItem("Reset contact colors to black", icon_black);
+		mmColorChoose = new JMenuItem("Choose painting color", icon_colorwheel);
+		mmColorPaint = new JMenuItem("Color selected contacts", icon_color);
 		menu.add(mmColorChoose);
 		menu.add(mmColorPaint);
 		menu.add(mmColorReset);
@@ -444,7 +483,8 @@ public class View extends JFrame implements ActionListener {
 			handleQuit();
 		}
 
-		// View Menu
+
+		// Color menu
 		if(e.getSource() == mmColorReset) {
 			handleViewReset();
 		}
@@ -454,15 +494,30 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmColorChoose) {
 			handleViewSelectColor();
 		}
+		
+		// View Menu		
 		if(e.getSource() == mmViewShowPdbResSers) {
 			doShowPdbSers = !doShowPdbSers;
+			if(doShowPdbSers) {
+				mmViewShowPdbResSers.setIcon(icon_selected);
+			} else {
+				mmViewShowPdbResSers.setIcon(icon_deselected);
+			}
 		}		  
+		if(e.getSource() == mmViewRulers) {
+			toggleRulers();
+		}	
 		if(e.getSource() == mmViewHighlightComNbh) {
 			if(mod==null) {
 				showNoContactMapWarning();
 			} else {
 				highlightComNbh = !highlightComNbh;
-				if (highlightComNbh) comNbhSizes = mod.getAllEdgeNbhSizes();
+				if (highlightComNbh) {
+					comNbhSizes = mod.getAllEdgeNbhSizes();
+					mmViewHighlightComNbh.setIcon(icon_selected);
+				} else {
+					mmViewHighlightComNbh.setIcon(icon_deselected);
+				}
 				cmPane.repaint();
 			}
 		}
@@ -471,12 +526,14 @@ public class View extends JFrame implements ActionListener {
 				showNoContactMapWarning();
 			} else {
 				cmPane.toggleDensityMatrix();
+				if(showDensityMatrix) {
+					mmViewShowDensity.setIcon(icon_selected);
+				} else {
+					mmViewShowDensity.setIcon(icon_deselected);
+				}
 			}
 		}
-		
-		if(e.getSource() == mmViewRulers) {
-			toggleRulers();
-		}		  
+			  
 		if(e.getSource() == mmViewShowDistMatrix) {
 			if(mod==null) {
 				showNoContactMapWarning();
@@ -484,6 +541,11 @@ public class View extends JFrame implements ActionListener {
 				showCantShowDistMatrixWarning();
 			} else {
 				showDistMatrix = !showDistMatrix;
+				if(showDistMatrix) {
+					mmViewShowDistMatrix.setIcon(icon_selected);
+				} else {
+					mmViewShowDistMatrix.setIcon(icon_deselected);
+				}
 				if (mod.getDistMatrix()==null) mod.initDistMatrix(); //this initalises Model's distMatrix member the first time
 				cmPane.repaint();
 			}
@@ -689,8 +751,8 @@ public class View extends JFrame implements ActionListener {
 			+ "Chain code: " + mod.getChainCode() + "\n"
 			+ "Contact type: " + mod.getContactType() + "\n"
 			+ "Distance cutoff: " + mod.getDistanceCutoff() + "\n"
-			+ "Min Seq Sep: " + mod.getMinSequenceSeparation() + "\n"
-			+ "Max Seq Sep: " + mod.getMaxSequenceSeparation() + "\n"
+			+ "Min Seq Sep: " + (mod.getMinSequenceSeparation()<1?"none":mod.getMinSequenceSeparation()) + "\n"
+			+ "Max Seq Sep: " + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "\n"
 			+ "\n"
 			+ "Contact map size: " + mod.getMatrixSize() + "\n"
 			+ "Unobserved Residues: " + mod.getNumberOfUnobservedResidues() + "\n"
@@ -832,9 +894,11 @@ public class View extends JFrame implements ActionListener {
 		if(showRulers) {
 			this.getContentPane().add(topRul, BorderLayout.NORTH);
 			this.getContentPane().add(leftRul, BorderLayout.WEST);
+			mmViewRulers.setIcon(icon_selected);
 		} else {
 			this.getContentPane().remove(topRul);
-			this.getContentPane().remove(leftRul);			
+			this.getContentPane().remove(leftRul);
+			mmViewRulers.setIcon(icon_deselected);
 		}
 		this.pack();
 		this.repaint();
