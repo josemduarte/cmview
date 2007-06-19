@@ -29,7 +29,6 @@ public class PyMolAdaptor {
 	
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
-	private static final String PYMOLFUNCTIONS_SCRIPT= "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
 	
 	private String url;
 	private PrintWriter Out;	
@@ -65,7 +64,7 @@ public class PyMolAdaptor {
 		pymol.set("dash_width", 2.5, "", true);
 
 		//running python script that defines function for creating the triangles for given residues
-		Out.println("run "+PYMOLFUNCTIONS_SCRIPT);
+		Out.println("run "+Start.PYMOLFUNCTIONS_SCRIPT);
 
 	}
 

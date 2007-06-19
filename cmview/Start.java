@@ -2,8 +2,8 @@ package cmview;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
-//import javax.swing.UIManager;
-//import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import cmview.datasources.Model;
 import cmview.datasources.PdbaseModel;
@@ -25,18 +25,14 @@ public class Start {
 	static final long serialVersionUID = 1l;
 	
 	/* Constants, TODO: Move to configuration file */
-
-	// Note: the database needs to have chain_graph and single_model_graph tables
-	// table and column names are currently hard-coded, TODO: use pdb-file/pdbase as input
-	public static final String      VERSION = "0.6";
 	
-	public static final String		DB_HOST =			"white";
-	public static final String		DB_USER =			getUserName();
-	public static final String		DB_PWD =			"nieve";
+	public static final String      VERSION = "0.7";
+	
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R";
+	public static final String 		PYMOLFUNCTIONS_SCRIPT = "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
 	
 	public static final String      DEFAULT_EDGETYPE = "ALL";
@@ -60,43 +56,32 @@ public class Start {
 		}
 		return host;
 	}
-	
-	/** get user name from operating system (for use as database username) */
-	private static String getUserName() {
-		String user = null;
-		user = System.getProperty("user.name");
-		if(user == null) {
-			System.err.println("Could not get user name from operating system. Exiting");
-			System.exit(1);
-		}
-		return user;
-	}
 
-//	private static void setLookAndFeel() {
-//		try {
-//		    // Set System L&F
-//	        UIManager.setLookAndFeel(
-//	            //looks[2].getClassName());
-//	        	UIManager.getSystemLookAndFeelClassName());
-//	    } 
-//	    catch (UnsupportedLookAndFeelException e) {
-//	       System.out.println(e);
-//	    }
-//	    catch (ClassNotFoundException e) {
-//		       System.out.println(e);	       // handle exception
-//	    }
-//	    catch (InstantiationException e) {
-//		       System.out.println(e);	       // handle exception
-//	    }
-//	    catch (IllegalAccessException e) {
-//		       System.out.println(e);	       // handle exception
-//	    }
-//	}
+	private static void setLookAndFeel() {
+		try {
+		    // Set System L&F
+	        UIManager.setLookAndFeel(
+	            //looks[2].getClassName());
+	        	UIManager.getSystemLookAndFeelClassName());
+	    } 
+	    catch (UnsupportedLookAndFeelException e) {
+	       System.out.println(e);
+	    }
+	    catch (ClassNotFoundException e) {
+		       System.out.println(e);	       // handle exception
+	    }
+	    catch (InstantiationException e) {
+		       System.out.println(e);	       // handle exception
+	    }
+	    catch (IllegalAccessException e) {
+		       System.out.println(e);	       // handle exception
+	    }
+	}
 		
 	public static void main(String args[]){
 		
 		System.out.println("CM2PyMol - Interactive contact map viewer");
-		//setLookAndFeel();
+		setLookAndFeel();
 		
 		if(DO_LOAD_PYMOL) {
 			// start pymol

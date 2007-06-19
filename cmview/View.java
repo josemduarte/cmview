@@ -467,7 +467,11 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 		if(e.getSource() == mmViewShowDensity) {
-			cmPane.toggleDensityMatrix();
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else {
+				cmPane.toggleDensityMatrix();
+			}
 		}
 		
 		if(e.getSource() == mmViewRulers) {

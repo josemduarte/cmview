@@ -63,7 +63,7 @@ implements MouseListener, MouseMotionListener {
 	private Color backgroundColor;	  // background color
 	private Color contactColor;	  	  // color for contacts
 	private Color selectionColor;	  // color for selected contacts
-	private Color rectangleColor;	  // color of selection rectangle
+	private Color selRectColor;	  // color of selection rectangle
 	private Color crosshairColor;     // color of crosshair
 	private Color diagCrosshairColor; // color of "diagonal crosshair"
 	private Color coordinatesColor;	  // color of coordinates
@@ -105,7 +105,7 @@ implements MouseListener, MouseMotionListener {
 		this.contactColor = Color.black;
 		this.selectionColor = Color.red;
 		this.backgroundColor = Color.white;
-		this.rectangleColor = Color.black;
+		this.selRectColor = Color.black;
 		this.crosshairColor = Color.green;
 		this.diagCrosshairColor = Color.lightGray;
 		this.coordinatesColor = Color.blue;
@@ -216,7 +216,7 @@ implements MouseListener, MouseMotionListener {
 
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
-			g2d.setColor(rectangleColor);
+			g2d.setColor(selRectColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
 			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
 			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
