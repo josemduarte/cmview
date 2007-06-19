@@ -7,6 +7,8 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
 import java.util.Hashtable;
 import java.util.TreeMap;
 
@@ -29,7 +31,7 @@ import cmview.datasources.Model;
  * 
  */
 public class ContactMapPane extends JPanel
-implements MouseListener, MouseMotionListener {
+implements MouseListener, MouseMotionListener, ComponentListener {
 
 	// constants
 	static final long serialVersionUID = 1l;
@@ -39,6 +41,7 @@ implements MouseListener, MouseMotionListener {
 	private Point pos;               //  current position of mouse
 	private int currentRulerCoord;	 // the ruler serial that is shown if showRulerSer=true
 	
+	private Dimension screenSize;	// current size of this component on screen
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
 	private int printsize;			// size of the effective square available for printing the contact map
 
@@ -85,8 +88,10 @@ implements MouseListener, MouseMotionListener {
 		this.view = view;
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		addComponentListener(this);
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
+		this.screenSize = new Dimension(Start.INITIAL_SCREEN_SIZE, Start.INITIAL_SCREEN_SIZE);
 		
 		this.allContacts = mod.getContacts();
 		this.selContacts = new ContactList();
@@ -280,7 +285,8 @@ implements MouseListener, MouseMotionListener {
 
 	/** Method called by this component to determine its preferred size */
 	public Dimension getPreferredSize() {
-		return new Dimension(800, 800);
+		// TODO: This has to be updated when the window is being resized
+		return this.screenSize;
 	}
 
 	/** Method called by this component to determine its maximum size */
@@ -665,11 +671,37 @@ implements MouseListener, MouseMotionListener {
 		pos = evt.getPoint();
 		this.repaint();
 	}
-
-	public void showPopup(MouseEvent e) {
-		view.popup.show(e.getComponent(), e.getX(), e.getY());
+	
+	/*--------------------------- component events --------------------------*/
+	
+	public void componentHidden(ComponentEvent evt) {
+		// TODO Auto-generated method stub
+		
 	}
 
+	public void componentMoved(ComponentEvent evt) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void componentResized(ComponentEvent evt) {
+		// TODO: do everything here that has to be performed only when resized
+		int w = getWidth();
+		int h = getHeight();
+//		int m = Math.min(w,h);
+//		w = m;
+//		h = m;
+//		setSize(w,h);
+		screenSize = new Dimension(w,h);
+	}
+
+	public void componentShown(ComponentEvent evt) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/*------------------------ drawing functions ------------------*/
+	
 	protected void drawCoordinates(Graphics2D g2d){
 		Contact currentCell = screen2cm(pos);
 		String i_res = mod.getResType(currentCell.i);
@@ -879,6 +911,11 @@ implements MouseListener, MouseMotionListener {
 		Contact cont = screen2cm(mousePressedPos); 
 		return mod.getEdgeNbh (cont.i,cont.j);
 	}
+	
+	public void showPopup(MouseEvent e) {
+		view.popup.show(e.getComponent(), e.getX(), e.getY());
+	}
+
 		
 } 
 

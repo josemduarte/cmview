@@ -28,6 +28,8 @@ public class Start {
 	
 	public static final String      VERSION = "0.7.1";
 	
+	public static final int			INITIAL_SCREEN_SIZE = 800;	// initial size of the contactMapPane in pixels
+	
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line

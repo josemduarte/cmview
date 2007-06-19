@@ -90,7 +90,7 @@ public class View extends JFrame implements ActionListener {
 		this.mod = mod;
 		this.pyMolServerUrl=pyMolServerUrl;
 		if(mod == null) {
-			this.setPreferredSize(new Dimension(800,800));
+			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		this.initGUI();
 		this.currentAction = SQUARE_SEL;
