@@ -15,7 +15,7 @@ aglappetag=$3
 
 cd $tempdir
 
-if [ -e "$cmviewtag" -or -e "$aglappetag"]
+if [ -e "$cmviewtag" ] || [ -e "$aglappetag"]
 then
     echo "File exists with name $cmviewtag or name $aglappetag, can't create directory"
     exit 1
@@ -24,7 +24,7 @@ fi
 # exporting from svn
 echo "Exporting source from svn"
 
-if [ "$cmviewtag"=="trunk" ]
+if [ "$cmviewtag" = "trunk" ]
 then
     cmviewtag="CM2PyMol-trunk"
     svn export file:///project/StruPPi/svn/CM2PyMol/trunk/ $cmviewtag
@@ -32,7 +32,7 @@ else
     svn export file:///project/StruPPi/svn/CM2PyMol/tags/$cmviewtag
 fi
 
-if [ "$aglappetag"=="trunk" ]
+if [ "$aglappetag" = "trunk" ]
 then
     aglappetag="aglappe-trunk"
     svn export file:///project/StruPPi/svn/aglappe/trunk/ $aglappetag
