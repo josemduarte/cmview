@@ -41,7 +41,9 @@ public abstract class Model {
 	
 	/*---------------------------- private methods --------------------------*/
 	
-	/** Write temporary PDB file with atom lines for the current structure */
+	/** Write temporary PDB file with atom lines for the current structure.
+	 *  has3DCoordinates() must be true before calling this (i.e. pdb not null) 
+	 */
 	protected void writeTempPdbFile() {
 		try {
 			pdb.dump2pdbfile(getTempPDBFileName());
@@ -194,6 +196,12 @@ public abstract class Model {
 		return graph.getEdgeNbh(i_resser, j_resser);
 	}
 	
+	/**
+	 * To get pdb residue serial from internal residue serial
+	 * Can only be called if has3DCoordinates is true
+	 * @param resser
+	 * @return
+	 */
 	public String getPdbResSerial(int resser){
 		return pdb.get_pdbresser_from_resser(resser);
 	}
@@ -206,6 +214,11 @@ public abstract class Model {
 		this.graph.delEdge(cont);
 	}
 	
+	/**
+	 * Initialises the distMatrix member
+	 * Can only be called if has3DCoordinates is true
+	 *
+	 */
 	public void initDistMatrix(){
 		TreeMap<Contact,Double> distMatrixAtoms = this.pdb.calculate_dist_matrix(this.getContactType());
 		TreeMap<Contact,Double> distMatrixRes = new TreeMap<Contact, Double>();
@@ -224,6 +237,10 @@ public abstract class Model {
 	
 	public TreeMap<Contact,Double> getDistMatrix(){
 		return distMatrix;
+	}
+	
+	public boolean has3DCoordinates(){
+		return (pdb!=null);
 	}
 	
 	public double[][] getDensityMatrix() {

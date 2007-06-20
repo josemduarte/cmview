@@ -499,11 +499,15 @@ public class View extends JFrame implements ActionListener {
 		
 		// View Menu		
 		if(e.getSource() == mmViewShowPdbResSers) {
-			doShowPdbSers = !doShowPdbSers;
-			if(doShowPdbSers) {
-				mmViewShowPdbResSers.setIcon(icon_selected);
+			if (!mod.has3DCoordinates()){
+				showNo3DCoordsWarning();
 			} else {
-				mmViewShowPdbResSers.setIcon(icon_deselected);
+				doShowPdbSers = !doShowPdbSers;
+				if(doShowPdbSers) {
+					mmViewShowPdbResSers.setIcon(icon_selected);
+				} else {
+					mmViewShowPdbResSers.setIcon(icon_deselected);
+				}
 			}
 		}		  
 		if(e.getSource() == mmViewRulers) {
@@ -539,6 +543,8 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewShowDistMatrix) {
 			if(mod==null) {
 				showNoContactMapWarning();
+			} else if (!mod.has3DCoordinates()){
+				showNo3DCoordsWarning();
 			} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
 				showCantShowDistMatrixWarning();
 			} else {
@@ -552,6 +558,7 @@ public class View extends JFrame implements ActionListener {
 				cmPane.repaint();
 			}
 		}
+		
 		
 		// Select menu
 		if(e.getSource() == mmSelectAll) {
@@ -886,6 +893,10 @@ public class View extends JFrame implements ActionListener {
 	private void showCantShowDistMatrixWarning() {
 		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Error", JOptionPane.INFORMATION_MESSAGE);
 		
+	}
+	
+	private void showNo3DCoordsWarning(){
+		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Error", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/*---------------------------- public methods ---------------------------*/

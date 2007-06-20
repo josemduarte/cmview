@@ -38,7 +38,7 @@ public class ContactMapFileModel extends Model {
 		if(!pdbCode.equals("") && !chainPdbCode.equals("")) {
 			try {
 				this.pdb = new Pdb(pdbCode, chainPdbCode); // by default loading from pdbase
-				if(pdb == null) {
+				if(has3DCoordinates()) {
 					System.err.println("Could not load structure. Some features will be unavailable.");
 				} else {
 					super.writeTempPdbFile();
