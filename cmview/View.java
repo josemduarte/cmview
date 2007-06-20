@@ -144,6 +144,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
 		
+		// square icon with current painting color
 		Icon icon_color = new Icon() {
 			public void paintIcon(Component c, Graphics g, int x, int y) {
 				Color oldColor = c.getForeground();
@@ -161,6 +162,7 @@ public class View extends JFrame implements ActionListener {
 			}
 		};
 		
+		// black square icon
 		Icon icon_black = new Icon() {
 			public void paintIcon(Component c, Graphics g, int x, int y) {
 				Color oldColor = c.getForeground();

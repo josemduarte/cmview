@@ -38,7 +38,11 @@ public class ContactMapFileModel extends Model {
 		if(!pdbCode.equals("") && !chainPdbCode.equals("")) {
 			try {
 				this.pdb = new Pdb(pdbCode, chainPdbCode); // by default loading from pdbase
-				super.writeTempPdbFile();
+				if(pdb == null) {
+					System.err.println("Could not load structure. Some features will be unavailable.");
+				} else {
+					super.writeTempPdbFile();
+				}
 			} catch (PdbaseAcCodeNotFoundError e) {
 				System.err.println("Error: Accession code not found in structure loaded from Pdbase");
 			} catch (MsdsdAcCodeNotFoundError e) {
@@ -47,6 +51,9 @@ public class ContactMapFileModel extends Model {
 				System.err.println("Warning: Inconsistent residue numbering in structure loaded from MSD");
 			} catch (PdbaseInconsistencyError e) {
 				System.err.println("Warning: Inconsistency in structure loaded from Pdbase");
+			} catch (Exception e) {
+				System.err.println("Severe error while trying to load structure from database:");
+				e.printStackTrace();
 			}
 		} else
 		{
