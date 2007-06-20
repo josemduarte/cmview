@@ -32,9 +32,6 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	private int offSet;
 	
 	private int location; 
-
-	private boolean mouseIn;
-	//private boolean dragging;
 	
 	//private Point pos;               // current mouse position
 	private Point mousePressedPos;   // position where the mouse has been pressed (in dragging is the start of drag)
@@ -171,19 +168,15 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseEntered(MouseEvent evt) {
-		mouseIn= true;
 	}
 
 	public void mouseExited(MouseEvent evt) {
-		mouseIn = false;
 		cmPane.hideRulerCoordinates();
 		//this.repaint();
 	}
 
 	public void mousePressed(MouseEvent evt) {
 		mousePressedPos = evt.getPoint();
-		System.out.println(screen2cm(mousePressedPos));
-
 	}
 
 	public void mouseReleased(MouseEvent evt) {
@@ -199,7 +192,6 @@ public class ResidueRuler extends JPanel implements MouseListener,
 				cmPane.repaint();
 				
 			}
-			//dragging = false;
 		}
 	}
 
