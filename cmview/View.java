@@ -241,9 +241,11 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb = new JMenuItem("PDB file");
 		mmLoadCm = new JMenuItem("Contact map file");
 
-		submenu.add(mmLoadGraph);
-		submenu.add(mmLoadPdbase);
-		submenu.add(mmLoadMsd);
+		if(Start.ENABLE_LOAD_FROM_DB) {
+			submenu.add(mmLoadGraph);
+			submenu.add(mmLoadPdbase);
+			submenu.add(mmLoadMsd);
+		}
 		submenu.add(mmLoadPdb);
 		submenu.add(mmLoadCm);
 
@@ -581,7 +583,7 @@ public class View extends JFrame implements ActionListener {
 				View view = (View) o;
 				view.doLoadFromGraphDb(db, gid);
 			}
-		}, null, null, null, null, null, null, null, "pdb_reps_graph", "");
+		}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
 		dialog.showIt();
 	}
 

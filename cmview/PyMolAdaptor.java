@@ -1,7 +1,6 @@
 package cmview;
 
 import java.io.PrintWriter;
-import tools.PyMol;
 import tools.PymolServerOutputStream;
 import java.util.*;
 import proteinstructure.*;
@@ -11,7 +10,8 @@ public class PyMolAdaptor {
 
 
 	/**
-	 * Encapsulates the code for communication with a particular PyMol server instance. 
+	 * Encapsulates the code for communication with a particular PyMol server instance.
+	 * TODO: Should be designed such that the output method can be easily changed (e.g. to JMol). 
 	 * 
 	 * @author Juliane Dinse
 	 * @author Henning Stehr
@@ -32,8 +32,6 @@ public class PyMolAdaptor {
 	
 	private String url;
 	private PrintWriter Out;	
-	private PyMol pymol;
-
 	private String pdbFileName;
 	private String accessionCode;
 	private String chainCode;
@@ -54,15 +52,11 @@ public class PyMolAdaptor {
 		this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 
 		// Initialising PyMol
-
-		pymol = new PyMol(Out);
 		Out.println("load " + pdbFileName + ", " + this.pymolObjectName);
-		//pymol.loadPDB(pdbFileName);
-		pymol.myHide("lines");
-		pymol.myShow("cartoon");
-		pymol.set("dash_gap", 0, "", true);
-		pymol.set("dash_width", 2.5, "", true);
-
+		Out.println("hide lines");
+		Out.println("show cartoon");
+		Out.println("set dash_gap, 0");
+		Out.println("set dash_width, 1.5");
 		//running python script that defines function for creating the triangles for given residues
 		Out.println("run "+Start.PYMOLFUNCTIONS_SCRIPT);
 

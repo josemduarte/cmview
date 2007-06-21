@@ -1,10 +1,12 @@
 package cmview.datasources;
 
-
 import java.io.IOException;
+import java.io.File;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Collections;
+
+import cmview.Start;
 import proteinstructure.*;
 
 /** 
@@ -19,8 +21,6 @@ import proteinstructure.*;
  * 
  */
 public abstract class Model {
-
-	public static final String		TEMP_PATH =			"/scratch/local/"; // for temp pdb files
 	
 	/*--------------------------- member variables --------------------------*/
 		
@@ -29,9 +29,10 @@ public abstract class Model {
 	protected Graph graph;
 	protected int matrixSize;
 	protected int unobservedResidues;
-	protected int minSeqSep = -1; // -1 meaning not yet set
-	protected int maxSeqSep = -1; // store this here because the graph object doesn't have it yet
-	protected TreeMap<Contact,Double> distMatrix; // the scaled [0-1] distance matrix
+	protected int minSeqSep = -1; 				  	// -1 meaning not set
+	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
+	protected TreeMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
+	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -156,11 +157,20 @@ public abstract class Model {
 		return graph.sequence;
 	}
 	
+	/** 
+	 * Returns the temporary pdb-style file with atomic coordinates.
+	 * When called for the first time, this method creates the File object and marks it to be deleted on exit. */
+	protected File getTempPdbFile() {
+		if(tempPdbFile == null) {
+			tempPdbFile = new File(Start.TEMP_DIR, getPDBCode() + ".pdb");
+			tempPdbFile.deleteOnExit(); // will delete the file when the VM is closed
+		}
+		return tempPdbFile;
+	}
+	
 	/** Returns the name of the temporary pdb file */
 	public String getTempPDBFileName(){
-		String pdbFileName;
-		pdbFileName  = TEMP_PATH + getPDBCode() + ".pdb";
-		return pdbFileName;
+		return getTempPdbFile().getAbsolutePath();
 	}
 
 	/** 
@@ -331,4 +341,5 @@ public abstract class Model {
 		}
 		return d;
 	}
+	
 }

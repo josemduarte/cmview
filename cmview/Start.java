@@ -24,28 +24,33 @@ public class Start {
 
 	static final long serialVersionUID = 1l;
 	
-	/* Constants, TODO: Move to configuration file */
+	/* Constants, TODO: Move to config file */
 	
+	// internal constants (not user changable)
 	public static final String      VERSION = "0.7.1";
+	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
+
+	// environment (set by install script?)
+	public static final String		TEMP_DIR = System.getProperty("java.io.tmpdir"); // TODO: Check this on Unix/Win/MacOS
 	
+	// user customizations
 	public static final int			INITIAL_SCREEN_SIZE = 800;	// initial size of the contactMapPane in pixels
+	public static boolean			DO_LOAD_PYMOL = 	true; 	// if true, pymol is loaded on startup
+	public static boolean			ENABLE_LOAD_FROM_DB = true; // if true, menu items for loading from database are enabled
 	
+	// pymol connection
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
-	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; // we set the default here, but can be reset from first argument in command line
-	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R";
+	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
+	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R"; // TODO: make this customizable, i.e. portable
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
-	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
 	
-	public static final String      DEFAULT_EDGETYPE = "ALL";
-	public static final String      DEFAULT_PDB_DB   = "pdbase";
-	public static final int         DEFAULT_MIN_SEQSEP   = -1;
-	public static final int         DEFAULT_MAX_SEQSEP   = -1;	
-	
-	public static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // for now, assume all graphs are like this
-																	// later, let user choose (add text field)
-	public static String 			graphDb = 			DEFAULT_GRAPH_DB;
-	public static boolean			DO_LOAD_PYMOL = 	true; // if true then pymol is loaded on startup
+	// default values
+	private static final String     DEFAULT_EDGETYPE = "ALL";
+	private static final String     DEFAULT_PDB_DB   = "pdbase";
+	private static final int        DEFAULT_MIN_SEQSEP   = -1;
+	private static final int        DEFAULT_MAX_SEQSEP   = -1;	
+	private static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // used by main function to preload graph from pdb/chain id
 
 	/** get host name from operating system (to locate pymol server) */
 	private static String getHostName() {
@@ -59,6 +64,7 @@ public class Start {
 		return host;
 	}
 
+	/** Set native host look and feel (is possible) */
 	private static void setLookAndFeel() {
 		try {
 		    // Set System L&F
@@ -84,6 +90,7 @@ public class Start {
 		
 		System.out.println("CM2PyMol - Interactive contact map viewer");
 		setLookAndFeel();
+		System.out.println("Using temporary directory " + TEMP_DIR);
 		
 		if(DO_LOAD_PYMOL) {
 			// start pymol
@@ -104,7 +111,7 @@ public class Start {
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;
 		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
-		if (args.length>=1){
+		if (args.length>=1 && ENABLE_LOAD_FROM_DB){
 			String pdbCode = args[0];
 			String chainCode = NULL_CHAIN_CODE;
 			if (args.length==2) chainCode = args[1]; 
