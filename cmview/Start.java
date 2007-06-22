@@ -6,6 +6,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import cmview.datasources.Model;
+import cmview.datasources.ModelConstructionError;
 import cmview.datasources.PdbaseModel;
 
 /**
@@ -114,9 +115,14 @@ public class Start {
 		if (args.length>=1 && ENABLE_LOAD_FROM_DB){
 			String pdbCode = args[0];
 			String chainCode = NULL_CHAIN_CODE;
-			if (args.length==2) chainCode = args[1]; 
-			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
-			view.spawnNewViewWindow(mod);
+			if (args.length==2) chainCode = args[1];
+			try {
+				mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				view.spawnNewViewWindow(mod);
+			} catch(ModelConstructionError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 

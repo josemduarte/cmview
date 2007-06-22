@@ -12,6 +12,7 @@ import java.util.HashMap;
 import cmview.datasources.ContactMapFileModel;
 import cmview.datasources.GraphDbModel;
 import cmview.datasources.Model;
+import cmview.datasources.ModelConstructionError;
 import cmview.datasources.MsdsdModel;
 import cmview.datasources.PdbFileModel;
 import cmview.datasources.PdbaseModel;
@@ -501,7 +502,9 @@ public class View extends JFrame implements ActionListener {
 		
 		// View Menu		
 		if(e.getSource() == mmViewShowPdbResSers) {
-			if (!mod.has3DCoordinates()){
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else if (!mod.has3DCoordinates()){
 				showNo3DCoordsWarning();
 			} else {
 				doShowPdbSers = !doShowPdbSers;
@@ -513,7 +516,11 @@ public class View extends JFrame implements ActionListener {
 			}
 		}		  
 		if(e.getSource() == mmViewRulers) {
-			toggleRulers();
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else {
+				toggleRulers();
+			}
 		}	
 		if(e.getSource() == mmViewHighlightComNbh) {
 			if(mod==null) {
@@ -591,9 +598,14 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Loading from graph database");
 		System.out.println("Database:\t" + db);
 		System.out.println("Graph Id:\t" + gid);
-		Model mod = new GraphDbModel(gid, db);
-		this.spawnNewViewWindow(mod);
+		try {
+			Model mod = new GraphDbModel(gid, db);
+			this.spawnNewViewWindow(mod);
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
 	}
+
 
 	private void handleLoadFromPdbase() {
 //		String pdbCode = "1tdr";
@@ -621,8 +633,12 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + maxss);
 		db = "pdbase";
 		System.out.println("Database:\t" + db);	
-		Model mod = new PdbaseModel(ac, cc, ct, dist, minss, maxss, db);
-		this.spawnNewViewWindow(mod);			  
+		try{
+			Model mod = new PdbaseModel(ac, cc, ct, dist, minss, maxss, db);
+			this.spawnNewViewWindow(mod);
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
 	}
 
 	private void handleLoadFromMsd() {
@@ -650,8 +666,12 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + maxss);
 		db = "msdsd_00_07_a";
 		System.out.println("Database:\t" + db);	
-		Model mod = new MsdsdModel(ac, cc, ct, dist, minss, maxss, db);
-		this.spawnNewViewWindow(mod);			  
+		try {
+			Model mod = new MsdsdModel(ac, cc, ct, dist, minss, maxss, db);
+			this.spawnNewViewWindow(mod);
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
 	}	  
 
 	private void handleLoadFromPdbFile() {
@@ -676,8 +696,12 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + minss);
 		System.out.println("Max. Seq. Sep.:\t" + maxss);
-		Model mod = new PdbFileModel(f, cc, ct, dist, minss, maxss);
-		this.spawnNewViewWindow(mod);
+		try {
+			Model mod = new PdbFileModel(f, cc, ct, dist, minss, maxss);
+			this.spawnNewViewWindow(mod);
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
 	}	
 
 	private void handleLoadFromCmFile() {
@@ -693,8 +717,12 @@ public class View extends JFrame implements ActionListener {
 	public void doLoadFromCmFile(String f) {
 		System.out.println("Loading from Pdb file");
 		System.out.println("Filename:\t" + f);
-		Model mod = new ContactMapFileModel(f);
-		this.spawnNewViewWindow(mod);
+		try {
+			Model mod = new ContactMapFileModel(f);
+			this.spawnNewViewWindow(mod);
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
 	}		  
 
 	private void handleSaveToGraphDb() {
@@ -888,7 +916,6 @@ public class View extends JFrame implements ActionListener {
 	/** Shows a window with a warning message that no contact map is loaded yet */
 	private void showNoContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Error", JOptionPane.INFORMATION_MESSAGE);
-		
 	}
 
 	/** Shows a window with a warning message that we can't show distance matrix for this contact type */
@@ -897,8 +924,14 @@ public class View extends JFrame implements ActionListener {
 		
 	}
 	
+	/** Warning dialog to be shown if a function is being called which required 3D coordinates and they are missing */
 	private void showNo3DCoordsWarning(){
 		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Error", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	/** Error dialog to be shown if loading a model failed. */
+	private void showLoadError(String message) {
+		JOptionPane.showMessageDialog(this, "<html>Failed to load structure:<br>" + message + "</html>", "Load Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/*---------------------------- public methods ---------------------------*/

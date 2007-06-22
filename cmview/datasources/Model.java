@@ -25,10 +25,10 @@ public abstract class Model {
 	/*--------------------------- member variables --------------------------*/
 		
 	// structure and contact map data
-	protected Pdb pdb;
-	protected Graph graph;
-	protected int matrixSize;
-	protected int unobservedResidues;
+	protected Pdb pdb;								// this can be null if there are no 3D coordinates available
+	protected Graph graph;							// currently every model must have a valid graph object
+	protected int matrixSize;						// number of residues (in known sequence)
+	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
 	protected TreeMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
@@ -190,10 +190,22 @@ public abstract class Model {
 		}
 	}	
 	
+	/**
+	 * Returns the three letter residue type for the given residue serial.
+	 * This may only be called if there is sequence information in the graph object, i.e. hasSequence()==true
+	 * @param resser
+	 * @return A string with the three letter residue type of the residue with serial resser
+	 */
 	public String getResType(int resser){
 		return graph.getResType(resser);
 	}
 	
+	/**
+	 * Returns the one letter residue type for the given residue serial.
+	 * This may only be called if there is sequence information in the graph object, i.e. hasSequence()==true
+	 * @param resser
+	 * @return A string with the one letter residue type of the residue with serial resser
+	 */	
 	public String getResType1Letter(int resser){
 		return AA.threeletter2oneletter(graph.getResType(resser));
 	}	
@@ -208,7 +220,7 @@ public abstract class Model {
 	
 	/**
 	 * To get pdb residue serial from internal residue serial
-	 * Can only be called if has3DCoordinates is true
+	 * May only be called if has3DCoordinates is true
 	 * @param resser
 	 * @return
 	 */
@@ -251,6 +263,14 @@ public abstract class Model {
 	
 	public boolean has3DCoordinates(){
 		return (pdb!=null);
+	}
+	
+	/**
+	 * Returns true iff there is no sequence information whatsoever
+	 * @return
+	 */
+	public boolean hasSequence() {
+		return graph.sequence.equals("");
 	}
 	
 	public double[][] getDensityMatrix() {
