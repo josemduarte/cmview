@@ -27,6 +27,8 @@ public class PyMolAdaptor {
 	 *   with integrated transparency parameter.
 	 */
 	
+	private static final int MAX_PYMOL_RESET_TRIALS = 3;	// how many times reseting the pymolServerOutputStream should be tried on error
+	
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 	
@@ -52,13 +54,13 @@ public class PyMolAdaptor {
 		this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 
 		// Initialising PyMol
-		Out.println("load " + pdbFileName + ", " + this.pymolObjectName);
-		Out.println("hide lines");
-		Out.println("show cartoon");
-		Out.println("set dash_gap, 0");
-		Out.println("set dash_width, 1.5");
+		sendCommand("load " + pdbFileName + ", " + this.pymolObjectName);
+		sendCommand("hide lines");
+		sendCommand("show cartoon");
+		sendCommand("set dash_gap, 0");
+		sendCommand("set dash_width, 1.5");
 		//running python script that defines function for creating the triangles for given residues
-		Out.println("run "+Start.PYMOLFUNCTIONS_SCRIPT);
+		sendCommand("run "+Start.PYMOLFUNCTIONS_SCRIPT);
 
 	}
 
@@ -71,7 +73,7 @@ public class PyMolAdaptor {
 		pymolStr = "distance "+selObjName +", " 
 			+ pymolObjectName + " and chain " + this.chainCode + " and resi " + i + " and name ca, " 
 			+ pymolObjectName + " and chain " + this.chainCode + " and resi " + j + " and name ca"; 
-		this.Out.println(pymolStr);
+		this.sendCommand(pymolStr);
 	}
 
 	/** 
@@ -86,7 +88,7 @@ public class PyMolAdaptor {
 			resString += "+" + residues.get(i);
 		}
 
-		Out.println("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and resi "+resString);
+		sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and resi "+resString);
 	}
 
 	public void showTriangles(EdgeNbh commonNbh, int pymolNbhSerial){
@@ -102,7 +104,7 @@ public class PyMolAdaptor {
 			Random generator = new Random(trinum/2);
 			int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
 			
-			Out.println("triangle('"+ pymolObjectName +"Nbh"+pymolNbhSerial+"Tri"+trinum + "', "+ i+ ", "+j +", "+k +", '" + COLORS[random] +"', " + 0.7+")");
+			sendCommand("triangle('"+ pymolObjectName +"Nbh"+pymolNbhSerial+"Tri"+trinum + "', "+ i+ ", "+j +", "+k +", '" + COLORS[random] +"', " + 0.7+")");
 			trinum++;
 			residues.add(k);
 			
@@ -124,10 +126,24 @@ public class PyMolAdaptor {
 			residues.add(i);
 			residues.add(j);
 		}
-		Out.println("cmd.hide('labels')");
+		sendCommand("cmd.hide('labels')");
 		selObjName = pymolObjectName +"Sel"+pymolSelSerial+"Nodes";
 		createSelectionObject(selObjName, residues);
 	}
+	
+	/** Send command to pymol and check for errors */
+	private void sendCommand(String cmd) {
+		Out.println(cmd);
+		int trials = 0;
+		while(Out.checkError() && trials < MAX_PYMOL_RESET_TRIALS) {
+			System.err.println("Pymol communication error. Trying to reset connection.");
+			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+			Out.println(cmd);
+			trials++;
+		}
+		// TODO: if communication still fails, restart pymol?
+	}
+	
 }
 
 
