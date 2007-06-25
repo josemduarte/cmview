@@ -28,7 +28,7 @@ public class Start {
 	/* Constants, TODO: Move to config file */
 	
 	// internal constants (not user changable)
-	public static final String      VERSION = "0.7.1";				// current version
+	public static final String      VERSION = "0.8";				// current version
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// value important for Msdsd2Pdb
 	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located 
 
@@ -37,15 +37,15 @@ public class Start {
 	
 	// user customizations
 	public static final int			INITIAL_SCREEN_SIZE = 800;	// initial size of the contactMapPane in pixels
-	public static boolean			DO_LOAD_PYMOL = 	true; 	// if true, pymol is loaded on startup
-	public static boolean			ENABLE_LOAD_FROM_DB = true; // if true, menu items for loading from database are enabled
-	
+	public static boolean			USE_DATABASE = true; 		// if false, all functions involving a database will be hidden 
+	public static boolean			USE_PYMOL = true;			// if false, all pymol specific functionality will be hidden
+	public static boolean			PRELOAD_PYMOL = true; 		// if true, pymol is preloaded on startup
+
 	// pymol connection
 	public static final String      HOST = 				getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
-	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R"; // TODO: make this customizable, i.e. portable
-	//public static final String 		PYMOLFUNCTIONS_SCRIPT = "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
+	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R -q"; // TODO: make this customizable, i.e. portable
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
 	
 	// default values
@@ -144,12 +144,12 @@ public class Start {
 		
 	public static void main(String args[]){
 		
-		System.out.println("CM2PyMol - Interactive contact map viewer");
+		System.out.println("CMView - Interactive contact map viewer");
 		setLookAndFeel();
 		System.out.println("Using temporary directory " + TEMP_DIR);
 		unpackResources();
 		
-		if(DO_LOAD_PYMOL) {
+		if(USE_PYMOL && PRELOAD_PYMOL) {
 			// start pymol
 			try {
 				System.out.println("Starting PyMol...");
@@ -168,7 +168,8 @@ public class Start {
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;
 		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
-		if (args.length>=1 && ENABLE_LOAD_FROM_DB){
+		if (args.length>=1 && USE_DATABASE){
+			// TODO: guess file type and perform corresponding load operation
 			String pdbCode = args[0];
 			String chainCode = NULL_CHAIN_CODE;
 			if (args.length==2) chainCode = args[1];

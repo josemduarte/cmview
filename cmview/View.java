@@ -43,7 +43,6 @@ public class View extends JFrame implements ActionListener {
 	protected static final int SHOW_COMMON_NBH = 4;
 	protected static final int RANGE_SEL = 5;
 	
-	
 	// GUI components
 	JLabel statusPane; 			// status bar
 	JPanel cmp; 				// contact Map Panel
@@ -111,7 +110,6 @@ public class View extends JFrame implements ActionListener {
 		fileChooser = new JFileChooser();
 		colorChooser = new JColorChooser();
 		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
-		
 	}
 
 	/** Initialize and show the main GUI window */
@@ -130,11 +128,8 @@ public class View extends JFrame implements ActionListener {
 
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
-		
-		// Adding the context menu
-		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-		popup = new JPopupMenu();
-
+			
+		// Icons
 		ImageIcon icon1 = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
 		ImageIcon icon2 = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
 		ImageIcon icon3 = new ImageIcon(this.getClass().getResource("/icons/diagonals.png"));
@@ -181,14 +176,18 @@ public class View extends JFrame implements ActionListener {
 			}
 		};
 		
+		// Popup menu
+		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		popup = new JPopupMenu();
+		
 		squareP = new JMenuItem("Square Selection Mode", icon1);
 		fillP = new JMenuItem("Fill Selection Mode", icon2);
 		rangeP = new JMenuItem("Diagonal Selection Mode", icon3);
 		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
-		sendP = new JMenuItem("Show Selected Edges in PyMol", icon5);
+		sendP = new JMenuItem("Show Selected Contacts in PyMol", icon5);
 		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon6);
 		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
-		delEdgesP = new JMenuItem("Delete selected edges", icon8);
+		delEdgesP = new JMenuItem("Delete selected contacts", icon8);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
@@ -203,11 +202,15 @@ public class View extends JFrame implements ActionListener {
 		popup.add(fillP);
 		popup.add(rangeP);
 		popup.add(nodeNbhSelP);
-		popup.addSeparator();	
-		popup.add(sendP);
+		if (Start.USE_PYMOL) {
+			popup.addSeparator();
+			popup.add(sendP);
+		}		
 		popup.addSeparator();	
 		popup.add(comNeiP);
-		popup.add(triangleP);
+		if (Start.USE_PYMOL) {
+			popup.add(triangleP);
+		}		
 		popup.addSeparator();
 		popup.add(delEdgesP);
 
@@ -242,7 +245,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb = new JMenuItem("PDB file");
 		mmLoadCm = new JMenuItem("Contact map file");
 
-		if(Start.ENABLE_LOAD_FROM_DB) {
+		if(Start.USE_DATABASE) {
 			submenu.add(mmLoadGraph);
 			submenu.add(mmLoadPdbase);
 			submenu.add(mmLoadMsd);
@@ -332,10 +335,10 @@ public class View extends JFrame implements ActionListener {
 		fillM = new JMenuItem("Fill Selection Mode", icon2);
 		rangeM = new JMenuItem("Diagonal Selection Mode",icon3);
 		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
-		sendM = new JMenuItem("Show Selected Edges in PyMol", icon5);
+		sendM = new JMenuItem("Show Selected Contacts in PyMol", icon5);
 		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon6);
 		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
-		delEdgesM = new JMenuItem("Delete selected edges", icon8);
+		delEdgesM = new JMenuItem("Delete selected contacts", icon8);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
@@ -350,11 +353,15 @@ public class View extends JFrame implements ActionListener {
 		menu.add(fillM);
 		menu.add(rangeM);
 		menu.add(nodeNbhSelM);
-		menu.addSeparator();
-		menu.add(sendM);
+		if (Start.USE_PYMOL) {
+			menu.addSeparator();
+			menu.add(sendM);
+		}		
 		menu.addSeparator();		
 		menu.add(comNeiM);
-		menu.add(triangleM);
+		if (Start.USE_PYMOL) {
+			menu.add(triangleM);
+		}		
 		menu.addSeparator();
 		menu.add(delEdgesM);
 
@@ -423,23 +430,35 @@ public class View extends JFrame implements ActionListener {
 			if(mod==null) {
 				showNoContactMapWarning();
 			} else {
-				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;
+				if(!isPyMolConnectionAvailable()) {
+					showNoPyMolConnectionWarning();
+				} else if(cmPane.getSelContacts().size() == 0) {
+					showNoContactsSelectedWarning();
+				} else {
+					pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
+					this.pymolSelSerial++;
+				}
 			}
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
 			if(mod==null) {
 				showNoContactMapWarning();
+			} else if(!isPyMolConnectionAvailable()) {				
+				showNoPyMolConnectionWarning();
+			} else if(cmPane.getCommonNbh() == null) {
+				showNoCommonNbhSelectedWarning();
 			} else {
 				pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
-				this.pymolNbhSerial++;
+				this.pymolNbhSerial++;					
 			}
 		}
 		// delete selected edges button clicked
 		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP ) {
 			if(mod==null) {
 				showNoContactMapWarning();
+			} else if(cmPane.getSelContacts().size() == 0) {
+				showNoContactsSelectedWarning();
 			} else {
 				for (Contact cont:cmPane.getSelContacts()){
 					mod.delEdge(cont);
@@ -585,13 +604,17 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleLoadFromGraphDb() {
-		LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-				View view = (View) o;
-				view.doLoadFromGraphDb(db, gid);
-			}
-		}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
-		dialog.showIt();
+		if(!isDatabaseConnectionAvailable()) {
+			showNoDatabaseConnectionWarning();
+		} else {
+			LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction() {
+				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					View view = (View) o;
+					view.doLoadFromGraphDb(db, gid);
+				}
+			}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+			dialog.showIt();
+		}
 	}
 
 	public void doLoadFromGraphDb(String db, int gid) {
@@ -608,18 +631,22 @@ public class View extends JFrame implements ActionListener {
 
 
 	private void handleLoadFromPdbase() {
-//		String pdbCode = "1tdr";
-//		String chainCode = "B";
-//		String edgeType = "Ca";
-//		double distCutoff = 8.0;
-//		int seqSep = 0;
-		LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-				View view = (View) o;
-				view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db);
-			}
-		}, null, "", "", "", "", "", "", null, null);
-		dialog.showIt();		  
+		if(!isDatabaseConnectionAvailable()) {
+			showNoDatabaseConnectionWarning();
+		} else {
+	//		String pdbCode = "1tdr";
+	//		String chainCode = "B";
+	//		String edgeType = "Ca";
+	//		double distCutoff = 8.0;
+	//		int seqSep = 0;
+			LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction() {
+				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					View view = (View) o;
+					view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db);
+				}
+			}, null, "", "", "", "", "", "", null, null);
+			dialog.showIt();
+		}
 
 	}
 
@@ -647,13 +674,17 @@ public class View extends JFrame implements ActionListener {
 //		String edgeType = "Ca";
 //		double distCutoff = 8.0;
 //		int seqSep = 0;
-		LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction() {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-				View view = (View) o;
-				view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db);
-			}
-		}, null, "", "", "", "", "", "", null, null);
-		dialog.showIt();
+		if(!isDatabaseConnectionAvailable()) {
+			showNoDatabaseConnectionWarning();
+		} else {
+			LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction() {
+				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					View view = (View) o;
+					view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db);
+				}
+			}, null, "", "", "", "", "", "", null, null);
+			dialog.showIt();
+		}
 	}
 
 	public void doLoadFromMsd(String ac, String cc, String ct, double dist, int minss, int maxss, String db) {
@@ -933,6 +964,24 @@ public class View extends JFrame implements ActionListener {
 	private void showLoadError(String message) {
 		JOptionPane.showMessageDialog(this, "<html>Failed to load structure:<br>" + message + "</html>", "Load Error", JOptionPane.ERROR_MESSAGE);
 	}
+	
+	/** Error dialog to be shown when trying to do a db operation without a db connection */
+	private void showNoDatabaseConnectionWarning() {
+		JOptionPane.showMessageDialog(this, "Failed to perform operation. No database connection available.", "Error", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	/** Error dialog to be shown when trying to do a db operation without a db connection */
+	private void showNoPyMolConnectionWarning() {
+		JOptionPane.showMessageDialog(this, "Failed to perform operation. No Communication with PyMol available", "Error", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	private void showNoCommonNbhSelectedWarning() {
+		JOptionPane.showMessageDialog(this, "No common neighbourhood selected (Use Show Common Neighbours Mode)", "Warning", JOptionPane.ERROR_MESSAGE);		
+	}
+	
+	private void showNoContactsSelectedWarning() {
+		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.ERROR_MESSAGE);				
+	}
 
 	/*---------------------------- public methods ---------------------------*/
 
@@ -952,7 +1001,7 @@ public class View extends JFrame implements ActionListener {
 		this.repaint();
 	}
 	
-	/** Set the underlying contact map data model */
+	/** Create and show a new view window, showing a contact map based on the given model (and dispose the current one) */
 	public void spawnNewViewWindow(Model mod) {
 		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
 		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
@@ -962,9 +1011,11 @@ public class View extends JFrame implements ActionListener {
 		}
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
 
-		// load structure in pymol
-		view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl,	mod.getPDBCode(), mod.getChainCode(), mod.getTempPDBFileName());
-
+		if (Start.USE_PYMOL) {
+			// load structure in pymol
+			view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl, 
+					mod.getPDBCode(), mod.getChainCode(), mod.getTempPDBFileName());
+		}		
 		// if previous window was empty (not showing a contact map) dispose it
 		if(this.mod == null) {
 			this.setVisible(false);
@@ -1018,23 +1069,28 @@ public class View extends JFrame implements ActionListener {
 		return this.showDistMatrix;
 	}
 
-	
-//	/** Returns whether showing of contacts as crosses is switched on */
-//	public boolean getShowContactsAsCrosses() {
-//		return showContactsAsCrosses;
-//	}
-//	
-//	/** Returns whether showing of contacts as arcs is switched on */
-//	public boolean getShowContactsAsArcs() {
-//		return showContactsAsArcs;
-//	}
-
 	public void setHighlightComNbh(boolean highlightComNbh) {
 		this.highlightComNbh=highlightComNbh;
 	}
 	
 	public HashMap<Contact,Integer> getComNbhSizes() {
 		return comNbhSizes;
+	}
+	
+	/**
+	 * Returns true if a database connection is expected to be available. This is to avoid
+	 * trying to connect when it is clear that the trial will fail.
+	 */
+	protected boolean isDatabaseConnectionAvailable() {
+		return Start.USE_DATABASE;
+	}
+	
+	/**
+	 * Returns true if a connection to pymol is expected to be available. This is to avoid
+	 * trying to connect when it is clear that the trial will fail.
+	 */
+	protected boolean isPyMolConnectionAvailable() {
+		return Start.USE_PYMOL;
 	}
 }
 

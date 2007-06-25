@@ -40,6 +40,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point mouseDraggingPos;  //  current position of mouse dragging, used for end point of square selection
 	private Point pos;               //  current position of mouse
 	private int currentRulerCoord;	 // the ruler serial that is shown if showRulerSer=true
+	private EdgeNbh currCommonNbh;	 // common nbh that the user selected last (used to send it to pymol)
 	
 	private Dimension screenSize;	// current size of this component on screen
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
@@ -100,6 +101,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.pos = new Point();
 		this.mousePressedPos = new Point();
 		this.mouseDraggingPos = new Point();
+		this.currCommonNbh = null; // no common nbh selected
 		
 		this.dragging = false;
 		this.showCommonNeighbours = false;
@@ -533,8 +535,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	public void mouseReleased(MouseEvent evt) {
+		// TODO: Move much of this to MouseClicked and pull up Contact cont = screen2cm...
 		// Called whenever the user releases the mouse button.
-
 		if (evt.isPopupTrigger()) {
 			showPopup(evt);
 			return;
@@ -544,6 +546,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			switch (view.getCurrentAction()) {
 			case View.SHOW_COMMON_NBH:
+				Contact c = screen2cm(mousePressedPos); 
+				this.currCommonNbh = mod.getEdgeNbh (c.i,c.j);
 				dragging = false;
 				showCommonNeighbours = true;
 				this.repaint();
@@ -775,7 +779,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void commonNeighbours(Graphics2D g2d){
 		// getting point where mouse was clicked and common neighbours for it
 		Contact cont = screen2cm(mousePressedPos); 
-		EdgeNbh comNbh = mod.getEdgeNbh (cont.i,cont.j);
+		EdgeNbh comNbh = this.currCommonNbh;
 
 		System.out.println("Selecting common neighbours for contact "+cont);
 		System.out.println("Motif: "+comNbh);
@@ -908,8 +912,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	public EdgeNbh getCommonNbh(){
-		Contact cont = screen2cm(mousePressedPos); 
-		return mod.getEdgeNbh (cont.i,cont.j);
+		return currCommonNbh;
 	}
 	
 	public void showPopup(MouseEvent e) {

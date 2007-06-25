@@ -27,7 +27,7 @@ public class PyMolAdaptor {
 	 *   with integrated transparency parameter.
 	 */
 	
-	private static final int MAX_PYMOL_RESET_TRIALS = 3;	// how many times reseting the pymolServerOutputStream should be tried on error
+	private static final int MAX_PYMOL_RESET_TRIALS = 1;	// how many times reseting the pymolServerOutputStream should be tried on error
 	
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
