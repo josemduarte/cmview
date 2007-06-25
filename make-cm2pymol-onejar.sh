@@ -15,7 +15,7 @@ aglappetag=$3
 
 cd $tempdir
 
-if [ -e "$cmviewtag" ] || [ -e "$aglappetag"]
+if [ -e "$cmviewtag" ] || [ -e "$aglappetag" ]
 then
     echo "File exists with name $cmviewtag or name $aglappetag, can't create directory"
     exit 1
