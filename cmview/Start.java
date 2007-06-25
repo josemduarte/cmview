@@ -1,6 +1,4 @@
 package cmview;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.io.*;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -42,10 +40,10 @@ public class Start {
 	public static boolean			PRELOAD_PYMOL = true; 		// if true, pymol is preloaded on startup
 
 	// pymol connection
-	public static final String      HOST = 				getHostName() ;
+	public static final String      HOST = 				"localhost"; //getHostName() ;
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
-	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R -q"; // TODO: make this customizable, i.e. portable
+	public static final String		PYMOL_CMD = 		"/project/StruPPi/bin/pymol-1.0 -R -q"; 		// TODO: make this customizable, i.e. portable
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
 	
 	// default values
@@ -54,18 +52,6 @@ public class Start {
 	private static final int        DEFAULT_MIN_SEQSEP   = -1;
 	private static final int        DEFAULT_MAX_SEQSEP   = -1;	
 	private static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // used by main function to preload graph from pdb/chain id
-
-	/** get host name from operating system (to locate pymol server) */
-	private static String getHostName() {
-		String host="";
-		try {
-			host = InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			System.err.println("Couldn't get host name. Exiting");
-			System.exit(1);
-		}
-		return host;
-	}
 
 	/** Copy external resources (data files and executables) from the jar archive to a temp directory.
 	 * The files are marked to be deleted on exit. */
@@ -155,12 +141,9 @@ public class Start {
 				System.out.println("Starting PyMol...");
 				// TODO: check whether pymol is running already
 				Process pymolProcess = Runtime.getRuntime().exec(Start.PYMOL_CMD);
-				if(pymolProcess == null) {
-					throw new IOException("pymolProcess Object is null");
-				}
 				// TODO: catch output and wait until pymol is loaded
 			} catch(IOException e) {
-				System.err.println("Warning: Couldn't start PyMol automatically. Please manually start Pymol with the -R parameter.");
+				System.err.println("Warning: Failed to start PyMol automatically. Please manually start Pymol with the -R parameter.");
 			}
 		}
 					
