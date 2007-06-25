@@ -55,7 +55,7 @@ public class View extends JFrame implements ActionListener {
 
 	// Menu items
 	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
-	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP;
+	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP, popupSendEdge;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
@@ -138,6 +138,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon6 = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
 		ImageIcon icon7 = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
 		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
+		ImageIcon icon9 = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
 		
 		// square icon with current painting color
@@ -185,6 +186,7 @@ public class View extends JFrame implements ActionListener {
 		rangeP = new JMenuItem("Diagonal Selection Mode", icon3);
 		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
 		sendP = new JMenuItem("Show Selected Contacts in PyMol", icon5);
+		popupSendEdge = new JMenuItem("Show residue pair as edge in PyMol", icon9);
 		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon6);
 		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
 		delEdgesP = new JMenuItem("Delete selected contacts", icon8);
@@ -197,6 +199,7 @@ public class View extends JFrame implements ActionListener {
 		sendP.addActionListener(this);
 		triangleP.addActionListener(this);
 		delEdgesP.addActionListener(this);
+		popupSendEdge.addActionListener(this);
 
 		popup.add(squareP);
 		popup.add(fillP);
@@ -205,6 +208,7 @@ public class View extends JFrame implements ActionListener {
 		if (Start.USE_PYMOL) {
 			popup.addSeparator();
 			popup.add(sendP);
+			popup.add(popupSendEdge);
 		}		
 		popup.addSeparator();	
 		popup.add(comNeiP);
@@ -599,7 +603,21 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmHelpHelp) {
 			handleHelpHelp();
-		}		
+		}	
+		
+		// Popup actions
+		// send current edge
+		if(e.getSource() == popupSendEdge) {
+			if(mod==null) {
+				showNoContactMapWarning();				
+			} else if(!isPyMolConnectionAvailable()) {				
+				showNoPyMolConnectionWarning();
+			} else {
+				pymolAdaptor.sendSingleEdge(pymolSelSerial, cmPane.getRightClickCont());
+				this.pymolSelSerial++;
+			}
+			
+		}
 
 	}
 

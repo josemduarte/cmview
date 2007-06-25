@@ -113,7 +113,7 @@ public class PyMolAdaptor {
 		createSelectionObject(pymolObjectName+"Nbh"+pymolNbhSerial+"Nodes", residues );
 	}
 
-
+	/** Show the contacts in the given contact list as edges in pymol */
 	public void edgeSelection(int pymolSelSerial, ContactList selContacts){
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
@@ -126,9 +126,16 @@ public class PyMolAdaptor {
 			residues.add(i);
 			residues.add(j);
 		}
-		sendCommand("cmd.hide('labels')");
+		sendCommand("hide labels, " + selObjName);
 		selObjName = pymolObjectName +"Sel"+pymolSelSerial+"Nodes";
 		createSelectionObject(selObjName, residues);
+	}
+	
+	/** Show a single contact or non-contact as distance object in pymol */
+	public void sendSingleEdge(int pymolSelSerial, Contact cont) {
+		String selObjName = pymolObjectName +"Sel"+pymolSelSerial;
+		this.setDistance(cont.i, cont.j, pymolSelSerial, selObjName);
+		sendCommand("color orange, " + selObjName);
 	}
 	
 	/** Send command to pymol and check for errors */
@@ -136,7 +143,7 @@ public class PyMolAdaptor {
 		Out.println(cmd);
 		int trials = 0;
 		while(Out.checkError() && trials < MAX_PYMOL_RESET_TRIALS) {
-			System.err.println("Pymol communication error. Trying to reset connection.");
+			System.err.println("Pymol communication error. The requested operation may have failed. Trying to reset connection.");
 			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 			Out.println(cmd);
 			trials++;

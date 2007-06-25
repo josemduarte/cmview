@@ -40,6 +40,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point mouseDraggingPos;  //  current position of mouse dragging, used for end point of square selection
 	private Point pos;               //  current position of mouse
 	private int currentRulerCoord;	 // the ruler serial that is shown if showRulerSer=true
+	private Contact rightClickCont;	 // position in contact map where right mouse button was pressed to open context menu
 	private EdgeNbh currCommonNbh;	 // common nbh that the user selected last (used to send it to pymol)
 	
 	private Dimension screenSize;	// current size of this component on screen
@@ -108,8 +109,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.showRulerCoord = false;
 		this.printing = false;
 		this.userContactColors = new Hashtable<Contact, Color>();
-		//this.densityMatrix = null;
-		this.densityMatrix = mod.getDensityMatrix();
+		this.densityMatrix = null;
 		
 		// set default colors
 		this.contactColor = Color.black;
@@ -915,7 +915,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return currCommonNbh;
 	}
 	
+	/** Returns the contact where the right mouse button was last clicked to open a context menu */
+	public Contact getRightClickCont() {
+		return this.rightClickCont;
+	}
+	
 	public void showPopup(MouseEvent e) {
+		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));
+		view.popupSendEdge.setText("Show residue pair (" + rightClickCont.i + "," + rightClickCont.j + ") as edge in PyMol");
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 

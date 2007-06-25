@@ -40,7 +40,7 @@ public class Start {
 	public static boolean			PRELOAD_PYMOL = true; 		// if true, pymol is preloaded on startup
 
 	// pymol connection
-	public static final String      HOST = 				"localhost"; //getHostName() ;
+	public static final String      HOST = 				"localhost";
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/bin/pymol-1.0 -R -q"; 		// TODO: make this customizable, i.e. portable
