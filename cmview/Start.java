@@ -1,7 +1,7 @@
 package cmview;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.io.IOException;
+import java.io.*;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -28,8 +28,9 @@ public class Start {
 	/* Constants, TODO: Move to config file */
 	
 	// internal constants (not user changable)
-	public static final String      VERSION = "0.7.1";
-	public static final String		NULL_CHAIN_CODE = 	"NULL"; // value important for Msdsd2Pdb
+	public static final String      VERSION = "0.7.1";				// current version
+	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// value important for Msdsd2Pdb
+	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located 
 
 	// environment (set by install script?)
 	public static final String		TEMP_DIR = System.getProperty("java.io.tmpdir"); // TODO: Check this on Unix/Win/MacOS
@@ -44,7 +45,8 @@ public class Start {
 	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/PyMolAll/pymol/pymol.exe -R"; // TODO: make this customizable, i.e. portable
-	public static final String 		PYMOLFUNCTIONS_SCRIPT = "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
+	//public static final String 		PYMOLFUNCTIONS_SCRIPT = "/project/StruPPi/PyMolAll/pymol/scripts/ioannis/graph.py";
+	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
 	
 	// default values
 	private static final String     DEFAULT_EDGETYPE = "ALL";
@@ -65,6 +67,59 @@ public class Start {
 		return host;
 	}
 
+	/** Copy external resources (data files and executables) from the jar archive to a temp directory.
+	 * The files are marked to be deleted on exit. */
+	private static void unpackResources() {
+		
+		unpackResource(PYMOLFUNCTIONS_SCRIPT);
+        
+	}	
+	
+	/** Copy the resource file 'resource' from the resource dir in the jar file to the temp directory */
+	private static void unpackResource(String resource) {
+		
+		String source = RESOURCE_DIR + resource;
+		File target = new File(TEMP_DIR, resource);
+
+		try{
+			try {
+				target.createNewFile();
+			} catch (IOException e) {
+				System.err.println("Failed to create file " + target);
+				throw e;
+			}
+
+			//InputStream inp = ClassLoader.getSystemResourceAsStream(source);
+			InputStream inp = Runtime.getRuntime().getClass().getResourceAsStream(source);
+			BufferedInputStream in = new BufferedInputStream(inp);
+			FileOutputStream out = new FileOutputStream(target);
+
+			try {
+				int ch;            
+				while((ch = in.read()) != -1)
+					out.write(ch);
+				in.close();
+				out.close();
+			} catch (IOException e) {
+				System.err.println("Failed to read from " + source);
+				throw e;
+			}
+		}
+		catch(IOException e) {
+			System.err.println("Severe error: Failed to create resource " + target);
+		}
+		finally {
+			target.deleteOnExit();
+		}
+        
+	}
+	
+	/** Return the absolute path to the unpacked resource with the given name.
+	 * Unpacking has to be done using unpackResource() */
+	protected static String getResourcePath(String resource) {
+		return new File(TEMP_DIR, resource).getAbsolutePath();
+	}
+	
 	/** Set native host look and feel (is possible) */
 	private static void setLookAndFeel() {
 		try {
@@ -92,6 +147,7 @@ public class Start {
 		System.out.println("CM2PyMol - Interactive contact map viewer");
 		setLookAndFeel();
 		System.out.println("Using temporary directory " + TEMP_DIR);
+		unpackResources();
 		
 		if(DO_LOAD_PYMOL) {
 			// start pymol

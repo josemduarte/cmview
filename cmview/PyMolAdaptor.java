@@ -60,7 +60,7 @@ public class PyMolAdaptor {
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
 		//running python script that defines function for creating the triangles for given residues
-		sendCommand("run "+Start.PYMOLFUNCTIONS_SCRIPT);
+		sendCommand("run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT));
 
 	}
 
