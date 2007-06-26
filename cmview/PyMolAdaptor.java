@@ -59,9 +59,7 @@ public class PyMolAdaptor {
 		sendCommand("show cartoon");
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
-		//running python script that defines function for creating the triangles for given residues
-		sendCommand("run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT));
-
+		// the load of the graph.py script is called already in Start
 	}
 
 	/**
@@ -87,8 +85,11 @@ public class PyMolAdaptor {
 		for(int i = 1; i < residues.size(); i++) {
 			resString += "+" + residues.get(i);
 		}
-
-		sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and resi "+resString);
+		if (resString.length()<PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
+			sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and resi "+resString);
+		} else {
+			System.err.println("Command was too long. Couldn't create pymol selection for the residues.");
+		}
 	}
 
 	public void showTriangles(EdgeNbh commonNbh, int pymolNbhSerial){

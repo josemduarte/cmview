@@ -1,5 +1,6 @@
 package cmview;
 import java.io.*;
+
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -47,6 +48,7 @@ public class Start {
 	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
 	public static final String		PYMOL_CMD = 		"/project/StruPPi/bin/pymol-1.0 -R -q"; 		// TODO: make this customizable, i.e. portable
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
+	public static final long 		PYMOL_CONN_TIMEOUT = 5000; 											// pymol connection time out in milliseconds
 	
 	// default values
 	private static final String     DEFAULT_EDGETYPE = "ALL";
@@ -54,8 +56,8 @@ public class Start {
 	private static final int        DEFAULT_MIN_SEQSEP   = -1;
 	private static final int        DEFAULT_MAX_SEQSEP   = -1;	
 	private static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // used by main function to preload graph from pdb/chain id
-	private static final String     DEFAULT_PDBCODE = "1tdr"; // only for testing database connection
-	private static final String     DEFAULT_CHAINCODE   = "B";    // only for testing database connection
+	private static final String     DEFAULT_PDBCODE = "1bxy"; // only for testing database connection
+	private static final String     DEFAULT_CHAINCODE   = "A";    // only for testing database connection
 	
 	// internal status variables
 	protected static boolean		database_found = true;
@@ -146,20 +148,8 @@ public class Start {
 //				System.err.println(PYMOL_CMD + " does not exist.");
 //				return false;
 //			}
-			Process pymolProcess = Runtime.getRuntime().exec(Start.PYMOL_CMD);
-			// TODO: catch output and wait until pymol is loaded
-//			BufferedInputStream in = new BufferedInputStream(pymolProcess.getInputStream());
-//			try {
-//				int ch;            
-//				while((ch = in.read()) != -1)
-//					System.out.write(ch);
-//				in.close();
-//			} catch (IOException e) {
-//				System.err.println("Failed to read from pymol");
-//				throw e;
-//			}
+			Runtime.getRuntime().exec(Start.PYMOL_CMD);
 		} catch(IOException e) {
-//			System.err.println("Failed to run " + PYMOL_CMD);
 			return false;
 		}
 		return true;				
@@ -170,22 +160,29 @@ public class Start {
 	 * TODO: Make this a (static?) method of PymolAdaptor.
 	 */
 	private static boolean tryConnectingToPymol() {
-		try {
-			OutputStream test = new PymolServerOutputStream(PYMOL_SERVER_URL);
-			test.close();
-		} catch (Exception e) {
-			return false;
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis()-start<PYMOL_CONN_TIMEOUT) {
+			try {
+				OutputStream test = new PymolServerOutputStream(PYMOL_SERVER_URL);
+				String cmd = "run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT);
+				test.write(cmd.getBytes());
+				test.flush();
+				test.close();
+				return true;
+			} catch (Exception e) {
+				continue;
+			}
 		}
-		return true;
+		return false;
 	}
 	
 	/**
 	 * Try connecting to the database server. Returns true on success.
-	 * TODO: Make this a (static?) method of Model.
 	 */
 	private static boolean tryConnectingToDb() {
 		try {
-			new PdbaseModel(DEFAULT_PDBCODE,DEFAULT_CHAINCODE,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+			new PdbaseModel(DEFAULT_PDBCODE,DEFAULT_CHAINCODE,"Ca",DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+			//TODO do this correctly
 		}
 		catch(Exception e) {
 			return false;
@@ -200,22 +197,42 @@ public class Start {
 	private static Model preloadModel(String[] args) {
 		Model mod = null;
 		// parameters should be pdb code and chain code
-		String pdbCode = args[0];
-		String chainCode;
-		if(args.length > 1) {
-			chainCode = args[1];
+		if(USE_DATABASE && database_found) {
+			String pdbCode = args[0];
+			String chainCode;
+			if(args.length > 1) {
+				chainCode = args[1];
+			} else {
+				chainCode = NULL_CHAIN_CODE;
+			}
+			try {
+				mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+			} catch(ModelConstructionError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			}			
 		} else {
-			chainCode = NULL_CHAIN_CODE;
+			System.err.println("No database. Ignoring command line parameters.");
 		}
-		try {
-			mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
-		} catch(ModelConstructionError e) {
-			System.err.println("Could not load structure for given command line parameters:");
-			System.err.println(e.getMessage());
-		}			
 		return mod;
 	}
-		
+
+	/**
+	 * Returns true if a database connection is expected to be available. This is to avoid
+	 * trying to connect when it is clear that the trial will fail.
+	 */
+	public static boolean isDatabaseConnectionAvailable() {
+		return Start.USE_DATABASE && Start.database_found;
+	}
+	
+	/**
+	 * Returns true if a connection to pymol is expected to be available. This is to avoid
+	 * trying to connect when it is clear that the trial will fail.
+	 */
+	public static boolean isPyMolConnectionAvailable() {
+		return Start.USE_PYMOL && Start.pymol_found;
+	}
+
 	public static void main(String args[]){
 		
 		System.out.println("CMView - Interactive contact map viewer");
@@ -230,19 +247,27 @@ public class Start {
 					System.err.println("Warning: Failed to start PyMol automatically. You can try to restart this application after manually starting pymol with the -R parameter.");
 				}
 			}
+			System.out.println("Connecting to PyMol server...");
 			if(tryConnectingToPymol() == false) {
 				System.err.println("No PyMol server found. Some functionality will not be available.");
 				pymol_found = false;
+			} else {
+				System.out.println("Connected.");
+				pymol_found = true;
 			}
 		}
 		
 		if(USE_DATABASE) {
+			System.out.println("Connecting to database...");
 			if(tryConnectingToDb() == false) {
 				System.err.println("No database found. Some functionality will not be available.");
 				database_found = false;
+			} else {
+				System.out.println("Connected.");
+				database_found = true;
 			}
 		}
-					
+		
 		// start myself without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;

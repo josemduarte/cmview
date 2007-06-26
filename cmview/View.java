@@ -433,22 +433,25 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == sendM || e.getSource() == sendP) {	
 			if(mod==null) {
 				showNoContactMapWarning();
+			} else if(!mod.has3DCoordinates()) {
+				showNo3DCoordsWarning();
+			} else if(!Start.isPyMolConnectionAvailable()) {
+				showNoPyMolConnectionWarning();
+			} else if(cmPane.getSelContacts().size() == 0) {
+				showNoContactsSelectedWarning();
 			} else {
-				if(!isPyMolConnectionAvailable()) {
-					showNoPyMolConnectionWarning();
-				} else if(cmPane.getSelContacts().size() == 0) {
-					showNoContactsSelectedWarning();
-				} else {
-					pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
-					this.pymolSelSerial++;
-				}
+				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
+				this.pymolSelSerial++;
 			}
+			
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
 			if(mod==null) {
 				showNoContactMapWarning();
-			} else if(!isPyMolConnectionAvailable()) {				
+			} else if(!mod.has3DCoordinates()) {
+				showNo3DCoordsWarning();
+			} else if(!Start.isPyMolConnectionAvailable()) {				
 				showNoPyMolConnectionWarning();
 			} else if(cmPane.getCommonNbh() == null) {
 				showNoCommonNbhSelectedWarning();
@@ -609,8 +612,10 @@ public class View extends JFrame implements ActionListener {
 		// send current edge
 		if(e.getSource() == popupSendEdge) {
 			if(mod==null) {
-				showNoContactMapWarning();				
-			} else if(!isPyMolConnectionAvailable()) {				
+				showNoContactMapWarning();
+			} else if(!mod.has3DCoordinates()) {
+				showNo3DCoordsWarning();
+			} else if(!Start.isPyMolConnectionAvailable()) {				
 				showNoPyMolConnectionWarning();
 			} else {
 				pymolAdaptor.sendSingleEdge(pymolSelSerial, cmPane.getRightClickCont());
@@ -622,7 +627,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleLoadFromGraphDb() {
-		if(!isDatabaseConnectionAvailable()) {
+		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
 			LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction() {
@@ -649,7 +654,7 @@ public class View extends JFrame implements ActionListener {
 
 
 	private void handleLoadFromPdbase() {
-		if(!isDatabaseConnectionAvailable()) {
+		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
 	//		String pdbCode = "1tdr";
@@ -692,7 +697,7 @@ public class View extends JFrame implements ActionListener {
 //		String edgeType = "Ca";
 //		double distCutoff = 8.0;
 //		int seqSep = 0;
-		if(!isDatabaseConnectionAvailable()) {
+		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
 			LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction() {
@@ -764,8 +769,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	public void doLoadFromCmFile(String f) {
-		System.out.println("Loading from Pdb file");
-		System.out.println("Filename:\t" + f);
+		System.out.println("Loading from contact map file "+f);
 		try {
 			Model mod = new ContactMapFileModel(f);
 			this.spawnNewViewWindow(mod);
@@ -1029,7 +1033,7 @@ public class View extends JFrame implements ActionListener {
 		}
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
 
-		if (Start.USE_PYMOL) {
+		if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in pymol
 			view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl, 
 					mod.getPDBCode(), mod.getChainCode(), mod.getTempPDBFileName());
@@ -1095,22 +1099,5 @@ public class View extends JFrame implements ActionListener {
 		return comNbhSizes;
 	}
 	
-	/**
-	 * Returns true if a database connection is expected to be available. This is to avoid
-	 * trying to connect when it is clear that the trial will fail.
-	 * TODO: Move this to Start/Session class
-	 */
-	protected boolean isDatabaseConnectionAvailable() {
-		return Start.USE_DATABASE && Start.database_found;
-	}
-	
-	/**
-	 * Returns true if a connection to pymol is expected to be available. This is to avoid
-	 * trying to connect when it is clear that the trial will fail.
-	 * TODO: Move this to Start/Session class
-	 */
-	protected boolean isPyMolConnectionAvailable() {
-		return Start.USE_PYMOL && Start.pymol_found;
-	}
 }
 

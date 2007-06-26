@@ -3,6 +3,8 @@ import proteinstructure.*;
 
 import java.sql.SQLException;
 
+import cmview.Start;
+
 /** 
  * A contact map data model based on a single_model_graph loaded from the database
  * 
@@ -27,22 +29,25 @@ public class GraphDbModel extends Model {
 			graph = new Graph(db, pdbCode, chainCode, distCutoff, edgeType);
 			
 			// load structure from MSD (to display in Pymol)
-			try {
-				this.pdb = new Pdb(pdbCode, chainCode, "msdsd_00_07_a");
-				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-			} catch (PdbaseAcCodeNotFoundError e) {
-				System.err.println("Failed to load structure because accession code was not found in Pdbase");
-			} catch (MsdsdAcCodeNotFoundError e) {
-				System.err.println("Failed to load structure because accession code was not found in MSD");
-			} catch (MsdsdInconsistentResidueNumbersError e) {
-				System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
-			} catch (PdbaseInconsistencyError e) {
-				System.err.println("Failed to load structure because of inconsistency in Pdbase");
-			} catch(SQLException e) {
-				System.err.println("Failed to load structure because of database error");
+			if (!Start.isDatabaseConnectionAvailable()) {
+				System.err.println("No database connection. Can't load structure.");					
+			} else {
+				try {
+					this.pdb = new Pdb(pdbCode, chainCode, "msdsd_00_07_a");
+					super.writeTempPdbFile(); // this doesn't make sense without a pdb object
+				} catch (PdbaseAcCodeNotFoundError e) {
+					System.err.println("Failed to load structure because accession code was not found in Pdbase");
+				} catch (MsdsdAcCodeNotFoundError e) {
+					System.err.println("Failed to load structure because accession code was not found in MSD");
+				} catch (MsdsdInconsistentResidueNumbersError e) {
+					System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
+				} catch (PdbaseInconsistencyError e) {
+					System.err.println("Failed to load structure because of inconsistency in Pdbase");
+				} catch(SQLException e) {
+					System.err.println("Failed to load structure because of database error");
+				}
+				// if pdb created failed then pdb=null
 			}
-			// if pdb created failed then pdb=null
-
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			super.printWarnings(chainCode);
