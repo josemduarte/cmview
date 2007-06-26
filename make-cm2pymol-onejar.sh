@@ -46,7 +46,7 @@ cp -R $aglappetag/tools $cmviewtag
 rm -rf $aglappetag
 
 # setting classpath and compiling
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/JSAP-2.0a.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/junit-3.8.1.jar:/project/StruPPi/jars/xmlrpc-2.0.jar:/project/StruPPi/jars/JRclient-RE817.jar
+CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar
 echo "Compiling..."
 cd $cmviewtag
 javac cmview/*.java cmview/datasources/*.java
