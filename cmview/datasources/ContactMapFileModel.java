@@ -27,11 +27,11 @@ public class ContactMapFileModel extends Model {
 			
 			this.graph = new Graph(fileName);
 			
-			String pdbCode = graph.accode;
-			String chainPdbCode = graph.chaincode;
+			String pdbCode = graph.getPdbCode();
+			String chainPdbCode = graph.getPdbChainCode();
 			
 			// check whether sequence info exists
-			if(graph.sequence.equals("")) {
+			if(graph.getSequence().equals("")) {
 				System.err.println("File contains no sequence information. Many features will be unavailable.");
 			}
 			

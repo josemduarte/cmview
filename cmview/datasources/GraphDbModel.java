@@ -73,12 +73,12 @@ public class GraphDbModel extends Model {
 			graph = new Graph(db, graphId);
 			
 			// read information about structure from graph object
-			String pdbCode = graph.accode;
-			String chainCode = graph.chaincode;
+			String pdbCode = graph.getPdbCode();
+			String pdbChainCode = graph.getPdbChainCode();
 			
 			// load structure from MSD (to display in Pymol)
 			try {
-				this.pdb = new Pdb(pdbCode, chainCode, "msdsd_00_07_a");
+				this.pdb = new Pdb(pdbCode, pdbChainCode, "msdsd_00_07_a");
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 			} catch (PdbaseAcCodeNotFoundError e) {
 				System.err.println("Failed to load structure because accession code was not found in Pdbase");
@@ -95,7 +95,7 @@ public class GraphDbModel extends Model {
 
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
-			super.printWarnings(chainCode);
+			super.printWarnings(pdbChainCode);
 			
 		} catch (GraphIdNotFoundError e) {
 			System.err.println("Error: Could not find graph id in database.");

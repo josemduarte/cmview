@@ -59,8 +59,8 @@ public abstract class Model {
 	 * exception will be thrown.
 	 */
 	protected void initializeContactMap() {
-		matrixSize = graph.fullLength;
-		unobservedResidues = (graph.fullLength - graph.obsLength);
+		matrixSize = graph.getFullLength();
+		unobservedResidues = (graph.getFullLength() - graph.getObsLength());
 	 }	
 	
 	/** 
@@ -104,17 +104,17 @@ public abstract class Model {
 	
 	/** Returns the number of contacts */
 	public int getNumberOfContacts() {
-		return graph.numContacts;
+		return graph.getNumContacts();
 	}
 	
 	/** Returns true if the graph is directed, false otherwise */
 	public boolean isDirected() {
-		return graph.directed;
+		return graph.isDirected();
 	}
 
 	/** Returns the pdb code of the underlying structure */
 	public String getPDBCode() {
-		return graph.accode;
+		return graph.getPdbCode();
 	}
 
 	/** 
@@ -122,21 +122,21 @@ public abstract class Model {
 	 * Note that the internal chain code may be different from the pdb chain code given when loading the structure.
 	 */
 	public String getChainCode() {
-		return graph.chain; // gets the internal chain code (may be != pdb chain code)
+		return graph.getChainCode(); // gets the internal chain code (may be != pdb chain code)
 	}
 	
 	/**
 	 * Returns the contact type 
 	 */
 	public String getContactType() {
-		return graph.ct;
+		return graph.getContactType();
 	}
 	
 	/**
 	 * Returns the distance cutoff
 	 */
 	public double getDistanceCutoff() {
-		return graph.cutoff;
+		return graph.getCutoff();
 	}
 	
 	/** Returns the sequence separation of the current graph */
@@ -154,7 +154,7 @@ public abstract class Model {
 	 * if no sequence information is available.
 	 */
 	public String getSequence() {
-		return graph.sequence;
+		return graph.getSequence();
 	}
 	
 	/** 
@@ -270,7 +270,7 @@ public abstract class Model {
 	 * @return
 	 */
 	public boolean hasSequence() {
-		return graph.sequence.equals("");
+		return graph.getSequence().equals("");
 	}
 	
 	public double[][] getDensityMatrix() {
