@@ -968,18 +968,17 @@ public class View extends JFrame implements ActionListener {
 	
 	/** Shows a window with a warning message that no contact map is loaded yet */
 	private void showNoContactMapWarning() {
-		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Error", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/** Shows a window with a warning message that we can't show distance matrix for this contact type */
 	private void showCantShowDistMatrixWarning() {
-		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Error", JOptionPane.INFORMATION_MESSAGE);
-		
+		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
 	/** Warning dialog to be shown if a function is being called which required 3D coordinates and they are missing */
 	private void showNo3DCoordsWarning(){
-		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Error", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
 	/** Error dialog to be shown if loading a model failed. */
@@ -989,20 +988,20 @@ public class View extends JFrame implements ActionListener {
 	
 	/** Error dialog to be shown when trying to do a db operation without a db connection */
 	private void showNoDatabaseConnectionWarning() {
-		JOptionPane.showMessageDialog(this, "Failed to perform operation. No database connection available.", "Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(this, "Failed to perform operation. No database connection available.", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
 	/** Error dialog to be shown when trying to do a db operation without a db connection */
 	private void showNoPyMolConnectionWarning() {
-		JOptionPane.showMessageDialog(this, "Failed to perform operation. No Communication with PyMol available", "Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(this, "Failed to perform operation. No Communication with PyMol available", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
 	private void showNoCommonNbhSelectedWarning() {
-		JOptionPane.showMessageDialog(this, "No common neighbourhood selected (Use Show Common Neighbours Mode)", "Warning", JOptionPane.ERROR_MESSAGE);		
+		JOptionPane.showMessageDialog(this, "No common neighbourhood selected (Use Show Common Neighbours Mode)", "Warning", JOptionPane.INFORMATION_MESSAGE);		
 	}
 	
 	private void showNoContactsSelectedWarning() {
-		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.ERROR_MESSAGE);				
+		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
 	/*---------------------------- public methods ---------------------------*/
