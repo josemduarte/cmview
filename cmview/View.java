@@ -1098,17 +1098,19 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * Returns true if a database connection is expected to be available. This is to avoid
 	 * trying to connect when it is clear that the trial will fail.
+	 * TODO: Move this to Start/Session class
 	 */
 	protected boolean isDatabaseConnectionAvailable() {
-		return Start.USE_DATABASE;
+		return Start.USE_DATABASE && Start.database_found;
 	}
 	
 	/**
 	 * Returns true if a connection to pymol is expected to be available. This is to avoid
 	 * trying to connect when it is clear that the trial will fail.
+	 * TODO: Move this to Start/Session class
 	 */
 	protected boolean isPyMolConnectionAvailable() {
-		return Start.USE_PYMOL;
+		return Start.USE_PYMOL && Start.pymol_found;
 	}
 }
 
