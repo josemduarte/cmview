@@ -30,8 +30,8 @@ public class Start {
 	
 	// internal constants (not user changable)
 	public static final String		APP_NAME = "CM2PyMol";			// name of this application
-	public static final String      VERSION = "0.8";				// current version
-	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// value important for Msdsd2Pdb
+	public static final String      VERSION = "0.8.1";				// current version
+	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// for input pdbChainCodes
 	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
 	public static final String      PYMOL_HOST = 			"localhost";							
@@ -267,7 +267,6 @@ public class Start {
 	 */
 	private static boolean tryConnectingToDb() {
 		try {
-			//new Pdb(DEFAULT_PDBCODE, DEFAULT_CHAINCODE, DEFAULT_PDB_DB);
 			conn = new MySQLConnection(DB_HOST, DB_USER, DB_PWD);
 		}
 		catch(Exception e) {

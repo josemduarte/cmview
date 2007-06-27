@@ -1,7 +1,7 @@
 package cmview.datasources;
 import proteinstructure.*;
 
-//import java.sql.SQLException;
+import java.sql.SQLException;
 
 import cmview.Start;
 
@@ -39,8 +39,8 @@ public class GraphDbModel extends Model {
 					System.err.println("Failed to load structure because accession code was not found in MSD");
 				} catch (MsdsdInconsistentResidueNumbersError e) {
 					System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
-//				} catch(SQLException e) {
-//					System.err.println("Failed to load structure because of database error");
+				} catch(SQLException e) {
+					System.err.println("Failed to load structure because of database error");
 				}
 				// if pdb created failed then pdb=null
 			}
@@ -51,9 +51,9 @@ public class GraphDbModel extends Model {
 		} catch (GraphIdNotFoundError e) {
 			System.err.println("Error: Could not find graph id in database.");
 			throw new ModelConstructionError(e);
-//		} catch(SQLException e) {
-//			System.err.println("Error: Could not read graph from database");
-//			throw new ModelConstructionError(e);
+		} catch(SQLException e) {
+			System.err.println("Error: Could not read graph from database");
+			throw new ModelConstructionError(e);
 		}	
 	}
 	
@@ -80,8 +80,8 @@ public class GraphDbModel extends Model {
 				System.err.println("Failed to load structure because accession code was not found in MSD");
 			} catch (MsdsdInconsistentResidueNumbersError e) {
 				System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
-//			} catch(SQLException e) {
-//				System.err.println("Failed to load structure because of database error");
+			} catch(SQLException e) {
+				System.err.println("Failed to load structure because of database error");
 			}
 			// if pdb created failed then pdb=null
 
@@ -92,9 +92,9 @@ public class GraphDbModel extends Model {
 		} catch (GraphIdNotFoundError e) {
 			System.err.println("Error: Could not find graph id in database.");
 			throw new ModelConstructionError(e);
-//		} catch(SQLException e) {
-//			System.err.println("Error: Could not read graph from database");
-//			throw new ModelConstructionError(e);
+		} catch(SQLException e) {
+			System.err.println("Error: Could not read graph from database");
+			throw new ModelConstructionError(e);
 		}		
 		
 	}

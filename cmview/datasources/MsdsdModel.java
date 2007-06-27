@@ -1,7 +1,7 @@
 package cmview.datasources;
 import proteinstructure.*;
 
-//import java.sql.SQLException;
+import java.sql.SQLException;
 
 import cmview.Start;
 
@@ -41,9 +41,9 @@ public class MsdsdModel extends Model {
 		} catch (MsdsdInconsistentResidueNumbersError e) {
 			System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
 			throw new ModelConstructionError(e);
-//		} catch(SQLException e) {
-//			System.err.println("Failed to load structure because of database error");
-//			throw new ModelConstructionError(e);
+		} catch(SQLException e) {
+			System.err.println("Failed to load structure because of database error");
+			throw new ModelConstructionError(e);
 		}
 	}
 	

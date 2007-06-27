@@ -3,7 +3,7 @@ import proteinstructure.*;
 import cmview.Start;
 
 import java.io.IOException;
-//import java.sql.SQLException;
+import java.sql.SQLException;
 
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.
@@ -47,8 +47,8 @@ public class ContactMapFileModel extends Model {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
 					} catch (PdbaseInconsistencyError e) {
 						System.err.println("Failed to load structure because of inconsistency in Pdbase");
-//					} catch(SQLException e) {
-//						System.err.println("Failed to load structure because of database error");
+					} catch(SQLException e) {
+						System.err.println("Failed to load structure because of database error");
 					}
 					// if pdb creation failed then pdb=null
 				}

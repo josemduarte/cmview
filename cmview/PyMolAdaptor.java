@@ -107,7 +107,7 @@ public class PyMolAdaptor {
 			}
 		}
 		resString += "resi " + (last-start == 0?last:(start + "-" + last));
-		System.out.println(resString);
+		//System.out.println(resString);
 
 		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
 			sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and "+resString);

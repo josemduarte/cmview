@@ -1,5 +1,5 @@
 package cmview.datasources;
-//import java.sql.SQLException;
+import java.sql.SQLException;
 
 import cmview.Start;
 
@@ -38,9 +38,9 @@ public class PdbaseModel extends Model {
 		} catch (PdbaseInconsistencyError e) {
 			System.err.println("Failed to load structure because of inconsistency in Pdbase");
 			throw new ModelConstructionError(e);
-//		} catch(SQLException e) {
-//			System.err.println("Failed to load structure because of database error");
-//			throw new ModelConstructionError(e);
+		} catch(SQLException e) {
+			System.err.println("Failed to load structure because of database error");
+			throw new ModelConstructionError(e);
 		}
 	}
 }
