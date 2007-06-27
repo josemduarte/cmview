@@ -61,7 +61,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
-	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp;
+	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
 	private Model mod;
@@ -378,9 +378,12 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpAbout = new JMenuItem("About");
 		mmHelpHelp = new JMenuItem("Help");
+		mmHelpWriteConfig = new JMenuItem("Write default configuration file");
 		mmHelpAbout.addActionListener(this);
 		mmHelpHelp.addActionListener(this);
+		mmHelpWriteConfig.addActionListener(this);
 		menu.add(mmHelpHelp);
+		menu.add(mmHelpWriteConfig);
 		menu.add(mmHelpAbout);
 		menuBar.add(menu);
 
@@ -608,7 +611,10 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmHelpHelp) {
 			handleHelpHelp();
-		}	
+		}
+		if(e.getSource() == mmHelpWriteConfig) {
+			handleHelpWriteConfig();
+		}
 		
 		// Popup actions
 		// send current edge
@@ -913,6 +919,15 @@ public class View extends JFrame implements ActionListener {
 			showNoContactMapWarning();
 		} else {
 			cmPane.selectAllContacts();
+		}
+	}
+	
+	private void handleHelpWriteConfig() {
+		try {
+			Start.writeDefaultConfigToFile(Start.CONFIG_FILE_NAME);
+			System.out.println("Writing default configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
+		} catch(IOException e) {
+			System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
 		}
 	}
 	

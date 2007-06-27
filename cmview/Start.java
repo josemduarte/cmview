@@ -5,8 +5,6 @@ import java.util.Properties;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import proteinstructure.Pdb;
-
 import tools.MySQLConnection;
 import tools.PymolServerOutputStream;
 
@@ -51,7 +49,7 @@ public class Start {
 
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; 		
-	public static String			PYMOL_PARAMETERS =  	" -R -q";
+	public static String			PYMOL_PARAMETERS =  	"-R -q";
 	public static long 				PYMOL_CONN_TIMEOUT = 	10000; 					// pymol connection time out in milliseconds
 	
 	// database connection
@@ -61,8 +59,9 @@ public class Start {
 	
 	// default values for loading contact maps
 	public static final String		DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
+	public static String     		DEFAULT_PDB_DB = 			"pdbase";
+	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";
 	private static String     		DEFAULT_EDGETYPE = 			"ALL";
-	private static String     		DEFAULT_PDB_DB = 			"pdbase";
 	private static final int        DEFAULT_MIN_SEQSEP = 		-1;
 	private static final int        DEFAULT_MAX_SEQSEP = 		-1;	
 	private static double 			DEFAULT_DISTANCE_CUTOFF = 	4.1; 				// used by main function to preload graph from pdb/chain id
@@ -73,7 +72,6 @@ public class Start {
 	protected static Properties		currentProperties;
 	protected static Properties		defaultProperties;
 	private static MySQLConnection	conn;
-	
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 
@@ -115,18 +113,6 @@ public class Start {
 		return d;
 	}
 
-	/**
-	 * Writes a configuration file with default values for all customizable variables.
-	 * Note that the variable defaultProperties has to be initialized previously.
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
-	 */
-	private static void writeDefaultConfigToFile(String fileName) throws FileNotFoundException, IOException {
-		Properties d = defaultProperties;
-		String comment = "Properties file for " + APP_NAME + " " + VERSION;
-		d.store(new FileOutputStream(fileName), comment);
-	}
-	
 	/**
 	 * Loads user properties from the given configuration file using the given properties as default values.
 	 * Returns null on failure;
@@ -248,7 +234,7 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				return false;
 			}
-			Runtime.getRuntime().exec(PYMOL_EXECUTABLE + PYMOL_PARAMETERS);
+			Runtime.getRuntime().exec(PYMOL_EXECUTABLE + " " + PYMOL_PARAMETERS);
 		} catch(IOException e) {
 			return false;
 		}
@@ -317,6 +303,20 @@ public class Start {
 		return mod;
 	}
 
+	/*---------------------------- public methods ---------------------------*/
+
+	/**
+	 * Writes a configuration file with default values for all customizable variables.
+	 * Note that the variable defaultProperties has to be initialized previously.
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	public static void writeDefaultConfigToFile(String fileName) throws FileNotFoundException, IOException {
+		Properties d = defaultProperties;
+		String comment = "Properties file for " + APP_NAME + " " + VERSION;
+		d.store(new FileOutputStream(fileName), comment);
+	}
+	
 	/**
 	 * Returns true if a database connection is expected to be available. This is to avoid
 	 * trying to connect when it is clear that the trial will fail.
@@ -333,6 +333,10 @@ public class Start {
 		return Start.USE_PYMOL && Start.pymol_found;
 	}
 
+	public static MySQLConnection getDbConnection() {
+		return conn;
+	}
+	
 	public static void main(String args[]){
 		
 		System.out.println("CMView - Interactive contact map viewer");
@@ -343,7 +347,7 @@ public class Start {
 		defaultProperties = getDefaultProperties();
 		try {
 			Properties p = loadUserProperties(CONFIG_FILE_NAME, defaultProperties);
-			System.out.println("Loading configuration from " + CONFIG_FILE_NAME);
+			System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
 			currentProperties = p;
 			applyUserProperties(currentProperties);
 		} catch (FileNotFoundException e) {
@@ -351,15 +355,7 @@ public class Start {
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ". Using default settings.");
 		}
-		
-		// TODO: Move this to "Settings" menu
-//		try {
-//			writeDefaultConfigToFile(CONFIG_FILE_NAME);
-//			System.out.println("Writing configuration file " + new File(CONFIG_FILE_NAME).getAbsolutePath());
-//		} catch(IOException e) {
-//			System.err.println("Could not write configuration file " + new File(CONFIG_FILE_NAME).getAbsolutePath());
-//		}
-		
+				
 		setLookAndFeel();
 		System.out.println("Using temporary directory " + TEMP_DIR);
 		unpackResources();

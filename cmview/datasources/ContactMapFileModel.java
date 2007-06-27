@@ -3,7 +3,7 @@ import proteinstructure.*;
 import cmview.Start;
 
 import java.io.IOException;
-import java.sql.SQLException;
+//import java.sql.SQLException;
 
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.
@@ -25,10 +25,10 @@ public class ContactMapFileModel extends Model {
 		// load Contact graph from file
 		try {
 			
-			this.graph = new Graph(fileName);
+			this.graph = new FileGraph(fileName);
 			
 			String pdbCode = graph.getPdbCode();
-			String chainPdbCode = graph.getPdbChainCode();
+			String pdbChainCode = graph.getPdbChainCode();
 			
 			// check whether sequence info exists
 			if(graph.getSequence().equals("")) {
@@ -36,23 +36,19 @@ public class ContactMapFileModel extends Model {
 			}
 			
 			// load structure from pdbase if possible
-			if(!pdbCode.equals("") && !chainPdbCode.equals("")) {
+			if(!pdbCode.equals("") && !pdbChainCode.equals("")) {
 				if (!Start.isDatabaseConnectionAvailable()) {
 					System.err.println("No database connection. Can't load structure.");					
 				} else {
 					try {
-						this.pdb = new Pdb(pdbCode, chainPdbCode); // by default loading from pdbase
+						this.pdb = new PdbasePdb(pdbCode, pdbChainCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 					} catch (PdbaseAcCodeNotFoundError e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
-					} catch (MsdsdAcCodeNotFoundError e) {
-						System.err.println("Failed to load structure because accession code was not found in MSD");
-					} catch (MsdsdInconsistentResidueNumbersError e) {
-						System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
 					} catch (PdbaseInconsistencyError e) {
 						System.err.println("Failed to load structure because of inconsistency in Pdbase");
-					} catch(SQLException e) {
-						System.err.println("Failed to load structure because of database error");
+//					} catch(SQLException e) {
+//						System.err.println("Failed to load structure because of database error");
 					}
 					// if pdb creation failed then pdb=null
 				}

@@ -17,17 +17,17 @@ public class PdbFileModel extends Model {
 	 * Overloaded constructor to load the data.
 	 * @throws ModelConstructionError 
 	 */
-	public PdbFileModel(String fileName, String chainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws ModelConstructionError {
+	public PdbFileModel(String fileName, String pdbChainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws ModelConstructionError {
 		
 		// load PDB file
 		try {
-			this.pdb = new Pdb(fileName, chainCode, false); // TODO: add chain code parameter
+			this.pdb = new PdbfilePdb(fileName, pdbChainCode);
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 
 			super.writeTempPdbFile();
 			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
-			super.printWarnings(chainCode);
+			super.printWarnings(pdbChainCode);
 			
 		} catch (IOException e) {
 			System.err.println("Failed to load structure from PDB file.");
