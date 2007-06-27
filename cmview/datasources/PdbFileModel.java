@@ -32,6 +32,9 @@ public class PdbFileModel extends Model {
 		} catch (IOException e) {
 			System.err.println("Failed to load structure from PDB file.");
 			throw new ModelConstructionError(e);
+		} catch (PdbfileFormatError e){
+			System.err.println("Failed to load structure from PDB file. Wrong file format");
+			throw new ModelConstructionError(e);
 		}
 				
 	}
