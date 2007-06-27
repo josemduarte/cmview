@@ -781,7 +781,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		Contact cont = screen2cm(mousePressedPos); 
 		EdgeNbh comNbh = this.currCommonNbh;
 
-		System.out.println("Selecting common neighbours for contact "+cont);
+		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
 		System.out.println("Motif: "+comNbh);
 		// drawing corridor
 		drawCorridor(cont, g2d);

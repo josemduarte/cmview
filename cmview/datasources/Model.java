@@ -47,7 +47,7 @@ public abstract class Model {
 	 */
 	protected void writeTempPdbFile() {
 		try {
-			pdb.dump2pdbfile(getTempPDBFileName());
+			pdb.dump2pdbfile(getTempPdbFileName());
 		} catch (IOException e) {
 			System.err.println("Error writing temporary PDB file");
 		}
@@ -120,6 +120,8 @@ public abstract class Model {
 	/** 
 	 * Returns the internal chain code of the underlying structure.
 	 * Note that the internal chain code may be different from the pdb chain code given when loading the structure.
+	 * For a database model, the internal chain code is the one given by the database (Pdbase or MSD). When loading
+	 * from pdb file, the internal chain code is the same as the pdb chain code or 'A' if the pdb chain code is empty.
 	 */
 	public String getChainCode() {
 		return graph.getChainCode(); // gets the internal chain code (may be != pdb chain code)
@@ -162,14 +164,14 @@ public abstract class Model {
 	 * When called for the first time, this method creates the File object and marks it to be deleted on exit. */
 	protected File getTempPdbFile() {
 		if(tempPdbFile == null) {
-			tempPdbFile = new File(Start.TEMP_DIR, getPDBCode() + ".pdb");
+			tempPdbFile = new File(Start.TEMP_DIR, getPDBCode() + getChainCode() + ".pdb"); // TODO: Make sure that getChainCode() never returns " "
 			tempPdbFile.deleteOnExit(); // will delete the file when the VM is closed
 		}
 		return tempPdbFile;
 	}
 	
 	/** Returns the name of the temporary pdb file */
-	public String getTempPDBFileName(){
+	public String getTempPdbFileName(){
 		return getTempPdbFile().getAbsolutePath();
 	}
 

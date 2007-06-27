@@ -1,9 +1,13 @@
 package cmview;
 import java.io.*;
+import java.util.Properties;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import proteinstructure.Pdb;
+
+import tools.MySQLConnection;
 import tools.PymolServerOutputStream;
 
 import cmview.datasources.Model;
@@ -26,42 +30,138 @@ public class Start {
 
 	static final long serialVersionUID = 1l;
 	
-	/* Constants, TODO: Move to config file */
-	
 	// internal constants (not user changable)
+	public static final String		APP_NAME = "CM2PyMol";			// name of this application
 	public static final String      VERSION = "0.8";				// current version
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// value important for Msdsd2Pdb
-	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located 
-
-	// environment (set by install script?)
-	public static final String		TEMP_DIR = System.getProperty("java.io.tmpdir"); // TODO: Check this on Unix/Win/MacOS
+	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located
+	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
+	public static final String      PYMOL_HOST = 			"localhost";							
+	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":9123";
+	
+	// configurable constants, TODO: Move to config file	
+	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file (can be overridden by cmd line param)
 	
 	// user customizations
-	public static final int			INITIAL_SCREEN_SIZE = 800;	// initial size of the contactMapPane in pixels
-	public static boolean			USE_DATABASE = true; 		// if false, all functions involving a database will be hidden 
-	public static boolean			USE_PYMOL = true;			// if false, all pymol specific functionality will be hidden
-	public static boolean			PRELOAD_PYMOL = true; 		// if true, pymol is preloaded on startup
+	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir"); // TODO: Check this on Unix/Win/MacOS
+	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
+	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
+	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 
 	// pymol connection
-	public static final String      HOST = 				"localhost";
-	public static final String		PYMOL_SERVER_URL = 	"http://"+HOST+":9123";
-	public static final String		DEFAULT_GRAPH_DB =	"pdb_reps_graph"; 								// shown in load from graph db dialog
-	public static final String		PYMOL_CMD = 		"/project/StruPPi/bin/pymol-1.0 -R -q"; 		// TODO: make this customizable, i.e. portable
-	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
-	public static final long 		PYMOL_CONN_TIMEOUT = 5000; 											// pymol connection time out in milliseconds
+	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; 		
+	public static String			PYMOL_PARAMETERS =  	" -R -q";
+	public static long 				PYMOL_CONN_TIMEOUT = 	10000; 					// pymol connection time out in milliseconds
 	
-	// default values
-	private static final String     DEFAULT_EDGETYPE = "ALL";
-	private static final String     DEFAULT_PDB_DB   = "pdbase";
-	private static final int        DEFAULT_MIN_SEQSEP   = -1;
-	private static final int        DEFAULT_MAX_SEQSEP   = -1;	
-	private static double 			DEFAULT_DISTANCE_CUTOFF = 4.1; // used by main function to preload graph from pdb/chain id
-	private static final String     DEFAULT_PDBCODE = "1bxy"; // only for testing database connection
-	private static final String     DEFAULT_CHAINCODE   = "A";    // only for testing database connection
+	// database connection
+	public static String			DB_HOST = "white";
+	public static String			DB_USER = getUserName();
+	public static String			DB_PWD = "nieve";
+	
+	// default values for loading contact maps
+	public static final String		DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
+	private static String     		DEFAULT_EDGETYPE = 			"ALL";
+	private static String     		DEFAULT_PDB_DB = 			"pdbase";
+	private static final int        DEFAULT_MIN_SEQSEP = 		-1;
+	private static final int        DEFAULT_MAX_SEQSEP = 		-1;	
+	private static double 			DEFAULT_DISTANCE_CUTOFF = 	4.1; 				// used by main function to preload graph from pdb/chain id
 	
 	// internal status variables
 	protected static boolean		database_found = true;
 	protected static boolean		pymol_found = true;
+	protected static Properties		currentProperties;
+	protected static Properties		defaultProperties;
+	private static MySQLConnection	conn;
+	
+	
+	/** 
+	 * Get user name from operating system (for use as database username). 
+	 * */
+	private static String getUserName() {
+		String user = null;
+		user = System.getProperty("user.name");
+		if(user == null) {
+			System.err.println("Could not get user name from operating system.");
+		}
+		return user;
+	}
+		
+	/**
+	 * Returns a property object with the default values for all customizable variables.
+	 * TODO: Read this from another (hidden) config file
+	 */
+	private static Properties getDefaultProperties() {
+
+		Properties d = new Properties();
+		d.setProperty("TEMP_DIR",TEMP_DIR);
+		d.setProperty("INITIAL_SCREEN_SIZE",new Integer(INITIAL_SCREEN_SIZE).toString());
+		d.setProperty("USE_DATABASE",new Boolean(USE_DATABASE).toString());
+		d.setProperty("USE_PYMOL",new Boolean(USE_PYMOL).toString());
+		d.setProperty("PRELOAD_PYMOL",new Boolean(PRELOAD_PYMOL).toString());
+		
+		d.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);
+		d.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);		
+		d.setProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString());
+		
+		d.setProperty("DB_HOST",DB_HOST);
+		d.setProperty("DB_USER",DB_USER);
+		d.setProperty("DB_PWD",DB_PWD);
+
+		d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
+		d.setProperty("DEFAULT_EDGETYPE",DEFAULT_EDGETYPE);
+		d.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
+		
+		return d;
+	}
+
+	/**
+	 * Writes a configuration file with default values for all customizable variables.
+	 * Note that the variable defaultProperties has to be initialized previously.
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	private static void writeDefaultConfigToFile(String fileName) throws FileNotFoundException, IOException {
+		Properties d = defaultProperties;
+		String comment = "Properties file for " + APP_NAME + " " + VERSION;
+		d.store(new FileOutputStream(fileName), comment);
+	}
+	
+	/**
+	 * Loads user properties from the given configuration file using the given properties as default values.
+	 * Returns null on failure;
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	private static Properties loadUserProperties(String fileName, Properties defaultProperties) throws FileNotFoundException, IOException {
+		Properties p = new Properties(defaultProperties);
+		p.load(new FileInputStream(fileName));
+		return p;
+	}
+
+	/**
+	 * Overwrite the local constants with the values from the given properties object
+	 */
+	private static void applyUserProperties(Properties p) {
+
+		TEMP_DIR = p.getProperty("TEMP_DIR");
+		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE"));
+		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE"));
+		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL"));
+		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL"));
+		
+		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS");
+		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE");		
+		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT"));
+		
+		DB_HOST = p.getProperty("DB_HOST");
+		DB_USER = p.getProperty("DB_USER");
+		DB_PWD = p.getProperty("DB_PWD");
+
+		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB");
+		DEFAULT_EDGETYPE = p.getProperty("DEFAULT_EDGETYPE");
+		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF"));
+	}
 	
 	/** Copy external resources (data files and executables) from the jar archive to a temp directory.
 	 * The files are marked to be deleted on exit. */
@@ -143,12 +243,12 @@ public class Start {
 	private static boolean runPymol() {
 		try {
 			System.out.println("Starting PyMol...");
-//			File f = new File(Start.PYMOL_CMD);
-//			if(!f.exists()) {
-//				System.err.println(PYMOL_CMD + " does not exist.");
-//				return false;
-//			}
-			Runtime.getRuntime().exec(Start.PYMOL_CMD);
+			File f = new File(PYMOL_EXECUTABLE);
+			if(!f.exists()) {
+				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
+				return false;
+			}
+			Runtime.getRuntime().exec(PYMOL_EXECUTABLE + PYMOL_PARAMETERS);
 		} catch(IOException e) {
 			return false;
 		}
@@ -181,8 +281,8 @@ public class Start {
 	 */
 	private static boolean tryConnectingToDb() {
 		try {
-			new PdbaseModel(DEFAULT_PDBCODE,DEFAULT_CHAINCODE,"Ca",DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
-			//TODO do this correctly
+			//new Pdb(DEFAULT_PDBCODE, DEFAULT_CHAINCODE, DEFAULT_PDB_DB);
+			conn = new MySQLConnection(DB_HOST, DB_USER, DB_PWD);
 		}
 		catch(Exception e) {
 			return false;
@@ -236,6 +336,30 @@ public class Start {
 	public static void main(String args[]){
 		
 		System.out.println("CMView - Interactive contact map viewer");
+		
+		// TODO: check whether config file is passed as command line parameter, otherwise use default one
+		
+		// load configuration
+		defaultProperties = getDefaultProperties();
+		try {
+			Properties p = loadUserProperties(CONFIG_FILE_NAME, defaultProperties);
+			System.out.println("Loading configuration from " + CONFIG_FILE_NAME);
+			currentProperties = p;
+			applyUserProperties(currentProperties);
+		} catch (FileNotFoundException e) {
+			System.out.println("No configuration file found. Using default settings.");
+		} catch (IOException e) {
+			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ". Using default settings.");
+		}
+		
+		// TODO: Move this to "Settings" menu
+//		try {
+//			writeDefaultConfigToFile(CONFIG_FILE_NAME);
+//			System.out.println("Writing configuration file " + new File(CONFIG_FILE_NAME).getAbsolutePath());
+//		} catch(IOException e) {
+//			System.err.println("Could not write configuration file " + new File(CONFIG_FILE_NAME).getAbsolutePath());
+//		}
+		
 		setLookAndFeel();
 		System.out.println("Using temporary directory " + TEMP_DIR);
 		unpackResources();

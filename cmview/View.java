@@ -95,7 +95,6 @@ public class View extends JFrame implements ActionListener {
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
-		this.initGUI();
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
@@ -110,6 +109,9 @@ public class View extends JFrame implements ActionListener {
 		fileChooser = new JFileChooser();
 		colorChooser = new JColorChooser();
 		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
+		
+		this.initGUI(); // build gui tree and show window
+		this.toFront(); // bring window to front
 	}
 
 	/** Initialize and show the main GUI window */
@@ -679,8 +681,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + minss);
-		System.out.println("Max. Seq. Sep.:\t" + maxss);
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		db = "pdbase";
 		System.out.println("Database:\t" + db);	
 		try{
@@ -716,8 +718,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + minss);
-		System.out.println("Max. Seq. Sep.:\t" + maxss);
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		db = "msdsd_00_07_a";
 		System.out.println("Database:\t" + db);	
 		try {
@@ -748,8 +750,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + minss);
-		System.out.println("Max. Seq. Sep.:\t" + maxss);
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		try {
 			Model mod = new PdbFileModel(f, cc, ct, dist, minss, maxss);
 			this.spawnNewViewWindow(mod);
@@ -885,6 +887,8 @@ public class View extends JFrame implements ActionListener {
 		//System.out.println("View:Color by type not implemented yet");
 		if(mod==null) {
 			showNoContactMapWarning();
+		} else if(cmPane.getSelContacts().size() == 0) {
+			showNoContactsSelectedWarning();
 		} else {
 			cmPane.paintCurrentSelection(currentPaintingColor);
 			cmPane.resetSelContacts();
@@ -1035,7 +1039,7 @@ public class View extends JFrame implements ActionListener {
 		if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in pymol
 			view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl, 
-					mod.getPDBCode(), mod.getChainCode(), mod.getTempPDBFileName());
+					mod.getPDBCode(), mod.getChainCode(), mod.getTempPdbFileName());
 		}		
 		// if previous window was empty (not showing a contact map) dispose it
 		if(this.mod == null) {
