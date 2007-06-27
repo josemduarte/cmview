@@ -7,8 +7,6 @@ import proteinstructure.*;
 
 
 public class PyMolAdaptor {
-
-
 	/**
 	 * Encapsulates the code for communication with a particular PyMol server instance.
 	 * TODO: Should be designed such that the output method can be easily changed (e.g. to JMol). 
@@ -27,8 +25,6 @@ public class PyMolAdaptor {
 	 *   with integrated transparency parameter.
 	 */
 	
-	private static final int MAX_PYMOL_RESET_TRIALS = 1;	// how many times reseting the pymolServerOutputStream should be tried on error
-	
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 	
@@ -42,7 +38,6 @@ public class PyMolAdaptor {
 	/**
 	 *  Create a new PymolCommunication object 
 	 */
-	// TODO: Remove dependencies
 	public PyMolAdaptor(String pyMolServerUrl, String pdbCode, String chainCode, String fileName){
 		this.url=pyMolServerUrl;
 
@@ -54,14 +49,28 @@ public class PyMolAdaptor {
 		this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 
 		// Initialising PyMol
+		sendCommand("set dash_gap, 0");
+		sendCommand("set dash_width, 1.5");
+		// loading the graph.py script is now done in Start
+		
+		// Load structure
+		loadStructure(pdbFileName, pymolObjectName);
 		sendCommand("load " + pdbFileName + ", " + this.pymolObjectName);
 		sendCommand("hide lines");
 		sendCommand("show cartoon");
-		sendCommand("set dash_gap, 0");
-		sendCommand("set dash_width, 1.5");
-		// the load of the graph.py script is called already in Start
 	}
 
+	/*---------------------------- private methods --------------------------*/
+	
+	/** Send command to pymol and check for errors */
+	private void sendCommand(String cmd) {
+		Out.println(cmd);
+		if(Out.checkError()) {
+			System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
+			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+		}
+	}
+	
 	/**
 	 * Creates an edge between the C-alpha atoms of the given residues in the given chain. 
 	 * The selection in pymol will be names pdbcodeChaincode+"Sel"+selNum 
@@ -75,23 +84,52 @@ public class PyMolAdaptor {
 	}
 
 	/** 
-	 * Create an object from a selection of residues in pymol 
-	 * Return false on error 
+	 * Create a selection of the given residues in pymol.
 	 */
 	private void createSelectionObject(String selObjName, ArrayList<Integer> residues) {
 		String resString = "";
-
-		resString += residues.get(0);
-		for(int i = 1; i < residues.size(); i++) {
-			resString += "+" + residues.get(i);
+		int start, last;
+		
+		Collections.sort(residues);
+		last = residues.get(0);
+		start = last;
+		for(int i:residues) {
+			if(i > last+1) {
+				resString += "resi " + (last-start == 0?last:(start + "-" + last)) + " or ";
+				start = i;
+				last = i;
+			} else
+			if(i == last) {
+				// skip
+			} else
+			if(i == last+1) {
+				last = i;
+			}
 		}
-		if (resString.length()<PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
-			sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and resi "+resString);
+		resString += "resi " + (last-start == 0?last:(start + "-" + last));
+		System.out.println(resString);
+
+		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
+			sendCommand("select "+selObjName+", "+pymolObjectName+" and chain "+chainCode+" and "+resString);
 		} else {
-			System.err.println("Command was too long. Couldn't create pymol selection for the residues.");
+			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
 	}
 
+	/*---------------------------- public methods ---------------------------*/
+	
+	/**
+	 * Send command to the pymol server to load a structure with the given name from the given temporary pdb file.
+	 */
+	public void loadStructure(String fileName, String objectName) {
+		sendCommand("load " + fileName + ", " + objectName);
+		sendCommand("hide lines");
+		sendCommand("show cartoon");		
+	}
+	
+	/**
+	 * Show the given edge neighbourhood as triangles in PyMol
+	 */
 	public void showTriangles(EdgeNbh commonNbh, int pymolNbhSerial){
 		int trinum=1;
 		ArrayList<Integer> residues = new ArrayList<Integer>();
@@ -107,10 +145,8 @@ public class PyMolAdaptor {
 			
 			sendCommand("triangle('"+ pymolObjectName +"Nbh"+pymolNbhSerial+"Tri"+trinum + "', "+ i+ ", "+j +", "+k +", '" + COLORS[random] +"', " + 0.7+")");
 			trinum++;
-			residues.add(k);
-			
+			residues.add(k);	
 		}
-
 		createSelectionObject(pymolObjectName+"Nbh"+pymolNbhSerial+"Nodes", residues );
 	}
 
@@ -137,19 +173,6 @@ public class PyMolAdaptor {
 		String selObjName = pymolObjectName +"Sel"+pymolSelSerial;
 		this.setDistance(cont.i, cont.j, pymolSelSerial, selObjName);
 		sendCommand("color orange, " + selObjName);
-	}
-	
-	/** Send command to pymol and check for errors */
-	private void sendCommand(String cmd) {
-		Out.println(cmd);
-		int trials = 0;
-		while(Out.checkError() && trials < MAX_PYMOL_RESET_TRIALS) {
-			System.err.println("Pymol communication error. The requested operation may have failed. Trying to reset connection.");
-			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
-			Out.println(cmd);
-			trials++;
-		}
-		// TODO: if communication still fails, restart pymol?
 	}
 	
 }
