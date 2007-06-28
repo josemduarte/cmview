@@ -32,15 +32,18 @@ public class PdbaseModel extends Model {
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
 			
-		} catch (PdbaseAcCodeNotFoundError e) {
+		} catch (PdbCodeNotFoundError e) {
 			System.err.println("Failed to load structure because accession code was not found in Pdbase");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
+		} catch (PdbChainCodeNotFoundError e) {
+			System.err.println("Failed to load structure because chain code was not found in Pdbase");
+			throw new ModelConstructionError(e.getMessage());
 		} catch (PdbaseInconsistencyError e) {
 			System.err.println("Failed to load structure because of inconsistency in Pdbase");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		} catch(SQLException e) {
 			System.err.println("Failed to load structure because of database error");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		}
 	}
 }

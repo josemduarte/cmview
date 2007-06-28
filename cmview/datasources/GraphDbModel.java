@@ -35,7 +35,7 @@ public class GraphDbModel extends Model {
 				try {
 					this.pdb = new MsdsdPdb(pdbCode, pdbChainCode, Start.DEFAULT_MSDSD_DB, Start.getDbConnection());
 					super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-				} catch (MsdsdAcCodeNotFoundError e) {
+				} catch (PdbCodeNotFoundError e) {
 					System.err.println("Failed to load structure because accession code was not found in MSD");
 				} catch (MsdsdInconsistentResidueNumbersError e) {
 					System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
@@ -76,7 +76,7 @@ public class GraphDbModel extends Model {
 			try {
 				this.pdb = new MsdsdPdb(pdbCode, pdbChainCode, Start.DEFAULT_MSDSD_DB, Start.getDbConnection());
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-			} catch (MsdsdAcCodeNotFoundError e) {
+			} catch (PdbCodeNotFoundError e) {
 				System.err.println("Failed to load structure because accession code was not found in MSD");
 			} catch (MsdsdInconsistentResidueNumbersError e) {
 				System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
@@ -91,10 +91,10 @@ public class GraphDbModel extends Model {
 			
 		} catch (GraphIdNotFoundError e) {
 			System.err.println("Error: Could not find graph id in database.");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		} catch(SQLException e) {
 			System.err.println("Error: Could not read graph from database");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		}		
 		
 	}

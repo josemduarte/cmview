@@ -23,7 +23,6 @@ import cmview.datasources.PdbaseModel;
  * Package: 	cmview
  * Date:		20/02/2007, updated: 12/06/2007
  */
-
 public class Start {
 
 	static final long serialVersionUID = 1l;

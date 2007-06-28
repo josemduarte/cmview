@@ -43,8 +43,10 @@ public class ContactMapFileModel extends Model {
 					try {
 						this.pdb = new PdbasePdb(pdbCode, pdbChainCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-					} catch (PdbaseAcCodeNotFoundError e) {
+					} catch (PdbCodeNotFoundError e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
+					} catch (PdbChainCodeNotFoundError e) {
+						System.err.println("Failed to load structure because chain code was not found in Pdbase");
 					} catch (PdbaseInconsistencyError e) {
 						System.err.println("Failed to load structure because of inconsistency in Pdbase");
 					} catch(SQLException e) {
@@ -64,10 +66,10 @@ public class ContactMapFileModel extends Model {
 			
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from contact map file.");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		} catch (GraphFileFormatError e){
 			System.err.println("Error while trying to load graph from contact map file. Wrong graph file format.");
-			throw new ModelConstructionError(e);			
+			throw new ModelConstructionError(e.getMessage());			
 		}
 		
 

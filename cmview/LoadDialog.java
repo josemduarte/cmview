@@ -208,50 +208,60 @@ public class LoadDialog extends JDialog implements ActionListener {
 		return selectedCc;
 	}
 
-	/** return the currently selected contact type */
-	public String getSelectedCt() {
+	/** return the currently selected contact type 
+	 * @throws LoadDialogInputError */
+	public String getSelectedCt() throws LoadDialogInputError {
 		String selectedCt = comboCt.getSelectedItem().toString();
-		//String selectedCt = selectCt.getText();
+		if(!AA.isValidCT(selectedCt)) {
+			//System.err.println("The contact type " + selectedCt + " is invalid.");
+			throw new LoadDialogInputError("The contact type " + selectedCt + " is invalid.");
+		}
 		return selectedCt;
 	}
 	
-	/** return the currently selected distance cutoff */
-	public double getSelectedDist() {
+	/** return the currently selected distance cutoff 
+	 * @throws LoadDialogInputError */
+	public double getSelectedDist() throws LoadDialogInputError {
 		double selectedDist = 0.0;
 		String selectedText = selectDist.getText();
 		if(selectedText.length() > 0) {
 			try {
 				selectedDist = Double.valueOf(selectDist.getText());
 			} catch(NumberFormatException e) {
-				System.err.println("Could not parse value for distance cutoff.");
+				//System.err.println("Could not parse value for distance cutoff.");
+				throw new LoadDialogInputError("Could not parse value for distance cutoff.");
 			}
 		}
 		return selectedDist;
 	}
 	
-	/** return the currently selected min seq sep */
-	public int getSelectedMinSeqSep() {
+	/** return the currently selected min seq sep 
+	 * @throws LoadDialogInputError */
+	public int getSelectedMinSeqSep() throws LoadDialogInputError {
 		int selectedMinSeqSep = -1;
 		String selectedText = selectMinSeqSep.getText();
 		if(selectedText.length() > 0) {
 			try {
 				selectedMinSeqSep = Integer.valueOf(selectMinSeqSep.getText());
 			} catch(NumberFormatException e) {
-				System.err.println("Could not parse value for min sequence separation.");
+				//System.err.println("Could not parse value for min sequence separation.");
+				throw new LoadDialogInputError("Could not parse value for min sequence separation.");
 			}
 		}
 		return selectedMinSeqSep;
 	}
 	
-	/** return the currently selected max seq sep */
-	public int getSelectedMaxSeqSep() {
+	/** return the currently selected max seq sep 
+	 * @throws LoadDialogInputError */
+	public int getSelectedMaxSeqSep() throws LoadDialogInputError {
 		int selectedMaxSeqSep = -1;
 		String selectedText = selectMaxSeqSep.getText();
 		if(selectedText.length() > 0) {
 			try {
 				selectedMaxSeqSep = Integer.valueOf(selectMaxSeqSep.getText());
 			} catch(NumberFormatException e) {
-				System.err.println("Could not parse value for max sequence separation.");
+				//System.err.println("Could not parse value for max sequence separation.");
+				throw new LoadDialogInputError("Could not parse value for max sequence separation.");
 			}
 		}
 		return selectedMaxSeqSep;
@@ -263,15 +273,17 @@ public class LoadDialog extends JDialog implements ActionListener {
 		return selectedDb;
 	}
 	
-	/** return the currently selected graph id */
-	public int getSelectedGraphId() {
+	/** return the currently selected graph id 
+	 * @throws LoadDialogInputError */
+	public int getSelectedGraphId() throws LoadDialogInputError {
 		int selectedGraphId = -1;
 		String selectedText = selectGraphId.getText();
 		if(selectedText.length() > 0) {
 			try {
 				selectedGraphId = Integer.valueOf(selectGraphId.getText());
 			} catch(NumberFormatException e) {
-				System.err.println("Could not parse value for graph id.");
+				//System.err.println("Could not parse value for graph id.");
+				throw new LoadDialogInputError("Could not parse value for graph id.");
 			}
 		}
 		return selectedGraphId;
@@ -282,9 +294,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		
 		/* load button */
 		if (e.getSource()== loadButton){
-			this.go();
-			this.setVisible(false);
-			dispose();			
+			this.go();	
 		}
 		
 		if (e.getSource() == cancelButton) {
@@ -305,11 +315,25 @@ public class LoadDialog extends JDialog implements ActionListener {
 
 	}
 
-	/** perform load */
-	private void go(){
-		this.loadAction.doit((Object) parentFrame, 
-				getSelectedFileName(), getSelectedAc(), getSelectedCc(), getSelectedCt(),
-				getSelectedDist(), getSelectedMinSeqSep(), getSelectedMaxSeqSep(), getSelectedDb(), getSelectedGraphId());
+	/** test user input and if it looks fine, perform load and dispose the dialog */
+	private void go() {
+		try {
+			String f = getSelectedFileName();
+			String ac = getSelectedAc();
+			String cc = getSelectedCc();
+			String ct = getSelectedCt();
+			double dist = getSelectedDist();
+			int minss = getSelectedMinSeqSep();
+			int maxss = getSelectedMaxSeqSep();
+			String db = getSelectedDb();
+			int gid = getSelectedGraphId();
+
+			this.loadAction.doit((Object) parentFrame, f, ac, cc, ct, dist, minss, maxss, db, gid);
+			this.setVisible(false);
+			dispose();
+		} catch (LoadDialogInputError e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Input error", JOptionPane.INFORMATION_MESSAGE);
+		}
 	}
 	
 	public static void main(String[] args) {

@@ -35,15 +35,15 @@ public class MsdsdModel extends Model {
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
 			
-		} catch (MsdsdAcCodeNotFoundError e) {
+		} catch (PdbCodeNotFoundError e) {
 			System.err.println("Failed to load structure because accession code was not found in MSD");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		} catch (MsdsdInconsistentResidueNumbersError e) {
 			System.err.println("Failed to load structure because of inconsistent residue numbering in MSD");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		} catch(SQLException e) {
 			System.err.println("Failed to load structure because of database error");
-			throw new ModelConstructionError(e);
+			throw new ModelConstructionError(e.getMessage());
 		}
 	}
 	
