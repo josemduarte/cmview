@@ -42,6 +42,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private int currentRulerCoord;	 // the ruler serial that is shown if showRulerSer=true
 	private Contact rightClickCont;	 // position in contact map where right mouse button was pressed to open context menu
 	private EdgeNbh currCommonNbh;	 // common nbh that the user selected last (used to send it to pymol)
+	private int lastMouseButtonPressed; // mouse button which was pressed last (being updated by MousePressed)
 	
 	private Dimension screenSize;	// current size of this component on screen
 	private int winsize;          	// size of the effective square available on screen for drawing the contact map
@@ -525,12 +526,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// This is called when the user presses the mouse anywhere
 		// in the frame
 
+		lastMouseButtonPressed = evt.getButton();
+		mousePressedPos = evt.getPoint();
+		if(lastMouseButtonPressed == MouseEvent.BUTTON2) dragging = false;
+		
 		if (evt.isPopupTrigger()) {
 			showPopup(evt);
 			return;
 		}
-
-		mousePressedPos = evt.getPoint();
 
 	}
 
@@ -539,6 +542,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// Called whenever the user releases the mouse button.
 		if (evt.isPopupTrigger()) {
 			showPopup(evt);
+			dragging = false;
 			return;
 		}
 		// only if release after left click (BUTTON1)
@@ -573,8 +577,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							selContacts.add(clicked);
 						}
 					} else {
-						// else: if clicked position is outside of a contact, reset selContacts
-						selContacts = new ContactList();
+						// else: if clicked position is outside of a contact and ctrl not pressed, reset selContacts
+						if(!evt.isControlDown()) selContacts = new ContactList();
 					}
 					this.repaint();
 				} else { // dragging
@@ -645,15 +649,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// Called whenever the user moves the mouse
 		// while a mouse button is held down. 
 
-		dragging = true;
-		mouseDraggingPos = evt.getPoint();
-		switch (view.getCurrentAction()) {
-		case View.SQUARE_SEL:
-			squareSelect();
-			break;
-		case View.RANGE_SEL:
-			rangeSelect();
-			break;
+		if(lastMouseButtonPressed == MouseEvent.BUTTON1) {
+			dragging = true;
+			mouseDraggingPos = evt.getPoint();
+			switch (view.getCurrentAction()) {
+			case View.SQUARE_SEL:
+				squareSelect();
+				break;
+			case View.RANGE_SEL:
+				rangeSelect();
+				break;
+			}	
 		}
 		
 		mouseMoved(evt); //TODO is this necessary? I tried getting rid of it but wasn't quite working
