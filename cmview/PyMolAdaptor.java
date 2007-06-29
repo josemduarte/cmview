@@ -119,6 +119,14 @@ public class PyMolAdaptor {
 
 	/*---------------------------- public methods ---------------------------*/
 	
+	public static void shutdownPymol(String url) {
+		// TODO: Make this a non-static method
+		PrintWriter Out = new PrintWriter(new PymolServerOutputStream(url),true);
+		Out.println("quit");
+		Out.close();
+	}
+	
+	
 	/**
 	 * Send command to the pymol server to load a structure with the given name from the given temporary pdb file.
 	 */

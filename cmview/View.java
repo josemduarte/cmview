@@ -19,20 +19,11 @@ import cmview.datasources.PdbaseModel;
 import proteinstructure.*;
 
 /**
- * The main GUI window.
+ * The main GUI window and associated event handling. Multiple instances talking to the same PymolServer are possible.
  * 
  * Initialized with mod=null, an empty window with the menu bars is shown.
  * Initialized with a valid model, the contact map is displayed in a ContactMapPane.
  * Multiple instances of this class are created to show multiple contact maps.
- * 
- * @author	Juliane Dinse
- * @author	Henning Stehr
- * @author	Jose Duarte
- * 
- * Class: 	View
- * Package:	cmview
- * Date:	20/02/2007 last update 12/06/2007
- *
  */
 public class View extends JFrame implements ActionListener {
 
@@ -44,14 +35,13 @@ public class View extends JFrame implements ActionListener {
 	protected static final int RANGE_SEL = 5;
 	
 	// GUI components
-	JLabel statusPane; 			// status bar
-	JPanel cmp; 				// contact Map Panel
-	JLayeredPane layers;		
-	JPanel topRul;
-	JPanel leftRul;
-	JPopupMenu popup; 		// context menu
-	JFileChooser fileChooser;
-	JColorChooser colorChooser;
+	JLabel statusPane; 			// status bar (currently not used)
+	JPanel cmp; 				// Panel for contact map	
+	JPanel topRul;				// Panel for top ruler
+	JPanel leftRul;				// Panel for left ruler
+	JPopupMenu popup; 			// right-click context menu
+	JFileChooser fileChooser;	// file chooser for Save dialogs
+	JColorChooser colorChooser; // color chooser for painting residues
 
 	// Menu items
 	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
@@ -71,7 +61,7 @@ public class View extends JFrame implements ActionListener {
 	private PyMolAdaptor pymolAdaptor;
 	private String pyMolServerUrl;
 	private int currentAction;
-	private int pymolSelSerial;		 	// for incrementation numbering TODO: move to Model
+	private int pymolSelSerial;		 	// for incrementation numbering
 	private int pymolNbhSerial;
 //	private int topLayer;				// top layer in JLayeredPane
 
@@ -126,7 +116,6 @@ public class View extends JFrame implements ActionListener {
 		// Creating the Panels
 		statusPane = new JLabel("Click right mouse button for context menu");
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
-		layers = new JLayeredPane(); // Layered Pane holding multiple contact maps
 
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
@@ -223,7 +212,6 @@ public class View extends JFrame implements ActionListener {
 		if(mod != null) {
 			cmPane = new ContactMapPane(mod, this);			
 			cmp.add(cmPane);
-			//layers.add(cmPane,topLayer);
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
 			topRul.add(topRuler);
@@ -378,7 +366,7 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpAbout = new JMenuItem("About");
 		mmHelpHelp = new JMenuItem("Help");
-		mmHelpWriteConfig = new JMenuItem("Write configuration file");
+		mmHelpWriteConfig = new JMenuItem("Write example configuration file");
 		mmHelpAbout.addActionListener(this);
 		mmHelpHelp.addActionListener(this);
 		mmHelpWriteConfig.addActionListener(this);
@@ -389,7 +377,6 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
-		//this.getContentPane().add(layers,BorderLayout.CENTER);
 		if(showRulers) {
 			this.getContentPane().add(topRul, BorderLayout.NORTH);
 			this.getContentPane().add(leftRul, BorderLayout.WEST);
@@ -399,20 +386,21 @@ public class View extends JFrame implements ActionListener {
 		// Show GUI
 		pack();
 		setVisible(true);
-
 	}
 
 	/*------------------------------ event handling -------------------------*/
 
+	/**
+	 * Handling events for all menu items.
+	 * TODO: Move all actions to handle... methods to keep this one nice and clean.
+	 */
 	public void actionPerformed (ActionEvent e) {
 
 		// Action menu
 
 		// square button clicked
 		if (e.getSource() == squareM || e.getSource() == squareP) {
-
 			currentAction = SQUARE_SEL;
-
 		}
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP) {
@@ -448,7 +436,19 @@ public class View extends JFrame implements ActionListener {
 				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
 				this.pymolSelSerial++;
 			}
-			
+		}
+		// send current edge (only available in context menu)
+		if(e.getSource() == popupSendEdge) {
+			if(mod==null) {
+				showNoContactMapWarning();
+			} else if(!mod.has3DCoordinates()) {
+				showNo3DCoordsWarning();
+			} else if(!Start.isPyMolConnectionAvailable()) {				
+				showNoPyMolConnectionWarning();
+			} else {
+				pymolAdaptor.sendSingleEdge(pymolSelSerial, cmPane.getRightClickCont());
+				this.pymolSelSerial++;
+			}
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP) {
@@ -579,7 +579,6 @@ public class View extends JFrame implements ActionListener {
 				}
 			}
 		}
-			  
 		if(e.getSource() == mmViewShowDistMatrix) {
 			if(mod==null) {
 				showNoContactMapWarning();
@@ -599,7 +598,6 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 		
-		
 		// Select menu
 		if(e.getSource() == mmSelectAll) {
 			handleSelectAll();
@@ -615,23 +613,6 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmHelpWriteConfig) {
 			handleHelpWriteConfig();
 		}
-		
-		// Popup actions
-		// send current edge
-		if(e.getSource() == popupSendEdge) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if(!mod.has3DCoordinates()) {
-				showNo3DCoordsWarning();
-			} else if(!Start.isPyMolConnectionAvailable()) {				
-				showNoPyMolConnectionWarning();
-			} else {
-				pymolAdaptor.sendSingleEdge(pymolSelSerial, cmPane.getRightClickCont());
-				this.pymolSelSerial++;
-			}
-			
-		}
-
 	}
 
 	private void handleLoadFromGraphDb() {
@@ -665,11 +646,6 @@ public class View extends JFrame implements ActionListener {
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
-	//		String pdbCode = "1tdr";
-	//		String chainCode = "B";
-	//		String edgeType = "Ca";
-	//		double distCutoff = 8.0;
-	//		int seqSep = 0;
 			LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction() {
 				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 					View view = (View) o;
@@ -700,11 +676,6 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleLoadFromMsd() {
-//		String pdbCode = "1tdr";
-//		String chainCode = "B";
-//		String edgeType = "Ca";
-//		double distCutoff = 8.0;
-//		int seqSep = 0;
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
@@ -737,10 +708,6 @@ public class View extends JFrame implements ActionListener {
 	}	  
 
 	private void handleLoadFromPdbFile() {
-//		String chainCode = "A";
-//		String edgeType = "Ca";
-//		double distCutoff = 8.0;
-//		int seqSep = 0;
 		LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction() {
 			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
@@ -924,8 +891,8 @@ public class View extends JFrame implements ActionListener {
 	
 	private void handleHelpWriteConfig() {
 		try {
-			Start.writeDefaultConfigToFile(Start.CONFIG_FILE_NAME);
-			System.out.println("Writing default configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
+			Start.writeExampleConfigFile(Start.CONFIG_FILE_NAME);
+			System.out.println("Writing example configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
 		} catch(IOException e) {
 			System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
 		}
@@ -1041,7 +1008,10 @@ public class View extends JFrame implements ActionListener {
 		this.repaint();
 	}
 	
-	/** Create and show a new view window, showing a contact map based on the given model (and dispose the current one) */
+	/** 
+	 * Create and show a new view window, showing a contact map based on the given model and dispose the current one.
+	 * TODO: Currently being abused as a constructor for new windows (something the real constructor should do).
+	 */
 	public void spawnNewViewWindow(Model mod) {
 		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
 		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
@@ -1061,26 +1031,12 @@ public class View extends JFrame implements ActionListener {
 			this.setVisible(false);
 			this.dispose();
 		}
-//		setModel(mod);
 	}
-	
-//	/** Experimental: Add a new ContactMapPane to the current view */
-//	private void setModel(Model mod) {
-//		ContactMapPane cmPane = new ContactMapPane(mod, this);
-//		layers.add(cmPane,++topLayer);
-//		this.pack();
-//		this.setVisible(true);
-//	}
 
 	/** Returns the status variable currentAction which contains the currently selected actions */
 	public int getCurrentAction(){
 		return currentAction;
 	}
-	
-//	/** Returns the current painting color set by the user */
-//	public Color getCurrentPaintingColor() {
-//		return currentPaintingColor;
-//	}
 	
 	/** Returns the status variable doShowPdbSers which indicates whether PDB serials should be displayed */
 	public boolean getShowPdbSers() {
@@ -1109,10 +1065,12 @@ public class View extends JFrame implements ActionListener {
 		return this.showDistMatrix;
 	}
 
+	/** Sets the value of the highlightComNbh variable to switch on common nbh view in paintComponent. */
 	public void setHighlightComNbh(boolean highlightComNbh) {
 		this.highlightComNbh=highlightComNbh;
 	}
-	
+
+	/** Returns a hashmap containing the sizes of the common neighbourhoods for all residue pairs. */
 	public HashMap<Contact,Integer> getComNbhSizes() {
 		return comNbhSizes;
 	}
