@@ -235,7 +235,7 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			Runtime.getRuntime().exec(PYMOL_EXECUTABLE + " " + PYMOL_PARAMETERS);
+			Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
 		} catch(IOException e) {
 			return false;
 		}
