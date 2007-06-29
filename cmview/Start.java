@@ -62,10 +62,10 @@ public class Start {
 	public static final String		DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"pdbase";
 	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";
-	private static String     		DEFAULT_EDGETYPE = 			"ALL";
+	public static String     		DEFAULT_CONTACT_TYPE = 		"ALL";
 	private static final int        DEFAULT_MIN_SEQSEP = 		-1;
 	private static final int        DEFAULT_MAX_SEQSEP = 		-1;	
-	private static double 			DEFAULT_DISTANCE_CUTOFF = 	4.1; 				// used by main function to preload graph from pdb/chain id
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	4.1; 				// used by main function to preload graph from pdb/chain id
 	
 	// internal status variables
 	protected static boolean		database_found = true;
@@ -108,7 +108,7 @@ public class Start {
 		d.setProperty("DB_PWD",DB_PWD);
 
 		d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
-		d.setProperty("DEFAULT_EDGETYPE",DEFAULT_EDGETYPE);
+		d.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		d.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
 		
 		return d;
@@ -146,7 +146,7 @@ public class Start {
 		DB_PWD = p.getProperty("DB_PWD");
 
 		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB");
-		DEFAULT_EDGETYPE = p.getProperty("DEFAULT_EDGETYPE");
+		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE");
 		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF"));
 	}
 	
@@ -300,7 +300,7 @@ public class Start {
 				chainCode = NULL_CHAIN_CODE;
 			}
 			try {
-				mod = new PdbaseModel(pdbCode,chainCode,DEFAULT_EDGETYPE,DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				mod = new PdbaseModel(pdbCode,chainCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
 			} catch(ModelConstructionError e) {
 				System.err.println("Could not load structure for given command line parameters:");
 				System.err.println(e.getMessage());

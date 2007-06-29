@@ -16,7 +16,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 	static final long serialVersionUID = 1l;
 	
 	private JButton loadButton, cancelButton, fileChooserButton;
-	private JTextField selectFileName, selectGraphId, selectAc, selectCc, selectCt, selectDist, selectMinSeqSep, selectMaxSeqSep, selectDb;
+	private JTextField selectFileName, selectGraphId, selectAc, selectCc, selectDist, selectMinSeqSep, selectMaxSeqSep, selectDb;
 	private LoadAction loadAction;
 	private JFrame parentFrame;
 	private JComboBox comboCt;
@@ -48,7 +48,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		selectGraphId = new JTextField();
 		selectAc = new JTextField();
 		selectCc = new JTextField();
-		selectCt = new JTextField();
+		//selectCt = new JTextField();
 		selectDist = new JTextField();
 		selectMinSeqSep = new JTextField();
 		selectMaxSeqSep = new JTextField();		
@@ -56,8 +56,11 @@ public class LoadDialog extends JDialog implements ActionListener {
 		
 		String[] contactTypes = AA.contactTypes();
 		comboCt = new JComboBox();
+		Object o;
 		for(String ct:contactTypes) {
-			comboCt.addItem(makeObj(ct));
+			o = makeObj(ct);
+			comboCt.addItem(o);
+			if(ct.equals(showCt)) comboCt.setSelectedItem(o);
 		}
 		comboCt.setEditable(true);
 
@@ -108,7 +111,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 			inputPane.add(comboCt);
 			//inputPane.add(labelAfterCt);
 			inputPane.add(Box.createHorizontalGlue());
-			selectCt.setText(showCt);
+			//selectCt.setText(showCt);
 			fields++;
 		}
 		if(showDist != null) {

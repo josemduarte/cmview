@@ -675,7 +675,7 @@ public class View extends JFrame implements ActionListener {
 					View view = (View) o;
 					view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db);
 				}
-			}, null, "", "", "", "", "", "", null, null);
+			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
 			dialog.showIt();
 		}
 
@@ -713,7 +713,7 @@ public class View extends JFrame implements ActionListener {
 					View view = (View) o;
 					view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db);
 				}
-			}, null, "", "", "", "", "", "", null, null);
+			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
 			dialog.showIt();
 		}
 	}
@@ -746,7 +746,7 @@ public class View extends JFrame implements ActionListener {
 				View view = (View) o;
 				view.doLoadFromPdbFile(f, cc, ct, dist, minss, maxss);
 			}
-		}, "", null, "", "", "", "", "", null, null);
+		}, "", null, "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
 		dialog.showIt();
 	}
 
