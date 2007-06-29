@@ -40,8 +40,6 @@ public class View extends JFrame implements ActionListener {
 	JPanel topRul;				// Panel for top ruler
 	JPanel leftRul;				// Panel for left ruler
 	JPopupMenu popup; 			// right-click context menu
-	JFileChooser fileChooser;	// file chooser for Save dialogs
-	JColorChooser colorChooser; // color chooser for painting residues
 
 	// Menu items
 	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
@@ -63,7 +61,6 @@ public class View extends JFrame implements ActionListener {
 	private int currentAction;
 	private int pymolSelSerial;		 	// for incrementation numbering
 	private int pymolNbhSerial;
-//	private int topLayer;				// top layer in JLayeredPane
 
 	private boolean doShowPdbSers;
 	private boolean highlightComNbh;
@@ -88,17 +85,12 @@ public class View extends JFrame implements ActionListener {
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
-//		this.topLayer = 1;
 		this.doShowPdbSers = false;
 		this.highlightComNbh = false;
 		this.showRulers=false;
 		this.showDensityMatrix=false;
 		this.showDistMatrix=false;
 		this.currentPaintingColor = Color.blue;
-		
-		fileChooser = new JFileChooser();
-		colorChooser = new JColorChooser();
-		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
 		
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front
@@ -109,7 +101,6 @@ public class View extends JFrame implements ActionListener {
 
 		// Setting the main layout 
 		setLayout(new BorderLayout());
-		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocation(20,20);
 
@@ -139,7 +130,7 @@ public class View extends JFrame implements ActionListener {
 				g.setColor(currentPaintingColor);
 				g.translate(x, y);
 				g.fillRect(2,2,12,12);
-				g.translate(-x, -y);  //Restore Graphics object
+				g.translate(-x, -y);  // Restore Graphics object
 				g.setColor(oldColor);
 			}			
 			public int getIconHeight() {
@@ -157,7 +148,7 @@ public class View extends JFrame implements ActionListener {
 				g.setColor(Color.black);
 				g.translate(x, y);
 				g.fillRect(2,2,12,12);
-				g.translate(-x, -y);  //Restore Graphics object
+				g.translate(-x, -y);  // Restore Graphics object
 				g.setColor(oldColor);
 			}	
 			public int getIconHeight() {
@@ -766,9 +757,9 @@ public class View extends JFrame implements ActionListener {
 			//System.out.println("No contact map loaded yet.");
 			showNoContactMapWarning();
 		} else {
-			int ret = fileChooser.showSaveDialog(this);
+			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
-				File chosenFile = fileChooser.getSelectedFile();
+				File chosenFile = Start.getFileChooser().getSelectedFile();
 				String path = chosenFile.getPath();
 				try {
 					this.mod.writeToContactMapFile(path);
@@ -784,9 +775,9 @@ public class View extends JFrame implements ActionListener {
 			//System.out.println("No contact map loaded yet.");
 			showNoContactMapWarning();
 		} else {
-			int ret = fileChooser.showSaveDialog(this);
+			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
-				File chosenFile = fileChooser.getSelectedFile();
+				File chosenFile = Start.getFileChooser().getSelectedFile();
 
 				// Create a buffered image in which to draw
 				BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -870,10 +861,10 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	private void handleViewSelectColor() {	
-		JDialog chooseDialog = JColorChooser.createDialog(this, "Choose color", true, colorChooser, 
+		JDialog chooseDialog = JColorChooser.createDialog(this, "Choose color", true, Start.getColorChooser(), 
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e){
-							Color c = colorChooser.getColor();
+							Color c = Start.getColorChooser().getColor();
 							currentPaintingColor = c;
 							System.out.println("Color changed to " + c);
 					}

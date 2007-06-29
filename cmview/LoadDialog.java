@@ -306,7 +306,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		}
 		
 		if (e.getSource() == fileChooserButton) {
-			JFileChooser fileChooser = new JFileChooser();
+			JFileChooser fileChooser = Start.getFileChooser(); // use global file chooser to remember previous path
 			int ret = fileChooser.showOpenDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = fileChooser.getSelectedFile();

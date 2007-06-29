@@ -3,6 +3,9 @@ import java.io.*;
 import java.util.Date;
 import java.util.Properties;
 
+import javax.swing.JColorChooser;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -83,7 +86,11 @@ public class Start {
 	protected static boolean		pymol_found = true;
 	protected static Properties		userProperties;				// properties read from the user's config file
 	protected static Properties		selectedProperties;			// selected default properties for the example config file
+	
+	// global session variables (use getter methods)
 	private static MySQLConnection	conn;
+	private static JFileChooser fileChooser;
+	private static JColorChooser colorChooser;
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 
@@ -388,12 +395,27 @@ public class Start {
 	}
 
 	/**
-	 * Return the main db connection for this session.
+	 * Return the global db connection for this session.
 	 * @return The MySQLConnection object
 	 */
 	public static MySQLConnection getDbConnection() {
 		return conn;
 	}
+	
+	/**
+	 * Return the global fileChooser for this session.
+	 * @return A JFileChooser to be used whenever possible.
+	 */	public static JFileChooser getFileChooser() {
+		return fileChooser;
+	}
+	 
+	 /**
+	  * Return the global colorChooser for this session.
+	  * @return A JColorChooser to be used whenever possible.
+	  */	public static JColorChooser getColorChooser() {
+		  return colorChooser;
+	  }
+	 
 	
 	/**
 	 * Main method to start CMView application
@@ -477,6 +499,11 @@ public class Start {
 				database_found = true;
 			}
 		}
+
+		// initialize session variables
+		fileChooser = new JFileChooser();
+		colorChooser = new JColorChooser();
+		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
 
 		setLookAndFeel();
 		
