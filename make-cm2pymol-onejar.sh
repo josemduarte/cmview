@@ -1,7 +1,7 @@
 #!/bin/sh
-if [ -z "$3" ]
+if [ -z "$4" ]
 then
-    echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag>"
+    echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag> <manifest>"
     echo "if instead of a tag, you want the code from trunk, just specify 'trunk' instead of the tag name"
     exit
 fi
@@ -10,7 +10,7 @@ fi
 tempdir=$1
 cmviewtag=$2
 aglappetag=$3
-
+manifest=$4
 
 
 cd $tempdir
@@ -53,7 +53,7 @@ javac cmview/*.java cmview/datasources/*.java
 
 # creating jar file
 echo "Creating jar file: $cmviewtag.jar ..."
-jar -cfm ../$cmviewtag.jar Manifest.txt .
+jar -cfm ../$cmviewtag.jar $manifest .
 
 # removing $cmviewtag temp directory
 cd ..
