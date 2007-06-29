@@ -32,7 +32,7 @@ public class Start {
 	public static final String      VERSION = "0.8.1";				// current version
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// for input pdbChainCodes
 	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located
-	public static final String 		PYMOLFUNCTIONS_SCRIPT = "graph.py";
+	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	// extending pymol with custom functions, previously called graph.py
 	public static final String      PYMOL_HOST = 			"localhost";							
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":9123";
 	

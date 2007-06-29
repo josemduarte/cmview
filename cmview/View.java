@@ -378,7 +378,7 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpAbout = new JMenuItem("About");
 		mmHelpHelp = new JMenuItem("Help");
-		mmHelpWriteConfig = new JMenuItem("Write default configuration file");
+		mmHelpWriteConfig = new JMenuItem("Write configuration file");
 		mmHelpAbout.addActionListener(this);
 		mmHelpHelp.addActionListener(this);
 		mmHelpWriteConfig.addActionListener(this);

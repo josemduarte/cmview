@@ -51,7 +51,7 @@ public class PyMolAdaptor {
 		// Initialising PyMol
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
-		// loading the graph.py script is now done in Start
+		// loading the graph.py (now called cmview.py) script is now done in Start
 		
 		// Load structure
 		loadStructure(pdbFileName, pymolObjectName);
