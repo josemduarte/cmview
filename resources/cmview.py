@@ -1,9 +1,43 @@
+#-------------------------------------------------------------------------------
+# This file extends PyMol with some custom functions that are called 
+# by the CMView application through the PyMol XMLRPC server.
+#---------------------------------
+
 from pymol.cgo import *
 from pymol import cmd
 from math import *
 from pymol import string
 
 from cmd import lock,unlock,_cmd # for dist counter
+
+#-------------------------------------------------
+# Create the given file to notify CMView that
+# PyMol is running and receiving commands.
+# This can be used as a general callback facility
+# to send messages from PyMol to CMView.
+#---------------------------------
+def callback(filename, value):
+	'''
+	DESCRIPTION
+	
+	"callback" creates a file containing the given value.
+	This is being used as a callback facility by the
+	CMView application to check whether PyMol is running
+	and receiving commands.
+	
+	USAGE
+
+	(This function is not supposed to be called manually!)
+	
+	callback filename, value
+	'''
+
+	f = open(filename, "w")
+	f.write(value)
+	f.close()
+	
+# Add to PyMOL API
+cmd.extend("callback",callback)
 
 #-------------------------------------------------
 # Draw an edge
@@ -156,7 +190,7 @@ def edge(name, i_node, j_node, color = None, r = 1.0, g=0.0, b=0.0, dg = 0.3, dl
 cmd.extend("edge",edge)
 
 #-------------------------------------------------
-# Draw an triangle
+# Draw a triangle
 #---------------------------------
 
 def triangle(name, i_node, j_node, k_node, color, tr): 

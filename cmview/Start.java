@@ -1,5 +1,6 @@
 package cmview;
 import java.io.*;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.swing.UIManager;
@@ -32,7 +33,8 @@ public class Start {
 	public static final String      VERSION = "0.8.1";				// current version
 	public static final String		NULL_CHAIN_CODE = 	"NULL"; 	// for input pdbChainCodes
 	public static final String		RESOURCE_DIR = "/resources/"; 	// path within the jar archive where resources are located
-	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	// extending pymol with custom functions, previously called graph.py
+	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 // extending pymol with custom functions, previously called graph.py
+	public static final String		PYMOL_CALLBACK_FILE = "cmview.callback"; // file being written by pymol to send messages to this application
 	public static final String      PYMOL_HOST = 			"localhost";							
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":9123";
 	
@@ -244,16 +246,24 @@ public class Start {
 	 * Try connecting to pymol server. Returns true on success.
 	 * TODO: Make this a (static?) method of PymolAdaptor.
 	 */
-	private static boolean tryConnectingToPymol() {
+	private static boolean tryConnectingToPymol(long timeoutMillis) {
 		long start = System.currentTimeMillis();
-		while (System.currentTimeMillis()-start<PYMOL_CONN_TIMEOUT) {
+		while (System.currentTimeMillis()-start < timeoutMillis) {
 			try {
+				String cmd;
+				File f = new File(Start.getResourcePath(Start.PYMOL_CALLBACK_FILE));
 				OutputStream test = new PymolServerOutputStream(PYMOL_SERVER_URL);
-				String cmd = "run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT);
+				cmd = "run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT);
+				test.write(cmd.getBytes());
+				test.flush();
+				cmd = "callback "+Start.getResourcePath(Start.PYMOL_CALLBACK_FILE) + ", " + new Date();
 				test.write(cmd.getBytes());
 				test.flush();
 				test.close();
-				return true;
+				if(f.exists()) {
+					f.deleteOnExit();
+					return true;
+				} else continue;
 			} catch (Exception e) {
 				continue;
 			}
@@ -299,6 +309,13 @@ public class Start {
 			System.err.println("No database. Ignoring command line parameters.");
 		}
 		return mod;
+	}
+	
+	private static boolean dirIsWritable(String path) {
+		File f = new File(path);
+		if(!f.isDirectory()) return false;
+		if(!f.canWrite()) return false;
+		return true;
 	}
 
 	/*---------------------------- public methods ---------------------------*/
@@ -356,22 +373,36 @@ public class Start {
 				
 		setLookAndFeel();
 		System.out.println("Using temporary directory " + TEMP_DIR);
-		unpackResources();
+		if(dirIsWritable(TEMP_DIR)) {
+			unpackResources();
+		} else {
+			System.err.println("Error: Can not write to temporary directory. Some features may not function correctly.");
+		}
 		
-		if(USE_PYMOL) {
-			if(PRELOAD_PYMOL) {
-				if(runPymol() == false) {
-					//System.err.println("Warning: Failed to start PyMol automatically. Please manually start Pymol with the -R parameter.");	
-					System.err.println("Warning: Failed to start PyMol automatically. You can try to restart this application after manually starting pymol with the -R parameter.");
+		if(USE_PYMOL) {		
+			if(tryConnectingToPymol(100) == true) { // running pymol server found
+				System.out.println("PyMol server found. Connected.");
+				pymol_found = true;
+			} else {
+				if(PRELOAD_PYMOL) {
+					if(runPymol() == false) {
+						//System.err.println("Warning: Failed to start PyMol automatically. Please manually start Pymol with the -R parameter.");	
+						System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
+						pymol_found = false;
+					} else {
+						System.out.println("Connecting to PyMol server...");
+						if(tryConnectingToPymol(PYMOL_CONN_TIMEOUT) == false) {
+							System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
+							pymol_found = false;
+						} else {
+							System.out.println("Connected.");
+							pymol_found = true;
+						}						
+					}
 				}
 			}
-			System.out.println("Connecting to PyMol server...");
-			if(tryConnectingToPymol() == false) {
-				System.err.println("No PyMol server found. Some functionality will not be available.");
-				pymol_found = false;
-			} else {
-				System.out.println("Connected.");
-				pymol_found = true;
+			if(!pymol_found) {
+				System.err.println("Could not connect to PyMol server. Some functionality will not be available.");
 			}
 		}
 		
