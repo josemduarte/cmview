@@ -233,7 +233,7 @@ public class Start {
 			File f = new File(PYMOL_EXECUTABLE);
 			if(!f.exists()) {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
-				return false;
+				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
 			Runtime.getRuntime().exec(PYMOL_EXECUTABLE + " " + PYMOL_PARAMETERS);
 		} catch(IOException e) {
@@ -372,6 +372,8 @@ public class Start {
 		}
 				
 		setLookAndFeel();
+		
+		// check temp directory
 		System.out.println("Using temporary directory " + TEMP_DIR);
 		if(dirIsWritable(TEMP_DIR)) {
 			unpackResources();
@@ -379,6 +381,7 @@ public class Start {
 			System.err.println("Error: Can not write to temporary directory. Some features may not function correctly.");
 		}
 		
+		// connect to pymol
 		if(USE_PYMOL) {		
 			if(tryConnectingToPymol(100) == true) { // running pymol server found
 				System.out.println("PyMol server found. Connected.");
@@ -406,6 +409,7 @@ public class Start {
 			}
 		}
 		
+		// connect to database
 		if(USE_DATABASE) {
 			System.out.println("Connecting to database...");
 			if(tryConnectingToDb() == false) {
