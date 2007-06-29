@@ -1,6 +1,5 @@
 package cmview;
 import java.io.*;
-import java.util.Date;
 import java.util.Properties;
 
 import javax.swing.JColorChooser;
@@ -10,7 +9,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import tools.MySQLConnection;
-import tools.PymolServerOutputStream;
 
 import cmview.datasources.Model;
 import cmview.datasources.ModelConstructionError;
@@ -38,8 +36,6 @@ public class Start {
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
-	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
-	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	public static final String      PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
 	public static final String		PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
@@ -91,6 +87,7 @@ public class Start {
 	private static MySQLConnection	conn;
 	private static JFileChooser fileChooser;
 	private static JColorChooser colorChooser;
+	private static PyMolAdaptor pymolAdaptor;
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 
@@ -187,7 +184,7 @@ public class Start {
 	 * The files are marked to be deleted on exit. Use getResourcePath() to access resources later.
 	 * */
 	private static void unpackResources() {		
-		unpackResource(PYMOLFUNCTIONS_SCRIPT);
+		unpackResource(PyMolAdaptor.PYMOLFUNCTIONS_SCRIPT);
 	}	
 	
 	/** 
@@ -280,35 +277,6 @@ public class Start {
 			return false;
 		}
 		return true;				
-	}
-	
-	/**
-	 * Try connecting to pymol server. Returns true on success, false otherwise.
-	 * TODO: Make this a (static?) method of PymolAdaptor.
-	 */
-	private static boolean tryConnectingToPymol(long timeoutMillis) {
-		long start = System.currentTimeMillis();
-		while (System.currentTimeMillis()-start < timeoutMillis) {
-			try {
-				String cmd;
-				File f = new File(Start.getResourcePath(Start.PYMOL_CALLBACK_FILE));
-				OutputStream test = new PymolServerOutputStream(PYMOL_SERVER_URL);
-				cmd = "run "+Start.getResourcePath(Start.PYMOLFUNCTIONS_SCRIPT);
-				test.write(cmd.getBytes());
-				test.flush();
-				cmd = "callback "+Start.getResourcePath(Start.PYMOL_CALLBACK_FILE) + ", " + new Date();
-				test.write(cmd.getBytes());
-				test.flush();
-				test.close();
-				if(f.exists()) {
-					f.deleteOnExit();
-					return true;
-				} else continue;
-			} catch (Exception e) {
-				continue;
-			}
-		}
-		return false;
 	}
 	
 	/**
@@ -405,16 +373,26 @@ public class Start {
 	/**
 	 * Return the global fileChooser for this session.
 	 * @return A JFileChooser to be used whenever possible.
-	 */	public static JFileChooser getFileChooser() {
+	 */	
+	public static JFileChooser getFileChooser() {
 		return fileChooser;
 	}
 	 
 	 /**
 	  * Return the global colorChooser for this session.
 	  * @return A JColorChooser to be used whenever possible.
-	  */	public static JColorChooser getColorChooser() {
+	  */	
+	 public static JColorChooser getColorChooser() {
 		  return colorChooser;
 	  }
+	
+	 /** 
+	  * Return the global pymolAdaptor of this session.
+	  * @return The PyMolAdaptor object
+	  */
+	 public static PyMolAdaptor getPyMolAdaptor() {
+		 return pymolAdaptor;
+	 }
 	 
 	
 	/**
@@ -447,7 +425,7 @@ public class Start {
             public void run() {
                 System.out.println("Shutting down");
                 if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT) {
-                	PyMolAdaptor.shutdownPymol(PYMOL_SERVER_URL);
+                	pymolAdaptor.shutdown(PYMOL_SERVER_URL);
                 }
             }
         });
@@ -461,8 +439,9 @@ public class Start {
 		}
 		
 		// connect to pymol
-		if(USE_PYMOL) {		
-			if(tryConnectingToPymol(100) == true) { // running pymol server found
+		if(USE_PYMOL) {
+			pymolAdaptor = new PyMolAdaptor(PYMOL_SERVER_URL);
+			if(pymolAdaptor.tryConnectingToPymol(100) == true) { // running pymol server found
 				System.out.println("PyMol server found. Connected.");
 				pymol_found = true;
 			} else {
@@ -473,7 +452,7 @@ public class Start {
 						pymol_found = false;
 					} else {
 						System.out.println("Connecting to PyMol server...");
-						if(tryConnectingToPymol(PYMOL_CONN_TIMEOUT) == false) {
+						if(pymolAdaptor.tryConnectingToPymol(PYMOL_CONN_TIMEOUT) == false) {
 							System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
 							pymol_found = false;
 						} else {
@@ -510,7 +489,7 @@ public class Start {
 		// start gui without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
 		Model mod = null;
-		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
+		View view = new View(mod, wintitle);
 		if (args.length>=1){
 			mod = preloadModel(args);
 			if(mod != null) {

@@ -56,8 +56,6 @@ public class View extends JFrame implements ActionListener {
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
-	private PyMolAdaptor pymolAdaptor;
-	private String pyMolServerUrl;
 	private int currentAction;
 	private int pymolSelSerial;		 	// for incrementation numbering
 	private int pymolNbhSerial;
@@ -75,10 +73,9 @@ public class View extends JFrame implements ActionListener {
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/icons/bullet_blue.png"));
 
 	/** Create a new View object */
-	public View(Model mod, String title, String pyMolServerUrl) {
+	public View(Model mod, String title) {
 		super(title);
 		this.mod = mod;
-		this.pyMolServerUrl=pyMolServerUrl;
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
@@ -424,7 +421,7 @@ public class View extends JFrame implements ActionListener {
 			} else if(cmPane.getSelContacts().size() == 0) {
 				showNoContactsSelectedWarning();
 			} else {
-				pymolAdaptor.edgeSelection(pymolSelSerial, cmPane.getSelContacts());
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
 				this.pymolSelSerial++;
 			}
 		}
@@ -437,7 +434,7 @@ public class View extends JFrame implements ActionListener {
 			} else if(!Start.isPyMolConnectionAvailable()) {				
 				showNoPyMolConnectionWarning();
 			} else {
-				pymolAdaptor.sendSingleEdge(pymolSelSerial, cmPane.getRightClickCont());
+				Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getRightClickCont());
 				this.pymolSelSerial++;
 			}
 		}
@@ -452,7 +449,7 @@ public class View extends JFrame implements ActionListener {
 			} else if(cmPane.getCommonNbh() == null) {
 				showNoCommonNbhSelectedWarning();
 			} else {
-				pymolAdaptor.showTriangles(cmPane.getCommonNbh(),pymolNbhSerial);
+				Start.getPyMolAdaptor().showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
 				this.pymolNbhSerial++;					
 			}
 		}
@@ -1005,7 +1002,7 @@ public class View extends JFrame implements ActionListener {
 	 */
 	public void spawnNewViewWindow(Model mod) {
 		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
-		View view = new View(mod, wintitle, Start.PYMOL_SERVER_URL);
+		View view = new View(mod, wintitle);
 		if(view == null) {
 			System.err.println("Error: Couldn't initialize contact map window");
 			//System.exit(-1);
@@ -1014,8 +1011,7 @@ public class View extends JFrame implements ActionListener {
 
 		if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in pymol
-			view.pymolAdaptor = new PyMolAdaptor(this.pyMolServerUrl, 
-					mod.getPDBCode(), mod.getChainCode(), mod.getTempPdbFileName());
+			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
 		}		
 		// if previous window was empty (not showing a contact map) dispose it
 		if(this.mod == null) {
