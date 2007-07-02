@@ -13,12 +13,6 @@ import proteinstructure.*;
  * A contact map data model. Derived classes have to implement the constructor in which
  * the structure is loaded, the member variables are set appropriately and a temporary
  * pdb file with the atom lines is written.
- * 
- * @author		Henning Stehr
- * Class: 		Model
- * Package: 	cmview.datasources
- * Date:		15/05/2007, last updated: 12/06/2007
- * 
  */
 public abstract class Model {
 	

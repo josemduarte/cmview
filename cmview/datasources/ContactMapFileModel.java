@@ -7,12 +7,6 @@ import java.sql.SQLException;
 
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.
- * 
- * @author		Henning Stehr
- * Class: 		PdbFileModel
- * Package: 	cmview.datasources
- * Date:		15/05/2007, last updated: 15/05/2007
- * 
  */
 public class ContactMapFileModel extends Model {
 	

@@ -7,12 +7,6 @@ import cmview.Start;
 
 /** 
  * A contact map data model based on a structure loaded from Pdbase.
- * 
- * @author		Henning Stehr
- * Class: 		MsdsdModel
- * Package: 	cmview.datasources
- * Date:		14/05/2007, last updated: 15/05/2007
- * 
  */
 public class MsdsdModel extends Model {
 

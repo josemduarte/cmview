@@ -4,12 +4,6 @@ import java.io.IOException;
 
 /** 
  * A contact map data model based on a structure loaded from a PDB file.
- * 
- * @author		Henning Stehr
- * Class: 		PdbFileModel
- * Package: 	cmview.datasources
- * Date:		14/05/2007, last updated: 15/05/2007
- * 
  */
 public class PdbFileModel extends Model {
 

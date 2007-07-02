@@ -1,5 +1,8 @@
 package cmview;
 
+/**
+ * An exception thrown and caught internally by LoadDialog.
+ */
 public class LoadDialogInputError extends Exception {
 
 	private static final long serialVersionUID = 1L;

@@ -7,12 +7,6 @@ import proteinstructure.*;
 
 /** 
  * A contact map data model based on a structure loaded from Pdbase.
- * 
- * @author		Henning Stehr
- * Class: 		PdbaseModel
- * Package: 	cmview.datasources
- * Date:		14/05/2007, last updated: 14/05/2007
- * 
  */
 public class PdbaseModel extends Model {
 

@@ -8,7 +8,7 @@ import javax.swing.border.Border;
  * Helper class for printing Swing components.
  * Encapsulates the code for printing a Swing component using a print dialog.
  * Usage: Call static printComponent(JComponent) method.
- * Taken from some Java tutorial.
+ * Taken from some online Java tutorial.
  */
 public class PrintUtil implements Printable {
   private Component componentToBePrinted;

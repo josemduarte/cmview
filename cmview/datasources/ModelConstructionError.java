@@ -1,5 +1,8 @@
 package cmview.datasources;
 
+/**
+ * Exception thrown by constructors of Model-subclasses.
+ */
 public class ModelConstructionError extends Exception {
 
 	private static final long serialVersionUID = 1L;

@@ -19,7 +19,8 @@ import cmview.datasources.PdbaseModel;
 import proteinstructure.*;
 
 /**
- * The main GUI window and associated event handling. Multiple instances talking to the same PymolServer are possible.
+ * GUI window and associated event handling showing a contact map.
+ * Multiple instances of this will be shown in separate windows.
  * 
  * Initialized with mod=null, an empty window with the menu bars is shown.
  * Initialized with a valid model, the contact map is displayed in a ContactMapPane.
@@ -317,9 +318,9 @@ public class View extends JFrame implements ActionListener {
 		fillM = new JMenuItem("Fill Selection Mode", icon2);
 		rangeM = new JMenuItem("Diagonal Selection Mode",icon3);
 		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
-		sendM = new JMenuItem("Show Selected Contacts in PyMol", icon5);
+		sendM = new JMenuItem("Show Selected Contacts in 3D", icon5);
 		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon6);
-		triangleM = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
+		triangleM = new JMenuItem("Show Common Neighbour Triangles in 3D", icon7);
 		delEdgesM = new JMenuItem("Delete selected contacts", icon8);
 
 		squareM.addActionListener(this);

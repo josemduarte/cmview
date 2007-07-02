@@ -17,13 +17,6 @@ import cmview.datasources.PdbaseModel;
 /**
  * Main class to start contact map viewer application.
  * Contains static main function, constants and some helper functions.
- * 
- * @author		Juliane Dinse
- * @author		Henning Stehr
- * @author		Jose Duarte 
- * Class: 		Start
- * Package: 	cmview
- * Date:		20/02/2007, updated: 12/06/2007
  */
 public class Start {
 

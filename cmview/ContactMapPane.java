@@ -23,12 +23,6 @@ import cmview.datasources.Model;
 
 /**
  * The panel containing the contact map and associated event handling.
- * 
- * @author:		Henning Stehr
- * Class: 		ContactMapPane (replaces PaintController)
- * Package: 	cmview
- * Date:		22/05/2007, last updated: 12/06/2007
- * 
  */
 public class ContactMapPane extends JPanel
 implements MouseListener, MouseMotionListener, ComponentListener {

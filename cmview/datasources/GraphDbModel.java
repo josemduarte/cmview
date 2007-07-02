@@ -7,12 +7,6 @@ import cmview.Start;
 
 /** 
  * A contact map data model based on a single_model_graph loaded from the database
- * 
- * @author		Henning Stehr
- * Class: 		GraphDbModel
- * Package: 	cmview.datasources
- * Date:		14/05/2007, last updated: 15/05/2007
- * 
  */
 public class GraphDbModel extends Model {
 

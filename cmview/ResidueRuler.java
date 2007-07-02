@@ -12,6 +12,9 @@ import javax.swing.JPanel;
 
 import cmview.datasources.Model;
 
+/**
+ * Component derived from JPanel, used by View to show residue rulers around a contact map.
+ */
 public class ResidueRuler extends JPanel implements MouseListener,
 		MouseMotionListener {
 
