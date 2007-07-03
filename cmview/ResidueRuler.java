@@ -25,8 +25,12 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	protected static final int LEFT = 3;
 	protected static final int RIGHT = 4; 
 	
+	private static final Color HELIX_COLOR = Color.blue;
+	private static final Color TURN_COLOR = Color.red;
+	private static final Color SHEET_COLOR = Color.green;
+	
 	private ContactMapPane cmPane;
-	//private Model mod; //TODO not needed for now, will need it later
+	private Model mod; 
  	private View view;
 	private int rulerWidth;
 	private int rulerLength;
@@ -45,7 +49,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		addMouseMotionListener(this);
 		this.location = location;
 		this.cmPane = cmPane;
-		//this.mod = mod;
+		this.mod = mod;
 		this.view = view;
 		this.contactMapSize = mod.getMatrixSize();
 		this.offSet = 0;
@@ -79,17 +83,24 @@ public class ResidueRuler extends JPanel implements MouseListener,
 
 		setBackground(Color.white);
 		
-		// painting ticks
+		// painting ticks for secondary structure
 		int tickSeparation = 1;
-		if (cmPane.getCellSize()<5) {
-			tickSeparation = 10;
-		}
-		for (int i=1;i<=contactMapSize+1;i+=tickSeparation){
-			// Warning: contactMapSize+1 is not really a contact but this will draw the last
-			Point startPoint = getOuterBorderPoint(i);
-			Point endPoint = getInnerBorderPoint(i);
-			g2d.setColor(Color.blue);
-			g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+		for (int i=1;i<=contactMapSize;i+=tickSeparation){
+			if (!mod.getSecStructure(i).equals("")) {
+				String secStructType = mod.getSecStructure(i);
+				if (secStructType.equals("H")){
+					g2d.setColor(HELIX_COLOR);
+				} else if (secStructType.equals("T")) {
+					g2d.setColor(TURN_COLOR);
+				} else if (secStructType.equals("S")){
+					g2d.setColor(SHEET_COLOR);
+				}
+
+				Point startPoint = getOuterBorderCentrePoint(i);
+				Point endPoint = getInnerBorderCentrePoint(i);
+				g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+			}
+			
 		}
 		
 	}
@@ -118,6 +129,29 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	/**
+	 * Gives outer border point at the centre of the k cell
+	 * @param k
+	 * @return
+	 */
+	private Point getOuterBorderCentrePoint(int k){
+		Point point = getOuterBorderPoint(k);
+		if (location==TOP) {
+			point.x = point.x+(int)Math.ceil(ratio/2);
+			point.y = 0;
+		} else if (location==BOTTOM){
+			point.x = point.x+(int)Math.ceil(ratio/2);
+			point.y = rulerWidth;			
+		} else if (location==LEFT){
+			point.x = 0;
+			point.y = point.y+(int)Math.ceil(ratio/2);			
+		} else if (location==RIGHT){
+			point.x = rulerWidth;
+			point.y = point.y+(int)Math.ceil(ratio/2);			
+		}
+		return point;
+	}
+
+	/**
 	 * Gives inner border point at the beginning of the k cell
 	 * @param k
 	 * @return
@@ -136,6 +170,30 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		} else if(location==RIGHT) { // vertical ruler
 			point.x = 0;
 			point.y = (int) Math.round((k-1)*ratio);
+		}
+
+		return point;
+	}
+
+	/**
+	 * Gives inner border point at the centre of the k cell
+	 * @param k
+	 * @return
+	 */
+	private Point getInnerBorderCentrePoint(int k){
+		Point point = getInnerBorderPoint(k);
+		if (location==TOP) {
+			point.x = point.x+(int)Math.ceil(ratio/2);
+			point.y = rulerWidth;
+		} else if(location==BOTTOM) {
+			point.x = point.x+(int)Math.ceil(ratio/2);
+			point.y = 0;	
+		} else if(location==LEFT) {
+			point.x = rulerWidth;
+			point.y = point.y+(int)Math.ceil(ratio/2);			
+		} else if(location==RIGHT) { // vertical ruler
+			point.x = 0;
+			point.y = point.y+(int)Math.ceil(ratio/2);
 		}
 
 		return point;

@@ -712,14 +712,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		String j_res = mod.getResType(currentCell.j);
 		// writing the coordinates at lower left corner
 		g2d.setColor(coordinatesColor);
-		g2d.drawString("i", 20, winsize-70);
-		g2d.drawString("j", 60, winsize-70);
-		g2d.drawString(currentCell.i+"", 20, winsize-50);
-		g2d.drawString(currentCell.j+"", 60, winsize-50);
-		g2d.drawString(i_res==null?"?":i_res, 20, winsize-30);
-		g2d.drawString(j_res==null?"?":j_res, 60, winsize-30);
+		g2d.drawString("i", 20, winsize-90);
+		g2d.drawString("j", 60, winsize-90);
+		g2d.drawString(currentCell.i+"", 20, winsize-70);
+		g2d.drawString(currentCell.j+"", 60, winsize-70);
+		g2d.drawString(i_res==null?"?":i_res, 20, winsize-50);
+		g2d.drawString(j_res==null?"?":j_res, 60, winsize-50);
+		g2d.drawString(mod.getSecStructure(currentCell.i), 20, winsize-30);
+		g2d.drawString(mod.getSecStructure(currentCell.j), 60, winsize-30);
+
 		if(allContacts.contains(currentCell)) {
-			g2d.drawLine(48, winsize-35, 55, winsize-35);
+			g2d.drawLine(48, winsize-55, 55, winsize-55);
 		}
 		if(view.getCurrentAction()==View.RANGE_SEL){
 			g2d.drawString("SeqSep", 100, winsize-70);
@@ -738,9 +741,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawRulerCoord(Graphics2D g2d) {
 		String res = mod.getResType(currentRulerCoord);
 		g2d.setColor(coordinatesColor);
-		g2d.drawString("i", 20, winsize-70);
-		g2d.drawString(currentRulerCoord+"", 20, winsize-50);
-		g2d.drawString(res==null?"?":res, 20, winsize-30);
+		g2d.drawString("i", 20, winsize-90);
+		g2d.drawString(currentRulerCoord+"", 20, winsize-70);
+		g2d.drawString(res==null?"?":res, 20, winsize-50);
+		g2d.drawString(mod.getSecStructure(currentRulerCoord), 20, winsize-30);
 		if (view.getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
 			g2d.drawString(pdbresser==null?"?":pdbresser, 20, winsize-10);

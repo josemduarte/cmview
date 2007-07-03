@@ -224,6 +224,19 @@ public abstract class Model {
 		return pdb.get_pdbresser_from_resser(resser);
 	}
 	
+	/**
+	 * To get secondary structure from the pdb object in a one letter code: S, H or T
+	 * Returns a blank string if there is no secondary structure assignment for the given residue serial
+	 * @return
+	 */
+	public String getSecStructure(int resser){
+		if (pdb.getSecStructure(resser)==null){
+			return "";
+		} else {
+			return String.valueOf(pdb.getSecStructure(resser).charAt(0));
+		}
+	}
+	
 	public HashMap<Contact,Integer> getAllEdgeNbhSizes(){
 		return graph.getAllEdgeNbhSizes();
 	}
