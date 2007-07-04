@@ -926,7 +926,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	public void showPopup(MouseEvent e) {
 		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));
-		view.popupSendEdge.setText("Show residue pair (" + rightClickCont.i + "," + rightClickCont.j + ") as edge in PyMol");
+		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,rightClickCont.i,rightClickCont.j));
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 

@@ -28,6 +28,7 @@ import proteinstructure.*;
  */
 public class View extends JFrame implements ActionListener {
 
+	// constants
 	static final long serialVersionUID = 1l;
 	protected static final int SQUARE_SEL = 1;
 	protected static final int FILL_SEL = 2;
@@ -35,9 +36,20 @@ public class View extends JFrame implements ActionListener {
 	protected static final int SHOW_COMMON_NBH = 4;
 	protected static final int RANGE_SEL = 5;
 	
+	// menu item labels
+	private static final String LABEL_DELETE_CONTACTS = "Delete selected contacts";
+	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
+	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";
+	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
+	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Node Neighbourhood Selection Mode";
+	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
+	private static final String LABEL_FILL_SELECTION_MODE = "Fill Selection Mode";
+	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
+	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
+	
 	// GUI components
 	JLabel statusPane; 			// status bar (currently not used)
-	JPanel cmp; 				// Panel for contact map	
+	JPanel cmp; 				// Panel for contact map
 	JPanel topRul;				// Panel for top ruler
 	JPanel leftRul;				// Panel for left ruler
 	JPopupMenu popup; 			// right-click context menu
@@ -58,7 +70,7 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
 	private int currentAction;
-	private int pymolSelSerial;		 	// for incrementation numbering
+	private int pymolSelSerial;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
 	private int pymolNbhSerial;
 
 	private boolean doShowPdbSers;
@@ -105,20 +117,19 @@ public class View extends JFrame implements ActionListener {
 		// Creating the Panels
 		statusPane = new JLabel("Click right mouse button for context menu");
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
-
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
 			
 		// Icons
-		ImageIcon icon1 = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
-		ImageIcon icon2 = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
-		ImageIcon icon3 = new ImageIcon(this.getClass().getResource("/icons/diagonals.png"));
-		ImageIcon icon4 = new ImageIcon(this.getClass().getResource("/icons/group.png"));
-		ImageIcon icon5 = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
-		ImageIcon icon6 = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
-		ImageIcon icon7 = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
-		ImageIcon icon8 = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
-		ImageIcon icon9 = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
+		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
+		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
+		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource("/icons/diagonals.png"));
+		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource("/icons/group.png"));
+		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
+		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
+		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
+		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
+		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
 		
 		// square icon with current painting color
@@ -161,15 +172,15 @@ public class View extends JFrame implements ActionListener {
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
 		
-		squareP = new JMenuItem("Square Selection Mode", icon1);
-		fillP = new JMenuItem("Fill Selection Mode", icon2);
-		rangeP = new JMenuItem("Diagonal Selection Mode", icon3);
-		nodeNbhSelP = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
-		sendP = new JMenuItem("Show Selected Contacts in PyMol", icon5);
-		popupSendEdge = new JMenuItem("Show residue pair as edge in PyMol", icon9);
-		comNeiP = new JMenuItem("Show Common Neighbours Mode", icon6);
-		triangleP = new JMenuItem("Show Common Neighbour Triangles in PyMol", icon7);
-		delEdgesP = new JMenuItem("Delete selected contacts", icon8);
+		squareP = new JMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode);
+		fillP = new JMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode);
+		rangeP = new JMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode);
+		nodeNbhSelP = new JMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode);
+		sendP = new JMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d);
+		popupSendEdge = new JMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d);
+		comNeiP = new JMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode);
+		triangleP = new JMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d);
+		delEdgesP = new JMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts);
 
 		squareP.addActionListener(this);
 		fillP.addActionListener(this);
@@ -199,8 +210,9 @@ public class View extends JFrame implements ActionListener {
 		popup.add(delEdgesP);
 
 		if(mod != null) {
-			cmPane = new ContactMapPane(mod, this);			
+			cmPane = new ContactMapPane(mod, this);
 			cmp.add(cmPane);
+			
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
 			topRul.add(topRuler);
@@ -314,14 +326,14 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
 
-		squareM = new JMenuItem("Square Selection Mode", icon1);
-		fillM = new JMenuItem("Fill Selection Mode", icon2);
-		rangeM = new JMenuItem("Diagonal Selection Mode",icon3);
-		nodeNbhSelM = new JMenuItem("Node Neighbourhood Selection Mode", icon4);
-		sendM = new JMenuItem("Show Selected Contacts in 3D", icon5);
-		comNeiM = new JMenuItem("Show Common Neighbours Mode", icon6);
-		triangleM = new JMenuItem("Show Common Neighbour Triangles in 3D", icon7);
-		delEdgesM = new JMenuItem("Delete selected contacts", icon8);
+		squareM = new JMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode);
+		fillM = new JMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode);
+		rangeM = new JMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode);
+		nodeNbhSelM = new JMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode);
+		sendM = new JMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d);
+		comNeiM = new JMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode);
+		triangleM = new JMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d);
+		delEdgesM = new JMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts);
 
 		squareM.addActionListener(this);
 		fillM.addActionListener(this);
@@ -375,6 +387,7 @@ public class View extends JFrame implements ActionListener {
 		// Show GUI
 		pack();
 		setVisible(true);
+		
 	}
 
 	/*------------------------------ event handling -------------------------*/

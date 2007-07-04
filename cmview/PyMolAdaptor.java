@@ -198,6 +198,7 @@ public class PyMolAdaptor {
 			trinum++;
 			residues.add(k);	
 		}
+		sendCommand("zoom");
 		createSelectionObject(nbhObjName + "Nodes", chainObjName, chainCode, residues );
 	}
 
