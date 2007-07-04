@@ -82,27 +82,22 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		ratio = (double)rulerLength/contactMapSize;
 
 		setBackground(Color.white);
-		
-		// painting ticks for secondary structure
-		int tickSeparation = 1;
-		for (int i=1;i<=contactMapSize;i+=tickSeparation){
-			if (!mod.getSecStructure(i).equals("")) {
-				String secStructType = mod.getSecStructure(i);
-				if (secStructType.equals("H")){
+
+		// painting secondary structure elements
+		if (mod.has3DCoordinates()){
+			for (String ssId:mod.getAllSecStructElements().keySet()){
+				if (ssId.charAt(0)=='H'){
 					g2d.setColor(HELIX_COLOR);
-				} else if (secStructType.equals("T")) {
+				} else if (ssId.charAt(0)=='T') {
 					g2d.setColor(TURN_COLOR);
-				} else if (secStructType.equals("S")){
+				} else if (ssId.charAt(0)=='S'){
 					g2d.setColor(SHEET_COLOR);
 				}
-
-				Point startPoint = getOuterBorderCentrePoint(i);
-				Point endPoint = getInnerBorderCentrePoint(i);
-				g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+				Point startPoint = getOuterBorderCentrePoint(mod.getAllSecStructElements().get(ssId).beg);
+				Point endPoint = getInnerBorderCentrePoint(mod.getAllSecStructElements().get(ssId).end);
+				g2d.fillRect(startPoint.x,startPoint.y,endPoint.x-startPoint.x,endPoint.y-startPoint.y);
 			}
-			
 		}
-		
 	}
 
 	/**

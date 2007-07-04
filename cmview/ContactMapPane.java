@@ -718,8 +718,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(currentCell.j+"", 60, winsize-70);
 		g2d.drawString(i_res==null?"?":i_res, 20, winsize-50);
 		g2d.drawString(j_res==null?"?":j_res, 60, winsize-50);
-		g2d.drawString(mod.getSecStructure(currentCell.i), 20, winsize-30);
-		g2d.drawString(mod.getSecStructure(currentCell.j), 60, winsize-30);
+		if (mod.has3DCoordinates()){
+			g2d.drawString(mod.getSecStructure(currentCell.i), 20, winsize-30);
+			g2d.drawString(mod.getSecStructure(currentCell.j), 60, winsize-30);
+		}
 
 		if(allContacts.contains(currentCell)) {
 			g2d.drawLine(48, winsize-55, 55, winsize-55);
@@ -744,7 +746,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString("i", 20, winsize-90);
 		g2d.drawString(currentRulerCoord+"", 20, winsize-70);
 		g2d.drawString(res==null?"?":res, 20, winsize-50);
-		g2d.drawString(mod.getSecStructure(currentRulerCoord), 20, winsize-30);
+		if (mod.has3DCoordinates()){
+			g2d.drawString(mod.getSecStructure(currentRulerCoord), 20, winsize-30);
+		}
 		if (view.getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
 			g2d.drawString(pdbresser==null?"?":pdbresser, 20, winsize-10);

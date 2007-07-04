@@ -26,6 +26,7 @@ public abstract class Model {
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
 	protected TreeMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
+	protected TreeMap<String,Interval> secstruct2resinterval; // secondary structure elements as sec structure ids and residue serial intervals 
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
 	/*----------------------------- constructors ----------------------------*/
@@ -48,13 +49,16 @@ public abstract class Model {
 	}
 
 	/**
-	 * Initalizes the member variables cm, dataMatrix, matrixSize and unobservedResidues.
+	 * Initalizes the member variables matrixSize, unobservedResidues and secstruct2resinterval
 	 * Variable graph has to be initialized previously. Otherwise a null pointer
 	 * exception will be thrown.
 	 */
 	protected void initializeContactMap() {
 		matrixSize = graph.getFullLength();
 		unobservedResidues = (graph.getFullLength() - graph.getObsLength());
+		if (has3DCoordinates()){
+			secstruct2resinterval = pdb.getAllSecStructElements();
+		}
 	 }	
 	
 	/** 
@@ -272,6 +276,10 @@ public abstract class Model {
 	
 	public boolean has3DCoordinates(){
 		return (pdb!=null);
+	}
+
+	public TreeMap<String,Interval> getAllSecStructElements(){
+		return secstruct2resinterval;
 	}
 	
 	/**
