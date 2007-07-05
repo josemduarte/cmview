@@ -25,7 +25,7 @@ public abstract class Model {
 	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
-	protected TreeMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
+	protected HashMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
 	protected TreeMap<String,Interval> secstruct2resinterval; // secondary structure elements as sec structure ids and residue serial intervals 
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
@@ -255,8 +255,8 @@ public abstract class Model {
 	 *
 	 */
 	public void initDistMatrix(){
-		TreeMap<Contact,Double> distMatrixAtoms = this.pdb.calculate_dist_matrix(this.getContactType());
-		TreeMap<Contact,Double> distMatrixRes = new TreeMap<Contact, Double>();
+		HashMap<Contact,Double> distMatrixAtoms = this.pdb.calculate_dist_matrix(this.getContactType());
+		HashMap<Contact,Double> distMatrixRes = new HashMap<Contact, Double>();
 		for (Contact cont: distMatrixAtoms.keySet()){
 			int i_resser = this.pdb.get_resser_from_atomser(cont.i);
 			int j_resser = this.pdb.get_resser_from_atomser(cont.j);
@@ -264,13 +264,13 @@ public abstract class Model {
 		}
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
-		distMatrix = new TreeMap<Contact, Double>();
+		distMatrix = new HashMap<Contact, Double>();
 		for (Contact cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
 	}
 	
-	public TreeMap<Contact,Double> getDistMatrix(){
+	public HashMap<Contact,Double> getDistMatrix(){
 		return distMatrix;
 	}
 	

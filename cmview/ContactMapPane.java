@@ -9,8 +9,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -208,7 +208,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// drawing distance matrix
 		if (view.getShowDistMatrix()){
 			// this actually contains all possible contacts in matrix so is doing a full loop on all cells
-			TreeMap<Contact,Double> distMatrix = mod.getDistMatrix();
+			HashMap<Contact,Double> distMatrix = mod.getDistMatrix();
 			for (Contact cont:distMatrix.keySet()){
 				Color c = colorMapBluescale(distMatrix.get(cont));
 				g2d.setColor(c);
