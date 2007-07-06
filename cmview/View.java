@@ -19,7 +19,7 @@ import cmview.datasources.PdbaseModel;
 import proteinstructure.*;
 
 /**
- * GUI window and associated event handling showing a contact map.
+ * Main GUI window and associated event handling.
  * Multiple instances of this will be shown in separate windows.
  * 
  * Initialized with mod=null, an empty window with the menu bars is shown.
@@ -47,11 +47,13 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
 	
-	// GUI components
-	JLabel statusPane; 			// status bar (currently not used)
-	JPanel cmp; 				// Panel for contact map
-	JPanel topRul;				// Panel for top ruler
-	JPanel leftRul;				// Panel for left ruler
+	// GUI components in the main frame
+	JPanel statusPane; 			// panel holding the status bar (currently not used)
+	JToolBar toolBar;			// icon tool bar (currently not used)
+	JPanel cmp; 				// Main panel holding the Contact map pane
+	JLayeredPane cmp2; // added for testing
+	JPanel topRul;				// Panel for top ruler	// TODO: Move this to ContactMapPane?
+	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
 	JPopupMenu popup; 			// right-click context menu
 
 	// Menu items
@@ -115,8 +117,10 @@ public class View extends JFrame implements ActionListener {
 		setLocation(20,20);
 
 		// Creating the Panels
-		statusPane = new JLabel("Click right mouse button for context menu");
+		statusPane = new JPanel(); // TODO: Create a class StatusBar
+		toolBar = new JToolBar();
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
+		cmp2 = new JLayeredPane(); // added for testing
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
 			
@@ -212,6 +216,21 @@ public class View extends JFrame implements ActionListener {
 		if(mod != null) {
 			cmPane = new ContactMapPane(mod, this);
 			cmp.add(cmPane);
+
+			// testing: use two separate layers for contacts and interaction
+//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
+//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this, cmPaneBg);
+//			cmp.setLayout(new OverlayLayout(cmp));
+//			cmp.add(cmPaneInt);
+//			cmp.add(cmPaneBg);
+
+			// alternative: use JLayeredPane
+//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this);
+//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
+//			cmp2.setLayout(new OverlayLayout(cmp2));
+//			cmp2.add(cmPaneInt, new Integer(2));
+//			cmp2.add(cmPaneBg, new Integer(1));
+			 //add cmp2 to contentPane
 			
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
@@ -377,6 +396,7 @@ public class View extends JFrame implements ActionListener {
 		menuBar.add(menu);
 
 		this.setJMenuBar(menuBar);
+		//this.getContentPane().add(toolBar, BorderLayout.NORTH);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
 		if(showRulers) {
 			this.getContentPane().add(topRul, BorderLayout.NORTH);
@@ -387,7 +407,6 @@ public class View extends JFrame implements ActionListener {
 		// Show GUI
 		pack();
 		setVisible(true);
-		
 	}
 
 	/*------------------------------ event handling -------------------------*/
@@ -474,10 +493,15 @@ public class View extends JFrame implements ActionListener {
 			} else if(cmPane.getSelContacts().size() == 0) {
 				showNoContactsSelectedWarning();
 			} else {
-				for (Contact cont:cmPane.getSelContacts()){
+				for (Contact cont:cmPane.getSelContacts()){		// TODO: move this to contact map pane
 					mod.delEdge(cont);
 				}
-				cmPane.reloadContacts();
+				if(getShowNbhSizeMap()) {
+					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					comNbhSizes = mod.getAllEdgeNbhSizes();		// TODO: move this to CMPane
+					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+				cmPane.reloadContacts();	// will update screen buffer
 				cmPane.resetSelContacts();
 				cmPane.repaint();
 			}
@@ -521,7 +545,6 @@ public class View extends JFrame implements ActionListener {
 			handleQuit();
 		}
 
-
 		// Color menu
 		if(e.getSource() == mmColorReset) {
 			handleViewReset();
@@ -540,7 +563,8 @@ public class View extends JFrame implements ActionListener {
 			} else if (!mod.has3DCoordinates()){
 				showNo3DCoordsWarning();
 			} else {
-				doShowPdbSers = !doShowPdbSers;
+				doShowPdbSers = !doShowPdbSers;						// TODO: Move this to CMPane?
+				cmPane.updateScreenBuffer();
 				if(doShowPdbSers) {
 					mmViewShowPdbResSers.setIcon(icon_selected);
 				} else {
@@ -559,13 +583,16 @@ public class View extends JFrame implements ActionListener {
 			if(mod==null) {
 				showNoContactMapWarning();
 			} else {
-				highlightComNbh = !highlightComNbh;
+				highlightComNbh = !highlightComNbh;					// TODO: Move this to CMPane?
 				if (highlightComNbh) {
-					comNbhSizes = mod.getAllEdgeNbhSizes();
+					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					comNbhSizes = mod.getAllEdgeNbhSizes();			// TODO: show something while waiting
 					mmViewHighlightComNbh.setIcon(icon_selected);
 				} else {
 					mmViewHighlightComNbh.setIcon(icon_deselected);
 				}
+				cmPane.updateScreenBuffer();
+				this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				cmPane.repaint();
 			}
 		}
@@ -573,7 +600,7 @@ public class View extends JFrame implements ActionListener {
 			if(mod==null) {
 				showNoContactMapWarning();
 			} else {
-				cmPane.toggleDensityMatrix();
+				cmPane.toggleDensityMatrix(); // this will update showDensityMatrix and screen buffer TODO: make this more transparent
 				if(showDensityMatrix) {
 					mmViewShowDensity.setIcon(icon_selected);
 				} else {
@@ -589,13 +616,18 @@ public class View extends JFrame implements ActionListener {
 			} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
 				showCantShowDistMatrixWarning();
 			} else {
-				showDistMatrix = !showDistMatrix;
+				showDistMatrix = !showDistMatrix;						// TODO: Move this to CMPane?
 				if(showDistMatrix) {
 					mmViewShowDistMatrix.setIcon(icon_selected);
 				} else {
 					mmViewShowDistMatrix.setIcon(icon_deselected);
 				}
-				if (mod.getDistMatrix()==null) mod.initDistMatrix(); //this initalises Model's distMatrix member the first time
+				if (mod.getDistMatrix()==null) {
+					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					mod.initDistMatrix(); //this initalises Model's distMatrix member the first time TODO: show something while waiting
+				}
+				cmPane.updateScreenBuffer();
+				this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				cmPane.repaint();
 			}
 		}
@@ -1047,12 +1079,12 @@ public class View extends JFrame implements ActionListener {
 	/** Returns the status variable highlightComNbh which indicates whether cells 
 	 * should be displayed in different colors based on common neighbourhoods sizes
 	 */
-	public boolean getHighlightComNbh() {
+	public boolean getShowNbhSizeMap() {
 		return highlightComNbh;
 	}
 	
 	/** Returns the status of the variable showDensityMatrix */
-	protected boolean getShowDensityMatrix() {
+	protected boolean getShowDensityMap() {
 		return this.showDensityMatrix;
 	}
 	
@@ -1062,7 +1094,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/** Returns the status of the variable showDistMatrix */
-	protected boolean getShowDistMatrix() {
+	protected boolean getShowDistMap() {
 		return this.showDistMatrix;
 	}
 

@@ -24,7 +24,7 @@ public class Start {
 	
 	// internal constants (not user changable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String      VERSION = 				"0.8.1";			// current version of this application (should match manifest)
+	public static final String      VERSION = 				"0.8.2";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
@@ -33,8 +33,7 @@ public class Start {
 	public static final String		PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
 	
-	// The following config file name can only be changed by a command line switch
-	
+	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
 	
 	// The following constants can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants

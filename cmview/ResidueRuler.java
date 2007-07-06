@@ -69,7 +69,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
 		
-		rulerLength = cmPane.getWindowSize();
+		rulerLength = cmPane.getOutputSize();
 		if (location==TOP || location==BOTTOM){ // horizontal ruler
 			rulerWidth = this.getHeight();
 			// if we are in top ruler we want an offset for the space that the left ruler ocuppies

@@ -45,14 +45,7 @@ public class PrintUtil implements Printable {
     	ContactMapPane p = (ContactMapPane) componentToBePrinted;
         double h = pageFormat.getImageableHeight();
         double w = pageFormat.getImageableWidth();
-        Border saveBorder = p.getBorder();
-        p.setBorder(null);
-    	p.setPrintSize(h,w);
-    	p.setPrinting(true);
-    	p.paint(g2d);
-    	p.setPrinting(false);
-    	p.setBorder(saveBorder);
-    	p.repaint();
+        p.print(w,h,g2d);
       } else {
     	  componentToBePrinted.paint(g2d);
       }
