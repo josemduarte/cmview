@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
-import java.util.HashMap;
 
 import cmview.datasources.ContactMapFileModel;
 import cmview.datasources.GraphDbModel;
@@ -71,19 +70,19 @@ public class View extends JFrame implements ActionListener {
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
-	private int currentAction;
 	private int pymolSelSerial;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
-	private int pymolNbhSerial;
+	private int pymolNbhSerial;			// for incremental numbering // TODO: Move this to PymolAdaptor
 
-	private boolean doShowPdbSers;
-	private boolean highlightComNbh;
-	private boolean showRulers;
-	private boolean showDensityMatrix;	// if true: show density matrix as background in contact map window
-	private boolean showDistMatrix;
-	private Color currentPaintingColor;
-
-	private HashMap<Contact,Integer> comNbhSizes;
+	// current gui state
+	private int currentAction;			// currently selected action (see constants above)
+	private boolean showPdbSers;		// whether showing pdb serials is switched on
+	private boolean showRulers;			// whether showing residue rulers is switched on
+	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
+	private boolean showDensityMap;		// whether showing the density map is switched on
+	private boolean showDistanceMap;	// whether showing the distance map is switched on
+	private Color currentPaintingColor;	// current color for coloring contacts selected by the user
 	
+	// global icons TODO: replace these by tickboxes
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/icons/bullet_blue.png"));
 
@@ -97,11 +96,11 @@ public class View extends JFrame implements ActionListener {
 		this.currentAction = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
-		this.doShowPdbSers = false;
-		this.highlightComNbh = false;
+		this.showPdbSers = false;
+		this.showNbhSizeMap = false;
 		this.showRulers=false;
-		this.showDensityMatrix=false;
-		this.showDistMatrix=false;
+		this.showDensityMap=false;
+		this.showDistanceMap=false;
 		this.currentPaintingColor = Color.blue;
 		
 		this.initGUI(); // build gui tree and show window
@@ -412,102 +411,12 @@ public class View extends JFrame implements ActionListener {
 	/*------------------------------ event handling -------------------------*/
 
 	/**
-	 * Handling events for all menu items.
-	 * TODO: Move all actions to handle... methods to keep this one nice and clean.
+	 * Handling action events for all menu items.
 	 */
 	public void actionPerformed (ActionEvent e) {
 
-		// Action menu
-
-		// square button clicked
-		if (e.getSource() == squareM || e.getSource() == squareP) {
-			currentAction = SQUARE_SEL;
-		}
-		// fill button clicked
-		if (e.getSource() == fillM || e.getSource() == fillP) {
-
-			currentAction = FILL_SEL;
-		}
-		// range selection clicked
-		if (e.getSource() == rangeM || e.getSource() == rangeP) {
-
-			currentAction = RANGE_SEL;
-		}
-		// node neihbourhood selection button clicked 
-		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP ) {
-
-			currentAction = NODE_NBH_SEL;
-		}		
-		// showing com. Nei. button clicked
-		if (e.getSource() == comNeiM || e.getSource() == comNeiP) {
-
-			currentAction = SHOW_COMMON_NBH;
-		}
-		// send selection button clicked
-		if (e.getSource() == sendM || e.getSource() == sendP) {	
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if(!mod.has3DCoordinates()) {
-				showNo3DCoordsWarning();
-			} else if(!Start.isPyMolConnectionAvailable()) {
-				showNoPyMolConnectionWarning();
-			} else if(cmPane.getSelContacts().size() == 0) {
-				showNoContactsSelectedWarning();
-			} else {
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;
-			}
-		}
-		// send current edge (only available in context menu)
-		if(e.getSource() == popupSendEdge) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if(!mod.has3DCoordinates()) {
-				showNo3DCoordsWarning();
-			} else if(!Start.isPyMolConnectionAvailable()) {				
-				showNoPyMolConnectionWarning();
-			} else {
-				Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getRightClickCont());
-				this.pymolSelSerial++;
-			}
-		}
-		// send com.Nei. button clicked
-		if(e.getSource()== triangleM || e.getSource()== triangleP) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if(!mod.has3DCoordinates()) {
-				showNo3DCoordsWarning();
-			} else if(!Start.isPyMolConnectionAvailable()) {				
-				showNoPyMolConnectionWarning();
-			} else if(cmPane.getCommonNbh() == null) {
-				showNoCommonNbhSelectedWarning();
-			} else {
-				Start.getPyMolAdaptor().showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
-				this.pymolNbhSerial++;					
-			}
-		}
-		// delete selected edges button clicked
-		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP ) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if(cmPane.getSelContacts().size() == 0) {
-				showNoContactsSelectedWarning();
-			} else {
-				for (Contact cont:cmPane.getSelContacts()){		// TODO: move this to contact map pane
-					mod.delEdge(cont);
-				}
-				if(getShowNbhSizeMap()) {
-					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-					comNbhSizes = mod.getAllEdgeNbhSizes();		// TODO: move this to CMPane
-					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-				}
-				cmPane.reloadContacts();	// will update screen buffer
-				cmPane.resetSelContacts();
-				cmPane.repaint();
-			}
-		}		
-
-		// File Menu
+		/* ---------- File Menu ---------- */
+		
 		// Load
 		if(e.getSource() == mmLoadGraph) {
 			handleLoadFromGraphDb();
@@ -524,6 +433,7 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmLoadCm) {
 			handleLoadFromCmFile();
 		}
+		
 		// Save
 		if(e.getSource() == mmSaveGraph) {
 			handleSaveToGraphDb();
@@ -534,6 +444,7 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmSavePng) {
 			handleSaveToPng();
 		}	
+		
 		// Info, Print, Quit
 		if(e.getSource() == mmInfo) {
 			handleInfo();
@@ -544,100 +455,84 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmQuit) {
 			handleQuit();
 		}
-
-		// Color menu
-		if(e.getSource() == mmColorReset) {
-			handleViewReset();
-		}
-		if(e.getSource() == mmColorPaint) {
-			handleViewColor();
-		}
-		if(e.getSource() == mmColorChoose) {
-			handleViewSelectColor();
-		}
 		
-		// View Menu		
+		/* ---------- View Menu ---------- */		
+		
 		if(e.getSource() == mmViewShowPdbResSers) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if (!mod.has3DCoordinates()){
-				showNo3DCoordsWarning();
-			} else {
-				doShowPdbSers = !doShowPdbSers;						// TODO: Move this to CMPane?
-				cmPane.updateScreenBuffer();
-				if(doShowPdbSers) {
-					mmViewShowPdbResSers.setIcon(icon_selected);
-				} else {
-					mmViewShowPdbResSers.setIcon(icon_deselected);
-				}
-			}
+			handleShowPdbResSers();
 		}		  
 		if(e.getSource() == mmViewRulers) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else {
-				toggleRulers();
-			}
+			handleShowRulers();
 		}	
 		if(e.getSource() == mmViewHighlightComNbh) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else {
-				highlightComNbh = !highlightComNbh;					// TODO: Move this to CMPane?
-				if (highlightComNbh) {
-					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-					comNbhSizes = mod.getAllEdgeNbhSizes();			// TODO: show something while waiting
-					mmViewHighlightComNbh.setIcon(icon_selected);
-				} else {
-					mmViewHighlightComNbh.setIcon(icon_deselected);
-				}
-				cmPane.updateScreenBuffer();
-				this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-				cmPane.repaint();
-			}
+			handleShowNbhSizeMap();
 		}
 		if(e.getSource() == mmViewShowDensity) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else {
-				cmPane.toggleDensityMatrix(); // this will update showDensityMatrix and screen buffer TODO: make this more transparent
-				if(showDensityMatrix) {
-					mmViewShowDensity.setIcon(icon_selected);
-				} else {
-					mmViewShowDensity.setIcon(icon_deselected);
-				}
-			}
+			handleShowDensityMap();
 		}
 		if(e.getSource() == mmViewShowDistMatrix) {
-			if(mod==null) {
-				showNoContactMapWarning();
-			} else if (!mod.has3DCoordinates()){
-				showNo3DCoordsWarning();
-			} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
-				showCantShowDistMatrixWarning();
-			} else {
-				showDistMatrix = !showDistMatrix;						// TODO: Move this to CMPane?
-				if(showDistMatrix) {
-					mmViewShowDistMatrix.setIcon(icon_selected);
-				} else {
-					mmViewShowDistMatrix.setIcon(icon_deselected);
-				}
-				if (mod.getDistMatrix()==null) {
-					this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-					mod.initDistMatrix(); //this initalises Model's distMatrix member the first time TODO: show something while waiting
-				}
-				cmPane.updateScreenBuffer();
-				this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-				cmPane.repaint();
-			}
+			handleShowDistanceMap();
 		}
 		
-		// Select menu
+		/* ---------- Select menu ---------- */
+		
 		if(e.getSource() == mmSelectAll) {
 			handleSelectAll();
-		}		
+		}	
 		
-		// Help Menu
+		/* ---------- Color menu ---------- */
+		
+		if(e.getSource() == mmColorReset) {
+			handleColorReset();
+		}
+		if(e.getSource() == mmColorPaint) {
+			handleColorPaint();
+		}
+		if(e.getSource() == mmColorChoose) {
+			handleColorSelect();
+		}
+
+		/* ---------- Action menu ---------- */
+
+		// square button clicked
+		if (e.getSource() == squareM || e.getSource() == squareP) {
+			currentAction = SQUARE_SEL;
+		}
+		// fill button clicked
+		if (e.getSource() == fillM || e.getSource() == fillP) {
+			currentAction = FILL_SEL;
+		}
+		// range selection clicked
+		if (e.getSource() == rangeM || e.getSource() == rangeP) {
+			currentAction = RANGE_SEL;
+		}
+		// node neihbourhood selection button clicked 
+		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP ) {
+			currentAction = NODE_NBH_SEL;
+		}		
+		// showing com. Nei. button clicked
+		if (e.getSource() == comNeiM || e.getSource() == comNeiP) {
+			currentAction = SHOW_COMMON_NBH;
+		}
+		// send selection button clicked
+		if (e.getSource() == sendM || e.getSource() == sendP) {	
+			handleShowSelContacts3D();
+		}
+		// send current edge (only available in context menu)
+		if(e.getSource() == popupSendEdge) {
+			handleShowDistance3D();
+		}
+		// send com.Nei. button clicked
+		if(e.getSource()== triangleM || e.getSource()== triangleP) {
+			handleShowTriangles3D();
+		}
+		// delete selected edges button clicked
+		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP ) {
+			handleDeleteSelContacts();
+		}			
+		
+		/* ---------- Help Menu ---------- */
+		
 		if(e.getSource() == mmHelpAbout) {
 			handleHelpAbout();
 		}
@@ -649,6 +544,8 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	/* -------------------- File Menu -------------------- */
+	
 	private void handleLoadFromGraphDb() {
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
@@ -674,7 +571,6 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		}
 	}
-
 
 	private void handleLoadFromPdbase() {
 		if(!Start.isDatabaseConnectionAvailable()) {
@@ -881,17 +777,129 @@ public class View extends JFrame implements ActionListener {
 		System.exit(0);
 	}
 
-	private void handleViewReset() {
-		//System.out.println("View:Reset not implemented yet");
+	/* -------------------- View Menu -------------------- */
+	
+	/**
+	 * 
+	 */
+	private void handleShowPdbResSers() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning();
+		} else {
+			showPdbSers = !showPdbSers;						// TODO: Move this to CMPane?
+			cmPane.updateScreenBuffer();
+			if(showPdbSers) {
+				mmViewShowPdbResSers.setIcon(icon_selected);
+			} else {
+				mmViewShowPdbResSers.setIcon(icon_deselected);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	private void handleShowRulers() {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			cmPane.resetColorMap();
+			showRulers = !showRulers;
+			if(showRulers) {
+				this.getContentPane().add(topRul, BorderLayout.NORTH);
+				this.getContentPane().add(leftRul, BorderLayout.WEST);
+				mmViewRulers.setIcon(icon_selected);
+			} else {
+				this.getContentPane().remove(topRul);
+				this.getContentPane().remove(leftRul);
+				mmViewRulers.setIcon(icon_deselected);
+			}
+			this.pack();
+			this.repaint();
 		}
-	}	  
+	}
+	
+	/**
+	 * 
+	 */
+	private void handleShowNbhSizeMap() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			showNbhSizeMap = !showNbhSizeMap;
+			cmPane.toggleNbhSizeMap(showNbhSizeMap);
+			if (showNbhSizeMap) {
+				mmViewHighlightComNbh.setIcon(icon_selected);
+			} else {
+				mmViewHighlightComNbh.setIcon(icon_deselected);
+			}
+		}
+	}
 
-	private void handleViewColor() {
-		//System.out.println("View:Color by type not implemented yet");
+	/**
+	 * 
+	 */
+	private void handleShowDensityMap() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			showDensityMap = !showDensityMap;
+			cmPane.toggleDensityMap(showDensityMap);
+			if(showDensityMap) {
+				mmViewShowDensity.setIcon(icon_selected);
+			} else {
+				mmViewShowDensity.setIcon(icon_deselected);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void handleShowDistanceMap() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning();
+		} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
+			showCantShowDistMatrixWarning();
+		} else {
+			showDistanceMap = !showDistanceMap;
+			cmPane.toggleDistanceMap(showDistanceMap);
+			if(showDistanceMap) {
+				mmViewShowDistMatrix.setIcon(icon_selected);
+			} else {
+				mmViewShowDistMatrix.setIcon(icon_deselected);
+			}
+		}
+	}
+
+	/* -------------------- Select menu -------------------- */
+	
+	private void handleSelectAll() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			cmPane.selectAllContacts();
+		}
+	}
+
+	/* -------------------- Color menu -------------------- */
+	
+	private void handleColorSelect() {	
+		JDialog chooseDialog = JColorChooser.createDialog(this, "Choose color", true, Start.getColorChooser(), 
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e){
+							Color c = Start.getColorChooser().getColor();
+							currentPaintingColor = c;
+							System.out.println("Color changed to " + c);
+					}
+				} , null); // no handler for cancel button
+		chooseDialog.setVisible(true);
+	}
+
+	private void handleColorPaint() {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if(cmPane.getSelContacts().size() == 0) {
@@ -902,26 +910,83 @@ public class View extends JFrame implements ActionListener {
 			cmPane.repaint();
 		}
 	}
-	
-	private void handleViewSelectColor() {	
-		JDialog chooseDialog = JColorChooser.createDialog(this, "Choose color", true, Start.getColorChooser(), 
-				new ActionListener() {
-					public void actionPerformed(ActionEvent e){
-							Color c = Start.getColorChooser().getColor();
-							currentPaintingColor = c;
-							System.out.println("Color changed to " + c);
-					}
-				} , null); // no handler for cancel button
-		chooseDialog.setVisible(true);
-	}	
 
-	private void handleSelectAll() {
+	private void handleColorReset() {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			cmPane.selectAllContacts();
+			cmPane.resetColorMap();
 		}
 	}
+
+	/* -------------------- Action menu -------------------- */
+	
+	/**
+	 * 
+	 */
+	private void handleShowSelContacts3D() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning();
+		} else if(!Start.isPyMolConnectionAvailable()) {
+			showNoPyMolConnectionWarning();
+		} else if(cmPane.getSelContacts().size() == 0) {
+			showNoContactsSelectedWarning();
+		} else {
+			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+			this.pymolSelSerial++;
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void handleShowDistance3D() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning();
+		} else if(!Start.isPyMolConnectionAvailable()) {				
+			showNoPyMolConnectionWarning();
+		} else {
+			Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getRightClickCont());
+			this.pymolSelSerial++;
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void handleShowTriangles3D() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning();
+		} else if(!Start.isPyMolConnectionAvailable()) {				
+			showNoPyMolConnectionWarning();
+		} else if(cmPane.getCommonNbh() == null) {
+			showNoCommonNbhSelectedWarning();
+		} else {
+			Start.getPyMolAdaptor().showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
+			this.pymolNbhSerial++;					
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void handleDeleteSelContacts() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(cmPane.getSelContacts().size() == 0) {
+			showNoContactsSelectedWarning();
+		} else {
+			cmPane.deleteSelectedContacts();
+		}
+	}
+
+	/* -------------------- Help menu -------------------- */
 	
 	private void handleHelpWriteConfig() {
 		try {
@@ -986,6 +1051,8 @@ public class View extends JFrame implements ActionListener {
 				JOptionPane.PLAIN_MESSAGE);
 	}	
 	
+	/* -------------------- Warnings -------------------- */
+	
 	/** Shows a window with a warning message that no contact map is loaded yet */
 	private void showNoContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
@@ -1025,22 +1092,6 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/*---------------------------- public methods ---------------------------*/
-
-	/** show/hide rulers and toggle the value of showRulers */
-	private void toggleRulers() {
-		showRulers = !showRulers;
-		if(showRulers) {
-			this.getContentPane().add(topRul, BorderLayout.NORTH);
-			this.getContentPane().add(leftRul, BorderLayout.WEST);
-			mmViewRulers.setIcon(icon_selected);
-		} else {
-			this.getContentPane().remove(topRul);
-			this.getContentPane().remove(leftRul);
-			mmViewRulers.setIcon(icon_deselected);
-		}
-		this.pack();
-		this.repaint();
-	}
 	
 	/** 
 	 * Create and show a new view window, showing a contact map based on the given model and dispose the current one.
@@ -1065,47 +1116,42 @@ public class View extends JFrame implements ActionListener {
 			this.dispose();
 		}
 	}
-
-	/** Returns the status variable currentAction which contains the currently selected actions */
+	
+	/* -------------------- getter methods -------------------- */
+	// TODO: Make all these parameters of calls to CMPane
+	/** 
+	 * Returns the currently selected action 
+	 */
 	public int getCurrentAction(){
 		return currentAction;
 	}
 	
-	/** Returns the status variable doShowPdbSers which indicates whether PDB serials should be displayed */
+	/** 
+	 * Returns whether showing the pdb residue serials is switched on 
+	 */
 	public boolean getShowPdbSers() {
-		return doShowPdbSers;
+		return showPdbSers;
 	}
 
-	/** Returns the status variable highlightComNbh which indicates whether cells 
-	 * should be displayed in different colors based on common neighbourhoods sizes
+	/**  
+	 * Returns whether showing the common neighbourhood size map is switched on
 	 */
 	public boolean getShowNbhSizeMap() {
-		return highlightComNbh;
+		return showNbhSizeMap;
 	}
 	
-	/** Returns the status of the variable showDensityMatrix */
-	protected boolean getShowDensityMap() {
-		return this.showDensityMatrix;
-	}
-	
-	/** Sets the status of the variable showDensityMatrix */
-	protected void setShowDensityMatrix(boolean val) {
-		this.showDensityMatrix = val;
+	/** 
+	 * Returns whether showing the density map is switched on
+	 */
+	public boolean getShowDensityMap() {
+		return this.showDensityMap;
 	}
 
-	/** Returns the status of the variable showDistMatrix */
-	protected boolean getShowDistMap() {
-		return this.showDistMatrix;
-	}
-
-	/** Sets the value of the highlightComNbh variable to switch on common nbh view in paintComponent. */
-	public void setHighlightComNbh(boolean highlightComNbh) {
-		this.highlightComNbh=highlightComNbh;
-	}
-
-	/** Returns a hashmap containing the sizes of the common neighbourhoods for all residue pairs. */
-	public HashMap<Contact,Integer> getComNbhSizes() {
-		return comNbhSizes;
+	/** 
+	 * Returns whether showing the distance map is switched on 
+	 */
+	public boolean getShowDistMap() {
+		return this.showDistanceMap;
 	}
 	
 }

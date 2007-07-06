@@ -2,7 +2,6 @@ package cmview;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.print.*;
-import javax.swing.border.Border;
 
 /**
  * Helper class for printing Swing components.

@@ -30,6 +30,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/*------------------------------ constants ------------------------------*/
 
 	static final long serialVersionUID = 1l;
+	static final boolean BACKGROUND_LOADING = false;
 
 	/*--------------------------- member variables --------------------------*/
 	
@@ -52,7 +53,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private double ratio;		  			// ratio of screen size and contact map size = size of each contact on screen
 	private int contactSquareSize;			// size of a single contact on screen depending on the current ratio
 	private boolean dragging;     			// set to true while the user is dragging (to display selection rectangle)
-	private boolean mouseIn;				// true if the mouse is currently in the contact map window (otherwise supress crosshair)
+	protected boolean mouseIn;				// true if the mouse is currently in the contact map window (otherwise supress crosshair)
 	private boolean showCommonNbs; 			// while true, common neighbourhoods are drawn on screen
 	private boolean showRulerCoord; 		// while true, current ruler coordinate are shown instead of usual coordinates
 	
@@ -60,7 +61,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private ContactList selContacts; 		// permanent list of currently selected contacts
 	private ContactList tmpContacts; 		// transient list of contacts selected while dragging
 	private Hashtable<Contact,Color> userContactColors;  // user defined colors for individual contacts
-	private double[][] densityMatrix; 		// matrix of contact density
+	private double[][] densityMatrix; 					 // matrix of contact density
+	private HashMap<Contact,Integer> comNbhSizes;		 // matrix of common neighbourhood sizes
+	private boolean nbhSizeMapBeingUpdated;
+	private boolean densityMapBeingUpdated;
+	private boolean distanceMapBeingUpdated;
+	
+	
 	
 	// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// resulting buffer containing the overlayd image of all ob the above
@@ -111,6 +118,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.showRulerCoord = false;
 		this.userContactColors = new Hashtable<Contact, Color>();
 		this.densityMatrix = null;
+		this.comNbhSizes = null;
+		
+		nbhSizeMapBeingUpdated = false;
+		densityMapBeingUpdated = false;
+		distanceMapBeingUpdated = false;
 		
 		// set default colors
 		this.contactColor = Color.black;
@@ -127,6 +139,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.nbhCorridorColor = Color.lightGray;
 		
 		setBackground(backgroundColor);
+		
 	}
 
 	/*-------------------------- overridden methods -------------------------*/
@@ -157,7 +170,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * (re) drawn on screen. It is called automatically by Swing or by explicitly calling cmpane.repaint().
 	 */
 	@Override
-	protected void paintComponent(Graphics g) {
+	protected synchronized void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g.create();
 				
 		// draw screen buffer
@@ -235,8 +248,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	private void drawNbhSizeMap(Graphics2D g2d) {
 		// showing common neighbourhood sizes
-		for (Contact cont:view.getComNbhSizes().keySet()){
-			int size = view.getComNbhSizes().get(cont);
+		for (Contact cont:comNbhSizes.keySet()){
+			int size = comNbhSizes.get(cont);
 			if (allContacts.contains(cont)) {
 				// coloring pinks when the cell is a contact, 1/size is simply doing the color grading: lower size lighter than higher size
 				g2d.setColor(new Color(1.0f/(float) Math.sqrt(size), 0.0f, 1.0f/(float) Math.sqrt(size)));
@@ -464,7 +477,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Repaint the screen buffer because something in the underlying data has changed.
 	 */
-	public void updateScreenBuffer() {
+	public synchronized void updateScreenBuffer() {
 		
 		if(screenBuffer == null) {
 			screenBuffer = new ScreenBuffer(this);
@@ -494,9 +507,79 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} else {
 			drawNbhSizeMap(g2d);
 		}
+	
+		repaint();
 		
+	}
+
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateNbhSizeMapBg() {
+		if(nbhSizeMapBeingUpdated) return;
+		nbhSizeMapBeingUpdated = true;
+		new Thread() {
+			public void run() {
+				comNbhSizes = mod.getAllEdgeNbhSizes();
+				updateScreenBuffer();
+				nbhSizeMapBeingUpdated = false;
+			}
+		}.start();
+	}
+	
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateDensityMapBg() {
+		if(densityMapBeingUpdated) return;
+		densityMapBeingUpdated = true;		
+		new Thread() {
+			public void run() {
+				densityMatrix = mod.getDensityMatrix();
+				updateScreenBuffer();
+				densityMapBeingUpdated = false;
+			}
+		}.start();
+	}
+
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateDistanceMapBg() {
+		if(distanceMapBeingUpdated) return;
+		distanceMapBeingUpdated = true;	
+		new Thread() {
+			public void run() {
+				mod.initDistMatrix();
+				updateScreenBuffer();
+				distanceMapBeingUpdated = false;
+			}
+		}.start();
 	}	
 	
+	
+	/**
+	 * Triggers the nbh size map to be updated
+	 */
+	public synchronized void updateNbhSizeMap() {
+			comNbhSizes = mod.getAllEdgeNbhSizes();
+	}
+	
+	/**
+	 * Triggers the density map to be updated
+	 */
+	public synchronized void updateDensityMap() {
+			densityMatrix = mod.getDensityMatrix();
+	}
+
+	/**
+	 * Triggers the distance map to be updated
+	 */
+	public synchronized void updateDistanceMap() {
+			mod.initDistMatrix();
+	}
+	
+
 	/*---------------------------- mouse events -----------------------------*/
 
 	public void mousePressed(MouseEvent evt) {
@@ -672,7 +755,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	public void componentShown(ComponentEvent evt) {
-		// TODO Auto-generated method stub
+		if(BACKGROUND_LOADING) {
+			updateDensityMapBg();
+			updateDistanceMapBg();
+			updateNbhSizeMapBg();
+		}
 		
 	}
 	
@@ -681,19 +768,29 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	/**
 	 * To be called whenever the contacts have been changed in the Model object (i.e. the graph object).
-	 * Currently called when deleting edges. TODO: Should trigger buffers to be redrawn.
+	 * Currently called when deleting edges.
 	 */
 	public void reloadContacts() {
 		this.allContacts = mod.getContacts();
 		if(view.getShowNbhSizeMap()) {
-			// is being updated in View
+			updateNbhSizeMap();
+		} else {
+			if(BACKGROUND_LOADING) {
+				updateNbhSizeMapBg();
+			} else {
+				comNbhSizes = null;		// mark as dirty
+			}
 		}
 		if(view.getShowDensityMap()) {
-			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-			this.densityMatrix = mod.getDensityMatrix();
+			updateDensityMap();
+		} else {
+			if(BACKGROUND_LOADING) {
+				updateDensityMapBg();				
+			} else {
+				densityMatrix = null;	// mark as dirty
+			}
 		}
-		updateScreenBuffer();
-		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+		updateScreenBuffer();		// will repaint
 	}
 
 	/**
@@ -757,18 +854,55 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 	
-	/** Show/hide density matrix */
-	protected void toggleDensityMatrix() {
-		view.setShowDensityMatrix(!view.getShowDensityMap());
-		if(view.getShowDensityMap()) {
-			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-			this.densityMatrix = mod.getDensityMatrix();
-		} else {
-			this.densityMatrix = null;
+	/**
+	 * Show/hide common neighbourhood size map 
+	 */	
+	protected void toggleNbhSizeMap(boolean state) {
+		if (state) {
+			if(comNbhSizes == null) {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				updateNbhSizeMap();
+			}
 		}
-		updateScreenBuffer();
+		updateScreenBuffer();		// will repaint
 		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-		this.repaint();
+	}	
+	
+	/**
+	 * Show/hide density map
+	 */
+	protected void toggleDensityMap(boolean state) {
+		if(state) {
+			if(densityMatrix == null) {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				updateDensityMap();				
+			}
+		}
+		updateScreenBuffer();		// will repaint
+		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+	}
+
+	/**
+	 * Show/hide distance map
+	 * TODO: Make this work the same as density map/nbh size map
+	 */	
+	protected void toggleDistanceMap(boolean state) {
+		if(state) {
+			if (mod.getDistMatrix()==null) {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));			
+				updateDistanceMap();
+			}
+		}
+		updateScreenBuffer();			// will repaint
+		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+	}		
+	
+	public void deleteSelectedContacts() {
+		for (Contact cont:selContacts){
+			mod.delEdge(cont);
+		}
+		resetSelContacts();
+		reloadContacts();	// will update screen buffer and repaint
 	}
 	
 	/**
