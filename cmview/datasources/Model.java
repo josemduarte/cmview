@@ -2,9 +2,9 @@ package cmview.datasources;
 
 import java.io.IOException;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.TreeMap;
-import java.util.Collections;
 
 import cmview.Start;
 import proteinstructure.*;
@@ -255,19 +255,14 @@ public abstract class Model {
 	 *
 	 */
 	public void initDistMatrix(){
-		HashMap<Contact,Double> distMatrixAtoms = this.pdb.calculate_dist_matrix(this.getContactType());
-		HashMap<Contact,Double> distMatrixRes = new HashMap<Contact, Double>();
-		for (Contact cont: distMatrixAtoms.keySet()){
-			int i_resser = this.pdb.get_resser_from_atomser(cont.i);
-			int j_resser = this.pdb.get_resser_from_atomser(cont.j);
-			distMatrixRes.put(new Contact(i_resser,j_resser), distMatrixAtoms.get(cont));
-		}
+		HashMap<Contact,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
 		distMatrix = new HashMap<Contact, Double>();
 		for (Contact cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
+
 	}
 	
 	public HashMap<Contact,Double> getDistMatrix(){
