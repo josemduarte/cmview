@@ -89,6 +89,7 @@ public class PyMolAdaptor {
 		String resString = "";
 		int start, last;
 		
+		// TODO: use NodeSet instead of ArrayList and replace the following by NodeSet.getIntervals()
 		Collections.sort(residues);
 		last = residues.get(0);
 		start = last;

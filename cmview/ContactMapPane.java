@@ -11,6 +11,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import java.util.Hashtable;
 import java.util.HashMap;
+
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -18,7 +19,9 @@ import javax.swing.border.Border;
 import proteinstructure.Contact;
 import proteinstructure.ContactList;
 import proteinstructure.EdgeNbh;
+import proteinstructure.Interval;
 import proteinstructure.NodeNbh;
+import proteinstructure.NodeSet;
 import cmview.datasources.Model;
 
 /**
@@ -30,7 +33,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/*------------------------------ constants ------------------------------*/
 
 	static final long serialVersionUID = 1l;
-	static final boolean BACKGROUND_LOADING = false;
+	static final boolean BACKGROUND_LOADING = false;	// function is buggi, only for testing
 
 	/*--------------------------- member variables --------------------------*/
 	
@@ -57,18 +60,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private boolean showCommonNbs; 			// while true, common neighbourhoods are drawn on screen
 	private boolean showRulerCoord; 		// while true, current ruler coordinate are shown instead of usual coordinates
 	
+	// selections
 	private ContactList allContacts; 		// all contacts from the underlying contact map model
 	private ContactList selContacts; 		// permanent list of currently selected contacts
 	private ContactList tmpContacts; 		// transient list of contacts selected while dragging
+	private NodeSet selHorNodes;			// current horizontal residue selection
+	private NodeSet selVertNodes;			// current vertical residue selection
+	
+	// other displayable data
 	private Hashtable<Contact,Color> userContactColors;  // user defined colors for individual contacts
 	private double[][] densityMatrix; 					 // matrix of contact density
 	private HashMap<Contact,Integer> comNbhSizes;		 // matrix of common neighbourhood sizes
-	private boolean nbhSizeMapBeingUpdated;
-	private boolean densityMapBeingUpdated;
-	private boolean distanceMapBeingUpdated;
-	
-	
-	
+
 	// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// resulting buffer containing the overlayd image of all ob the above
 	
@@ -85,6 +88,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Color crossOnContactColor;		// color for crosses on common nbh contacts
 	private Color corridorColor;	  		// color for contact corridor when showing common nbh
 	private Color nbhCorridorColor;	  		// color for nbh contact corridor when showing common nbh
+	protected Color horizontalNodeSelectionColor;		// color for horizontally selected residues (using xor mode)
+	protected Color verticalNodeSelectionColor;	// color for vertically selected residues (using xor mode)
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -107,6 +112,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.allContacts = mod.getContacts();
 		this.selContacts = new ContactList();
 		this.tmpContacts = new ContactList();
+		this.selHorNodes = new NodeSet();
+		this.selVertNodes = new NodeSet();
 		this.contactMapSize = mod.getMatrixSize();
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
@@ -119,10 +126,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.userContactColors = new Hashtable<Contact, Color>();
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
-		
-		nbhSizeMapBeingUpdated = false;
-		densityMapBeingUpdated = false;
-		distanceMapBeingUpdated = false;
 		
 		// set default colors
 		this.contactColor = Color.black;
@@ -137,6 +140,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.crossOnContactColor = Color.yellow;
 		this.corridorColor = Color.green;
 		this.nbhCorridorColor = Color.lightGray;
+		this.horizontalNodeSelectionColor = new Color(200,200,255);
+		this.verticalNodeSelectionColor = new Color(255,200,255);
 		
 		setBackground(backgroundColor);
 		
@@ -213,7 +218,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.setColor(selectionColor);
 		for (Contact cont:selContacts){
 			drawContact(g2d, cont);
-		}	
+		}
+		
+		// draw node selections
+		if(selHorNodes.size() > 0 || selVertNodes.size() > 0)
+		g2d.setColor(Color.white);
+		g2d.setXORMode(horizontalNodeSelectionColor);
+		//g2d.setColor(horizontalNodeSelectionColor);
+		for(Interval intv:selHorNodes.getIntervals()) {
+			drawHorizontalNodeSelection(g2d, intv);
+		}
+		g2d.setXORMode(verticalNodeSelectionColor);
+		//g2d.setColor(verticalNodeSelectionColor);
+		for(Interval intv:selVertNodes.getIntervals()) {
+			drawVerticalNodeSelection(g2d, intv);
+		}
+		g2d.setPaintMode();
 		
 		// draw crosshair and coordinates
 		if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
@@ -230,6 +250,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
+	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
+		Point upperLeft = getCellUpperLeft(new Contact(residues.beg,1));
+		Point lowerRight = getCellLowerRight(new Contact(residues.end, contactMapSize));
+		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
+	}
+	
+	private void drawVerticalNodeSelection(Graphics2D g2d, Interval residues) {
+		Point upperLeft = getCellUpperLeft(new Contact(1,residues.beg));
+		Point lowerRight = getCellLowerRight(new Contact(contactMapSize, residues.end));
+		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
+	}
+	
 	/**
 	 * @param g2d
 	 */
@@ -317,8 +349,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(i_res==null?"?":i_res, 20, outputSize-50);
 		g2d.drawString(j_res==null?"?":j_res, 60, outputSize-50);
 		if (mod.has3DCoordinates()){
-			g2d.drawString(mod.getSecStructure(currentCell.i), 20, outputSize-30);
-			g2d.drawString(mod.getSecStructure(currentCell.j), 60, outputSize-30);
+			g2d.drawString(mod.getSecStructureType(currentCell.i), 20, outputSize-30);
+			g2d.drawString(mod.getSecStructureType(currentCell.j), 60, outputSize-30);
 		}
 
 		if(allContacts.contains(currentCell)) {
@@ -345,7 +377,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(currentRulerCoord+"", 20, outputSize-70);
 		g2d.drawString(res==null?"?":res, 20, outputSize-50);
 		if (mod.has3DCoordinates()){
-			g2d.drawString(mod.getSecStructure(currentRulerCoord), 20, outputSize-30);
+			g2d.drawString(mod.getSecStructureType(currentRulerCoord), 20, outputSize-30);
 		}
 		if (view.getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
@@ -516,13 +548,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Triggers the background maps to be updated in a separate thread
 	 */
 	public void updateNbhSizeMapBg() {
-		if(nbhSizeMapBeingUpdated) return;
-		nbhSizeMapBeingUpdated = true;
 		new Thread() {
 			public void run() {
+				System.out.println("Updating nbh size map...");	
 				comNbhSizes = mod.getAllEdgeNbhSizes();
-				updateScreenBuffer();
-				nbhSizeMapBeingUpdated = false;
+				updateScreenBuffer();	
 			}
 		}.start();
 	}
@@ -531,13 +561,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Triggers the background maps to be updated in a separate thread
 	 */
 	public void updateDensityMapBg() {
-		if(densityMapBeingUpdated) return;
-		densityMapBeingUpdated = true;		
 		new Thread() {
 			public void run() {
+				System.out.println("Updating density map...");	
 				densityMatrix = mod.getDensityMatrix();
 				updateScreenBuffer();
-				densityMapBeingUpdated = false;
 			}
 		}.start();
 	}
@@ -546,17 +574,45 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Triggers the background maps to be updated in a separate thread
 	 */
 	public void updateDistanceMapBg() {
-		if(distanceMapBeingUpdated) return;
-		distanceMapBeingUpdated = true;	
 		new Thread() {
 			public void run() {
+				view.statusBar.setText("Updating distance map...");	
 				mod.initDistMatrix();
 				updateScreenBuffer();
-				distanceMapBeingUpdated = false;
+				view.statusBar.setText(" ");	
 			}
 		}.start();
 	}	
 	
+//	public void updateContactBasedMaps() {
+//		new Thread() {
+//			public void run() {
+//				System.out.println("Updating...");
+//				view.statusBar.setText("Updating density map...");
+//				densityMatrix = mod.getDensityMatrix();
+//				view.statusBar.setText("Updating nbh size map...");				
+//				comNbhSizes = mod.getAllEdgeNbhSizes();
+//				view.statusBar.setText(" ");				
+//				System.out.println("Updating done.");
+//			}
+//		}.start();			
+//	}
+	
+	public void preloadBackgroundMaps() {
+		new Thread() {
+			public void run() {
+				System.out.println("Preloading...");
+				view.statusBar.setText("Preloading density map...");
+				densityMatrix = mod.getDensityMatrix();
+				view.statusBar.setText("Preloading nbh size map...");				
+				comNbhSizes = mod.getAllEdgeNbhSizes();
+				view.statusBar.setText("Preloading distance map...");				
+				mod.initDistMatrix();
+				view.statusBar.setText(" ");				
+				System.out.println("Predloading done.");
+			}
+		}.start();		
+	}
 	
 	/**
 	 * Triggers the nbh size map to be updated
@@ -637,7 +693,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						}
 					} else {
 						// else: if clicked position is outside of a contact and ctrl not pressed, reset selContacts
-						if(!evt.isControlDown()) selContacts = new ContactList();
+						if(!evt.isControlDown()) resetSelections();
 					}
 					this.repaint();
 				} else { // dragging
@@ -655,7 +711,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!evt.isControlDown()){
-					selContacts = new ContactList();
+					resetSelections();
 				}
 				fillSelect(screen2cm(new Point(evt.getX(),evt.getY())));
 				this.repaint();
@@ -665,7 +721,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!evt.isControlDown()){
-					selContacts = new ContactList();
+					resetSelections();
 				}
 				// we select the node neighbourhoods of both i and j of the mousePressedPos
 				Contact cont = screen2cm(mousePressedPos);
@@ -683,7 +739,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					Contact clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
 					if(!evt.isControlDown()) {
-						resetSelContacts();
+						resetSelections();
 					}
 					selectDiagonal(clicked.getRange());
 					this.repaint();
@@ -754,13 +810,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		updateScreenBuffer();
 	}
 
-	public void componentShown(ComponentEvent evt) {
-		if(BACKGROUND_LOADING) {
-			updateDensityMapBg();
-			updateDistanceMapBg();
-			updateNbhSizeMapBg();
-		}
-		
+	public void componentShown(ComponentEvent evt) {		
 	}
 	
 	/*---------------------------- public trigger methods ---------------------------*/
@@ -773,6 +823,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void reloadContacts() {
 		this.allContacts = mod.getContacts();
 		if(view.getShowNbhSizeMap()) {
+			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 			updateNbhSizeMap();
 		} else {
 			if(BACKGROUND_LOADING) {
@@ -782,15 +833,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 		if(view.getShowDensityMap()) {
+			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 			updateDensityMap();
 		} else {
 			if(BACKGROUND_LOADING) {
-				updateDensityMapBg();				
+				updateDensityMapBg();	
 			} else {
 				densityMatrix = null;	// mark as dirty
 			}
 		}
 		updateScreenBuffer();		// will repaint
+		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}
 
 	/**
@@ -854,6 +907,54 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 	
+	/** Add to the current horizontal residue selection the given interval of residues */
+	protected void selectNodesHorizontally(Interval intv) {
+		for(int i=intv.beg; i <= intv.end; i++) {
+			selHorNodes.add(i);
+		}
+		checkNodeIntersectionAndSelect();
+	}
+	
+	/** 
+	 * Remove from the current horizontal residue selection the given interval of residues,
+	 * assuming that they are contained. 
+	 */
+	protected void deselectNodesHorizontally(Interval intv) {
+		for(int i=intv.beg; i <= intv.end; i++) {
+			selHorNodes.remove(i);
+		}	
+		checkNodeIntersectionAndSelect();
+	}
+	
+	/** Resets the current horizontal residue selection */
+	protected void resetHorizontalNodeSelection() {
+		selHorNodes = new NodeSet();
+	}
+	
+	/** Add to the current horizontal residue selection the given interval of residues */
+	protected void selectNodesVertically(Interval intv) {
+		for(int i=intv.beg; i <= intv.end; i++) {
+			selVertNodes.add(i);
+		}
+		checkNodeIntersectionAndSelect();
+	}
+	
+	/** 
+	 * Remove from the current vertical residue selection the given interval of residues,
+	 * assuming that they are contained. 
+	 */
+	protected void deselectNodesVertically(Interval intv) {
+		for(int i=intv.beg; i <= intv.end; i++) {
+			selVertNodes.remove(i);
+		}
+		checkNodeIntersectionAndSelect();
+	}
+	
+	/** Resets the current horizontal residue selection */
+	protected void resetVerticalNodeSelection() {
+		selVertNodes = new NodeSet();
+	}
+	
 	/**
 	 * Show/hide common neighbourhood size map 
 	 */	
@@ -901,7 +1002,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		for (Contact cont:selContacts){
 			mod.delEdge(cont);
 		}
-		resetSelContacts();
+		resetSelections();
 		reloadContacts();	// will update screen buffer and repaint
 	}
 	
@@ -997,8 +1098,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 	}
 
-	/** Resets the current selection to the empty set */
-	protected void resetSelContacts() {
+	/** Resets the current contact- and residue selections to the empty set */
+	protected void resetSelections() {
+		resetContactSelection();
+		resetHorizontalNodeSelection();
+		resetVerticalNodeSelection();
+	}
+	
+	/** Resets the current contact selection */
+	protected void resetContactSelection() {
 		this.selContacts = new ContactList();
 	}
 	
@@ -1035,7 +1143,34 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return selContacts;
 	}
 	
+	/** Returns the set of horizontally selected nodes. */
+	public NodeSet getSelHorNodes() {
+		return selHorNodes;
+	}
+
+	/** Returns the set of vertically selected nodes. */
+	public NodeSet getSelVertNodes() {
+		return selVertNodes;
+	}
+	
 	/*---------------------------- private methods --------------------------*/
+	
+	/**
+	 * Checks whether nodes have been selected both horizontally and vertically and
+	 * in that case selects the intersecting contacts.
+	 */
+	private void checkNodeIntersectionAndSelect() {
+		if(selHorNodes.size() > 0 && selVertNodes.size() > 0) {
+			resetContactSelection();
+			Contact c;
+			for(int i:selHorNodes) {
+				for(int j:selVertNodes) {
+					c = new Contact(i,j);
+					if(allContacts.contains(c)) selContacts.add(c);
+				}
+			}
+		}
+	}
 	
 	/** Given a number between zero and one, returns a color from a gradient. */
 	private Color colorMapRedBlue(double val) {

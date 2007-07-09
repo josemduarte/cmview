@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
+import javax.swing.border.*;
 
 import cmview.datasources.ContactMapFileModel;
 import cmview.datasources.GraphDbModel;
@@ -48,6 +49,7 @@ public class View extends JFrame implements ActionListener {
 	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
+	JLabel statusBar; 			// TODO: Create a class StatusBar
 	JToolBar toolBar;			// icon tool bar (currently not used)
 	JPanel cmp; 				// Main panel holding the Contact map pane
 	JLayeredPane cmp2; // added for testing
@@ -117,6 +119,11 @@ public class View extends JFrame implements ActionListener {
 
 		// Creating the Panels
 		statusPane = new JPanel(); // TODO: Create a class StatusBar
+		statusBar = new JLabel(" ");
+		statusPane.setLayout(new BorderLayout());
+		statusPane.add(statusBar, BorderLayout.CENTER);
+		statusPane.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+		
 		toolBar = new JToolBar();
 		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
 		cmp2 = new JLayeredPane(); // added for testing
@@ -906,7 +913,7 @@ public class View extends JFrame implements ActionListener {
 			showNoContactsSelectedWarning();
 		} else {
 			cmPane.paintCurrentSelection(currentPaintingColor);
-			cmPane.resetSelContacts();
+			cmPane.resetSelections();
 			cmPane.repaint();
 		}
 	}
@@ -1105,6 +1112,9 @@ public class View extends JFrame implements ActionListener {
 			//System.exit(-1);
 		}
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
+		if(ContactMapPane.BACKGROUND_LOADING) {
+			view.cmPane.preloadBackgroundMaps();
+		}
 
 		if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in pymol

@@ -229,16 +229,41 @@ public abstract class Model {
 	}
 	
 	/**
-	 * To get secondary structure from the pdb object in a one letter code: S, H or T
+	 * To get secondary structure type from the pdb object in a one letter code: S, H or T
 	 * Returns a blank string if there is no secondary structure assignment for the given residue serial
+	 * This will fail if this model has no 3D coordinates.
 	 * @return
 	 */
-	public String getSecStructure(int resser){
+	public String getSecStructureType(int resser){
 		if (pdb.getSecStructure(resser)==null){
 			return "";
 		} else {
 			return String.valueOf(pdb.getSecStructure(resser).charAt(0));
 		}
+	}
+	
+	/**
+	 * To get secondary structure id from the pdb object (e.g. H1, SA1, ...)
+	 * Returns a blank string if there is no secondary structure assignment for the given residue serial.
+	 * This will fail if this model has no 3D coordinates.
+	 * @return
+	 */
+	public String getSecStructureId(int resser){
+		if (pdb.getSecStructure(resser)==null){
+			return "";
+		} else {
+			return pdb.getSecStructure(resser);
+		}
+	}
+	/**
+	 * Returns the boundaries of the given secondary structure element as an interval.
+	 * If the id does not exist, returns null.
+	 * This will fail if this model has no 3D coordinates.
+	 */
+	public Interval getSecStrucElementBounds(String id) {
+		if(secstruct2resinterval.containsKey(id)) {
+			return secstruct2resinterval.get(id);
+		} else return null;
 	}
 	
 	public HashMap<Contact,Integer> getAllEdgeNbhSizes(){

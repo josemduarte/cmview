@@ -10,6 +10,8 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
+import proteinstructure.Interval;
+
 import cmview.datasources.Model;
 
 /**
@@ -221,6 +223,70 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	/** ############################################### */   
 	
 	public void mouseClicked(MouseEvent evt) {
+		if(evt.getButton()==MouseEvent.BUTTON1) {
+			Point pos=evt.getPoint();
+			int clickedRes = screen2cm(pos);
+			
+			// fill selection mode
+			if(view.getCurrentAction() == View.FILL_SEL) {
+				Interval ssint=mod.getSecStrucElementBounds(mod.getSecStructureId(clickedRes));
+				if(ssint==null) {
+					// clicking outside of secondary structure
+					if(!evt.isControlDown()) { // default behaviour: control-click on whitespace does nothing
+						if(location==TOP || location==BOTTOM) {
+							cmPane.resetVerticalNodeSelection();
+						} else {
+							cmPane.resetHorizontalNodeSelection();
+						}	
+					}
+				} else {
+					// clicking on secondary structure element
+					if(evt.isControlDown()) {
+						// adding to current selection
+						System.out.println("Selecting " + mod.getSecStructureId(clickedRes) + " from " + ssint.beg + " to " + ssint.end);
+						if(location==TOP || location==BOTTOM) {
+							if(cmPane.getSelVertNodes().contains(clickedRes)) {
+								// selected already: deselect
+								cmPane.deselectNodesVertically(ssint);
+							} else {
+								// otherwise: select
+								cmPane.selectNodesVertically(ssint);
+							}
+						} else {
+							if(cmPane.getSelHorNodes().contains(clickedRes)) {
+								// selected already: deselect
+								cmPane.deselectNodesHorizontally(ssint);
+							} else {
+								// otherwise: select
+								cmPane.selectNodesHorizontally(ssint);
+							}
+						}
+					} else {
+						// new selection
+						System.out.println("Selecting " + mod.getSecStructureId(clickedRes) + " from " + ssint.beg + " to " + ssint.end);
+						if(location==TOP || location==BOTTOM) {
+							cmPane.resetVerticalNodeSelection();
+							cmPane.selectNodesVertically(ssint);
+						} else {
+							cmPane.resetHorizontalNodeSelection();
+							cmPane.selectNodesHorizontally(ssint);
+						}	
+					}
+				}
+			} else
+				// node nbh selection mode
+				if (view.getCurrentAction()==View.NODE_NBH_SEL){				
+					if (evt.isControlDown()){
+						cmPane.selectNodeNbh(screen2cm(mousePressedPos));
+					} else{
+						cmPane.resetSelections();
+						cmPane.selectNodeNbh(screen2cm(mousePressedPos));
+					}
+					cmPane.repaint();
+
+				}
+			cmPane.repaint();
+		}
 	}
 
 	public void mouseEntered(MouseEvent evt) {
@@ -236,19 +302,6 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseReleased(MouseEvent evt) {
-		// only if released after left click (BUTTON1)
-		if (evt.getButton()==MouseEvent.BUTTON1) {
-			if (view.getCurrentAction()==View.NODE_NBH_SEL){				
-				if (evt.isControlDown()){
-					cmPane.selectNodeNbh(screen2cm(mousePressedPos));
-				} else{
-					cmPane.resetSelContacts();
-					cmPane.selectNodeNbh(screen2cm(mousePressedPos));
-				}
-				cmPane.repaint();
-				
-			}
-		}
 	}
 
 	public void mouseDragged(MouseEvent evt) {
