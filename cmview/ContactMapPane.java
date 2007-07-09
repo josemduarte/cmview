@@ -1163,7 +1163,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(selHorNodes.size() > 0 && selVertNodes.size() > 0) {
 			resetContactSelection();
 			Contact c;
-			for(int i:selHorNodes) {
+			for(int i:selHorNodes) {				// TODO: this gets very slow for large selections, needs to be optimized
 				for(int j:selVertNodes) {
 					c = new Contact(i,j);
 					if(allContacts.contains(c)) selContacts.add(c);

@@ -37,6 +37,9 @@ public class View extends JFrame implements ActionListener {
 	protected static final int RANGE_SEL = 5;
 	
 	// menu item labels
+	private static final String LABEL_FILE_INFO = "Info";
+	private static final String LABEL_FILE_PRINT = "Print";	
+	private static final String LABEL_FILE_QUIT = "Quit";	
 	private static final String LABEL_DELETE_CONTACTS = "Delete selected contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";
@@ -57,9 +60,13 @@ public class View extends JFrame implements ActionListener {
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
 	JPopupMenu popup; 			// right-click context menu
 
+	// Tool bar buttons
+	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D, tbDelete;
+	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap;
+	
 	// Menu items
-	JMenuItem sendM, squareM, fillM, loadPDBM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
-	JMenuItem sendP, squareP, fillP, loadPDBP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP, popupSendEdge;
+	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
+	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP, popupSendEdge;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
 	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
@@ -109,6 +116,28 @@ public class View extends JFrame implements ActionListener {
 		this.toFront(); // bring window to front
 	}
 
+	/**
+	 * Sets up and returns a new tool bar button
+	 */
+	private JButton makeToolBarButton(ImageIcon icon, String toolTipText) {
+		JButton newButton = new JButton(icon);
+		newButton.setToolTipText(toolTipText);
+		newButton.addActionListener(this);
+		toolBar.add(newButton);
+		return newButton;
+	}
+	
+//	/**
+//	 * Sets up and returns a new tool bar toggle button
+//	 */
+//	private JToggleButton makeToolBarToggleButton(ImageIcon icon, String toolTipText) {
+//		JToggleButton newButton = new JToggleButton(icon);
+//		newButton.setToolTipText(toolTipText);
+//		newButton.addActionListener(this);
+//		toolBar.add(newButton);
+//		return newButton;
+//	}
+	
 	/** Initialize and show the main GUI window */
 	private void initGUI(){
 
@@ -141,6 +170,9 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
 		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
+		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/icons/information.png"));
+		ImageIcon icon_file_print = new ImageIcon(this.getClass().getResource("/icons/printer.png"));		
+		ImageIcon icon_file_quit = new ImageIcon(this.getClass().getResource("/icons/door_open.png"));		
 		
 		// square icon with current painting color
 		Icon icon_color = new Icon() {
@@ -177,6 +209,29 @@ public class View extends JFrame implements ActionListener {
 				return 16;
 			}
 		};
+		
+		// Tool bar
+		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
+		tbFilePrint = makeToolBarButton(icon_file_print, LABEL_FILE_PRINT);
+		tbFileQuit = makeToolBarButton(icon_file_quit, LABEL_FILE_QUIT);
+		toolBar.addSeparator();
+		tbSquareSel = makeToolBarButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE);
+		tbFillSel = makeToolBarButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE);
+		tbDiagSel = makeToolBarButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE);
+		tbNbhSel = makeToolBarButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE);
+		toolBar.addSeparator();		
+		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
+		toolBar.addSeparator();
+		tbShowComNbh = makeToolBarButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE);
+		tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
+		toolBar.addSeparator();
+		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
+		tbViewPdbResSer = new JToggleButton();
+		tbViewRuler = new JToggleButton();
+		tbViewNbhSizeMap = new JToggleButton();
+		tbViewDistanceMap = new JToggleButton();
+		tbViewDensityMap = new JToggleButton();
+		toolBar.setFloatable(false);
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -253,7 +308,7 @@ public class View extends JFrame implements ActionListener {
 		// File menu
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
-		mmInfo = new JMenuItem("Info");
+		mmInfo = new JMenuItem(LABEL_FILE_INFO);
 		mmInfo.addActionListener(this);
 		menu.add(mmInfo);
 		submenu = new JMenu("Load from");
@@ -296,10 +351,10 @@ public class View extends JFrame implements ActionListener {
 		mmSavePng.addActionListener(this);	
 
 		menu.add(submenu);
-		mmPrint = new JMenuItem("Print");
+		mmPrint = new JMenuItem(LABEL_FILE_PRINT);
 		mmPrint.addActionListener(this);
 		menu.add(mmPrint);
-		mmQuit = new JMenuItem("Quit");
+		mmQuit = new JMenuItem(LABEL_FILE_QUIT);
 		mmQuit.addActionListener(this);
 		menu.add(mmQuit);
 		menuBar.add(menu);
@@ -453,13 +508,13 @@ public class View extends JFrame implements ActionListener {
 		}	
 		
 		// Info, Print, Quit
-		if(e.getSource() == mmInfo) {
+		if(e.getSource() == mmInfo || e.getSource() == tbFileInfo) {
 			handleInfo();
 		}		  		  
-		if(e.getSource() == mmPrint) {
+		if(e.getSource() == mmPrint || e.getSource() == tbFilePrint) {
 			handlePrint();
 		}		  
-		if(e.getSource() == mmQuit) {
+		if(e.getSource() == mmQuit || e.getSource() == tbFileQuit) {
 			handleQuit();
 		}
 		
