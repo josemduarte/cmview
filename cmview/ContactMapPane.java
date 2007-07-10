@@ -16,8 +16,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
-import proteinstructure.Contact;
-import proteinstructure.ContactList;
+import proteinstructure.Edge;
+import proteinstructure.EdgeSet;
 import proteinstructure.EdgeNbh;
 import proteinstructure.Interval;
 import proteinstructure.NodeNbh;
@@ -47,7 +47,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point mouseDraggingPos;  		// current position of mouse dragging, used for end point of square selection
 	private Point mousePos;             	// current position of mouse (being updated by mouseMoved)
 	private int currentRulerCoord;	 		// the residue number shown if showRulerSer=true
-	private Contact rightClickCont;	 		// position in contact map where right mouse button was pressed to open context menu
+	private Edge rightClickCont;	 		// position in contact map where right mouse button was pressed to open context menu
 	private EdgeNbh currCommonNbh;	 		// common nbh that the user selected last (used to show it in 3D)
 	private int lastMouseButtonPressed;		// mouse button which was pressed last (being updated by MousePressed)
 	
@@ -61,16 +61,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private boolean showRulerCoord; 		// while true, current ruler coordinate are shown instead of usual coordinates
 	
 	// selections
-	private ContactList allContacts; 		// all contacts from the underlying contact map model
-	private ContactList selContacts; 		// permanent list of currently selected contacts
-	private ContactList tmpContacts; 		// transient list of contacts selected while dragging
+	private EdgeSet allContacts; 		// all contacts from the underlying contact map model
+	private EdgeSet selContacts; 		// permanent list of currently selected contacts
+	private EdgeSet tmpContacts; 		// transient list of contacts selected while dragging
 	private NodeSet selHorNodes;			// current horizontal residue selection
 	private NodeSet selVertNodes;			// current vertical residue selection
 	
 	// other displayable data
-	private Hashtable<Contact,Color> userContactColors;  // user defined colors for individual contacts
+	private Hashtable<Edge,Color> userContactColors;  // user defined colors for individual contacts
 	private double[][] densityMatrix; 					 // matrix of contact density
-	private HashMap<Contact,Integer> comNbhSizes;		 // matrix of common neighbourhood sizes
+	private HashMap<Edge,Integer> comNbhSizes;		 // matrix of common neighbourhood sizes
 
 	// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// resulting buffer containing the overlayd image of all ob the above
@@ -110,8 +110,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		setOutputSize(Math.min(screenSize.height, screenSize.width)); // initializes outputSize, ratio and contactSquareSize
 		
 		this.allContacts = mod.getContacts();
-		this.selContacts = new ContactList();
-		this.tmpContacts = new ContactList();
+		this.selContacts = new EdgeSet();
+		this.tmpContacts = new EdgeSet();
 		this.selHorNodes = new NodeSet();
 		this.selVertNodes = new NodeSet();
 		this.contactMapSize = mod.getMatrixSize();
@@ -123,7 +123,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.dragging = false;
 		this.showCommonNbs = false;
 		this.showRulerCoord = false;
-		this.userContactColors = new Hashtable<Contact, Color>();
+		this.userContactColors = new Hashtable<Edge, Color>();
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
 		
@@ -197,7 +197,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
 			g2d.setColor(selectionColor);
-			for (Contact cont:tmpContacts){ 
+			for (Edge cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
 		} 
@@ -209,14 +209,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
 			
 			g2d.setColor(selectionColor);
-			for (Contact cont:tmpContacts){ 
+			for (Edge cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
 		}
 
 		// draw permanent selection in red
 		g2d.setColor(selectionColor);
-		for (Contact cont:selContacts){
+		for (Edge cont:selContacts){
 			drawContact(g2d, cont);
 		}
 		
@@ -244,21 +244,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		// draw common neighbours
 		if(this.showCommonNbs) {
-			Contact cont = screen2cm(mousePressedPos);
+			Edge cont = screen2cm(mousePressedPos);
 			drawCommonNeighbours(g2d, cont);
 			this.showCommonNbs = false;
 		}
 	}
 
 	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
-		Point upperLeft = getCellUpperLeft(new Contact(residues.beg,1));
-		Point lowerRight = getCellLowerRight(new Contact(residues.end, contactMapSize));
+		Point upperLeft = getCellUpperLeft(new Edge(residues.beg,1));
+		Point lowerRight = getCellLowerRight(new Edge(residues.end, contactMapSize));
 		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
 	}
 	
 	private void drawVerticalNodeSelection(Graphics2D g2d, Interval residues) {
-		Point upperLeft = getCellUpperLeft(new Contact(1,residues.beg));
-		Point lowerRight = getCellLowerRight(new Contact(contactMapSize, residues.end));
+		Point upperLeft = getCellUpperLeft(new Edge(1,residues.beg));
+		Point lowerRight = getCellLowerRight(new Edge(contactMapSize, residues.end));
 		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
 	}
 	
@@ -267,8 +267,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	private void drawDistanceMap(Graphics2D g2d) {
 		// this actually contains all possible contacts in matrix so is doing a full loop on all cells
-		HashMap<Contact,Double> distMatrix = mod.getDistMatrix();
-		for (Contact cont:distMatrix.keySet()){
+		HashMap<Edge,Double> distMatrix = mod.getDistMatrix();
+		for (Edge cont:distMatrix.keySet()){
 			Color c = colorMapBluescale(distMatrix.get(cont));
 			g2d.setColor(c);
 			drawContact(g2d, cont);
@@ -280,7 +280,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	private void drawNbhSizeMap(Graphics2D g2d) {
 		// showing common neighbourhood sizes
-		for (Contact cont:comNbhSizes.keySet()){
+		for (Edge cont:comNbhSizes.keySet()){
 			int size = comNbhSizes.get(cont);
 			if (allContacts.contains(cont)) {
 				// coloring pinks when the cell is a contact, 1/size is simply doing the color grading: lower size lighter than higher size
@@ -298,7 +298,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	private void drawContactMap(Graphics2D g2d) {
 		// drawing the contact map
-		for (Contact cont:allContacts){ 
+		for (Edge cont:allContacts){ 
 			if(userContactColors.containsKey(cont)) {
 				g2d.setColor(userContactColors.get(cont)); 
 			} else {
@@ -319,7 +319,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				Color c = colorMapRedBlue(densityMatrix[i][j]);
 				if(!c.equals(backgroundColor)) {
 					g2d.setColor(c);
-					Contact cont = new Contact(i+1,j+1);
+					Edge cont = new Edge(i+1,j+1);
 					drawContact(g2d, cont);
 				}
 			}
@@ -329,7 +329,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Draws the given contact cont to the given graphics object g2d using the global contactSquareSize and g2d current painting color.
 	 */
-	private void drawContact(Graphics2D g2d, Contact cont) {
+	private void drawContact(Graphics2D g2d, Edge cont) {
 		int x = getCellUpperLeft(cont).x;
 		int y = getCellUpperLeft(cont).y;
 		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
@@ -337,7 +337,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	protected void drawCoordinates(Graphics2D g2d){
-		Contact currentCell = screen2cm(mousePos);
+		Edge currentCell = screen2cm(mousePos);
 		String i_res = mod.getResType(currentCell.i);
 		String j_res = mod.getResType(currentCell.j);
 		// writing the coordinates at lower left corner
@@ -414,7 +414,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //		g2d.draw(arc);
 //	}
 
-	private void drawCommonNeighbours(Graphics2D g2d, Contact cont){
+	private void drawCommonNeighbours(Graphics2D g2d, Edge cont){
 		EdgeNbh comNbh = this.currCommonNbh;
 
 		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
@@ -440,7 +440,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		System.out.println();
 	}
 
-	private void drawCrossOnContact(Contact cont, Graphics2D g2d,Color color){
+	private void drawCrossOnContact(Edge cont, Graphics2D g2d,Color color){
 		g2d.setColor(color);
 		if (ratio<6){ // if size of square is too small, then use fixed size 3 in each side of the cross
 			Point center = getCellCenter(cont); 
@@ -460,7 +460,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
-	private void drawCorridor(Contact cont, Graphics2D g2d){
+	private void drawCorridor(Edge cont, Graphics2D g2d){
 		Point point = getCellCenter(cont);
 		int x = point.x;
 		int y = point.y;
@@ -471,12 +471,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawLine(y,y,y,outputSize);
 	}
 	
-	private void drawTriangle(int k, Contact cont, Graphics2D g2d,Color color) {
+	private void drawTriangle(int k, Edge cont, Graphics2D g2d,Color color) {
 		int i = cont.i;
 		int j = cont.j;
 		// we put the i,k and j,k contacts in the right side of the contact map (upper side, i.e.j>i)
-		Contact ikCont = new Contact(Math.min(i, k), Math.max(i, k));
-		Contact jkCont = new Contact(Math.min(j, k), Math.max(j, k));
+		Edge ikCont = new Edge(Math.min(i, k), Math.max(i, k));
+		Edge jkCont = new Edge(Math.min(j, k), Math.max(j, k));
 		
 		// we mark the 2 edges i,k and j,k with a cross
 		this.drawCrossOnContact(ikCont, g2d, crossOnContactColor);
@@ -497,11 +497,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
 
 		// drawing light gray common neighbour corridor markers
-		Contact kkCont = new Contact(k,k); // k node point in the diagonal: the start point of the light gray corridor
+		Edge kkCont = new Edge(k,k); // k node point in the diagonal: the start point of the light gray corridor
 		Point kkPoint = getCellCenter(kkCont);
 		Point endPoint = new Point();
-		if (k<(j+i)/2) endPoint = getCellCenter(new Contact(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
-		if (k>(j+i)/2) endPoint = getCellCenter(new Contact(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
+		if (k<(j+i)/2) endPoint = getCellCenter(new Edge(j,k)); // if k below center of segment i->j, the endpoint is j,k i.e. we draw a vertical line
+		if (k>(j+i)/2) endPoint = getCellCenter(new Edge(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
 		g2d.setColor(nbhCorridorColor);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}
@@ -665,7 +665,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			switch (view.getCurrentAction()) {
 			case View.SHOW_COMMON_NBH:
-				Contact c = screen2cm(mousePressedPos); 
+				Edge c = screen2cm(mousePressedPos); 
 				this.currCommonNbh = mod.getEdgeNbh (c.i,c.j);
 				dragging = false;
 				showCommonNbs = true;
@@ -674,20 +674,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				
 			case View.SQUARE_SEL:
 				if(!dragging) {					
-					Contact clicked = screen2cm(mousePressedPos);
+					Edge clicked = screen2cm(mousePressedPos);
 					if(allContacts.contains(clicked)) { // if clicked position is a contact
 						if(selContacts.contains(clicked)) {
 							// if clicked position is a selected contact, deselect it
 							if(evt.isControlDown()) {
 								selContacts.remove(clicked);
 							} else {
-								selContacts = new ContactList();
+								selContacts = new EdgeSet();
 								selContacts.add(clicked);
 							}
 						} else {
 							// if clicked position is a contact but not selected, select it
 							if(!evt.isControlDown()) {
-								selContacts = new ContactList();
+								selContacts = new EdgeSet();
 							}
 							selContacts.add(clicked);
 						}
@@ -700,7 +700,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
-						selContacts = new ContactList();
+						selContacts = new EdgeSet();
 						selContacts.addAll(tmpContacts);
 					}
 				}
@@ -724,7 +724,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					resetSelections();
 				}
 				// we select the node neighbourhoods of both i and j of the mousePressedPos
-				Contact cont = screen2cm(mousePressedPos);
+				Edge cont = screen2cm(mousePressedPos);
 				if (cont.j>cont.i){ // only if we clicked on the upper side of the matrix
 					selectNodeNbh(cont.i);
 					selectNodeNbh(cont.j);
@@ -736,7 +736,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			
 			case View.RANGE_SEL:
 				if (!dragging){
-					Contact clicked = screen2cm(mousePressedPos);
+					Edge clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
 					if(!evt.isControlDown()) {
 						resetSelections();
@@ -747,7 +747,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
-						selContacts = new ContactList();
+						selContacts = new EdgeSet();
 						selContacts.addAll(tmpContacts);
 					}
 				}
@@ -865,7 +865,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to reset the user defined contact colors */
 	public void resetColorMap() {
-		userContactColors = new Hashtable<Contact, Color>();
+		userContactColors = new Hashtable<Edge, Color>();
 		updateScreenBuffer();
 	}
 	
@@ -884,7 +884,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	/** Set the color value in contactColor for the currently selected residues to the given color */
 	public void paintCurrentSelection(Color paintingColor) {
-		for(Contact cont:selContacts) {
+		for(Edge cont:selContacts) {
 			userContactColors.put(cont, paintingColor);
 		}
 		updateScreenBuffer();
@@ -893,14 +893,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	/** Called by view to select all contacts */
 	public void selectAllContacts() {
-		selContacts = new ContactList();
+		selContacts = new EdgeSet();
 		selContacts.addAll(allContacts);
 		this.repaint();
 	}
 	
 	/** Add to the current selection all contacts along the diagonal that contains cont */
 	protected void selectDiagonal(int range) {
-		for(Contact c: allContacts) {
+		for(Edge c: allContacts) {
 			if(c.getRange() == range) {
 				selContacts.add(c);
 			}
@@ -999,7 +999,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}		
 	
 	public void deleteSelectedContacts() {
-		for (Contact cont:selContacts){
+		for (Edge cont:selContacts){
 			mod.delEdge(cont);
 		}
 		resetSelections();
@@ -1010,17 +1010,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContact with the contacts contained in the rectangle given by the upperLeft and lowerRight.
 	 */
 	public void squareSelect(){
-		Contact upperLeft = screen2cm(mousePressedPos);
-		Contact lowerRight = screen2cm(mouseDraggingPos);
+		Edge upperLeft = screen2cm(mousePressedPos);
+		Edge lowerRight = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts from a blank list
-		tmpContacts = new ContactList();
+		tmpContacts = new EdgeSet();
 
 		int imin = Math.min(upperLeft.i,lowerRight.i);
 		int jmin = Math.min(upperLeft.j,lowerRight.j);
 		int imax = Math.max(upperLeft.i,lowerRight.i);
 		int jmax = Math.max(upperLeft.j,lowerRight.j);
 		// we loop over all contacts so time is o(number of contacts) instead of looping over the square (o(n2) being n size of square)
-		for (Contact cont:allContacts){
+		for (Edge cont:allContacts){
 			if (cont.i<=imax && cont.i>=imin && cont.j<=jmax && cont.j>=jmin){
 				tmpContacts.add(cont);
 			}
@@ -1031,14 +1031,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContacts with the contacts contained in the range selection (selection by diagonals)
 	 */
 	public void rangeSelect(){
-		Contact startContact = screen2cm(mousePressedPos);
-		Contact endContact = screen2cm(mouseDraggingPos);
+		Edge startContact = screen2cm(mousePressedPos);
+		Edge endContact = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts from a blank list
-		tmpContacts = new ContactList();
+		tmpContacts = new EdgeSet();
 		int rangeMin = Math.min(startContact.getRange(), endContact.getRange());
 		int rangeMax = Math.max(startContact.getRange(), endContact.getRange());
 		// we loop over all contacts so time is o(number of contacts) instead of looping over the square (o(n2) being n size of square)
-		for (Contact cont:allContacts){
+		for (Edge cont:allContacts){
 			if (cont.getRange()<=rangeMax && cont.getRange()>=rangeMin){
 				tmpContacts.add(cont);
 			}
@@ -1050,7 +1050,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param cont contact where mouse has been clicked
 	 * TODO: Create a tmpContacts first and then copy to selContacts (if we want this behaviour)
 	 */
-	private void fillSelect(Contact cont){
+	private void fillSelect(Edge cont){
 		int i = cont.i;
 		int j = cont.j;
 		if ((i < 1) || (j < 1) || (i > contactMapSize) || (j > contactMapSize)) {
@@ -1067,20 +1067,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				selContacts.add(cont);
 
 				// 1 distance
-				fillSelect(new Contact(i-1,j));
-				fillSelect(new Contact(i+1,j));
-				fillSelect(new Contact(i,j-1));
-				fillSelect(new Contact(i,j+1));
+				fillSelect(new Edge(i-1,j));
+				fillSelect(new Edge(i+1,j));
+				fillSelect(new Edge(i,j-1));
+				fillSelect(new Edge(i,j+1));
 
 				// 2 distance
-				fillSelect(new Contact(i-2,j));
-				fillSelect(new Contact(i+2,j));
-				fillSelect(new Contact(i,j-2));
-				fillSelect(new Contact(i,j+2));
-				fillSelect(new Contact(i-1,j+1));
-				fillSelect(new Contact(i+1,j+1));
-				fillSelect(new Contact(i-1,j-1));
-				fillSelect(new Contact(i+1,j-1));
+				fillSelect(new Edge(i-2,j));
+				fillSelect(new Edge(i+2,j));
+				fillSelect(new Edge(i,j-2));
+				fillSelect(new Edge(i,j+2));
+				fillSelect(new Edge(i-1,j+1));
+				fillSelect(new Edge(i+1,j+1));
+				fillSelect(new Edge(i-1,j-1));
+				fillSelect(new Edge(i+1,j-1));
 			}
 		}
 	}
@@ -1092,7 +1092,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		System.out.print("Neighbours: ");
 		for (int j:nbh.keySet()){
 			System.out.print(j+" ");
-			selContacts.add(new Contact(Math.min(i, j),Math.max(i, j)));
+			selContacts.add(new Edge(Math.min(i, j),Math.max(i, j)));
 		}
 		System.out.println();
 		
@@ -1107,7 +1107,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	/** Resets the current contact selection */
 	protected void resetContactSelection() {
-		this.selContacts = new ContactList();
+		this.selContacts = new EdgeSet();
 	}
 	
 	/**
@@ -1129,7 +1129,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/** Returns the contact where the right mouse button was last clicked to open a context menu (to show it in 3D) */
-	public Contact getRightClickCont() {
+	public Edge getRightClickCont() {
 		return this.rightClickCont;
 	}
 		
@@ -1139,7 +1139,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/** Return the selContacts variable */
-	public ContactList getSelContacts(){
+	public EdgeSet getSelContacts(){
 		return selContacts;
 	}
 	
@@ -1162,10 +1162,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void checkNodeIntersectionAndSelect() {
 		if(selHorNodes.size() > 0 && selVertNodes.size() > 0) {
 			resetContactSelection();
-			Contact c;
+			Edge c;
 			for(int i:selHorNodes) {				// TODO: this gets very slow for large selections, needs to be optimized
 				for(int j:selVertNodes) {
-					c = new Contact(i,j);
+					c = new Edge(i,j);
 					if(allContacts.contains(c)) selContacts.add(c);
 				}
 			}
@@ -1214,21 +1214,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Returns the corresponding contact in the contact map given screen coordinates
 	 */
-	private Contact screen2cm(Point point){
-		return new Contact((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
+	private Edge screen2cm(Point point){
+		return new Edge((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
 	/**
 	 * Returns upper left corner of the square representing the contact
 	 */
-	private Point getCellUpperLeft(Contact cont){
+	private Point getCellUpperLeft(Edge cont){
 		return new Point((int) Math.round((cont.j-1)*ratio), (int) Math.round((cont.i-1)*ratio));
 	}
 			
 	/** 
 	 * Return the center of a cell on screen given its coordinates in the contact map 
 	 */
-	private Point getCellCenter(Contact cont){
+	private Point getCellCenter(Edge cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
 	}
@@ -1236,7 +1236,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** 
 	 * Return the upper right corner of a cell on screen given its coordinates in the contact map 
 	 */
-	private Point getCellUpperRight(Contact cont){
+	private Point getCellUpperRight(Edge cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y);
 	}
@@ -1244,7 +1244,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** 
 	 * Return the lower left corner of a cell on screen given its coordinates in the contact map 
 	 */
-	private Point getCellLowerLeft(Contact cont){
+	private Point getCellLowerLeft(Edge cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x,point.y+(int)Math.ceil(ratio));
 
@@ -1253,7 +1253,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** 
 	 * Return the lower right corner of a cell on screen given its coordinates in the contact map 
 	 */
-	private Point getCellLowerRight(Contact cont){
+	private Point getCellLowerRight(Edge cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
 

@@ -25,7 +25,7 @@ public abstract class Model {
 	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
-	protected HashMap<Contact,Double> distMatrix; 	// the scaled [0-1] distance matrix
+	protected HashMap<Edge,Double> distMatrix; 	// the scaled [0-1] distance matrix
 	protected TreeMap<String,Interval> secstruct2resinterval; // secondary structure elements as sec structure ids and residue serial intervals 
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
@@ -90,9 +90,9 @@ public abstract class Model {
 		return this.matrixSize;
 	}
 	
-	/** Returns the contacts as a ContactList */
-	public ContactList getContacts(){
-		return this.graph.contacts; // this re-references graph's ContactList, no deep copy
+	/** Returns the contacts as an EdgeSet */
+	public EdgeSet getContacts(){
+		return this.graph.contacts; // this re-references graph's contacts, no deep copy
 	}
 	
 	/** Returns the graph object */
@@ -266,11 +266,11 @@ public abstract class Model {
 		} else return null;
 	}
 	
-	public HashMap<Contact,Integer> getAllEdgeNbhSizes(){
+	public HashMap<Edge,Integer> getAllEdgeNbhSizes(){
 		return graph.getAllEdgeNbhSizes();
 	}
 	
-	public void delEdge(Contact cont){
+	public void delEdge(Edge cont){
 		this.graph.delEdge(cont);
 	}
 	
@@ -280,17 +280,17 @@ public abstract class Model {
 	 *
 	 */
 	public void initDistMatrix(){
-		HashMap<Contact,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
+		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
-		distMatrix = new HashMap<Contact, Double>();
-		for (Contact cont:distMatrixRes.keySet()){
+		distMatrix = new HashMap<Edge, Double>();
+		for (Edge cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
 
 	}
 	
-	public HashMap<Contact,Double> getDistMatrix(){
+	public HashMap<Edge,Double> getDistMatrix(){
 		return distMatrix;
 	}
 	
@@ -315,7 +315,7 @@ public abstract class Model {
 		double[][] d = new double[size][size]; // density matrix
 		
 		// initialize matrix with contacts
-		for(Contact cont:graph.getContacts()) {
+		for(Edge cont:graph.getContacts()) {
 			d[cont.i-1][cont.j-1] = 1;
 		}
 		

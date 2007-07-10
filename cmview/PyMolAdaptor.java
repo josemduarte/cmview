@@ -204,12 +204,12 @@ public class PyMolAdaptor {
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
-	public void edgeSelection(String pdbCode, String chainCode, int pymolSelSerial, ContactList selContacts){
+	public void edgeSelection(String pdbCode, String chainCode, int pymolSelSerial, EdgeSet selContacts){
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
 		String selObjName = getSelObjectName(chainObjName,pymolSelSerial);
-		for (Contact cont:selContacts){ 
+		for (Edge cont:selContacts){ 
 			int i = cont.i;
 			int j = cont.j;
 			//inserts an edge between the selected residues
@@ -222,7 +222,7 @@ public class PyMolAdaptor {
 	}
 	
 	/** Show a single contact or non-contact as distance object in pymol */
-	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Contact cont) {
+	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Edge cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		String selObjName = getSelObjectName(chainObjName,pymolSelSerial);
 		setDistance(cont.i, cont.j, pymolSelSerial, selObjName, chainObjName, chainCode);
