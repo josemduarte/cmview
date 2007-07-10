@@ -1,7 +1,7 @@
 #!/bin/sh
 if [ -z "$4" ]
 then
-    echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag> <manifest>"
+    echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag>"
     echo "if instead of a tag, you want the code from trunk, just specify 'trunk' instead of the tag name"
     exit
 fi
@@ -10,7 +10,7 @@ fi
 tempdir=$1
 cmviewtag=$2
 aglappetag=$3
-manifest=$4
+#manifest=$4
 
 
 cd $tempdir
@@ -46,14 +46,16 @@ cp -R $aglappetag/tools $cmviewtag
 rm -rf $aglappetag
 
 # setting classpath and compiling
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar
+CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar
 echo "Compiling..."
 cd $cmviewtag
 javac cmview/*.java cmview/datasources/*.java
 
 # creating jar file
-echo "Creating jar file: $cmviewtag.jar ..."
-jar -cfm ../$cmviewtag.jar $manifest .
+echo "Creating jar file: $cmviewtag-StruPPi.jar ..."
+jar -cfm ../$cmviewtag.jar Manifest-StruPPi.txt .
+echo "Creating jar file: $cmviewtag-MacWin.jar ..."
+jar -cfm ../$cmviewtag.jar Manifest.txt .
 
 # removing $cmviewtag temp directory
 cd ..

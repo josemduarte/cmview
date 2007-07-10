@@ -9,13 +9,7 @@ import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import javax.swing.border.*;
 
-import cmview.datasources.ContactMapFileModel;
-import cmview.datasources.GraphDbModel;
-import cmview.datasources.Model;
-import cmview.datasources.ModelConstructionError;
-import cmview.datasources.MsdsdModel;
-import cmview.datasources.PdbFileModel;
-import cmview.datasources.PdbaseModel;
+import cmview.datasources.*;
 import proteinstructure.*;
 
 /**
