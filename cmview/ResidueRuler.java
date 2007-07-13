@@ -227,6 +227,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	public void mouseClicked(MouseEvent evt) {
 		if(dragging) {
 			dragging = false;
+			cmPane.showRulerCoordinate();
 		} else {
 			if(evt.getButton()==MouseEvent.BUTTON1) {
 				Point pos=evt.getPoint();
@@ -297,11 +298,15 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseEntered(MouseEvent evt) {
+		//cmPane.showRulerCrosshair();	// doesn't work properly
+		cmPane.showRulerCoordinate();
+		mouseMoved(evt);
 	}
 
 	public void mouseExited(MouseEvent evt) {
-		cmPane.hideRulerCoordinates();
-		//this.repaint();
+		//cmPane.hideRulerCrosshair();	// doesn't work properly
+		cmPane.hideRulerCoordinate();
+		cmPane.repaint();
 	}
 
 	public void mousePressed(MouseEvent evt) {
@@ -315,6 +320,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	public void mouseDragged(MouseEvent evt) {
 		if(lastButtonPressed == MouseEvent.BUTTON1) {
 			dragging = true;
+			//cmPane.hideRulerCrosshair();	// doesn't work properly
 			mouseDraggingPos = evt.getPoint();
 			int res1 = screen2cm(mousePressedPos);
 			int res2 = screen2cm(mouseDraggingPos);
@@ -330,13 +336,15 @@ public class ResidueRuler extends JPanel implements MouseListener,
 				cmPane.repaint();
 			}
 		}
+		mouseMoved(evt);	// to update coordinates
 	}
 
 	public void mouseMoved(MouseEvent evt) {
 		Point pos = evt.getPoint();
 		int resSer = screen2cm(pos);
-		cmPane.showRulerCoordinate(resSer);
-		//this.repaint();
+		int oneDPos = (location == TOP || location == BOTTOM)?(pos.x-offSet):pos.y;
+		cmPane.setRulerCoordinates(resSer, oneDPos, location);
+		cmPane.repaint();
 	}
 
 }

@@ -50,6 +50,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point mouseDraggingPos;  		// current position of mouse dragging, used for end point of square selection
 	private Point mousePos;             	// current position of mouse (being updated by mouseMoved)
 	private int currentRulerCoord;	 		// the residue number shown if showRulerSer=true
+	private int currentRulerMousePos;		// the current position of the mouse in the ruler
+	private int currentRulerMouseLocation;	// the location (NORTH, EAST, SOUTH, WEST) of the ruler where the mouse is currently in
+	private boolean showRulerCoord; 		// while true, current ruler coordinate are shown instead of usual coordinates
+	private boolean showRulerCrosshair;		// while true, ruler "crosshair" is being shown
 	private Edge rightClickCont;	 		// position in contact map where right mouse button was pressed to open context menu
 	private EdgeNbh currCommonNbh;	 		// common nbh that the user selected last (used to show it in 3D)
 	private int lastMouseButtonPressed;		// mouse button which was pressed last (being updated by MousePressed)
@@ -61,7 +65,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private boolean dragging;     			// set to true while the user is dragging (to display selection rectangle)
 	protected boolean mouseIn;				// true if the mouse is currently in the contact map window (otherwise supress crosshair)
 	private boolean showCommonNbs; 			// while true, common neighbourhoods are drawn on screen
-	private boolean showRulerCoord; 		// while true, current ruler coordinate are shown instead of usual coordinates
 	
 	// selections
 	private EdgeSet allContacts; 		// all contacts from the underlying contact map model
@@ -242,12 +245,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.setPaintMode();
 		
 		// draw crosshair and coordinates
+		if((showRulerCoord || showRulerCrosshair) && (currentRulerCoord > 0 && currentRulerCoord <= contactMapSize)) {
+			if(showRulerCoord) {
+				drawRulerCoord(g2d);
+			}
+			if(showRulerCrosshair) {
+				drawRulerCrosshair(g2d);
+			}			
+		} else
 		if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
 			drawCoordinates(g2d);
-			drawCursor(g2d);
-		} else if(showRulerCoord && currentRulerCoord > 0 && currentRulerCoord <= contactMapSize) {
-			drawRulerCoord(g2d);
-		}
+			drawCrosshair(g2d);
+		} 
+		
 		// draw common neighbours
 		if(this.showCommonNbs) {
 			Edge cont = screen2cm(mousePressedPos);
@@ -354,7 +364,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(currentCell.j+"", 60, outputSize-70);
 		g2d.drawString(i_res==null?"?":i_res, 20, outputSize-50);
 		g2d.drawString(j_res==null?"?":j_res, 60, outputSize-50);
-		if (mod.has3DCoordinates()){
+		if (mod.has3DCoordinates()){	// TODO: Change to hasSecondaryStructure()
 			g2d.drawString(mod.getSecStructureType(currentCell.i), 20, outputSize-30);
 			g2d.drawString(mod.getSecStructureType(currentCell.j), 60, outputSize-30);
 		}
@@ -391,7 +401,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 	
-	protected void drawCursor(Graphics2D g2d){
+	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
 		if (view.getCurrentAction()==View.RANGE_SEL){
 			g2d.setColor(diagCrosshairColor);			
@@ -403,6 +413,23 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawLine(mousePos.x, 0, mousePos.x, outputSize);
 			g2d.drawLine(0, mousePos.y, outputSize, mousePos.y);
 		}
+	}
+	
+	private void drawRulerCrosshair(Graphics2D g2d) {
+		int x1,x2,y1,y2;
+		g2d.setColor(crosshairColor);
+		if(currentRulerMouseLocation == ResidueRuler.TOP || currentRulerMouseLocation == ResidueRuler.BOTTOM) {
+			x1 = currentRulerMousePos;
+			x2 = currentRulerMousePos;
+			y1 = 0;
+			y2 = outputSize;
+		} else {
+			x1 = 0;
+			x2 = outputSize;
+			y1 = currentRulerMousePos;
+			y2 = currentRulerMousePos;			
+		}
+		g2d.drawLine(x1, y1, x2, y2);
 	}
 	
 //	/** visualize a contact as an arc */
@@ -704,9 +731,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		Graphics2D g2d = screenBuffer.getGraphics();
 		
 		// paint background
+		int bgSizeX = Math.max(outputSize, getWidth());		// fill background even if window is not square
+		int bgSizeY = Math.max(outputSize, getHeight());	// fill background even of window is not square
 		g2d.setColor(backgroundColor);
 		if (isOpaque()) {
-			g2d.fillRect(0, 0, outputSize, outputSize);
+			g2d.fillRect(0, 0, bgSizeX, bgSizeY);
 		}
 		
 		// distance map
@@ -876,17 +905,29 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		updateScreenBuffer();
 	}
 	
-	/** Called by ResidueRuler to enable display of ruler coordinates in contactMapPane */
-	public void showRulerCoordinate(int resSer) {
+	/** Called by ResidueRuler to enable display of ruler coordinates */
+	public void showRulerCoordinate() {
 		showRulerCoord = true;
+	}
+	/** Called by ResidueRuler to enable display of ruler "crosshair" */	
+	public void showRulerCrosshair() {
+		showRulerCrosshair = true;
+	}
+	
+	public void setRulerCoordinates(int resSer, int mousePos, int location) {
 		currentRulerCoord = resSer;
-		this.repaint();
+		currentRulerMousePos = mousePos;
+		currentRulerMouseLocation = location;
 	}
 	
 	/** Called by ResidueRuler to switch off showing ruler coordinates */
-	public void hideRulerCoordinates() {
+	public void hideRulerCoordinate() {
 		showRulerCoord = false;
-		this.repaint();
+	}
+	
+	/** Called by ResidueRuler to switch off showing ruler "crosshair" */	
+	public void hideRulerCrosshair() {
+		showRulerCrosshair = false;
 	}
 	
 	/** Set the color value in contactColor for the currently selected residues to the given color */
