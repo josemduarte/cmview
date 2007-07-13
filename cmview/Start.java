@@ -53,7 +53,7 @@ public class Start {
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically
 	public static String			PYMOL_PARAMETERS =  	"-R -q";				// run xmlrpc server and skip splash screen
-	public static long 				PYMOL_CONN_TIMEOUT = 	10000; 					// pymol connection time out in milliseconds
+	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
 	// database connection
 	public static String			DB_HOST = "white";								// TODO: change to dummy name

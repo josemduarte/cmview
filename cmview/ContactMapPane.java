@@ -33,7 +33,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/*------------------------------ constants ------------------------------*/
 
 	static final long serialVersionUID = 1l;
-	static final boolean BACKGROUND_LOADING = false;	// function is buggi, only for testing
+	
+	// The following options are for testing only and may not function correctly
+	static final boolean BACKGROUND_LOADING = false; // if true, maps will be calculated in a separate thread
+	static final boolean BG_PRELOADING = false;		 // if true, maps will be preloaded in background
 
 	/*--------------------------- member variables --------------------------*/
 	
@@ -73,23 +76,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private HashMap<Edge,Integer> comNbhSizes;		 // matrix of common neighbourhood sizes
 
 	// buffers for triple buffering
-	private ScreenBuffer screenBuffer;		// resulting buffer containing the overlayd image of all ob the above
+	private ScreenBuffer screenBuffer;		// buffer containing the more of less static background image
 	
 	// drawing colors (being set in the constructor)
 	private Color backgroundColor;	  		// background color
 	private Color contactColor;	  	  		// color for contacts
-	private Color selectionColor;	  		// color for selected contacts
-	private Color selRectColor;	  			// color of selection rectangle
+	private Color selContactsColor;	  		// color for selected contacts
+	private Color squareSelColor;	  		// color of selection rectangle
 	private Color crosshairColor;     		// color of crosshair
-	private Color diagCrosshairColor; 		// color of "diagonal crosshair"
+	private Color diagCrosshairColor; 		// color of diagonal "crosshair"
 	private Color coordinatesColor;	  		// color of coordinates
 	private Color inBoxTriangleColor; 		// color for common nbh triangles
 	private Color outBoxTriangleColor;		// color for common nbh triangles
 	private Color crossOnContactColor;		// color for crosses on common nbh contacts
 	private Color corridorColor;	  		// color for contact corridor when showing common nbh
 	private Color nbhCorridorColor;	  		// color for nbh contact corridor when showing common nbh
-	protected Color horizontalNodeSelectionColor;		// color for horizontally selected residues (using xor mode)
-	protected Color verticalNodeSelectionColor;	// color for vertically selected residues (using xor mode)
+	protected Color horizontalNodeSelectionColor;	// color for horizontally selected residues (using xor mode)
+	protected Color verticalNodeSelectionColor;		// color for vertically selected residues (using xor mode)
+	
+	// status variables for concurrency
+	private int threadCounter;				// counts how many background threads are currently active 
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -129,9 +135,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		// set default colors
 		this.contactColor = Color.black;
-		this.selectionColor = Color.red;
+		this.selContactsColor = Color.red;
 		this.backgroundColor = Color.white;
-		this.selRectColor = Color.black;
+		this.squareSelColor = Color.black;	
 		this.crosshairColor = Color.green;
 		this.diagCrosshairColor = Color.lightGray;
 		this.coordinatesColor = Color.blue;
@@ -189,14 +195,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// drawing selection rectangle if dragging mouse and showing temp selection in red (tmpContacts)
 		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
 			
-			g2d.setColor(selRectColor);
+			g2d.setColor(squareSelColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
 			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
 			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
-			g2d.setColor(selectionColor);
+			g2d.setColor(selContactsColor);
 			for (Edge cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
@@ -208,14 +214,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
 			
-			g2d.setColor(selectionColor);
+			g2d.setColor(selContactsColor);
 			for (Edge cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
 		}
 
 		// draw permanent selection in red
-		g2d.setColor(selectionColor);
+		g2d.setColor(selContactsColor);
 		for (Edge cont:selContacts){
 			drawContact(g2d, cont);
 		}
@@ -504,137 +510,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if (k>(j+i)/2) endPoint = getCellCenter(new Edge(k,i)); // if k above center of segment i->j, the endpoint is k,i i.e. we draw a horizontal line
 		g2d.setColor(nbhCorridorColor);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
-	}
-
-	/**
-	 * Repaint the screen buffer because something in the underlying data has changed.
-	 */
-	public synchronized void updateScreenBuffer() {
-		
-		if(screenBuffer == null) {
-			screenBuffer = new ScreenBuffer(this);
-		}
-		screenBuffer.clear();
-		Graphics2D g2d = screenBuffer.getGraphics();
-		
-		// paint background
-		g2d.setColor(backgroundColor);
-		if (isOpaque()) {
-			g2d.fillRect(0, 0, outputSize, outputSize);
-		}
-		
-		// distance map
-		if (view.getShowDistMap()){
-			drawDistanceMap(g2d);
-		}
-		
-		// density map
-		if(view.getShowDensityMap()) {
-			drawDensityMap(g2d);
-		}
-		
-		// common nbh sizes or contact map
-		if (!view.getShowNbhSizeMap()){
-			drawContactMap(g2d);
-		} else {
-			drawNbhSizeMap(g2d);
-		}
-	
-		repaint();
-		
-	}
-
-	/**
-	 * Triggers the background maps to be updated in a separate thread
-	 */
-	public void updateNbhSizeMapBg() {
-		new Thread() {
-			public void run() {
-				System.out.println("Updating nbh size map...");	
-				comNbhSizes = mod.getAllEdgeNbhSizes();
-				updateScreenBuffer();	
-			}
-		}.start();
-	}
-	
-	/**
-	 * Triggers the background maps to be updated in a separate thread
-	 */
-	public void updateDensityMapBg() {
-		new Thread() {
-			public void run() {
-				System.out.println("Updating density map...");	
-				densityMatrix = mod.getDensityMatrix();
-				updateScreenBuffer();
-			}
-		}.start();
-	}
-
-	/**
-	 * Triggers the background maps to be updated in a separate thread
-	 */
-	public void updateDistanceMapBg() {
-		new Thread() {
-			public void run() {
-				view.statusBar.setText("Updating distance map...");	
-				mod.initDistMatrix();
-				updateScreenBuffer();
-				view.statusBar.setText(" ");	
-			}
-		}.start();
 	}	
-	
-//	public void updateContactBasedMaps() {
-//		new Thread() {
-//			public void run() {
-//				System.out.println("Updating...");
-//				view.statusBar.setText("Updating density map...");
-//				densityMatrix = mod.getDensityMatrix();
-//				view.statusBar.setText("Updating nbh size map...");				
-//				comNbhSizes = mod.getAllEdgeNbhSizes();
-//				view.statusBar.setText(" ");				
-//				System.out.println("Updating done.");
-//			}
-//		}.start();			
-//	}
-	
-	public void preloadBackgroundMaps() {
-		new Thread() {
-			public void run() {
-				System.out.println("Preloading...");
-				view.statusBar.setText("Preloading density map...");
-				densityMatrix = mod.getDensityMatrix();
-				view.statusBar.setText("Preloading nbh size map...");				
-				comNbhSizes = mod.getAllEdgeNbhSizes();
-				view.statusBar.setText("Preloading distance map...");				
-				mod.initDistMatrix();
-				view.statusBar.setText(" ");				
-				System.out.println("Predloading done.");
-			}
-		}.start();		
-	}
-	
-	/**
-	 * Triggers the nbh size map to be updated
-	 */
-	public synchronized void updateNbhSizeMap() {
-			comNbhSizes = mod.getAllEdgeNbhSizes();
-	}
-	
-	/**
-	 * Triggers the density map to be updated
-	 */
-	public synchronized void updateDensityMap() {
-			densityMatrix = mod.getDensityMatrix();
-	}
-
-	/**
-	 * Triggers the distance map to be updated
-	 */
-	public synchronized void updateDistanceMap() {
-			mod.initDistMatrix();
-	}
-	
 
 	/*---------------------------- mouse events -----------------------------*/
 
@@ -817,33 +693,164 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/* these methods are being called by others to control this components behaviour */
 	
 	/**
+	 * Repaint the screen buffer because something in the underlying data has changed.
+	 */
+	public synchronized void updateScreenBuffer() {
+		
+		if(screenBuffer == null) {
+			screenBuffer = new ScreenBuffer(this);
+		}
+		screenBuffer.clear();
+		Graphics2D g2d = screenBuffer.getGraphics();
+		
+		// paint background
+		g2d.setColor(backgroundColor);
+		if (isOpaque()) {
+			g2d.fillRect(0, 0, outputSize, outputSize);
+		}
+		
+		// distance map
+		if (view.getShowDistMap()){
+			drawDistanceMap(g2d);
+		}
+		
+		// density map
+		if(view.getShowDensityMap()) {
+			drawDensityMap(g2d);
+		}
+		
+		// common nbh sizes or contact map
+		if (!view.getShowNbhSizeMap()){
+			drawContactMap(g2d);
+		} else {
+			drawNbhSizeMap(g2d);
+		}
+		repaint();
+	}
+
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateNbhSizeMapBg() {
+		new Thread() {
+			public void run() {
+				registerThread(true);
+				comNbhSizes = mod.getAllEdgeNbhSizes();
+				//updateScreenBuffer();
+				registerThread(false);
+			}
+		}.start();
+	}
+	
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateDensityMapBg() {
+		new Thread() {
+			public void run() {
+				registerThread(true);
+				densityMatrix = mod.getDensityMatrix();
+				//updateScreenBuffer();
+				registerThread(false);
+			}
+		}.start();
+	}
+
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateDistanceMapBg() {
+		new Thread() {
+			public void run() {
+				registerThread(true);
+				mod.initDistMatrix();
+				//updateScreenBuffer();
+				registerThread(false);
+			}
+		}.start();
+	}	
+	
+	public void preloadBackgroundMaps() {
+		new Thread() {
+			public void run() {
+				updateDistanceMapBg();
+				updateDensityMapBg();
+				updateNbhSizeMapBg();
+//				System.out.println("Preloading...");
+//				view.statusBar.setText("Preloading density map...");
+//				densityMatrix = mod.getDensityMatrix();
+//				view.statusBar.setText("Preloading nbh size map...");				
+//				comNbhSizes = mod.getAllEdgeNbhSizes();
+//				view.statusBar.setText("Preloading distance map...");				
+//				mod.initDistMatrix();
+//				view.statusBar.setText(" ");				
+//				System.out.println("Predloading done.");
+			}
+		}.start();		
+	}
+	
+	/**
+	 * Triggers the nbh size map to be updated
+	 */
+	public synchronized void updateNbhSizeMap() {
+			comNbhSizes = mod.getAllEdgeNbhSizes();
+	}
+	
+	/**
+	 * Triggers the density map to be updated
+	 */
+	public synchronized void updateDensityMap() {
+			densityMatrix = mod.getDensityMatrix();
+	}
+
+	/**
+	 * Triggers the distance map to be updated
+	 */
+	public synchronized void updateDistanceMap() {
+			mod.initDistMatrix();
+	}
+	
+	/**
 	 * To be called whenever the contacts have been changed in the Model object (i.e. the graph object).
 	 * Currently called when deleting edges.
 	 */
 	public void reloadContacts() {
+		boolean doResetCursor = false;
 		this.allContacts = mod.getContacts();
 		if(view.getShowNbhSizeMap()) {
-			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-			updateNbhSizeMap();
-		} else {
 			if(BACKGROUND_LOADING) {
+				updateNbhSizeMapBg();	// will repaint when done
+			} else {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				updateNbhSizeMap();
+				doResetCursor = true;
+			}
+		} else {
+			if(BG_PRELOADING) {
 				updateNbhSizeMapBg();
 			} else {
 				comNbhSizes = null;		// mark as dirty
 			}
 		}
 		if(view.getShowDensityMap()) {
-			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-			updateDensityMap();
-		} else {
 			if(BACKGROUND_LOADING) {
+				updateDensityMapBg();	// will repaint when done
+			} else {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				updateDensityMap();
+				doResetCursor = true;
+			}
+		} else {
+			if(BG_PRELOADING) {
 				updateDensityMapBg();	
 			} else {
 				densityMatrix = null;	// mark as dirty
 			}
 		}
-		updateScreenBuffer();		// will repaint
-		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+		updateScreenBuffer();		// always repaint to show new contact map
+		if(doResetCursor) {
+			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+		}
 	}
 
 	/**
@@ -864,7 +871,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/** Called by view to reset the user defined contact colors */
-	public void resetColorMap() {
+	public void resetUserContactColors() {
 		userContactColors = new Hashtable<Edge, Color>();
 		updateScreenBuffer();
 	}
@@ -961,12 +968,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void toggleNbhSizeMap(boolean state) {
 		if (state) {
 			if(comNbhSizes == null) {
-				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-				updateNbhSizeMap();
+				if(BACKGROUND_LOADING) {
+					updateNbhSizeMapBg();
+				} else {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					updateNbhSizeMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+			} else {
+				updateScreenBuffer();
 			}
+		} else {
+			updateScreenBuffer();			// will repaint				
 		}
-		updateScreenBuffer();		// will repaint
-		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}	
 	
 	/**
@@ -975,12 +990,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void toggleDensityMap(boolean state) {
 		if(state) {
 			if(densityMatrix == null) {
-				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-				updateDensityMap();				
+				if(BACKGROUND_LOADING) {
+					updateDensityMapBg();		// will update screen buffer when done							
+				} else {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					updateDensityMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+			} else {
+				updateScreenBuffer();
 			}
+		} else {
+			updateScreenBuffer();			// will repaint				
 		}
-		updateScreenBuffer();		// will repaint
-		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}
 
 	/**
@@ -990,12 +1013,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void toggleDistanceMap(boolean state) {
 		if(state) {
 			if (mod.getDistMatrix()==null) {
-				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));			
-				updateDistanceMap();
+				if(BACKGROUND_LOADING) {
+					updateDistanceMapBg();		// will update screen buffer when done			
+				} else {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));			
+					updateDistanceMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+			} else {
+				updateScreenBuffer();			// will repaint				
 			}
+		} else {
+			updateScreenBuffer();
 		}
-		updateScreenBuffer();			// will repaint
-		getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}		
 	
 	public void deleteSelectedContacts() {
@@ -1154,6 +1185,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/*---------------------------- private methods --------------------------*/
+	
+	/** Increases or decreases the thread counter and displays some user information while threads are running */
+	private synchronized void registerThread(boolean increase) {
+		if(increase) {
+			if(threadCounter == 0) {
+				// first thread registered
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+			}
+			threadCounter++;
+		} else {
+			threadCounter--;
+			if(threadCounter == 0) {
+				// no more threads running
+				updateScreenBuffer();
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		}
+		System.out.println(threadCounter + " threads are running");
+		assert(threadCounter >= 0);
+	}
 	
 	/**
 	 * Checks whether nodes have been selected both horizontally and vertically and

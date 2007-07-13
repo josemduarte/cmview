@@ -454,8 +454,8 @@ public class View extends JFrame implements ActionListener {
 		//this.getContentPane().add(toolBar, BorderLayout.NORTH);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
 		if(showRulers) {
-			this.getContentPane().add(topRul, BorderLayout.NORTH);
-			this.getContentPane().add(leftRul, BorderLayout.WEST);
+			cmp.add(topRul, BorderLayout.NORTH);
+			cmp.add(leftRul, BorderLayout.WEST);
 		}
 		//this.getContentPane().add(statusPane,BorderLayout.SOUTH);
 
@@ -863,12 +863,12 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			showRulers = !showRulers;
 			if(showRulers) {
-				this.getContentPane().add(topRul, BorderLayout.NORTH);
-				this.getContentPane().add(leftRul, BorderLayout.WEST);
+				cmp.add(topRul, BorderLayout.NORTH);
+				cmp.add(leftRul, BorderLayout.WEST);
 				mmViewRulers.setIcon(icon_selected);
 			} else {
-				this.getContentPane().remove(topRul);
-				this.getContentPane().remove(leftRul);
+				cmp.remove(topRul);
+				cmp.remove(leftRul);
 				mmViewRulers.setIcon(icon_deselected);
 			}
 			this.pack();
@@ -971,7 +971,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			cmPane.resetColorMap();
+			cmPane.resetUserContactColors();
 		}
 	}
 
@@ -1161,7 +1161,7 @@ public class View extends JFrame implements ActionListener {
 			//System.exit(-1);
 		}
 		System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
-		if(ContactMapPane.BACKGROUND_LOADING) {
+		if(ContactMapPane.BG_PRELOADING) {
 			view.cmPane.preloadBackgroundMaps();
 		}
 
