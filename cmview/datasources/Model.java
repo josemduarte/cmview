@@ -275,11 +275,12 @@ public abstract class Model {
 	}
 	
 	/**
-	 * Initialises the distMatrix member
-	 * Can only be called if has3DCoordinates is true
+	 * Initialises the distMatrix member. The matrix is scaled to doubles from zero to one.
+	 * Returns the scaled value of the current distance cutoff.
+	 * May only be called if has3DCoordinates is true.
 	 *
 	 */
-	public void initDistMatrix(){
+	public double initDistMatrix(){
 		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
@@ -287,7 +288,8 @@ public abstract class Model {
 		for (Edge cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
-
+		double dist = (graph.getCutoff()-min)/(max-min);
+		return dist;
 	}
 	
 	public HashMap<Edge,Double> getDistMatrix(){

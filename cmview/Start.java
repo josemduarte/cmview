@@ -393,7 +393,7 @@ public class Start {
 	 */
 	public static void main(String args[]){
 		
-		System.out.println("CMView - Interactive contact map viewer");
+		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
 		
 		// TODO: check whether config file is passed as command line parameter, otherwise use default one
 		

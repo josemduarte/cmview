@@ -44,7 +44,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Model mod;
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in the underlying model, set once in constructor
-
+	private double scaledDistCutoff;		// stores the value between zero and one which represents the current distance cutoff in the distance map
+	
 	// used for drawing 
 	private Point mousePressedPos;   		// position where mouse where last pressed, used for start of square selection and for common neighbours 
 	private Point mouseDraggingPos;  		// current position of mouse dragging, used for end point of square selection
@@ -285,7 +286,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// this actually contains all possible contacts in matrix so is doing a full loop on all cells
 		HashMap<Edge,Double> distMatrix = mod.getDistMatrix();
 		for (Edge cont:distMatrix.keySet()){
-			Color c = colorMapBluescale(distMatrix.get(cont));
+			Color c = colorMapMatlab(distMatrix.get(cont), scaledDistCutoff);
 			g2d.setColor(c);
 			drawContact(g2d, cont);
 		}
@@ -749,10 +750,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// common nbh sizes or contact map
-		if (!view.getShowNbhSizeMap()){
-			drawContactMap(g2d);
-		} else {
+		if (view.getShowNbhSizeMap()){
 			drawNbhSizeMap(g2d);
+		}
+		
+		// draw contact map if necessary
+		if(!view.getShowNbhSizeMap() && !view.getShowDistMap()) {
+			drawContactMap(g2d);			
 		}
 		repaint();
 	}
@@ -836,7 +840,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Triggers the distance map to be updated
 	 */
 	public synchronized void updateDistanceMap() {
-			mod.initDistMatrix();
+		scaledDistCutoff = mod.initDistMatrix();
+		//System.out.println("Scaled distance cutoff: " + scaledDistCutoff);
 	}
 	
 	/**
@@ -1280,22 +1285,33 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return new Color((float) r,(float) g, (float) b);
 	}
 
-	/** Given a number between zero and one, returns a color from a gradient. */
-//	private Color colorMapMatlab(double val) {
-//		// matlab color map
-//		double rc = 6/8f;
-//		double gc = 4/8f;
-//		double bc = 2/8f;
-//		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
-//		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
-//		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
-//		return new Color((float) r,(float) g, (float) b);
-//	}
-
-	/** Given a number between zero and one, returns a color from a gradient. */
-	private Color colorMapBluescale(double val) {
-		return new Color((float) (val), (float) (val), (float) Math.min(1,4*val));
+	/** 
+	 * Given a number between zero and one, returns a color from a gradient.
+	 * In this color map, val is green, higher values are darker shades of red and
+	 * lower values are darker shades of blue. */
+	private Color colorMapMatlab(double val, double middle) {
+		if(val <= middle) {
+			val = val * 0.5/middle;
+		} else {
+			val = 0.5 + (val-middle) * 0.5 / (1-middle);
+		}
+		// matlab color map
+		double bc = 6/8f;
+		double gc = 4/8f;
+		double rc = 2/8f;
+//		double rc = (1+middle)/2;
+//		double gc = middle;
+//		double bc = middle/2;
+		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
+		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
+		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
+		return new Color((float) r,(float) g, (float) b);
 	}
+
+//	/** Given a number between zero and one, returns a color from a gradient. */
+//	private Color colorMapBluescale(double val) {
+//		return new Color((float) (val), (float) (val), (float) Math.min(1,4*val));
+//	}
 
 	private void showPopup(MouseEvent e) {
 		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));

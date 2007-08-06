@@ -637,7 +637,7 @@ public class View extends JFrame implements ActionListener {
 					View view = (View) o;
 					view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db);
 				}
-			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
 			dialog.showIt();
 		}
 
@@ -651,7 +651,6 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
-		db = "pdbase";
 		System.out.println("Database:\t" + db);	
 		try{
 			Model mod = new PdbaseModel(ac, cc, ct, dist, minss, maxss, db);
@@ -670,7 +669,7 @@ public class View extends JFrame implements ActionListener {
 					View view = (View) o;
 					view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db);
 				}
-			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
 			dialog.showIt();
 		}
 	}
@@ -683,7 +682,6 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
-		db = "msdsd_00_07_a";
 		System.out.println("Database:\t" + db);	
 		try {
 			Model mod = new MsdsdModel(ac, cc, ct, dist, minss, maxss, db);
