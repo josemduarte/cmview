@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ -z "$4" ]
+if [ -z "$3" ]
 then
     echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag>"
     echo "if instead of a tag, you want the code from trunk, just specify 'trunk' instead of the tag name"
@@ -46,7 +46,7 @@ cp -R $aglappetag/tools $cmviewtag
 rm -rf $aglappetag
 
 # setting classpath and compiling
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar
+CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar:/project/StruPPi/jars/Jama-1.0.2.jar
 echo "Compiling..."
 cd $cmviewtag
 javac cmview/*.java cmview/datasources/*.java
