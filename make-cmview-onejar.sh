@@ -53,9 +53,9 @@ javac cmview/*.java cmview/datasources/*.java
 
 # creating jar file
 echo "Creating jar file: $cmviewtag-StruPPi.jar ..."
-jar -cfm ../$cmviewtag.jar Manifest-StruPPi.txt .
+jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
 echo "Creating jar file: $cmviewtag-MacWin.jar ..."
-jar -cfm ../$cmviewtag.jar Manifest.txt .
+jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
 
 # removing $cmviewtag temp directory
 cd ..
