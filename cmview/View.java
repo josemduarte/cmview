@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import javax.swing.border.*;
@@ -62,7 +63,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP, delEdgesP, popupSendEdge;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
-	JMenuItem mmSaveGraph, mmSaveCm, mmSavePng;
+	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
@@ -332,16 +333,18 @@ public class View extends JFrame implements ActionListener {
 		submenu = new JMenu("Save to");
 		submenu.setMnemonic(KeyEvent.VK_S);
 
-		mmSaveGraph = new JMenuItem("Graph database");			
-		mmSaveCm = new JMenuItem("Contact map file");
+		mmSaveGraphDb = new JMenuItem("Graph database");			
+		mmSaveCmFile = new JMenuItem("Contact map file");
 		mmSavePng = new JMenuItem("PNG file");
 
-		//submenu.add(mmSaveGraph);
-		submenu.add(mmSaveCm);			
+		submenu.add(mmSaveCmFile);			
 		submenu.add(mmSavePng);
+		if(Start.USE_DATABASE) {
+			submenu.add(mmSaveGraphDb);
+		}
 
-		mmSaveGraph.addActionListener(this);			
-		mmSaveCm.addActionListener(this);			
+		mmSaveGraphDb.addActionListener(this);			
+		mmSaveCmFile.addActionListener(this);			
 		mmSavePng.addActionListener(this);	
 
 		menu.add(submenu);
@@ -491,10 +494,10 @@ public class View extends JFrame implements ActionListener {
 		}
 		
 		// Save
-		if(e.getSource() == mmSaveGraph) {
+		if(e.getSource() == mmSaveGraphDb) {
 			handleSaveToGraphDb();
 		}		  
-		if(e.getSource() == mmSaveCm) {
+		if(e.getSource() == mmSaveCmFile) {
 			handleSaveToCmFile();
 		}
 		if(e.getSource() == mmSavePng) {
@@ -738,11 +741,29 @@ public class View extends JFrame implements ActionListener {
 	}		  
 
 	private void handleSaveToGraphDb() {
-		System.out.println("Saving to graph db not implemented yet");
+		if(this.mod == null) {
+			showNoContactMapWarning();
+		} else if(!Start.isDatabaseConnectionAvailable()) {
+			showNoDatabaseConnectionWarning();
+		} else {
+			String ret = JOptionPane.showInputDialog(this, (Object) "<html>Name of database to save to:<br></html>");
+			if(ret != null) {
+				if(ret.length() > 0) {
+					doSaveToGraphDb(ret);
+				} else {
+					JOptionPane.showMessageDialog(this, "No database name given. Contact map not saved.", "Warning", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}
 	}
 
-	public void doSaveToGraphDb() {
-		// TODO
+	public void doSaveToGraphDb(String dbName) {
+		try {
+			mod.writeToGraphDb(dbName);
+			//System.out.println("Saving contact map to database " + dbName + ".");
+		} catch (SQLException e) {
+			System.out.println("Error when trying to write to database " + dbName);
+		}
 	}
 
 	private void handleSaveToCmFile() {

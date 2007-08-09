@@ -2,6 +2,7 @@ package cmview.datasources;
 
 import java.io.IOException;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -188,7 +189,13 @@ public abstract class Model {
 			System.err.println("Error when trying to write contact map file");
 			throw e;
 		}
-	}	
+	}
+	
+	/** Write the current contact map to a graph database */
+	public void writeToGraphDb(String dbName) throws SQLException {
+		System.out.println("Saving to graph db not implemented yet");
+		//		  graph.write_graph_to_db(dbName);
+	}
 	
 	/**
 	 * Returns the three letter residue type for the given residue serial.
