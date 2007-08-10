@@ -57,6 +57,7 @@ public class ContactMapFileModel extends Model {
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			//super.printWarnings(chainCode); // doesn't make sense here
+			super.checkAndAssignSecondaryStructure();
 			
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from contact map file.");

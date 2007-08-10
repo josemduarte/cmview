@@ -41,6 +41,7 @@ public class GraphDbModel extends Model {
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			super.printWarnings(pdbChainCode);
+			super.checkAndAssignSecondaryStructure();
 			
 		} catch (GraphIdNotFoundError e) {
 			System.err.println("Error: Could not find graph id in database.");

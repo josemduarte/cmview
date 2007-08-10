@@ -84,6 +84,28 @@ public abstract class Model {
 		if(!oldChainCode.equals(getChainCode())) System.out.println("Warning: Chain " + oldChainCode + " is now called " + getChainCode());
 	}
 	
+	/** Check whether secondary structure needs to be assigned and run dssp if so */
+	protected void checkAndAssignSecondaryStructure() {
+		if(has3DCoordinates()) {		// otherwise we can't (re)assign secondary structure
+			if(Start.ALWAYS_USE_DSSP || !pdb.hasSecondaryStructure()) {
+				if(!Start.isDsspAvailable()) {
+					System.err.println("Can not (re)assign secondary structure because external DSSP is not available");
+				} else {
+					System.out.println("(Re)assigning secondary structure using DSSP");
+					try {
+						pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
+						// update secondary structure list in model
+						secstruct2resinterval = pdb.getAllSecStructElements();
+					} catch (IOException e) {
+						System.out.println("Failed to assign secondary structure: " + e.getMessage());
+					}
+				}
+			}
+		}
+			
+		
+	}
+	
 	/*---------------------------- public methods ---------------------------*/
 	
 	/** Returns the size of the data matrix */
@@ -317,6 +339,21 @@ public abstract class Model {
 	 */
 	public boolean hasSequence() {
 		return graph.getSequence().equals("");
+	}
+	
+	/** Returns true iff this model has secondary structure information */
+	public boolean hasSecondaryStructure() {
+		return (pdb != null && pdb.hasSecondaryStructure());
+	}
+	
+	/** Returns the source of the secondary structure annotation of this model */
+	public String getSecondaryStructureSource() {
+		if(pdb == null) {
+			return "None";
+		} else {
+			return pdb.getSecondaryStructureSource();
+		}
+		
 	}
 	
 	public double[][] getDensityMatrix() {

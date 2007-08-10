@@ -28,6 +28,7 @@ public class MsdsdModel extends Model {
 			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
+			super.checkAndAssignSecondaryStructure();
 			
 		} catch (PdbCodeNotFoundError e) {
 			System.err.println("Failed to load structure because accession code was not found in MSD");

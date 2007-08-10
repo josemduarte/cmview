@@ -102,7 +102,7 @@ public class View extends JFrame implements ActionListener {
 		this.pymolNbhSerial = 1;
 		this.showPdbSers = false;
 		this.showNbhSizeMap = false;
-		this.showRulers=false;
+		this.showRulers=Start.SHOW_RULERS_ON_STARTUP;
 		this.showDensityMap=false;
 		this.showDistanceMap=false;
 		this.currentPaintingColor = Color.blue;
@@ -831,7 +831,8 @@ public class View extends JFrame implements ActionListener {
 			+ "Number of contacts: " + mod.getNumberOfContacts() + "\n"
 			+ "Directed: " + (mod.isDirected()?"Yes":"No")
 			+ "\n"
-			+ "Sequence: " + s;
+			+ "Sequence: " + s + "\n"
+			+ "Secondary structure: " + mod.getSecondaryStructureSource();
 			JOptionPane.showMessageDialog(this,
 					message,
 					"Contact map info",

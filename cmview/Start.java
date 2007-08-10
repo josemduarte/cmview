@@ -49,7 +49,13 @@ public class Start {
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
-
+	
+	// not in config file yet:
+	public static boolean			SHOW_RULERS_ON_STARTUP = false;		// if true, rulers will be shown by default
+	public static boolean			ALWAYS_USE_DSSP = true;			// if true, secondary structure will be always taken from DSSP (if available)
+	public static String			DSSP_EXECUTABLE = "/project/StruPPi/Software/dssp/dsspcmbi";
+	public static String			DSSP_PARAMETERS = "--";
+	
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically
 	public static String			PYMOL_PARAMETERS =  	"-R -q";				// run xmlrpc server and skip splash screen
@@ -72,11 +78,12 @@ public class Start {
 	// internal status variables
 	protected static boolean		database_found = true;
 	protected static boolean		pymol_found = true;
+	protected static boolean		dssp_found = true;			// check later whether dssp can be used
 	protected static Properties		userProperties;				// properties read from the user's config file
 	protected static Properties		selectedProperties;			// selected default properties for the example config file
 	
 	// global session variables (use getter methods)
-	private static MySQLConnection	conn;
+	private static MySQLConnection conn;
 	private static JFileChooser fileChooser;
 	private static JColorChooser colorChooser;
 	private static PyMolAdaptor pymolAdaptor;
@@ -352,6 +359,13 @@ public class Start {
 	 */
 	public static boolean isPyMolConnectionAvailable() {
 		return Start.USE_PYMOL && Start.pymol_found;
+	}
+	
+	/**
+	 * Returns true if external dssp application is available.
+	 */
+	public static boolean isDsspAvailable() {
+		return dssp_found;
 	}
 
 	/**

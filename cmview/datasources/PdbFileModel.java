@@ -22,6 +22,7 @@ public class PdbFileModel extends Model {
 			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
+			super.checkAndAssignSecondaryStructure();
 			
 		} catch (IOException e) {
 			System.err.println("Error while reading from PDB file.");

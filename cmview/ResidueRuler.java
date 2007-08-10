@@ -30,6 +30,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	private static final Color HELIX_COLOR = Color.blue;
 	private static final Color TURN_COLOR = Color.red;
 	private static final Color SHEET_COLOR = Color.green;
+	private static final Color UNEXPECTED_SS_COLOR = Color.gray;
 	
 	private ContactMapPane cmPane;
 	private Model mod; 
@@ -96,6 +97,8 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					g2d.setColor(TURN_COLOR);
 				} else if (ssId.charAt(0)=='S'){
 					g2d.setColor(SHEET_COLOR);
+				} else {
+					g2d.setColor(UNEXPECTED_SS_COLOR);
 				}
 				Point startPoint = getOuterBorderCentrePoint(mod.getAllSecStructElements().get(ssId).beg);
 				Point endPoint = getInnerBorderCentrePoint(mod.getAllSecStructElements().get(ssId).end);
