@@ -24,7 +24,7 @@ public class Start {
 	
 	// internal constants (not user changable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String      VERSION = 				"0.8.2";			// current version of this application (should match manifest)
+	public static final String      VERSION = 				"0.8.3";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
@@ -37,8 +37,9 @@ public class Start {
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
 	
 	// The following constants can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
-	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable,
-	// there has to be a line in the applyUserProperties methods. The preassigned values are the default and being used unless overwritten by the user.
+	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
+	// there has to be a line in the applyUserProperties method. The preassigned values are the default and being used unless overwritten by the user.
+	// Additioanlly, values that should appear in the example config file should be added to the getSelectedProperties method.
 
 	// environment
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
@@ -51,8 +52,8 @@ public class Start {
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
 	
 	// not in config file yet:
-	public static boolean			SHOW_RULERS_ON_STARTUP = false;		// if true, rulers will be shown by default
-	public static boolean			ALWAYS_USE_DSSP = true;			// if true, secondary structure will be always taken from DSSP (if available)
+	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
+	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = "/project/StruPPi/Software/dssp/dsspcmbi";
 	public static String			DSSP_PARAMETERS = "--";
 	
@@ -67,11 +68,11 @@ public class Start {
 	public static String			DB_PWD = "nieve";								// TODO: change to tiger
 	
 	// default values for loading contact maps
-	public static final String		DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
+	public static String			DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"pdbase";			// for loading from command line
 	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";	// used when loading structures for cm file graphs
 	public static String     		DEFAULT_CONTACT_TYPE = 		"ALL";				// loading from command line and shown in LoadDialog
-	public static double 			DEFAULT_DISTANCE_CUTOFF = 	4.1; 				// dito
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	4.2; 				// dito
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
@@ -124,15 +125,21 @@ public class Start {
 		d.setProperty("SHUTDOWN_PYMOL_ON_EXIT",new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString());
 		d.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		d.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
+		d.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
+		d.setProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString());
+		d.setProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString());
 		
 		// properties which will become obsolete when loading from online pdb is implemented
 		d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
+		d.setProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
+		d.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);
 		
 		// properties that should be changed only if problems arise
 		// these will be mentioned in the documentation somewhere but not in the example config file
 		//d.setProperty("TEMP_DIR",TEMP_DIR);
 		//d.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);
 		//d.setProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString());
+		//d.setProperty("DSSP_PARAMETERS", DSSP_PARAMETERS);
 		
 		return d;
 	}
@@ -156,7 +163,7 @@ public class Start {
 
 		// The logic here is: First, take the value from the user config file,
 		// if that is not found, keep the variable value unchanged.
-		// Note that any line in the user config file that is not being processed here is ignored.
+		// Note that any value in the user config file that is not being processed here is ignored.
 		
 		TEMP_DIR = p.getProperty("TEMP_DIR",TEMP_DIR);
 		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
@@ -164,10 +171,15 @@ public class Start {
 		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
 		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL", new Boolean(PRELOAD_PYMOL).toString()));
 		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
+		SHOW_RULERS_ON_STARTUP = Boolean.valueOf(p.getProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString()));
 		
 		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
 		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
 		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
+		
+		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
+		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
+		FORCE_DSSP = Boolean.valueOf(p.getProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString()));
 		
 		DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 		DB_USER = p.getProperty("DB_USER", DB_USER);
@@ -176,6 +188,10 @@ public class Start {
 		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
 		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
 		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
+		
+		DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
+		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
+
 	}
 	
 	/** 

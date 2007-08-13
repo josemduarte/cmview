@@ -87,7 +87,7 @@ public abstract class Model {
 	/** Check whether secondary structure needs to be assigned and run dssp if so */
 	protected void checkAndAssignSecondaryStructure() {
 		if(has3DCoordinates()) {		// otherwise we can't (re)assign secondary structure
-			if(Start.ALWAYS_USE_DSSP || !pdb.hasSecondaryStructure()) {
+			if(Start.FORCE_DSSP || !pdb.hasSecondaryStructure()) {
 				if(!Start.isDsspAvailable()) {
 					System.err.println("Can not (re)assign secondary structure because external DSSP is not available");
 				} else {
@@ -215,8 +215,7 @@ public abstract class Model {
 	
 	/** Write the current contact map to a graph database */
 	public void writeToGraphDb(String dbName) throws SQLException {
-		System.out.println("Saving to graph db not implemented yet");
-		//		  graph.write_graph_to_db(dbName);
+		graph.write_graph_to_db(Start.getDbConnection(), dbName);
 	}
 	
 	/**
