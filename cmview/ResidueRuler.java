@@ -7,10 +7,12 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Iterator;
 
 import javax.swing.JPanel;
 
 import proteinstructure.Interval;
+import proteinstructure.SecStrucElement;
 
 import cmview.datasources.Model;
 
@@ -89,19 +91,21 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		setBackground(Color.white);
 
 		// painting secondary structure elements
-		if (mod.has3DCoordinates()){
-			for (String ssId:mod.getAllSecStructElements().keySet()){
-				if (ssId.charAt(0)=='H'){
+		if (mod.hasSecondaryStructure()){
+			Iterator<SecStrucElement> secStruc = mod.getSecondaryStructure().getIterator();
+			while(secStruc.hasNext()) {
+				SecStrucElement ssElem = secStruc.next();
+				if (ssElem.isHelix()){
 					g2d.setColor(HELIX_COLOR);
-				} else if (ssId.charAt(0)=='T') {
+				} else if (ssElem.isTurn()) {
 					g2d.setColor(TURN_COLOR);
-				} else if (ssId.charAt(0)=='S'){
+				} else if (ssElem.isStrand()){
 					g2d.setColor(SHEET_COLOR);
 				} else {
 					g2d.setColor(UNEXPECTED_SS_COLOR);
 				}
-				Point startPoint = getOuterBorderCentrePoint(mod.getAllSecStructElements().get(ssId).beg);
-				Point endPoint = getInnerBorderCentrePoint(mod.getAllSecStructElements().get(ssId).end);
+				Point startPoint = getOuterBorderCentrePoint(ssElem.getInterval().beg);
+				Point endPoint = getInnerBorderCentrePoint(ssElem.getInterval().end);
 				g2d.fillRect(startPoint.x,startPoint.y,endPoint.x-startPoint.x,endPoint.y-startPoint.y);
 			}
 		}
@@ -247,9 +251,8 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					cmPane.repaint();
 
 				} else {
-
-					Interval ssint=mod.getSecStrucElementBounds(mod.getSecStructureId(clickedRes));
-					if(ssint==null) {
+					SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(clickedRes);
+					if(ssElem==null) {
 						// clicking outside of secondary structure
 						if(!evt.isControlDown()) { // default behaviour: control-click on whitespace does nothing
 							if(location==TOP || location==BOTTOM) {
@@ -260,9 +263,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 						}
 					} else {
 						// clicking on secondary structure element
+						Interval ssint = ssElem.getInterval();
 						if(evt.isControlDown()) {
 							// adding to current selection
-							System.out.println("Selecting " + mod.getSecStructureId(clickedRes) + " from " + ssint.beg + " to " + ssint.end);
+							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end);
 							if(location==TOP || location==BOTTOM) {
 								if(cmPane.getSelVertNodes().contains(clickedRes)) {
 									// selected already: deselect
@@ -282,7 +286,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 							}
 						} else {
 							// new selection
-							System.out.println("Selecting " + mod.getSecStructureId(clickedRes) + " from " + ssint.beg + " to " + ssint.end);
+							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end);
 							if(location==TOP || location==BOTTOM) {
 								cmPane.resetVerticalNodeSelection();
 								cmPane.selectNodesVertically(ssint);

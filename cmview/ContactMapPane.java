@@ -22,6 +22,7 @@ import proteinstructure.EdgeNbh;
 import proteinstructure.Interval;
 import proteinstructure.NodeNbh;
 import proteinstructure.NodeSet;
+import proteinstructure.SecondaryStructure;
 import cmview.datasources.Model;
 
 /**
@@ -365,9 +366,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(currentCell.j+"", 60, outputSize-70);
 		g2d.drawString(i_res==null?"?":i_res, 20, outputSize-50);
 		g2d.drawString(j_res==null?"?":j_res, 60, outputSize-50);
-		if (mod.has3DCoordinates()){	// TODO: Change to hasSecondaryStructure()
-			g2d.drawString(mod.getSecStructureType(currentCell.i), 20, outputSize-30);
-			g2d.drawString(mod.getSecStructureType(currentCell.j), 60, outputSize-30);
+		if (mod.hasSecondaryStructure()){
+			SecondaryStructure ss = mod.getSecondaryStructure();
+			g2d.drawString(ss.getSecStrucElement(currentCell.i)==null?"":(new Character(ss.getSecStrucElement(currentCell.i).getType()).toString()), 20, outputSize-30);
+			g2d.drawString(ss.getSecStrucElement(currentCell.j)==null?"":(new Character(ss.getSecStrucElement(currentCell.j).getType()).toString()), 60, outputSize-30);
 		}
 
 		if(allContacts.contains(currentCell)) {
@@ -393,8 +395,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString("i", 20, outputSize-90);
 		g2d.drawString(currentRulerCoord+"", 20, outputSize-70);
 		g2d.drawString(res==null?"?":res, 20, outputSize-50);
-		if (mod.has3DCoordinates()){
-			g2d.drawString(mod.getSecStructureType(currentRulerCoord), 20, outputSize-30);
+		if (mod.hasSecondaryStructure()){
+			SecondaryStructure ss = mod.getSecondaryStructure();
+			g2d.drawString(ss.getSecStrucElement(currentRulerCoord)==null?"":(new Character(ss.getSecStrucElement(currentRulerCoord).getType()).toString()), 20, outputSize-30);
 		}
 		if (view.getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(currentRulerCoord);

@@ -832,7 +832,7 @@ public class View extends JFrame implements ActionListener {
 			+ "Directed: " + (mod.isDirected()?"Yes":"No")
 			+ "\n"
 			+ "Sequence: " + s + "\n"
-			+ "Secondary structure: " + mod.getSecondaryStructureSource();
+			+ "Secondary structure: " + mod.getSecondaryStructure().getComment();
 			JOptionPane.showMessageDialog(this,
 					message,
 					"Contact map info",

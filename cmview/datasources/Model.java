@@ -5,7 +5,6 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.TreeMap;
 
 import cmview.Start;
 import proteinstructure.*;
@@ -26,8 +25,11 @@ public abstract class Model {
 	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
-	protected HashMap<Edge,Double> distMatrix; 	// the scaled [0-1] distance matrix
-	protected TreeMap<String,Interval> secstruct2resinterval; // secondary structure elements as sec structure ids and residue serial intervals 
+	protected HashMap<Edge,Double> distMatrix; 		// the scaled [0-1] distance matrix
+	// The following two variables are pointers to the respective objects in pdb or graph. The only purpose of having them here is to allow
+	// us to take the seondary structure either from the graph or from the pdb object. A cleaner way would be to have both of them implement
+	// an interface hasSecondaryStructure and then just specify a secondaryStructureSource variable of that interface type.
+	private SecondaryStructure secondaryStructure;  // pointer to secondary structure object from either pdb or graph object
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
 	/*----------------------------- constructors ----------------------------*/
@@ -50,15 +52,21 @@ public abstract class Model {
 	}
 
 	/**
-	 * Initalizes the member variables matrixSize, unobservedResidues and secstruct2resinterval
+	 * Initalizes the member variables matrixSize, unobservedResidues and secondaryStructure
 	 * Variable graph has to be initialized previously. Otherwise a null pointer
-	 * exception will be thrown.
+	 * exception will occur.
 	 */
 	protected void initializeContactMap() {
 		matrixSize = graph.getFullLength();
 		unobservedResidues = (graph.getFullLength() - graph.getObsLength());
-		if (has3DCoordinates()){
-			secstruct2resinterval = pdb.getAllSecStructElements();
+		if(pdb != null && pdb.hasSecondaryStructure()) {
+			secondaryStructure = pdb.getSecondaryStructure();
+		}
+		else if(graph != null && graph.hasSecondaryStructure()) {
+			secondaryStructure = graph.getSecondaryStructure();
+		}
+		else {
+			secondaryStructure = new SecondaryStructure();
 		}
 	 }	
 	
@@ -94,16 +102,14 @@ public abstract class Model {
 					System.out.println("(Re)assigning secondary structure using DSSP");
 					try {
 						pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
-						// update secondary structure list in model
-						secstruct2resinterval = pdb.getAllSecStructElements();
+						// update secondary structure pointer in model
+						secondaryStructure = pdb.getSecondaryStructure();
 					} catch (IOException e) {
 						System.out.println("Failed to assign secondary structure: " + e.getMessage());
 					}
 				}
 			}
 		}
-			
-		
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -255,45 +261,7 @@ public abstract class Model {
 	public String getPdbResSerial(int resser){
 		return pdb.get_pdbresser_from_resser(resser);
 	}
-	
-	/**
-	 * To get secondary structure type from the pdb object in a one letter code: S, H or T
-	 * Returns a blank string if there is no secondary structure assignment for the given residue serial
-	 * This will fail if this model has no 3D coordinates.
-	 * @return
-	 */
-	public String getSecStructureType(int resser){
-		if (pdb.getSecStructure(resser)==null){
-			return "";
-		} else {
-			return String.valueOf(pdb.getSecStructure(resser).charAt(0));
-		}
-	}
-	
-	/**
-	 * To get secondary structure id from the pdb object (e.g. H1, SA1, ...)
-	 * Returns a blank string if there is no secondary structure assignment for the given residue serial.
-	 * This will fail if this model has no 3D coordinates.
-	 * @return
-	 */
-	public String getSecStructureId(int resser){
-		if (pdb.getSecStructure(resser)==null){
-			return "";
-		} else {
-			return pdb.getSecStructure(resser);
-		}
-	}
-	/**
-	 * Returns the boundaries of the given secondary structure element as an interval.
-	 * If the id does not exist, returns null.
-	 * This will fail if this model has no 3D coordinates.
-	 */
-	public Interval getSecStrucElementBounds(String id) {
-		if(secstruct2resinterval.containsKey(id)) {
-			return secstruct2resinterval.get(id);
-		} else return null;
-	}
-	
+			
 	public HashMap<Edge,Integer> getAllEdgeNbhSizes(){
 		return graph.getAllEdgeNbhSizes();
 	}
@@ -327,10 +295,6 @@ public abstract class Model {
 	public boolean has3DCoordinates(){
 		return (pdb!=null);
 	}
-
-	public TreeMap<String,Interval> getAllSecStructElements(){
-		return secstruct2resinterval;
-	}
 	
 	/**
 	 * Returns true iff there is no sequence information whatsoever
@@ -340,20 +304,19 @@ public abstract class Model {
 		return graph.getSequence().equals("");
 	}
 	
+	// secondary structure related methods
+	
 	/** Returns true iff this model has secondary structure information */
 	public boolean hasSecondaryStructure() {
-		return (pdb != null && pdb.hasSecondaryStructure());
+		return !secondaryStructure.isEmpty();
 	}
 	
-	/** Returns the source of the secondary structure annotation of this model */
-	public String getSecondaryStructureSource() {
-		if(pdb == null) {
-			return "None";
-		} else {
-			return pdb.getSecondaryStructureSource();
-		}
-		
+	/** Returns the secondary structure annotation object of this model (can come either from graph or from pdb object) */
+	public SecondaryStructure getSecondaryStructure() {
+		return this.secondaryStructure;
 	}
+
+	// end of secondary structure related methods
 	
 	public double[][] getDensityMatrix() {
 		int size = getMatrixSize();
