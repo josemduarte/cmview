@@ -760,9 +760,9 @@ public class View extends JFrame implements ActionListener {
 	public void doSaveToGraphDb(String dbName) {
 		try {
 			mod.writeToGraphDb(dbName);
-			//System.out.println("Saving contact map to database " + dbName + ".");
+			System.out.println("Saving contact map to database " + dbName + ".");
 		} catch (SQLException e) {
-			System.out.println("Error when trying to write to database " + dbName);
+			System.err.println("Error when trying to write to database " + dbName + ": " + e.getMessage());
 		}
 	}
 
