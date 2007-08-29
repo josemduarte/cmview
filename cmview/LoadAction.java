@@ -8,7 +8,10 @@ package cmview;
 
 public abstract class LoadAction {
 	
-	public LoadAction() {
+	boolean secondModel;	// flag which we use to distinguish between first and second model being loaded
+	
+	public LoadAction(boolean secondModel) {
+		this.secondModel = secondModel;
 	}
 	
 	public abstract void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
