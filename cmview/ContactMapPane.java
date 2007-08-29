@@ -43,6 +43,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	// underlying data
 	private Model mod;
+	private Model mod2;						// optional second model for cm comparison
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in the underlying model, set once in constructor
 	private double scaledDistCutoff;		// stores the value between zero and one which represents the current distance cutoff in the distance map
@@ -72,8 +73,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private EdgeSet allContacts; 		// all contacts from the underlying contact map model
 	private EdgeSet selContacts; 		// permanent list of currently selected contacts
 	private EdgeSet tmpContacts; 		// transient list of contacts selected while dragging
+	private EdgeSet allSecondContacts; // all contacts from the second loaded structure
 	private NodeSet selHorNodes;			// current horizontal residue selection
 	private NodeSet selVertNodes;			// current vertical residue selection
+
 	
 	// other displayable data
 	private Hashtable<Edge,Color> userContactColors;  // user defined colors for individual contacts
@@ -98,6 +101,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Color nbhCorridorColor;	  		// color for nbh contact corridor when showing common nbh
 	protected Color horizontalNodeSelectionColor;	// color for horizontally selected residues (using xor mode)
 	protected Color verticalNodeSelectionColor;		// color for vertically selected residues (using xor mode)
+	private Color multipleContactsColor; 		// color for contact map comparison where both maps have contacts
+	private Color contactsMainStrucColor; 		// color for contact map comparison where the main structure has contacts
+	private Color contactsSecStrucColor;		// color for contact map comparison where just the second structure has a contact
 	
 	// status variables for concurrency
 	private int threadCounter;				// counts how many background threads are currently active 
@@ -111,6 +117,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	public ContactMapPane(Model mod, View view){
 		this.mod = mod;
+		this.mod2 = null;
 		this.view = view;
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -125,6 +132,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.tmpContacts = new EdgeSet();
 		this.selHorNodes = new NodeSet();
 		this.selVertNodes = new NodeSet();
+	
 		this.contactMapSize = mod.getMatrixSize();
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
@@ -137,6 +145,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.userContactColors = new Hashtable<Edge, Color>();
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
+	
 		
 		// set default colors
 		this.contactColor = Color.black;
@@ -153,9 +162,30 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.nbhCorridorColor = Color.lightGray;
 		this.horizontalNodeSelectionColor = new Color(200,200,255);
 		this.verticalNodeSelectionColor = new Color(255,200,255);
+		this.multipleContactsColor = Color.black;
+		this.contactsMainStrucColor = Color.magenta;
+		this.contactsSecStrucColor = Color.green;
+		
 		
 		setBackground(backgroundColor);
-		
+	}
+	
+	/* Add the given new model for contact map comparison */
+	/* Returns false if the model is not the same size as the existing first model. */
+	public boolean addSecondModel(Model mod2) {
+		// check for number of residues
+		if(mod.getMatrixSize() != mod2.getMatrixSize()) {
+			return false;
+		} else {
+			System.out.println("Second model loaded.");
+			this.mod2 = mod2;
+			
+			return true;
+		}
+	}
+	
+	public boolean hasSecondModel() {
+		return mod2 != null;
 	}
 
 	/*-------------------------- overridden methods -------------------------*/
@@ -315,6 +345,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param g2d
 	 */
 	private void drawContactMap(Graphics2D g2d) {
+
 		// drawing the contact map
 		for (Edge cont:allContacts){ 
 			if(userContactColors.containsKey(cont)) {
@@ -324,8 +355,110 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 			drawContact(g2d, cont);
 		}
-	}
 
+	}
+	
+	
+	/** draws the compared contact map if a second structure is loaded */
+	private void drawComparedMap(Graphics2D g2d){
+
+		System.out.println("draw compared contact map");
+		// getting all contacts of the second structure
+		this.allSecondContacts = mod2.getContacts();
+
+		// shows all contacts in compared map
+		if (view.getSelContactsInComparedMode()){
+
+			System.out.println("Show all contacts in compared map");
+
+			// running through the second dataset
+			for (Edge cont2:allSecondContacts){ 
+				// looking for contacts which are also in the first set
+				if (allContacts.contains(cont2)) {
+
+					g2d.setColor(multipleContactsColor);
+					drawContact(g2d, cont2);
+				}			
+				// just the second structure has a contact
+				else {
+					//System.out.println("mod1: "+ cont.i + " " + cont.j +", mod2: " + cont2.i + " " +cont2.j);
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, cont2);
+
+				}
+			}
+
+			for (Edge cont:allContacts){ 
+				if (!allSecondContacts.contains(cont)) {
+
+					//System.out.println("mod1: "+ cont.i + " " + cont.j +", mod2: " + cont2.i + " " +cont2.j);
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, cont);
+
+				}
+			}
+			//allContacts.addAll(allSecondContacts);
+
+		} 
+		// shows common contacts and those of the first structure in compared map
+		else if (view.getSelFirstStrucInComparedMode()){
+
+			System.out.println("Show common contacts and those of the first structure in compared map");
+			for (Edge cont2:allSecondContacts){ 
+				// looking for contacts which are also in the first set
+				if (allContacts.contains(cont2)) {
+
+					g2d.setColor(multipleContactsColor);
+					drawContact(g2d, cont2);
+				}
+			}
+
+
+			for (Edge cont:allContacts){ 
+				if (!allSecondContacts.contains(cont)) {
+
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, cont);
+
+				}
+			}
+		} 
+
+		// shows common contacts and those of the second structure in compared map
+		else if (view.getSelSecondStrucInComparedMode()){
+
+			System.out.println("Show common contacts and those of the second structure in compared map");
+			for (Edge cont2:allSecondContacts){ 
+				// looking for contacts which are also in the first set
+				if (allContacts.contains(cont2)) {
+
+					g2d.setColor(multipleContactsColor);
+					drawContact(g2d, cont2);
+				}
+				else {
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, cont2);
+				}
+			}
+			//allContacts = allSecondContacts;
+		}
+		else { 
+			
+			drawContactMap(g2d);
+		}
+
+	}
+	
+	/**
+	 * Draws the given contact cont to the given graphics object g2d using the global contactSquareSize and g2d current painting color.
+	 */
+	private void drawContact(Graphics2D g2d, Edge cont) {
+		int x = getCellUpperLeft(cont).x;
+		int y = getCellUpperLeft(cont).y;
+		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+		g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
+	}
+	
 	/**
 	 * @param g2d
 	 */
@@ -344,15 +477,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
-	/**
-	 * Draws the given contact cont to the given graphics object g2d using the global contactSquareSize and g2d current painting color.
-	 */
-	private void drawContact(Graphics2D g2d, Edge cont) {
-		int x = getCellUpperLeft(cont).x;
-		int y = getCellUpperLeft(cont).y;
-		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
-		g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
-	}
 	
 	protected void drawCoordinates(Graphics2D g2d){
 		Edge currentCell = screen2cm(mousePos);
@@ -542,6 +666,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.setColor(nbhCorridorColor);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}	
+	
 
 	/*---------------------------- mouse events -----------------------------*/
 
@@ -660,6 +785,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				}
 				dragging = false;			
 				return;
+				
+			case View.COMPARE_CM:
+				System.out.println("echo");
 			}
 		}
 	}
@@ -758,8 +886,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// draw contact map if necessary
-		if(!view.getShowNbhSizeMap() && !view.getShowDistMap()) {
+		if(!view.getShowNbhSizeMap() && !view.getShowDistMap() && !view.getCompareStatus()) {
 			drawContactMap(g2d);			
+		}
+		
+		if(view.getCompareStatus()){
+			drawComparedMap(g2d);
 		}
 		repaint();
 	}
@@ -1074,6 +1206,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				updateScreenBuffer();			// will repaint				
 			}
 		} else {
+			updateScreenBuffer();
+		}
+	}		
+	
+	/** */
+	protected void toggleCompareMode(boolean state) {
+		if(state) {
+			updateScreenBuffer();
+		} else {
+			//TODO switch it off
 			updateScreenBuffer();
 		}
 	}		
