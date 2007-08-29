@@ -346,7 +346,7 @@ public class LoadDialog extends JDialog implements ActionListener {
 		frame.pack();
 		frame.setVisible(false);
 
-	        LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction() {
+	        LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction(false) {
 	        	public void doit (Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 	        		System.out.println("You clicked the Ok button");
 	        		System.out.println("Filename:\t" + f);
