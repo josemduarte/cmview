@@ -177,6 +177,10 @@ public class PyMolAdaptor {
 		sendCommand("show cartoon");		
 	}
 	
+	public void alignStructure(String pdbCodeFirst, String chainCodeFirst,  String pdbCodeSecond, String chainCodeSecond){
+		sendCommand("align " + pdbCodeFirst + chainCodeFirst+ ", " + pdbCodeSecond + chainCodeSecond);
+	}
+	
 	/**
 	 * Show the given edge neighbourhood as triangles in PyMol
 	 */
