@@ -14,6 +14,9 @@ import proteinstructure.*;
  */	
 public class PyMolAdaptor {
 
+	private View view;
+	private ContactMapPane cmPane;
+	
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
@@ -51,6 +54,7 @@ public class PyMolAdaptor {
 	 * @return The selection name
 	 */
 	private String getSelObjectName(String chainObjName, int selSerial) {
+		
 		return chainObjName + "Sel" + selSerial;
 	}
 	
