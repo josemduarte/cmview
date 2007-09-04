@@ -1179,39 +1179,63 @@ public class View extends JFrame implements ActionListener {
 			showNoContactsSelectedWarning();
 		} else if (cmPane.hasSecondModel()){
 
+			String firstModelColor = "color orange, ";
+			String secondModelColor = "color red, ";
+
 			common = cmPane.getCommon();
 			firstS = cmPane.getFirstS();
 			secondS = cmPane.getSecondS();
 
+			// only second structure contacts
 			if (common == false && firstS == false && secondS == true){
 				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
-			else if (common == false && firstS == true && secondS == false){
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+				Start.getPyMolAdaptor().sendCommand(secondModelColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial);
 				this.pymolSelSerial++;
 			}
+
+			// only first structure contacts
+			else if (common == false && firstS == true && secondS == false){
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+				Start.getPyMolAdaptor().sendCommand(firstModelColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ pymolSelSerial);
+				this.pymolSelSerial++;
+			}
+
+			// only first and second structure contacts
 			else if (common == false && firstS == true && secondS == true){
 				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+				Start.getPyMolAdaptor().sendCommand(firstModelColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ pymolSelSerial);
 				this.pymolSelSerial++;
 				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
+				Start.getPyMolAdaptor().sendCommand(secondModelColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial);
+				this.pymolSelSerial++;
+			}
 
+			// only common toggle mode
 			else if (common == true && firstS == false && secondS == false){
 				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
+				Start.getPyMolAdaptor().sendCommand(secondModelColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial);
+				this.pymolSelSerial++;
+			}
+
+			// common and second structure mode == complete second structure
 			else if (common == true && firstS == false && secondS == true){
 				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
 				this.pymolSelSerial++;
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
+			}
+
+			// common and first structure mode == complete first structure
 			else if (common == true && firstS == true && secondS == false){
 				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
 				this.pymolSelSerial++;
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
+			}
 			else if (common == true && firstS == true && secondS == true){
 				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				this.pymolSelSerial++;}
+				Start.getPyMolAdaptor().sendCommand(secondModelColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial);
+				this.pymolSelSerial++;
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+				Start.getPyMolAdaptor().sendCommand(firstModelColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ pymolSelSerial);
+				this.pymolSelSerial++;
+			}
 		}
 
 		else {
