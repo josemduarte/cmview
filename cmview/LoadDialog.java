@@ -11,7 +11,7 @@ import proteinstructure.AA;
  * and displays different input fields depending on the given parameters.
  * The action to be performed when ok is pressed can be passed as a LoadAction instance.
  */
-public class LoadDialog extends JDialog implements ActionListener {
+public class LoadDialog extends JDialog implements ActionListener{
 
 	static final long serialVersionUID = 1l;
 	
@@ -292,13 +292,15 @@ public class LoadDialog extends JDialog implements ActionListener {
 		return selectedGraphId;
 	}
 	
+	
 	/** action listener for load button */
 	public void actionPerformed (ActionEvent e) {
 		
 		/* load button */
-		if (e.getSource()== loadButton){
+		if (e.getSource()== loadButton ){
 			this.go();	
 		}
+
 		
 		if (e.getSource() == cancelButton) {
 			this.setVisible(false);
@@ -370,5 +372,6 @@ public class LoadDialog extends JDialog implements ActionListener {
 		});
 		dialog.createGUI();		
 	}
+
 
 }
