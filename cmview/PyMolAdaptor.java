@@ -14,14 +14,15 @@ import proteinstructure.*;
  */	
 public class PyMolAdaptor {
 
-	private View view;
-	private ContactMapPane cmPane;
+	
+
 	
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
+
 
 	/*--------------------------- member variables --------------------------*/
 	private String url;
@@ -66,7 +67,7 @@ public class PyMolAdaptor {
 	}
 	
 	/** Send command to pymol and check for errors */
-	private void sendCommand(String cmd) {
+	public void sendCommand(String cmd) {
 		Out.println(cmd);
 		if(Out.checkError()) {
 			System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
