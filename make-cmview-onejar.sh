@@ -10,8 +10,8 @@ fi
 tempdir=$1
 cmviewtag=$2
 aglappetag=$3
-#manifest=$4
 
+CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar:/project/StruPPi/jars/Jama-1.0.2.jar
 
 cd $tempdir
 
@@ -26,10 +26,10 @@ echo "Exporting source from svn"
 
 if [ "$cmviewtag" = "trunk" ]
 then
-    cmviewtag="CM2PyMol-trunk"
-    svn export file:///project/StruPPi/svn/CM2PyMol/trunk/ $cmviewtag
+    cmviewtag="CMView-trunk"
+    svn export file:///project/StruPPi/svn/CMView/trunk/ $cmviewtag
 else
-    svn export file:///project/StruPPi/svn/CM2PyMol/tags/$cmviewtag
+    svn export file:///project/StruPPi/svn/CMView/tags/$cmviewtag
 fi
 
 if [ "$aglappetag" = "trunk" ]
@@ -45,8 +45,7 @@ cp -R $aglappetag/proteinstructure $cmviewtag
 cp -R $aglappetag/tools $cmviewtag
 rm -rf $aglappetag
 
-# setting classpath and compiling
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar:/project/StruPPi/jars/Jama-1.0.2.jar
+# compiling
 echo "Compiling..."
 cd $cmviewtag
 javac cmview/*.java cmview/datasources/*.java
