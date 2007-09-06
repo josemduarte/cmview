@@ -492,8 +492,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		secondS =view.getSelSecondStrucInComparedMode();
 		
 		
-		System.out.println( "common = " + common + "  firstS = " + firstS + "  secondS = " + secondS);
-		System.out.println("draw compared contact map");
 		// getting all contacts of the second structure
 		this.allSecondContacts = mod2.getContacts();
 		// running through the second data set
@@ -1116,7 +1114,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					resetSelections();
 				}
 				
-				
+				if (this.hasSecondModel()){
 				if (common == false && firstS == false && secondS == true){
 					fillSelect(secStrucContacts, screen2cm(new Point(evt.getX(),evt.getY())));}
 				else if (common == false && firstS == true && secondS == false){
@@ -1147,7 +1145,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					bothStrucContacts.addAll(secStrucContacts);
 					bothStrucContacts.addAll(mainStrucContacts);
 					fillSelect(bothStrucContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-				}
+				}}
+				else {fillSelect(allContacts, screen2cm(new Point(evt.getX(), evt.getY())));}
 				
 	
 				this.repaint();
@@ -1208,36 +1207,40 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			mouseDraggingPos = evt.getPoint();
 			switch (view.getCurrentAction()) {
 			case View.SQUARE_SEL:
-				if (common == false && firstS == false && secondS == true){
-					squareSelect(secStrucContacts);}
-				else if (common == false && firstS == true && secondS == false){
-					squareSelect(mainStrucContacts);}
-				else if (common == false && firstS == true && secondS == true){
-					contacts.addAll(mainStrucContacts);
-					contacts.addAll(secStrucContacts);
-					squareSelect(contacts);
-				}
-				else if (common == true && firstS == false && secondS == false){
-					squareSelect(commonContacts);
-				}
-				else if (common == true && firstS == false && secondS == true){
-					secContacts.addAll(commonContacts);
-					secContacts.addAll(secStrucContacts);
-					squareSelect(secContacts);
-				}
-				else if (common == true && firstS == true && secondS == false){
-					mainContacts.addAll(commonContacts);
-					mainContacts.addAll(mainStrucContacts);
-					squareSelect(mainContacts);
-				}
-				else if (common == true && firstS == true && secondS == true){
-					bothStrucContacts.addAll(commonContacts);
-					bothStrucContacts.addAll(secStrucContacts);
-					bothStrucContacts.addAll(mainStrucContacts);
-					squareSelect(bothStrucContacts);
-				}
+				if (this.hasSecondModel()){
+					if (common == false && firstS == false && secondS == true){
+						squareSelect(secStrucContacts);}
+					else if (common == false && firstS == true && secondS == false){
+						squareSelect(mainStrucContacts);}
+					else if (common == false && firstS == true && secondS == true){
+						contacts.addAll(mainStrucContacts);
+						contacts.addAll(secStrucContacts);
+						squareSelect(contacts);
+					}
+					else if (common == true && firstS == false && secondS == false){
+						squareSelect(commonContacts);
+					}
+					else if (common == true && firstS == false && secondS == true){
+						secContacts.addAll(commonContacts);
+						secContacts.addAll(secStrucContacts);
+						squareSelect(secContacts);
+					}
+					else if (common == true && firstS == true && secondS == false){
+						mainContacts.addAll(commonContacts);
+						mainContacts.addAll(mainStrucContacts);
+						squareSelect(mainContacts);
+					}
+					else if (common == true && firstS == true && secondS == true){
+						bothStrucContacts.addAll(commonContacts);
+						bothStrucContacts.addAll(secStrucContacts);
+						bothStrucContacts.addAll(mainStrucContacts);
+						squareSelect(bothStrucContacts);
+					}
+				} else
+					squareSelect(allContacts);
 				break;
 			case View.RANGE_SEL:
+				if (this.hasSecondModel()){
 				if (common == false && firstS == false && secondS == true){
 					rangeSelect(secStrucContacts);}
 				else if (common == false && firstS == true && secondS == false){
@@ -1265,7 +1268,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					bothStrucContacts.addAll(secStrucContacts);
 					bothStrucContacts.addAll(mainStrucContacts);
 					rangeSelect(bothStrucContacts);
-				}
+				}}
+				else {rangeSelect(allContacts);}
 				break;
 			}	
 		}
@@ -1529,6 +1533,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		currentRulerCoord = resSer;
 		currentRulerMousePos = mousePos;
 		currentRulerMouseLocation = location;
+	}
+	
+	public int[] getRulerCoordinates(){
+		int[] rulerArray = new int[3];
+		rulerArray[0]= currentRulerCoord;
+		rulerArray[1]= currentRulerMousePos;
+		rulerArray[2]= currentRulerMouseLocation;
+		
+		return rulerArray;
+		
+		
 	}
 	
 	/** Called by ResidueRuler to switch off showing ruler coordinates */
