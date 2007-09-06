@@ -54,9 +54,9 @@ public class PyMolAdaptor {
 	 * @param selSerial The serial number of the selection
 	 * @return The selection name
 	 */
-	private String getSelObjectName(String chainObjName, int selSerial) {
+	private String getSelObjectName(String chainObjName, String selectionType, int selSerial) {
 		
-		return chainObjName + "Sel" + selSerial;
+		return chainObjName + "Sel"+ selectionType + selSerial;
 	}
 	
 	/**
@@ -213,11 +213,11 @@ public class PyMolAdaptor {
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
-	public void edgeSelection(String pdbCode, String chainCode, int pymolSelSerial, EdgeSet selContacts){
+	public void edgeSelection(String pdbCode, String chainCode, String selectionType, int pymolSelSerial, EdgeSet selContacts){
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
-		String selObjName = getSelObjectName(chainObjName,pymolSelSerial);
+		String selObjName = getSelObjectName(chainObjName, selectionType, pymolSelSerial);
 		for (Edge cont:selContacts){ 
 			int i = cont.i;
 			int j = cont.j;
@@ -233,7 +233,7 @@ public class PyMolAdaptor {
 	/** Show a single contact or non-contact as distance object in pymol */
 	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Edge cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
-		String selObjName = getSelObjectName(chainObjName,pymolSelSerial);
+		String selObjName = getSelObjectName(chainObjName,chainCode, pymolSelSerial);
 		setDistance(cont.i, cont.j, pymolSelSerial, selObjName, chainObjName, chainCode);
 		ArrayList<Integer> residues = new ArrayList<Integer>();
 		residues.add(cont.i);
