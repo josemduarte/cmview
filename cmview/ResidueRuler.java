@@ -29,9 +29,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	protected static final int LEFT = 3;
 	protected static final int RIGHT = 4; 
 	
-	private static final Color HELIX_COLOR = Color.blue;
-	private static final Color TURN_COLOR = Color.red;
-	private static final Color SHEET_COLOR = Color.green;
+	//private static final Color HELIX_COLOR = Color.blue;
+	private static final Color HELIX_COLOR = new Color(17,65,244);
+	private static final Color TURN_COLOR = new Color(135,163,176);
+	private static final Color SHEET_COLOR = new Color(25,162,223);
 	private static final Color UNEXPECTED_SS_COLOR = Color.gray;
 	
 	private ContactMapPane cmPane;
