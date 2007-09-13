@@ -56,6 +56,7 @@ public class Start {
 	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = "/project/StruPPi/Software/dssp/dsspcmbi";
 	public static String			DSSP_PARAMETERS = "--";
+	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically

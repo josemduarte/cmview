@@ -79,8 +79,8 @@ public class View extends JFrame implements ActionListener {
 	// Menu items
 	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM,  compareCMM, delEdgesM;
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge;
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb;
-	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
+	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectCommon, mmSelectFirst, mmSelectSecond;
@@ -364,6 +364,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdbase = new JMenuItem("Pdbase");
 		mmLoadMsd = new JMenuItem("MSD");
 		mmLoadPdb = new JMenuItem("PDB file");
+		mmLoadFtp = new JMenuItem("Online PDB");
 		mmLoadCm = new JMenuItem("Contact map file");
 
 		if(Start.USE_DATABASE) {
@@ -372,12 +373,14 @@ public class View extends JFrame implements ActionListener {
 			submenu.add(mmLoadMsd);
 		}
 		submenu.add(mmLoadPdb);
+		submenu.add(mmLoadFtp);
 		submenu.add(mmLoadCm);
 
 		mmLoadGraph.addActionListener(this);
 		mmLoadPdbase.addActionListener(this);			
 		mmLoadMsd.addActionListener(this);			
-		mmLoadPdb.addActionListener(this);			
+		mmLoadPdb.addActionListener(this);		
+		mmLoadFtp.addActionListener(this);
 		mmLoadCm.addActionListener(this);			
 
 		menu.add(submenu);
@@ -513,6 +516,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdbase2 = new JMenuItem("Pdbase");
 		mmLoadMsd2 = new JMenuItem("MSD");
 		mmLoadPdb2 = new JMenuItem("PDB file");
+		mmLoadFtp2 = new JMenuItem("Online PDB");
 		mmLoadCm2 = new JMenuItem("Contact map file");
 
 		if(Start.USE_DATABASE) {
@@ -521,12 +525,14 @@ public class View extends JFrame implements ActionListener {
 			submenu.add(mmLoadMsd2);
 		}
 		submenu.add(mmLoadPdb2);
+		submenu.add(mmLoadFtp2);
 		submenu.add(mmLoadCm2);
 
 		mmLoadGraph2.addActionListener(this);
 		mmLoadPdbase2.addActionListener(this);			
 		mmLoadMsd2.addActionListener(this);			
-		mmLoadPdb2.addActionListener(this);			
+		mmLoadPdb2.addActionListener(this);	
+		mmLoadFtp2.addActionListener(this);
 		mmLoadCm2.addActionListener(this);			
 
 		menu.addSeparator();
@@ -593,6 +599,9 @@ public class View extends JFrame implements ActionListener {
 		}			  
 		if(e.getSource() == mmLoadPdb) {
 			handleLoadFromPdbFile(FIRST_MODEL);
+		}
+		if(e.getSource() == mmLoadFtp) {
+			handleLoadFromFtp(FIRST_MODEL);
 		}
 		if(e.getSource() == mmLoadCm) {
 			handleLoadFromCmFile(FIRST_MODEL);
@@ -744,6 +753,9 @@ public class View extends JFrame implements ActionListener {
 		}			  
 		if(e.getSource() == mmLoadPdb2) {
 			handleLoadFromPdbFile(SECOND_MODEL);
+		}
+		if(e.getSource() == mmLoadFtp2) {
+			handleLoadFromFtp(SECOND_MODEL);
 		}
 		if(e.getSource() == mmLoadCm2) {
 			handleLoadFromCmFile(SECOND_MODEL);
@@ -988,7 +1000,49 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		}
 	}
-	
+
+	private void handleLoadFromFtp(boolean secondModel) {
+		LoadDialog dialog = new LoadDialog(this, "Load from online PDB", new LoadAction(secondModel) {
+			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+				View view = (View) o;
+				view.doLoadFromFtp(ac, cc, ct, dist, minss, maxss, secondModel);
+			}
+		}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+		dialog.showIt();
+	}
+
+	public void doLoadFromFtp(String ac, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
+		System.out.println("Loading from online PDB");
+		System.out.println("PDB code:\t" + ac);
+		System.out.println("Chain code:\t" + cc);
+		System.out.println("Contact type:\t" + ct);
+		System.out.println("Dist. cutoff:\t" + dist);	
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));	
+		try{
+			Model mod = new PdbFtpModel(ac, cc, ct, dist, minss, maxss);
+			if(secondModel) {
+				if(cmPane.addSecondModel(mod) == false) {
+					showDifferentSizeContactMapsError();
+				} else {
+					compareStatus = true;
+					cmPane.toggleCompareMode(compareStatus);
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
+					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
+					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
+					modelColor++;
+					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+					
+				}
+			 
+			} else {
+				this.spawnNewViewWindow(mod);
+			}
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
+	}
+
 
 	private void handleSaveToGraphDb() {
 		if(this.mod == null) {
