@@ -213,7 +213,7 @@ public class PyMolAdaptor {
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
-	public void edgeSelection(String pdbCode, String chainCode, String selectionType, int pymolSelSerial, EdgeSet selContacts){
+	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelColor, int pymolSelSerial, EdgeSet selContacts, boolean dash){
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
@@ -227,6 +227,10 @@ public class PyMolAdaptor {
 			residues.add(j);
 		}
 		sendCommand("hide labels, " + selObjName);
+		this.sendCommand(modelColor +  pdbCode + chainCode + "Sel"+  selectionType + pymolSelSerial);
+		if (dash ==true){
+			this.setDashes(pdbCode, chainCode, selectionType, pymolSelSerial);
+		}
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
 	}
 	
@@ -239,8 +243,16 @@ public class PyMolAdaptor {
 		residues.add(cont.i);
 		residues.add(cont.j);
 		sendCommand("color orange, " + selObjName);
+		
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
 	}
+	
+	/** setting the dashes lines for missed/added contacts */
+	public void setDashes( String pdbCode, String chainCode, String selectionType, int pymolSelSerial){
+		this.sendCommand("set dash_gap, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
+		this.sendCommand("set dash_length, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
+	}
+	
 	
 	/**
 	 * Returns whether a connection of this Adaptor to the server had been already successfully established.

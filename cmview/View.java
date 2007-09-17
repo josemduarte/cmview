@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
-import javax.swing.border.*;
 
 import cmview.datasources.*;
 import proteinstructure.*;
@@ -57,8 +56,9 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
 	protected static final String LABEL_COMPARE_CM = "Compare Contact Maps"; 
-	
-
+	private static final String LABEL_SHOW_COMMON = "Show common contacts";
+	private static final String LABEL_SHOW_FIRST = "Show only first contacts";
+	private static final String LABEL_SHOW_SECOND = "Show only second contacts";
 	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
@@ -72,7 +72,7 @@ public class View extends JFrame implements ActionListener {
 	//JPanel tbPane;				// tool bar panel
 
 	// Tool bar buttons
-	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D,  tbDelete;
+	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D,  tbDelete, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure; 
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap;
 	
 	
@@ -98,7 +98,6 @@ public class View extends JFrame implements ActionListener {
 
 	// current gui state
 	private int currentAction;			// currently selected action (see constants above)
-	private String currentSelectMode;	// currently selected mode in "select"
 	private boolean showPdbSers;		// whether showing pdb serials is switched on
 	private boolean showRulers;			// whether showing residue rulers is switched on
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
@@ -130,13 +129,12 @@ public class View extends JFrame implements ActionListener {
 		this.showDensityMap=false;
 		this.showDistanceMap=false;
 		this.currentPaintingColor = Color.blue;
-		this.selCommonContactsInComparedMode= false;
-		this.selFirstStrucInComparedMode= false;
-		this.selSecondStrucInComparedMode= false;
+		this.selCommonContactsInComparedMode= true;
+		this.selFirstStrucInComparedMode= true;
+		this.selSecondStrucInComparedMode= true;
 		
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front
-		//this.subload = subload;
 		this.compareStatus = false;
 		
 
@@ -215,9 +213,10 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_file_print = new ImageIcon(this.getClass().getResource("/icons/printer.png"));		
 		ImageIcon icon_file_quit = new ImageIcon(this.getClass().getResource("/icons/door_open.png"));		
 		ImageIcon icon_compare_cm = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));		
-
+		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/icons/page_copy.png"));
+		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/icons/page_delete.png"));
+		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/icons/page_add.png"));
 		
-	
 		// square icon with current painting color
 		Icon icon_color = new Icon() {
 			public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -270,15 +269,19 @@ public class View extends JFrame implements ActionListener {
 		tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		toolBar.addSeparator();
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
+		toolBar.addSeparator(new Dimension(100, 50));
+		tbShowCommon = makeToolBarButton(icon_show_common, LABEL_SHOW_COMMON);
+		tbShowFirstStructure = makeToolBarButton(icon_show_first, LABEL_SHOW_FIRST);
+		tbShowSecondStructure = makeToolBarButton(icon_show_second, LABEL_SHOW_SECOND);
+		
+		// Toggle buttons in view menu
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
 		tbViewNbhSizeMap = new JToggleButton();
 		tbViewDistanceMap = new JToggleButton();
 		tbViewDensityMap = new JToggleButton();
 		toolBar.setFloatable(true);
-		
-		//tbPane.add(toolBar, new FlowLayout(FlowLayout.LEFT));
-		
+
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -436,16 +439,16 @@ public class View extends JFrame implements ActionListener {
 		mmSelectAll = new JMenuItem("All contacts");
 		menu.add(mmSelectAll);
 		mmSelectAll.addActionListener(this);
-		menu.addSeparator();
-		mmSelectCommon = new JMenuItem("Common contacts");
-		menu.add(mmSelectCommon);
-		mmSelectCommon.addActionListener(this);
-		mmSelectFirst = new JMenuItem("First contacts");
-		menu.add(mmSelectFirst);
-		mmSelectFirst.addActionListener(this);
-		mmSelectSecond = new JMenuItem("Second contacts");
-		menu.add(mmSelectSecond);
-		mmSelectSecond.addActionListener(this);
+//		menu.addSeparator();
+//		mmSelectCommon = new JMenuItem("Common contacts");
+//		menu.add(mmSelectCommon);
+//		mmSelectCommon.addActionListener(this);
+//		mmSelectFirst = new JMenuItem("First contacts");
+//		menu.add(mmSelectFirst);
+//		mmSelectFirst.addActionListener(this);
+//		mmSelectSecond = new JMenuItem("Second contacts");
+//		menu.add(mmSelectSecond);
+//		mmSelectSecond.addActionListener(this);
 		menuBar.add(menu);
 		
 		// Color menu
@@ -536,9 +539,9 @@ public class View extends JFrame implements ActionListener {
 		mmLoadCm2.addActionListener(this);			
 
 		menu.addSeparator();
-		mmSelCommonContactsInComparedMode = new JMenuItem("Toggle show common contacts", icon_deselected);
-		mmSelFirstStrucInComparedMode = new JMenuItem("Toggle show only first structure contacts", icon_deselected);
-		mmSelSecondStrucInComparedMode = new JMenuItem("Toggle show only second structure contacts", icon_deselected);
+		mmSelCommonContactsInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
+		mmSelFirstStrucInComparedMode = new JMenuItem("Toggle show only first structure contacts", icon_selected);
+		mmSelSecondStrucInComparedMode = new JMenuItem("Toggle show only second structure contacts", icon_selected);
 		menu.add(mmSelCommonContactsInComparedMode);
 		menu.add(mmSelFirstStrucInComparedMode);
 		menu.add(mmSelSecondStrucInComparedMode);
@@ -650,22 +653,6 @@ public class View extends JFrame implements ActionListener {
 		/* ---------- Select menu ---------- */
 		
 		if(e.getSource() == mmSelectAll  ) {
-			currentSelectMode = "All";
-			handleSelectAll();
-		}	
-		
-		if(e.getSource() == mmSelectCommon  ) {
-			currentSelectMode = "Common";
-			handleSelectAll();
-		}	
-		
-		if(e.getSource() == mmSelectFirst  ) {
-			currentSelectMode = "First";
-			handleSelectAll();
-		}	
-		
-		if(e.getSource() == mmSelectSecond  ) {
-			currentSelectMode = "Second";
 			handleSelectAll();
 		}	
 		
@@ -761,15 +748,15 @@ public class View extends JFrame implements ActionListener {
 			handleLoadFromCmFile(SECOND_MODEL);
 		}
 		
-		if(e.getSource() == mmSelCommonContactsInComparedMode) {
+		if(e.getSource() == mmSelCommonContactsInComparedMode || e.getSource() == tbShowCommon) {
 			handleSelContactsInComparedMode();
 		}
 		
-		if(e.getSource() == mmSelFirstStrucInComparedMode) {
+		if(e.getSource() == mmSelFirstStrucInComparedMode || e.getSource() == tbShowFirstStructure) {
 			handleSelFirstStrucInComparedMode();
 		}
 		
-		if(e.getSource() == mmSelSecondStrucInComparedMode) {
+		if(e.getSource() == mmSelSecondStrucInComparedMode || e.getSource() == tbShowSecondStructure) {
 			handleSelSecondStrucInComparedMode();
 		}
 		
@@ -794,13 +781,17 @@ public class View extends JFrame implements ActionListener {
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
-			LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
-				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-					View view = (View) o;
-					view.doLoadFromGraphDb(db, gid, secondModel);
-				}
-			}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
-			dialog.showIt();
+			if (secondModel == SECOND_MODEL && mod == null){
+				this.showNoContactMapWarning();
+			} else{
+				LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						View view = (View) o;
+						view.doLoadFromGraphDb(db, gid, secondModel);
+					}
+				}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+				dialog.showIt();
+			}
 		}
 	}
 
@@ -835,15 +826,18 @@ public class View extends JFrame implements ActionListener {
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
-			LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
-				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-					View view = (View) o;
-					view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db, secondModel);
-				}
-			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
-			dialog.showIt();
+			if (secondModel == SECOND_MODEL && mod == null){
+				this.showNoContactMapWarning();
+			} else{
+				LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						View view = (View) o;
+						view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db, secondModel);
+					}
+				}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
+				dialog.showIt();
+			}
 		}
-
 	}
 
 	public void doLoadFromPdbase(String ac, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
@@ -883,13 +877,17 @@ public class View extends JFrame implements ActionListener {
 		if(!Start.isDatabaseConnectionAvailable()) {
 			showNoDatabaseConnectionWarning();
 		} else {
-			LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction(secondModel) {
-				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-					View view = (View) o;
-					view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db, secondModel);
-				}
-			}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
-			dialog.showIt();
+			if (secondModel == SECOND_MODEL && mod == null){
+				this.showNoContactMapWarning();
+			} else{
+				LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						View view = (View) o;
+						view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db, secondModel);
+					}
+				}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
+				dialog.showIt();
+			}
 		}
 	}
 
@@ -926,13 +924,18 @@ public class View extends JFrame implements ActionListener {
 	}	  
 
 	private void handleLoadFromPdbFile(boolean secondModel) {
-		LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction(secondModel) {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-				View view = (View) o;
-				view.doLoadFromPdbFile(f, cc, ct, dist, minss, maxss, secondModel);
-			}
-		}, "", null, "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
-		dialog.showIt();
+		
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction(secondModel) {
+				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					View view = (View) o;
+					view.doLoadFromPdbFile(f, cc, ct, dist, minss, maxss, secondModel);
+				}
+			}, "", null, "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+			dialog.showIt();
+		}
 	}
 
 	public void doLoadFromPdbFile(String f, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
@@ -967,13 +970,18 @@ public class View extends JFrame implements ActionListener {
 	}	
 
 	private void handleLoadFromCmFile(boolean secondModel) {
-		LoadDialog dialog = new LoadDialog(this, "Load from Contact map file", new LoadAction(secondModel) {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-				View view = (View) o;
-				view.doLoadFromCmFile(f, secondModel);
-			}
-		}, "", null, null, null, null, null, null, null, null);
-		dialog.showIt();		  
+		
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			LoadDialog dialog = new LoadDialog(this, "Load from Contact map file", new LoadAction(secondModel) {
+				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					View view = (View) o;
+					view.doLoadFromCmFile(f, secondModel);
+				}
+			}, "", null, null, null, null, null, null, null, null);
+			dialog.showIt();		  
+		}
 	}
 
 	public void doLoadFromCmFile(String f, boolean secondModel) {
@@ -1260,10 +1268,11 @@ public class View extends JFrame implements ActionListener {
 	private void handleSelectAll() {
 		if(mod==null) {
 			showNoContactMapWarning();
-		} else {
-			cmPane.selectAllContacts();
+		} 
+		else {cmPane.selectAllContacts();
 		}
 	}
+
 
 	/* -------------------- Color menu -------------------- */
 	
@@ -1315,74 +1324,143 @@ public class View extends JFrame implements ActionListener {
 			showNoContactsSelectedWarning();
 		} else if (cmPane.hasSecondModel()){
 
-			
+
 			String firstModelContactColor = "color magenta, ";
 			String secondModelContactColor = "color green, ";
-			String commonColor = "color yellow, ";
 
-			common = cmPane.getCommon();
-			firstS = cmPane.getFirstS();
-			secondS = cmPane.getSecondS();
-			
+			common = this.getSelCommonContactsInComparedMode();
+			firstS = this.getSelFirstStrucInComparedMode();
+			secondS = this.getSelSecondStrucInComparedMode();
+
+
 			// only second structure contacts
 			if (common == false && firstS == false && secondS == true){
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(secondModelContactColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+  cmPane.getSecondModel().getChainCode() + pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueGreen = array[0];	// red contacts
+				String selectionType = cmPane.getSecondModel().getChainCode();
+
+				// present contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
+
+				// unpresent contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true);
 				this.pymolSelSerial++;
 			}
 
 			// only first structure contacts
 			else if (common == false && firstS == true && secondS == false){
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(firstModelContactColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+  mod.getChainCode()+ pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];	// red contacts
+				String selectionType = mod.getChainCode();
+
+				// present contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);
+				// unpresent contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
 				this.pymolSelSerial++;
 			}
 
 			// only first and second structure contacts
 			else if (common == false && firstS == true && secondS == true){
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(),mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(firstModelContactColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ mod.getChainCode() + pymolSelSerial);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(secondModelContactColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+  cmPane.getSecondModel().getChainCode()+  pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueGreen = array[1];	// green contacts
+				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
+
+				// all contacts are either red or green. 
+				// red contacts are n PyMol: red and not dashed in main structure && green and dashed in second structure
+				// green contacts: analogous w.r.t. second structure and main structure
+
+				//present and unpresent contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true);	
+
+				// present and unpresent contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
 				this.pymolSelSerial++;
 			}
 
-			// only common toggle mode
+			// only common toggle mode			
 			else if (common == true && firstS == false && secondS == false){
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),  mod.getChainCode()+cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(commonColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + pymolSelSerial);
-				System.out.println(commonColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel" + mod.getChainCode() + cmPane.getSecondModel().getChainCode()+ pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueGreen = array[1];	// green contacts
+				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
+
+				// no unpresent contacts
+
+				// present contacts in main and second structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);	
 				this.pymolSelSerial++;
 			}
 
 			// common and first structure mode == complete first structure
 			else if (common == true && firstS == true && secondS == false){
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(),  mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(firstModelContactColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ mod.getChainCode()+ pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueGreen = array[1];	// green contacts
+				String selectionType = mod.getChainCode();
+
+				//present contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false);	
+
+				// unpresent contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true);
+				//present contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false);
 				this.pymolSelSerial++;
 			}
 
 			// common and second structure mode == complete second structure
 			else if (common == true && firstS == false && secondS == true){
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),  cmPane.getSecondModel().getChainCode() ,pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(secondModelContactColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+  cmPane.getSecondModel().getChainCode()+ pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueGreen = array[1];	// green contacts
+				String selectionType =  cmPane.getSecondModel().getChainCode();
+
+				// unpresent contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueRed, true);	
+				// present contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false);	
+
+				// present contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false);
 				this.pymolSelSerial++;
 			}
 			else if (common == true && firstS == true && secondS == true){
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(),  mod.getChainCode()+ cmPane.getSecondModel().getChainCode(), pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(firstModelContactColor +  mod.getPDBCode() + mod.getChainCode() + "Sel"+ mod.getChainCode()+ cmPane.getSecondModel().getChainCode() + pymolSelSerial);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), mod.getChainCode()+ cmPane.getSecondModel().getChainCode(),pymolSelSerial, cmPane.getSelContacts());
-				Start.getPyMolAdaptor().sendCommand(secondModelContactColor +  cmPane.getSecondModel().getPDBCode() + cmPane.getSecondModel().getChainCode() + "Sel"+  mod.getChainCode()+ cmPane.getSecondModel().getChainCode()+ pymolSelSerial);
+				EdgeSet[] array = cmPane.getSelectedContacts();
+				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueGreen = array[1];	// green contacts
+				EdgeSet trueCommon = array[2]; 	// common contacts
+				String selectionType =  mod.getChainCode()+cmPane.getSecondModel().getChainCode();
+
+				// present contacts in both structures
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false);
+
+				// present and unpresent contacts only in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true);	
+
+				// present and unpresent contacts only in second struture
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
 				this.pymolSelSerial++;
 			}
 		}
-
 		else {
-
-			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), mod.getChainCode(), pymolSelSerial, cmPane.getSelContacts());
+			EdgeSet[] array = cmPane.getSelectedContacts();
+			EdgeSet contacts = array[0];
+			String selectionType = mod.getChainCode();
+			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, "color magenta, ", pymolSelSerial, contacts, false);
 			this.pymolSelSerial++;
 		}
 	}
+		
 
 	/**
 	 * 
@@ -1682,8 +1760,6 @@ public class View extends JFrame implements ActionListener {
 		return this.selSecondStrucInComparedMode;
 	}
 	
-	public String getCurrentSelectMode(){
-		return currentSelectMode;
-	}
+
 }
 
