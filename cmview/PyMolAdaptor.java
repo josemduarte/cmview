@@ -13,16 +13,12 @@ import proteinstructure.*;
  * TODO: Should be designed such that the visualization frontend can be easily changed (e.g. to JMol). 
  */	
 public class PyMolAdaptor {
-
-	
-
 	
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
-
 
 	/*--------------------------- member variables --------------------------*/
 	private String url;
@@ -183,7 +179,8 @@ public class PyMolAdaptor {
 	}
 	
 	public void alignStructure(String pdbCodeFirst, String chainCodeFirst,  String pdbCodeSecond, String chainCodeSecond){
-		sendCommand("align " + pdbCodeFirst + chainCodeFirst+ ", " + pdbCodeSecond + chainCodeSecond);
+		sendCommand("align " + pdbCodeSecond + chainCodeSecond + "," + pdbCodeFirst + chainCodeFirst);
+		sendCommand("zoom");
 	}
 	
 	/**
