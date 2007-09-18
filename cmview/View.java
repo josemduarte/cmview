@@ -1159,8 +1159,6 @@ public class View extends JFrame implements ActionListener {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning();
-		} else if (!AA.isValidSingleAtomCT(mod.getContactType())) {
-			showCantShowDistMatrixWarning();
 		} else {
 			showDistanceMap = !showDistanceMap;
 			cmPane.toggleDistanceMap(showDistanceMap);
@@ -1575,11 +1573,6 @@ public class View extends JFrame implements ActionListener {
 	private void showNoSecondContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No second contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}	
-
-	/** Shows a window with a warning message that we can't show distance matrix for this contact type */
-	private void showCantShowDistMatrixWarning() {
-		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Warning", JOptionPane.INFORMATION_MESSAGE);
-	}
 	
 	/** Warning dialog to be shown if a function is being called which requires 3D coordinates and they are missing */
 	private void showNo3DCoordsWarning(){

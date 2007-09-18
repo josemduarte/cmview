@@ -258,7 +258,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.contactsMainStrucColor = Color.magenta;
 		this.contactsSecStrucColor = Color.green;
 		
-		
 		setBackground(backgroundColor);
 	}
 	

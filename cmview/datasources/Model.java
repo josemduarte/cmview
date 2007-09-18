@@ -276,7 +276,7 @@ public abstract class Model {
 	 * May only be called if has3DCoordinates is true.
 	 */
 	public double initDistMatrix(){
-		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
+		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(Start.DIST_MAP_CONTACT_TYPE);
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
 		distMatrix = new HashMap<Edge, Double>();	// TODO: Use old matrix to save memory
@@ -313,7 +313,7 @@ public abstract class Model {
 			return null; // can only calculate matrix difference if sizes match TODO: use alignment
 		}
 		
-		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(AA.CONTACT_TYPE_C_ALPHA, secondModel.pdb, AA.CONTACT_TYPE_C_ALPHA);
+		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
 		
 		if(diffDistMatrix == null) {
 			System.err.println("Failed to compute difference distance map.");

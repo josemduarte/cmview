@@ -58,7 +58,7 @@ public class Start {
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
 	// constants not in config file yet
-	public static String			DISTANCE_MAP_CONTACT_TYPE = "Ca";	// contact type to be used for distance map calculation (only single atom allowed)
+	public static String			DIST_MAP_CONTACT_TYPE = "Ca";	// contact type to be used for distance map calculation (only single atom allowed)
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean			ICON_BAR_FLOATABLE = true;			// if true, icon bar can be dragged out of the window
 	
