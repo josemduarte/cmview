@@ -56,8 +56,8 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
 	protected static final String LABEL_COMPARE_CM = "Compare Contact Maps"; 
 	private static final String LABEL_SHOW_COMMON = "Show common contacts";
-	private static final String LABEL_SHOW_FIRST = "Show only first contacts";
-	private static final String LABEL_SHOW_SECOND = "Show only second contacts";
+	private static final String LABEL_SHOW_FIRST = "Show contacts unique to first structure";
+	private static final String LABEL_SHOW_SECOND = "Show contacts unique to second structure";
 	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
@@ -71,12 +71,12 @@ public class View extends JFrame implements ActionListener {
 	//JPanel tbPane;				// tool bar panel
 
 	// Tool bar buttons
-	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D,  tbDelete, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure; 
-	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap;
+	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D,  tbDelete;  
+	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
 	
 	
 	// Menu items
-	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM,  compareCMM, delEdgesM;
+	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
@@ -87,7 +87,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
 	JMenuItem mmToggleDiffDistMap;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
-
+	
 	// Data and status variables
 	private Model mod;
 	public ContactMapPane cmPane;
@@ -109,6 +109,7 @@ public class View extends JFrame implements ActionListener {
 	private boolean selFirstStrucInComparedMode; // when true selection on compared contact map in first structure possible
 	private boolean selSecondStrucInComparedMode; // when true selection on compared contact map in second structure possible
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
+	private boolean comparisonMode;		// whether comparison functions are enabled
 	
 	// global icons TODO: replace these by tickboxes
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
@@ -134,13 +135,22 @@ public class View extends JFrame implements ActionListener {
 		this.selFirstStrucInComparedMode= true;
 		this.selSecondStrucInComparedMode= true;
 		this.showDiffDistMap = false;
+		this.comparisonMode = false;
 		
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front
-		this.compareStatus = false;
-		
-
-		
+		this.compareStatus = false;	
+	}
+	
+	/**
+	 * Sets up and returns a new menu item with the given icon and label, adds it to the given JMenu and
+	 * registers this class as the action listener.
+	 */
+	private JMenuItem makeMenuItem(String label, Icon icon, JMenu menu) {
+		JMenuItem newItem = new JMenuItem(label, icon);
+		newItem.addActionListener(this);
+		menu.add(newItem);
+		return newItem;
 	}
 
 	/**
@@ -148,22 +158,27 @@ public class View extends JFrame implements ActionListener {
 	 */
 	private JButton makeToolBarButton(ImageIcon icon, String toolTipText) {
 		JButton newButton = new JButton(icon);
+		newButton.setFocusPainted(false);
 		newButton.setToolTipText(toolTipText);
 		newButton.addActionListener(this);
 		toolBar.add(newButton);
 		return newButton;
 	}
 	
-//	/**
-//	 * Sets up and returns a new tool bar toggle button
-//	 */
-//	private JToggleButton makeToolBarToggleButton(ImageIcon icon, String toolTipText) {
-//		JToggleButton newButton = new JToggleButton(icon);
-//		newButton.setToolTipText(toolTipText);
-//		newButton.addActionListener(this);
-//		toolBar.add(newButton);
-//		return newButton;
-//	}
+	/**
+	 * Sets up and returns a new tool bar toggle button
+	 */
+	private JToggleButton makeToolBarToggleButton(ImageIcon icon, String toolTipText, boolean selected, boolean enabled, boolean visible) {
+		JToggleButton newButton = new JToggleButton(icon, selected);
+		newButton.setFocusPainted(false);
+		newButton.setToolTipText(toolTipText);
+		newButton.addActionListener(this);
+		newButton.setVisible(visible);
+		newButton.setEnabled(enabled);
+		newButton.setSelected(selected);		
+		toolBar.add(newButton);
+		return newButton;
+	}
 	
 	/** Initialize and show the main GUI window */
 	private void initGUI(){
@@ -213,8 +228,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
 		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/icons/information.png"));
 		ImageIcon icon_file_print = new ImageIcon(this.getClass().getResource("/icons/printer.png"));		
-		ImageIcon icon_file_quit = new ImageIcon(this.getClass().getResource("/icons/door_open.png"));		
-		ImageIcon icon_compare_cm = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));		
+		ImageIcon icon_file_quit = new ImageIcon(this.getClass().getResource("/icons/door_open.png"));				
 		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/icons/page_copy.png"));
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/icons/page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/icons/page_add.png"));
@@ -271,10 +285,10 @@ public class View extends JFrame implements ActionListener {
 		tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		toolBar.addSeparator();
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
-		toolBar.addSeparator(new Dimension(100, 50));
-		tbShowCommon = makeToolBarButton(icon_show_common, LABEL_SHOW_COMMON);
-		tbShowFirstStructure = makeToolBarButton(icon_show_first, LABEL_SHOW_FIRST);
-		tbShowSecondStructure = makeToolBarButton(icon_show_second, LABEL_SHOW_SECOND);
+		toolBar.addSeparator(new Dimension(100, 10));
+		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, selCommonContactsInComparedMode, true, false);
+		tbShowFirstStructure = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, selFirstStrucInComparedMode, true, false);
+		tbShowSecondStructure = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, selSecondStrucInComparedMode, true, false);
 		
 		// Toggle buttons in view menu
 		tbViewPdbResSer = new JToggleButton();
@@ -283,7 +297,6 @@ public class View extends JFrame implements ActionListener {
 		tbViewDistanceMap = new JToggleButton();
 		tbViewDensityMap = new JToggleButton();
 		toolBar.setFloatable(Start.ICON_BAR_FLOATABLE);
-
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -360,215 +373,108 @@ public class View extends JFrame implements ActionListener {
 		// File menu
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
-		mmInfo = new JMenuItem(LABEL_FILE_INFO);
-		mmInfo.addActionListener(this);
-		menu.add(mmInfo);
+		mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);
 		submenu = new JMenu("Load from");
 
-		mmLoadGraph = new JMenuItem("Graph database");
-		mmLoadPdbase = new JMenuItem("Pdbase");
-		mmLoadMsd = new JMenuItem("MSD");
-		mmLoadPdb = new JMenuItem("PDB file");
-		mmLoadFtp = new JMenuItem("Online PDB");
-		mmLoadCm = new JMenuItem("Contact map file");
-
 		if(Start.USE_DATABASE) {
-			submenu.add(mmLoadGraph);
-			submenu.add(mmLoadPdbase);
-			submenu.add(mmLoadMsd);
-		}
-		submenu.add(mmLoadPdb);
-		submenu.add(mmLoadFtp);
-		submenu.add(mmLoadCm);
-
-		mmLoadGraph.addActionListener(this);
-		mmLoadPdbase.addActionListener(this);			
-		mmLoadMsd.addActionListener(this);			
-		mmLoadPdb.addActionListener(this);		
-		mmLoadFtp.addActionListener(this);
-		mmLoadCm.addActionListener(this);			
+			mmLoadGraph = makeMenuItem("Graph database",null,submenu);
+			mmLoadPdbase = makeMenuItem("Pdbase",null,submenu);
+			mmLoadMsd = makeMenuItem("MSD",null, submenu);
+		}		
+		mmLoadFtp = makeMenuItem("Online PDB", null, submenu);
+		mmLoadPdb = makeMenuItem("PDB file", null, submenu);
+		mmLoadCm = makeMenuItem("Contact map file", null, submenu);		
 
 		menu.add(submenu);
 		submenu = new JMenu("Save to");
 
-		mmSaveGraphDb = new JMenuItem("Graph database");			
-		mmSaveCmFile = new JMenuItem("Contact map file");
-		mmSavePng = new JMenuItem("PNG file");
-
-		submenu.add(mmSaveCmFile);			
-		submenu.add(mmSavePng);
+		mmSaveCmFile = makeMenuItem("Contact map file", null, submenu);
+		mmSavePng = makeMenuItem("PNG file", null, submenu);
 		if(Start.USE_DATABASE) {
-			submenu.add(mmSaveGraphDb);
+			mmSaveGraphDb = makeMenuItem("Graph database", null, submenu);
 		}
 
-		mmSaveGraphDb.addActionListener(this);			
-		mmSaveCmFile.addActionListener(this);			
-		mmSavePng.addActionListener(this);	
-
 		menu.add(submenu);
-		mmPrint = new JMenuItem(LABEL_FILE_PRINT);
-		mmPrint.addActionListener(this);
-		menu.add(mmPrint);
-		mmQuit = new JMenuItem(LABEL_FILE_QUIT);
-		mmQuit.addActionListener(this);
-		menu.add(mmQuit);
+		mmPrint = makeMenuItem(LABEL_FILE_PRINT, null, menu);
+		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		menuBar.add(menu);
 
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
-		mmViewShowPdbResSers = new JMenuItem("Toggle show PDB residue numbers", icon_deselected);
-		mmViewHighlightComNbh = new JMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected);
-		mmViewShowDensity = new JMenuItem("Toggle show contact density", icon_deselected);
-		mmViewRulers = new JMenuItem("Toggle rulers", icon_deselected);
-		mmViewShowDistMatrix = new JMenuItem("Toggle show distance matrix", icon_deselected);
-		menu.add(mmViewShowPdbResSers);
-		menu.add(mmViewRulers);
-		menu.addSeparator();
-		menu.add(mmViewHighlightComNbh);
-		menu.add(mmViewShowDensity);
-		menu.add(mmViewShowDistMatrix);
-		mmViewShowPdbResSers.addActionListener(this);
-		mmViewHighlightComNbh.addActionListener(this);
-		mmViewRulers.addActionListener(this);
-		mmViewShowDensity.addActionListener(this);
-		mmViewShowDistMatrix.addActionListener(this);
+		
+		mmViewShowPdbResSers = makeMenuItem("Toggle show PDB residue numbers", icon_deselected, menu);
+		mmViewRulers = makeMenuItem("Toggle rulers", icon_deselected, menu);
+		menu.addSeparator();		
+		mmViewHighlightComNbh = makeMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected, menu);
+		mmViewShowDensity = makeMenuItem("Toggle show contact density", icon_deselected, menu);
+		mmViewShowDistMatrix = makeMenuItem("Toggle show distance matrix", icon_deselected, menu);
 		menuBar.add(menu);
 
 		// Select menu
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
-		mmSelectAll = new JMenuItem("All contacts");
-		menu.add(mmSelectAll);
-		mmSelectAll.addActionListener(this);
-//		menu.addSeparator();
-//		mmSelectCommon = new JMenuItem("Common contacts");
-//		menu.add(mmSelectCommon);
-//		mmSelectCommon.addActionListener(this);
-//		mmSelectFirst = new JMenuItem("First contacts");
-//		menu.add(mmSelectFirst);
-//		mmSelectFirst.addActionListener(this);
-//		mmSelectSecond = new JMenuItem("Second contacts");
-//		menu.add(mmSelectSecond);
-//		mmSelectSecond.addActionListener(this);
+		mmSelectAll = makeMenuItem("All contacts", null, menu);
 		menuBar.add(menu);
 		
 		// Color menu
 		menu = new JMenu("Color");
 		menu.setMnemonic(KeyEvent.VK_C);
-		mmColorReset= new JMenuItem("Reset contact colors to black", icon_black);
-		mmColorChoose = new JMenuItem("Choose painting color", icon_colorwheel);
-		mmColorPaint = new JMenuItem("Color selected contacts", icon_color);
-		menu.add(mmColorChoose);
-		menu.add(mmColorPaint);
-		menu.add(mmColorReset);
-		mmColorReset.addActionListener(this);
-		mmColorPaint.addActionListener(this);
-		mmColorChoose.addActionListener(this);
+		mmColorChoose = makeMenuItem("Choose painting color", icon_colorwheel, menu);
+		mmColorPaint = makeMenuItem("Color selected contacts", icon_color, menu);
+		mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
 		menuBar.add(menu);
 		
 		// Action menu
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
 
-		squareM = new JMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode);
-		fillM = new JMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode);
-		rangeM = new JMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode);
-		nodeNbhSelM = new JMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode);
-		sendM = new JMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d);
-		comNeiM = new JMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode);
-		triangleM = new JMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d);
-		compareCMM = new JMenuItem(LABEL_COMPARE_CM, icon_compare_cm);
-		delEdgesM = new JMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts);
-
-		squareM.addActionListener(this);
-		fillM.addActionListener(this);
-		rangeM.addActionListener(this);
-		nodeNbhSelM.addActionListener(this);
-		comNeiM.addActionListener(this);
-		sendM.addActionListener(this);
-		triangleM.addActionListener(this);
-		compareCMM.addActionListener(this);
-		delEdgesM.addActionListener(this);
-
-		menu.add(squareM);
-		menu.add(fillM);
-		menu.add(rangeM);
-		menu.add(nodeNbhSelM);
+		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, menu);
+		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, menu);
+		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, menu);
+		nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
 		if (Start.USE_PYMOL) {
 			menu.addSeparator();
-			menu.add(sendM);
-		}		
-		menu.addSeparator();		
-		menu.add(comNeiM);
+			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
+		}			
+		menu.addSeparator();			
+		comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
 		if (Start.USE_PYMOL) {
-			menu.add(triangleM);
-		}		
-
-		menu.addSeparator();
-		menu.add(delEdgesM);
-
+			triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
+		}	
+		menu.addSeparator();		
+		delEdgesM = makeMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, menu);
 		menuBar.add(menu);
 
-		// Tools Menu
-		menu = new JMenu("Tools");
-		menu.setMnemonic(KeyEvent.VK_T);
+		// Comparison Menu
+		menu = new JMenu("Compare");
+		menu.setMnemonic(KeyEvent.VK_P);
 		
 		submenu = new JMenu(LABEL_COMPARE_CM);
 		menu.add(submenu);
 		
-		mmLoadGraph2 = new JMenuItem("Graph database");
-		mmLoadPdbase2 = new JMenuItem("Pdbase");
-		mmLoadMsd2 = new JMenuItem("MSD");
-		mmLoadPdb2 = new JMenuItem("PDB file");
-		mmLoadFtp2 = new JMenuItem("Online PDB");
-		mmLoadCm2 = new JMenuItem("Contact map file");
-
 		if(Start.USE_DATABASE) {
-			submenu.add(mmLoadGraph2);
-			submenu.add(mmLoadPdbase2);
-			submenu.add(mmLoadMsd2);
-		}
-		submenu.add(mmLoadPdb2);
-		submenu.add(mmLoadFtp2);
-		submenu.add(mmLoadCm2);
-
-		mmLoadGraph2.addActionListener(this);
-		mmLoadPdbase2.addActionListener(this);			
-		mmLoadMsd2.addActionListener(this);			
-		mmLoadPdb2.addActionListener(this);	
-		mmLoadFtp2.addActionListener(this);
-		mmLoadCm2.addActionListener(this);			
-
+			mmLoadGraph2 = makeMenuItem("Graph database",null,submenu);
+			mmLoadPdbase2 = makeMenuItem("Pdbase",null,submenu);
+			mmLoadMsd2 = makeMenuItem("MSD",null, submenu);
+		}		
+		mmLoadFtp2 = makeMenuItem("Online PDB", null, submenu);
+		mmLoadPdb2 = makeMenuItem("PDB file", null, submenu);
+		mmLoadCm2 = makeMenuItem("Contact map file", null, submenu);		
 		menu.addSeparator();
-		mmSelCommonContactsInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
-		mmSelFirstStrucInComparedMode = new JMenuItem("Toggle show only first structure contacts", icon_selected);
-		mmSelSecondStrucInComparedMode = new JMenuItem("Toggle show only second structure contacts", icon_selected);
-		menu.add(mmSelCommonContactsInComparedMode);
-		menu.add(mmSelFirstStrucInComparedMode);
-		menu.add(mmSelSecondStrucInComparedMode);
-		mmSelCommonContactsInComparedMode.addActionListener(this);
-		mmSelFirstStrucInComparedMode.addActionListener(this);
-		mmSelSecondStrucInComparedMode.addActionListener(this);
-		
+		mmSelCommonContactsInComparedMode = makeMenuItem("Toggle show common contacts", icon_selected, menu);
+		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show only first structure contacts", icon_selected, menu);
+		mmSelSecondStrucInComparedMode = makeMenuItem("Toggle show only second structure contacts", icon_selected, menu);		
 		menu.addSeparator();
-		mmToggleDiffDistMap = new JMenuItem("Toggle show difference map", icon_deselected);
-		menu.add(mmToggleDiffDistMap);
-		mmToggleDiffDistMap.addActionListener(this);
+		mmToggleDiffDistMap = makeMenuItem("Toggle show difference map", icon_deselected, menu);
 		menuBar.add(menu);
 		
 		// Help menu
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);	
-		mmHelpAbout = new JMenuItem("About");
-		mmHelpHelp = new JMenuItem("Help");
-		mmHelpWriteConfig = new JMenuItem("Write example configuration file");
-		mmHelpAbout.addActionListener(this);
-		mmHelpHelp.addActionListener(this);
-		mmHelpWriteConfig.addActionListener(this);
-		menu.add(mmHelpHelp);
-		menu.add(mmHelpWriteConfig);
-		menu.add(mmHelpAbout);
+		mmHelpHelp = makeMenuItem("Help", null, menu);
+		mmHelpWriteConfig = makeMenuItem("Write example configuration file", null, menu);
+		mmHelpAbout = makeMenuItem("About", null, menu);
 		menuBar.add(menu);
 
 		this.setJMenuBar(menuBar);
@@ -722,27 +628,17 @@ public class View extends JFrame implements ActionListener {
 			handleDeleteSelContacts();
 		}	
 		
-		/* ---------- Tool Menu ---------- */
+		/* ---------- Comparison Menu ---------- */
 		
 		
 		/** for the contact map comparison load menu */
 		
 		
 		if(e.getSource() == mmLoadGraph2) {
-			
-//			mmSelCommonContactsInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
-//			mmSelFirstStrucInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
-//			mmSelSecondStrucInComparedMode = new JMenuItem("Toggle show only second structure contacts", icon_selected);
-			
 			handleLoadFromGraphDb(SECOND_MODEL);
 		}
-		
 		if(e.getSource() == mmLoadPdbase2) {
-//			mmSelCommonContactsInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
-//			mmSelFirstStrucInComparedMode = new JMenuItem("Toggle show common contacts", icon_selected);
-//			mmSelSecondStrucInComparedMode = new JMenuItem("Toggle show only second structure contacts", icon_selected);
 			handleLoadFromPdbase(SECOND_MODEL);
-
 		}		  
 		if(e.getSource() == mmLoadMsd2) {
 			handleLoadFromMsd(SECOND_MODEL);
@@ -1508,8 +1404,6 @@ public class View extends JFrame implements ActionListener {
 			this.pymolNbhSerial++;					
 		}
 	}
-	
-	
 
 	/**
 	 * 
@@ -1528,10 +1422,15 @@ public class View extends JFrame implements ActionListener {
 	/* -------------------- Tool menu -------------------- */
 	
 	
-	private void handleSelContactsInComparedMode(){
-		
-		if(cmPane.hasSecondModel()){
-
+	private void handleSelContactsInComparedMode(){		
+		if(mod==null) {
+			tbShowCommon.setSelected(selCommonContactsInComparedMode);
+			showNoContactMapWarning();
+		} else
+		if(!cmPane.hasSecondModel()) {
+			tbShowCommon.setSelected(selCommonContactsInComparedMode);
+			showNoSecondContactMapWarning();
+		} else {
 			selCommonContactsInComparedMode = !selCommonContactsInComparedMode;
 			cmPane.toggleCompareMode(selCommonContactsInComparedMode);
 			if(selCommonContactsInComparedMode) {
@@ -1540,12 +1439,17 @@ public class View extends JFrame implements ActionListener {
 				mmSelCommonContactsInComparedMode.setIcon(icon_deselected);
 			}
 		}
-
 	}
 	
 	private void handleSelFirstStrucInComparedMode(){
-		if(cmPane.hasSecondModel()){
-
+		if(mod==null) {
+			tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
+			showNoContactMapWarning();
+		} else
+		if(!cmPane.hasSecondModel()) {
+			tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
+			showNoSecondContactMapWarning();
+		} else {
 			selFirstStrucInComparedMode = !selFirstStrucInComparedMode;
 			cmPane.toggleCompareMode(selFirstStrucInComparedMode);
 			if(selFirstStrucInComparedMode) {
@@ -1557,8 +1461,14 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	private void handleSelSecondStrucInComparedMode(){
-		if(cmPane.hasSecondModel()){
-
+		if(mod==null) {
+			tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
+			showNoContactMapWarning();
+		} else
+		if(!cmPane.hasSecondModel()) {
+			tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
+			showNoSecondContactMapWarning();
+		} else {
 			selSecondStrucInComparedMode = !selSecondStrucInComparedMode;
 			cmPane.toggleCompareMode(selSecondStrucInComparedMode);
 			if(selSecondStrucInComparedMode) {
@@ -1574,7 +1484,7 @@ public class View extends JFrame implements ActionListener {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning();
-		} else if (cmPane.mod2 == null) {
+		} else if (!cmPane.hasSecondModel()) {
 			showNoSecondContactMapWarning();
 		} else if (!cmPane.mod2.has3DCoordinates()) {
 			showNo3DCoordsSecondModelWarning();
@@ -1741,6 +1651,24 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Sets the comparison mode to the given state. If comparison mode is enabled, buttons
+	 * for comparing structures become active otherwise they become inactive.
+	 * @param state
+	 */
+	public void setComparisonMode(boolean state) {
+		comparisonMode = !comparisonMode;
+		if(comparisonMode) {
+			tbShowCommon.setVisible(true);
+			tbShowFirstStructure.setVisible(true);
+			tbShowSecondStructure.setVisible(true);
+		} else {
+			tbShowCommon.setEnabled(false);
+			tbShowFirstStructure.setVisible(false);
+			tbShowSecondStructure.setVisible(false);			
+		}
+	}
+	
 	/* -------------------- getter methods -------------------- */
 	// TODO: Make all these parameters of calls to CMPane
 	/** 
@@ -1802,8 +1730,6 @@ public class View extends JFrame implements ActionListener {
 	public boolean getSelSecondStrucInComparedMode() {
 		return this.selSecondStrucInComparedMode;
 	}
-	
-
 	
 	/** 
 	 * Returns whether showing the difference distance map (in comparison mode) is switched on 

@@ -273,6 +273,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			return false;
 		} else {
 			System.out.println("Second model loaded.");
+			view.setComparisonMode(true);
 			this.mod2 = mod2;
 			
 			return true;
