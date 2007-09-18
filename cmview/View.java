@@ -86,6 +86,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmSelectAll, mmSelectCommon, mmSelectFirst, mmSelectSecond;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
+	JMenuItem mmToggleDiffDistMap;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -108,6 +109,7 @@ public class View extends JFrame implements ActionListener {
 	private boolean selCommonContactsInComparedMode;	// when true, selection on compared contact map in both structures possible
 	private boolean selFirstStrucInComparedMode; // when true selection on compared contact map in first structure possible
 	private boolean selSecondStrucInComparedMode; // when true selection on compared contact map in second structure possible
+	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
 	
 	// global icons TODO: replace these by tickboxes
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
@@ -132,6 +134,7 @@ public class View extends JFrame implements ActionListener {
 		this.selCommonContactsInComparedMode= true;
 		this.selFirstStrucInComparedMode= true;
 		this.selSecondStrucInComparedMode= true;
+		this.showDiffDistMap = false;
 		
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front
@@ -548,6 +551,11 @@ public class View extends JFrame implements ActionListener {
 		mmSelCommonContactsInComparedMode.addActionListener(this);
 		mmSelFirstStrucInComparedMode.addActionListener(this);
 		mmSelSecondStrucInComparedMode.addActionListener(this);
+		
+		menu.addSeparator();
+		mmToggleDiffDistMap = new JMenuItem("Toggle show difference map", icon_deselected);
+		menu.add(mmToggleDiffDistMap);
+		mmToggleDiffDistMap.addActionListener(this);
 		menuBar.add(menu);
 		
 		// Help menu
@@ -758,6 +766,10 @@ public class View extends JFrame implements ActionListener {
 		
 		if(e.getSource() == mmSelSecondStrucInComparedMode || e.getSource() == tbShowSecondStructure) {
 			handleSelSecondStrucInComparedMode();
+		}
+		
+		if(e.getSource() == mmToggleDiffDistMap) {
+			handleToggleDiffDistMap();
 		}
 		
 		/* ---------- Help Menu ---------- */
@@ -1556,6 +1568,26 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+	private void handleToggleDiffDistMap() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning();
+		} else if (cmPane.mod2 == null) {
+			showNoSecondContactMapWarning();
+		} else if (!cmPane.mod2.has3DCoordinates()) {
+			showNo3DCoordsSecondModelWarning();
+		} else {
+			showDiffDistMap = !showDiffDistMap;
+			cmPane.toggleDiffDistMap(showDiffDistMap);
+			if(showDiffDistMap) {
+				mmToggleDiffDistMap.setIcon(icon_selected);
+			} else {
+				mmToggleDiffDistMap.setIcon(icon_deselected);
+			}
+		}
+	}
+	
 	/* -------------------- Help menu -------------------- */
 	
 	private void handleHelpWriteConfig() {
@@ -1627,14 +1659,24 @@ public class View extends JFrame implements ActionListener {
 	private void showNoContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
+	
+	/** Shows a window with a warning message that no second contact map is loaded yet (for comparison functions) */
+	private void showNoSecondContactMapWarning() {
+		JOptionPane.showMessageDialog(this, "No second contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
+	}	
 
 	/** Shows a window with a warning message that we can't show distance matrix for this contact type */
 	private void showCantShowDistMatrixWarning() {
 		JOptionPane.showMessageDialog(this, "Can't show distance matrix for multi atom graph models", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
-	/** Warning dialog to be shown if a function is being called which required 3D coordinates and they are missing */
+	/** Warning dialog to be shown if a function is being called which requires 3D coordinates and they are missing */
 	private void showNo3DCoordsWarning(){
+		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Warning", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	/** Warning dialog to be shown if a comparison function is being called which requires 3D coordinates and they are missing */
+	private void showNo3DCoordsSecondModelWarning(){
 		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
@@ -1761,5 +1803,12 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 
+	
+	/** 
+	 * Returns whether showing the difference distance map (in comparison mode) is switched on 
+	 */
+	public boolean getShowDiffDistMap() {
+		return this.showDiffDistMap;
+	}	
 }
 

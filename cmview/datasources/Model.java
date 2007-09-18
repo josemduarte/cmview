@@ -12,7 +12,7 @@ import proteinstructure.*;
 /** 
  * A contact map data model. Derived classes have to implement the constructor in which
  * the structure is loaded, the member variables are set appropriately and a temporary
- * pdb file with the atom lines is written.
+ * pdb file with the atom lines is written. All other methods should be implemented here.
  */
 public abstract class Model {
 	
@@ -274,13 +274,12 @@ public abstract class Model {
 	 * Initialises the distMatrix member. The matrix is scaled to doubles from zero to one.
 	 * Returns the scaled value of the current distance cutoff.
 	 * May only be called if has3DCoordinates is true.
-	 *
 	 */
 	public double initDistMatrix(){
 		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(this.getContactType());
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
-		distMatrix = new HashMap<Edge, Double>();
+		distMatrix = new HashMap<Edge, Double>();	// TODO: Use old matrix to save memory
 		for (Edge cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
@@ -288,17 +287,63 @@ public abstract class Model {
 		return dist;
 	}
 	
+	/**
+	 * Returns the current distance matrix. Before initDistMatrix has been called this will be null.
+	 * @return A map assigning to each edge the corresponding distance (scaled to [0;1]).
+	 */
 	public HashMap<Edge,Double> getDistMatrix(){
 		return distMatrix;
 	}
 	
+	/**
+	 * Returns the difference of the distance maps of this model and the given second model. All distances are
+	 * based on C-alpha atoms. 
+	 * @param secondModel the second model to compare agains
+	 * @return A map assigning to each edge the corresponding value in the difference distance matrix or null on error.
+	 */
+	public HashMap<Edge,Double> getDiffDistMatrix(Model secondModel) {
+		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
+		double diff, min, max;
+		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
+			System.err.println("Failed to compute difference distance map. No 3D coordinates.");
+			return null; // distance doesn't make sense without 3D data	
+		}
+		if(this.getMatrixSize() != secondModel.getMatrixSize()) {
+			System.err.println("Failed to compute difference distance map. Matrix sizes do not match.");
+			return null; // can only calculate matrix difference if sizes match TODO: use alignment
+		}
+		
+		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(AA.CONTACT_TYPE_C_ALPHA, secondModel.pdb, AA.CONTACT_TYPE_C_ALPHA);
+		
+		if(diffDistMatrix == null) {
+			System.err.println("Failed to compute difference distance map.");
+		} else {
+			max = Collections.max(diffDistMatrix.values());
+			min = Collections.min(diffDistMatrix.values());
+			if(max == min) System.err.println("Failed to scale difference distance matrix. Matrix is empty or all matrix entries are the same.");
+			else {
+				// scale matrix to [0;1]
+				for(Edge e:diffDistMatrix.keySet()) {
+					diff = diffDistMatrix.get(e); 
+					diffDistMatrix.put(e, (diff-min)/(max-min));
+				}
+			}
+		}
+		return diffDistMatrix;
+	}
+	
+	/**
+	 * Returns true if this model contains 3D coordinates. Certain other methods can only be used
+	 * if 3D coordinates are available.
+	 * @return true if this model has 3D coordinates, false otherwise
+	 */
 	public boolean has3DCoordinates(){
 		return (pdb!=null);
 	}
 	
 	/**
 	 * Returns true iff there is no sequence information whatsoever
-	 * @return
+	 * @return true if sequence information is availbale, false otherwise
 	 */
 	public boolean hasSequence() {
 		return graph.getSequence().equals("");
@@ -306,18 +351,28 @@ public abstract class Model {
 	
 	// secondary structure related methods
 	
-	/** Returns true iff this model has secondary structure information */
+	/** 
+	 * Returns true iff this model has secondary structure information.
+	 * @return true if secondary structure information is available, false otherwise
+	 */
 	public boolean hasSecondaryStructure() {
 		return !secondaryStructure.isEmpty();
 	}
 	
-	/** Returns the secondary structure annotation object of this model (can come either from graph or from pdb object) */
+	/** 
+	 * Returns the secondary structure annotation object of this model. Currently, this can come either from a
+	 * graph or from a pdb object.
+	 * @return the secondary structure annotation object 
+	 */
 	public SecondaryStructure getSecondaryStructure() {
 		return this.secondaryStructure;
 	}
 
 	// end of secondary structure related methods
 	
+	/**
+	 * Calculates and returns the density matrix for the current model.
+	 */
 	public double[][] getDensityMatrix() {
 		int size = getMatrixSize();
 		double[][] d = new double[size][size]; // density matrix

@@ -48,7 +48,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	// underlying data
 	private Model mod;
-	private Model mod2;						// optional second model for cm
+	protected Model mod2;					// optional second model for cm (referenced by View)
 											// comparison
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in
@@ -147,7 +147,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 															// density
 	private HashMap<Edge,Integer> comNbhSizes;		 // matrix of common
 														// neighbourhood sizes
-
+	private HashMap<Edge,Double> diffDistMap;		// difference distance map (in comparison mode)
+	
 	// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// buffer containing the more of
 											// less static background image
@@ -236,6 +237,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.userContactColors = new Hashtable<Edge, Color>();
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
+		this.diffDistMap = null;
 		
 		// set default colors
 		this.contactColor = Color.black;
@@ -432,7 +434,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// full loop on all cells
 		HashMap<Edge,Double> distMatrix = mod.getDistMatrix();
 		for (Edge cont:distMatrix.keySet()){
-			Color c = colorMapMatlab(distMatrix.get(cont), scaledDistCutoff);
+			Color c = colorMapScaledHeatmap(distMatrix.get(cont), scaledDistCutoff);
 			g2d.setColor(c);
 			drawContact(g2d, cont);
 		}
@@ -634,7 +636,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 	}
-
+	
+	private void drawDiffDistMap(Graphics2D g2d) {
+		// this actually contains all possible contacts in matrix so is doing a
+		// full loop on all cells
+		for (Edge cont:diffDistMap.keySet()){
+			Color c = colorMapHeatmap(1-diffDistMap.get(cont));
+			g2d.setColor(c);
+			drawContact(g2d, cont);
+		}
+	}
 	
 	protected void drawCoordinates(Graphics2D g2d){
 		Edge currentCell = screen2cm(mousePos);
@@ -1193,8 +1204,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawContactMap(g2d);			
 		}
 		
+		// draw comparison contact map
 		if(view.getCompareStatus()){
-			drawComparedMap(g2d);
+
+			// draw difference distance map (in comparison mode)
+			if(view.getShowDiffDistMap()) {
+				drawDiffDistMap(g2d);
+			} else {
+				drawComparedMap(g2d);
+			}
 		}
 		repaint();
 	}
@@ -1235,6 +1253,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			public void run() {
 				registerThread(true);
 				mod.initDistMatrix();
+				// updateScreenBuffer();
+				registerThread(false);
+			}
+		}.start();
+	}	
+	
+	/**
+	 * Triggers the background maps to be updated in a separate thread
+	 */
+	public void updateDiffDistMapBg() {
+		new Thread() {
+			public void run() {
+				registerThread(true);
+				diffDistMap = mod.getDiffDistMatrix(mod2);
 				// updateScreenBuffer();
 				registerThread(false);
 			}
@@ -1283,6 +1315,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/**
+	 * Triggers the difference distance map to be updated
+	 */
+	public synchronized void updateDiffDistMap() {
+			diffDistMap = mod.getDiffDistMatrix(mod2);
+	}	
+	
+	/**
 	 * To be called whenever the contacts have been changed in the Model object
 	 * (i.e. the graph object). Currently called when deleting edges.
 	 */
@@ -1301,7 +1340,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if(BG_PRELOADING) {
 				updateNbhSizeMapBg();
 			} else {
-				comNbhSizes = null;		// mark as dirty
+				markComNbhSizeMapAsDirty();
 			}
 		}
 		if(view.getShowDensityMap()) {
@@ -1316,7 +1355,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if(BG_PRELOADING) {
 				updateDensityMapBg();	
 			} else {
-				densityMatrix = null;	// mark as dirty
+				markDensityMapAsDirty();
 			}
 		}
 		updateScreenBuffer();		// always repaint to show new contact map
@@ -1576,6 +1615,50 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			updateScreenBuffer();
 		}
 	}		
+	
+	/**
+	 * Show/hide difference distance map
+	 */	
+	protected void toggleDiffDistMap(boolean state) {
+		if (state) {
+			if(diffDistMap == null) {
+				if(BACKGROUND_LOADING) {
+					updateDiffDistMapBg();
+				} else {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					updateDiffDistMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+			} else {
+				updateScreenBuffer();
+			}
+		} else {
+			updateScreenBuffer();			// will repaint
+		}
+	}
+	
+	private void markComNbhSizeMapAsDirty() {
+		comNbhSizes = null;		// mark as dirty
+	}
+	
+	private void markDensityMapAsDirty() {
+		densityMatrix = null;
+	}
+	
+//	/**
+//	 * To be called whenever something in the underlying 3D data has changed.
+//	 */
+//	private void markDistanceMapAsDirty() {
+//		
+//	}
+//	
+//	/**
+//	 * To be called whenever something in the underlying 3D data has changed.
+//	 */	
+//	private void markDiffDistMapAsDirty() {
+//		
+//	}
 	
 	/** */
 	protected void toggleCompareMode(boolean state) {
@@ -1863,28 +1946,46 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
-	 * Given a number between zero and one, returns a color from a gradient. In
-	 * this color map, val is green, higher values are darker shades of red and
-	 * lower values are darker shades of blue.
+	 * Given a number between zero and one, returns a color from a scaled heatmap-style colormap.
+	 * The map is scales such that values around 'middle' are green, higher values are darker
+	 * shades of red and lower values are darker shades of blue.
+	 * @param val the value for which a color is returned
+	 * @param middle the value around which colors are green
+	 * @return the Color for the given value
 	 */
-	private Color colorMapMatlab(double val, double middle) {
+	private Color colorMapScaledHeatmap(double val, double middle) {
 		if(val <= middle) {
 			val = val * 0.5/middle;
 		} else {
 			val = 0.5 + (val-middle) * 0.5 / (1-middle);
 		}
-		// matlab color map
+		// matlab-style color map
 		double bc = 6/8f;
 		double gc = 4/8f;
 		double rc = 2/8f;
-// double rc = (1+middle)/2;
-// double gc = middle;
-// double bc = middle/2;
 		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
 		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
 		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
 		return new Color((float) r,(float) g, (float) b);
 	}
+	
+	/**
+	 * Given a number between zero and one, returns a color from a heatmap-style colormap.
+	 * Values around 0.5 are green, lower values are darker shades of blue, higher values
+	 * are darker shades of red.
+	 * @param val the value for which a color is returned
+	 * @return the Color for the given value
+	 */
+	private Color colorMapHeatmap(double val) {
+		// matlab-style color map
+		double bc = 6/8f;
+		double gc = 4/8f;
+		double rc = 2/8f;
+		double r = Math.max(0,Math.min(1,1.5-4*Math.abs(val-rc)));
+		double g = Math.max(0,Math.min(1,1.5-4*Math.abs(val-gc)));
+		double b = Math.max(0,Math.min(1,1.5-4*Math.abs(val-bc)));
+		return new Color((float) r,(float) g, (float) b);
+	}	
 
 // /** Given a number between zero and one, returns a color from a gradient. */
 // private Color colorMapBluescale(double val) {
