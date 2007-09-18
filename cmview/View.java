@@ -82,7 +82,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
-	JMenuItem mmSelectAll, mmSelectCommon, mmSelectFirst, mmSelectSecond;
+	JMenuItem mmSelectAll, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
 	JMenuItem mmToggleDiffDistMap;
@@ -415,6 +415,12 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
 		mmSelectAll = makeMenuItem("All contacts", null, menu);
+		menu.addSeparator();
+		mmSelectHelixHelix = makeMenuItem("Helix-Helix contacts", null, menu);
+		mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
+		mmSelectInterSsContacts = makeMenuItem("Contacts between SS elements", null, menu);
+		mmSelectIntraSsContacts = makeMenuItem("Contacts within SS elements", null, menu);
+		
 		menuBar.add(menu);
 		
 		// Color menu
@@ -569,7 +575,19 @@ public class View extends JFrame implements ActionListener {
 		
 		if(e.getSource() == mmSelectAll  ) {
 			handleSelectAll();
-		}	
+		}
+		if(e.getSource() == mmSelectHelixHelix  ) {
+			handleSelectHelixHelix();
+		}
+		if(e.getSource() == mmSelectBetaBeta  ) {
+			handleSelectBetaBeta();
+		}
+		if(e.getSource() == mmSelectInterSsContacts  ) {
+			handleSelectInterSsContacts();
+		}
+		if(e.getSource() == mmSelectIntraSsContacts  ) {
+			handleSelectIntraSsContacts();
+		}
 		
 		/* ---------- Color menu ---------- */
 		
@@ -1175,8 +1193,52 @@ public class View extends JFrame implements ActionListener {
 	private void handleSelectAll() {
 		if(mod==null) {
 			showNoContactMapWarning();
-		} 
-		else {cmPane.selectAllContacts();
+		} else {
+			cmPane.selectAllContacts();
+		}
+	}
+	
+	private void handleSelectHelixHelix() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else
+		if(!mod.hasSecondaryStructure()) {
+			showNoSecondaryStructureWarning();
+		} else {
+			cmPane.selectHelixHelix();
+		}
+	}
+	
+	private void handleSelectBetaBeta() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else
+		if(!mod.hasSecondaryStructure()) {
+			showNoSecondaryStructureWarning();
+		} else {
+			cmPane.selectBetaBeta();
+		}
+	}
+	
+	private void handleSelectInterSsContacts() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else
+		if(!mod.hasSecondaryStructure()) {
+			showNoSecondaryStructureWarning();
+		} else {
+			cmPane.selectInterSsContacts();
+		}
+	}
+	
+	private void handleSelectIntraSsContacts() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else
+		if(!mod.hasSecondaryStructure()) {
+			showNoSecondaryStructureWarning();
+		} else {
+			cmPane.selectIntraSsContacts();
 		}
 	}
 
@@ -1568,6 +1630,11 @@ public class View extends JFrame implements ActionListener {
 	private void showNoContactMapWarning() {
 		JOptionPane.showMessageDialog(this, "No contact map loaded yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
+	
+	/** Shows a window with a warning message that no secondary structure information is available */
+	private void showNoSecondaryStructureWarning() {
+		JOptionPane.showMessageDialog(this, "No secondary structure information available", "Warning", JOptionPane.INFORMATION_MESSAGE);
+	}	
 	
 	/** Shows a window with a warning message that no second contact map is loaded yet (for comparison functions) */
 	private void showNoSecondContactMapWarning() {

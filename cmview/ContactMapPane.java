@@ -23,6 +23,7 @@ import proteinstructure.EdgeNbh;
 import proteinstructure.Interval;
 import proteinstructure.NodeNbh;
 import proteinstructure.NodeSet;
+import proteinstructure.SecStrucElement;
 import proteinstructure.SecondaryStructure;
 import cmview.datasources.Model;
 
@@ -273,8 +274,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} else {
 			System.out.println("Second model loaded.");
 			view.setComparisonMode(true);
+			view.setTitle("Comparing " + mod.getPDBCode()+mod.getChainCode() + " and " + mod2.getPDBCode() + mod2.getChainCode());
 			this.mod2 = mod2;
-			
+			selContacts = new EdgeSet();
 			return true;
 		}
 	}
@@ -1443,8 +1445,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		firstS = view.getSelFirstStrucInComparedMode();
 		secondS = view.getSelSecondStrucInComparedMode();
 		
-		System.out.println(common + "   " + firstS + "   " + secondS);
-		
 		if (this.hasSecondModel()){
 			if (common == false && firstS == false && secondS == true){
 				selContacts.addAll(secStrucContacts);
@@ -1479,6 +1479,58 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		this.repaint();
+	}
+	
+	/** Called by view to select all helix-helix contacts */
+	public void selectHelixHelix() {
+		selContacts = new EdgeSet();
+		for(Edge e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.getType() == SecStrucElement.HELIX && ss2.getType() == SecStrucElement.HELIX) {
+				selContacts.add(e);
+			}
+		}
+		this.repaint();
+	}
+	
+	/** Called by view to select all strand-strand contacts */
+	public void selectBetaBeta() {
+		selContacts = new EdgeSet();
+		for(Edge e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.getType() == SecStrucElement.STRAND && ss2.getType() == SecStrucElement.STRAND) {
+				selContacts.add(e);
+			}
+		}
+		this.repaint();		
+	}
+	
+	/** Called by view to select all contacts between secondary structure elements */
+	public void selectInterSsContacts() {
+		selContacts = new EdgeSet();
+		for(Edge e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+			if(ss1 != null && ss2 != null && ss1 != ss2) {
+				selContacts.add(e);
+			}
+		}
+		this.repaint();		
+	}
+	
+	/** Called by view to select all contacts within secondary structure elements */
+	public void selectIntraSsContacts() {
+		selContacts = new EdgeSet();
+		for(Edge e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+			if(ss1 != null && ss2 != null && ss1 == ss2) {
+				selContacts.add(e);
+			}
+		}
+		this.repaint();		
 	}
 	
 	/**
@@ -2148,7 +2200,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return array;
 	}
 	
-	
 	private EdgeSet[] getRedCommonContacts(){
 		EdgeSet[] array = new EdgeSet[2];
 		
@@ -2169,7 +2220,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		array[1] = greenPContacts;
 		return array;
 	}
-	
 	
 	private EdgeSet[] getGreenCommonContacts(){
 		EdgeSet[] array = new EdgeSet[2];
