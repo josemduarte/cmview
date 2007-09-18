@@ -36,7 +36,7 @@ public class Start {
 	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
 	
-	// The following constants can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
+	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
 	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
 	// there has to be a line in the applyUserProperties method. The preassigned values are the default and being used unless overwritten by the user.
 	// Additioanlly, values that should appear in the example config file should be added to the getSelectedProperties method.
@@ -51,12 +51,16 @@ public class Start {
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
 	
-	// not in config file yet:
 	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
 	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = "/project/StruPPi/Software/dssp/dsspcmbi";
 	public static String			DSSP_PARAMETERS = "--";
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
+	
+	// constants not in config file yet
+	public static String			DISTANCE_MAP_CONTACT_TYPE = "Ca";	// contact type to be used for distance map calculation (only single atom allowed)
+	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
+	public static boolean			ICON_BAR_FLOATABLE = true;			// if true, icon bar can be dragged out of the window
 	
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically

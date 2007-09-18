@@ -22,7 +22,6 @@ import proteinstructure.*;
  */
 public class View extends JFrame implements ActionListener {
 
-	
 	// constants
 	static final long serialVersionUID = 1l;
 	protected static final int SQUARE_SEL = 1;
@@ -283,7 +282,7 @@ public class View extends JFrame implements ActionListener {
 		tbViewNbhSizeMap = new JToggleButton();
 		tbViewDistanceMap = new JToggleButton();
 		tbViewDensityMap = new JToggleButton();
-		toolBar.setFloatable(true);
+		toolBar.setFloatable(Start.ICON_BAR_FLOATABLE);
 
 		
 		// Popup menu
@@ -574,7 +573,9 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		
-		this.getContentPane().add(toolBar, BorderLayout.NORTH);
+		if(Start.SHOW_ICON_BAR) {
+			this.getContentPane().add(toolBar, BorderLayout.NORTH);
+		}
 		//this.getContentPane().add(tbPane, BorderLayout.NORTH);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
 		if(showRulers) {
