@@ -60,7 +60,7 @@ public class Start {
 	// constants not in config file yet
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";	// contact type to be used for distance map calculation (only single atom allowed)
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
-	public static boolean			ICON_BAR_FLOATABLE = true;			// if true, icon bar can be dragged out of the window
+	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
 	
 	// pymol connection
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically

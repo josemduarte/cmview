@@ -73,7 +73,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewShowDistMatrix;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
@@ -99,6 +99,7 @@ public class View extends JFrame implements ActionListener {
 	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
 	private boolean showPdbSers;		// whether showing pdb serials is switched on
 	private boolean showRulers;			// whether showing residue rulers is switched on
+	private boolean showIconBar;		// whether showing the icon bar is switched on
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
 	private boolean showDensityMap;		// whether showing the density map is switched on
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
@@ -129,6 +130,7 @@ public class View extends JFrame implements ActionListener {
 		this.showPdbSers = false;
 		this.showNbhSizeMap = false;
 		this.showRulers=Start.SHOW_RULERS_ON_STARTUP;
+		this.showIconBar=Start.SHOW_ICON_BAR;
 		this.showDensityMap=false;
 		this.showDistanceMap=false;
 		this.currentPaintingColor = Color.blue;
@@ -428,6 +430,7 @@ public class View extends JFrame implements ActionListener {
 		
 		mmViewShowPdbResSers = makeMenuItem("Toggle show PDB residue numbers", icon_deselected, menu);
 		mmViewRulers = makeMenuItem("Toggle rulers", icon_deselected, menu);
+		mmViewIconBar = makeMenuItem("Toggle icon bar", icon_deselected, menu);	// doesn't work properly if icon bar is floatable
 		menu.addSeparator();		
 		mmViewHighlightComNbh = makeMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected, menu);
 		mmViewShowDensity = makeMenuItem("Toggle show contact density", icon_deselected, menu);
@@ -505,9 +508,9 @@ public class View extends JFrame implements ActionListener {
 
 		this.setJMenuBar(menuBar);
 		
-		if(Start.SHOW_ICON_BAR) {
-			this.getContentPane().add(toolBar, BorderLayout.NORTH);
-		}
+		toolBar.setVisible(Start.SHOW_ICON_BAR);
+		this.getContentPane().add(toolBar, BorderLayout.NORTH);
+		
 		//this.getContentPane().add(tbPane, BorderLayout.NORTH);
 		this.getContentPane().add(cmp,BorderLayout.CENTER);
 		if(showRulers) {
@@ -580,6 +583,9 @@ public class View extends JFrame implements ActionListener {
 		}		  
 		if(e.getSource() == mmViewRulers) {
 			handleShowRulers();
+		}	
+		if(e.getSource() == mmViewIconBar) {
+			handleShowIconBar();
 		}	
 		if(e.getSource() == mmViewHighlightComNbh) {
 			handleShowNbhSizeMap();
@@ -1148,6 +1154,21 @@ public class View extends JFrame implements ActionListener {
 			this.repaint();
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	private void handleShowIconBar() {
+		showIconBar = !showIconBar;
+		if(showIconBar) {
+			toolBar.setVisible(true);
+			mmViewIconBar.setIcon(icon_selected);
+		} else {
+			toolBar.setVisible(false);
+			mmViewIconBar.setIcon(icon_deselected);
+		}
+		this.repaint();		
+	}	
 	
 	/**
 	 * 
