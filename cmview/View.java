@@ -29,7 +29,6 @@ public class View extends JFrame implements ActionListener {
 	protected static final int NODE_NBH_SEL = 3;
 	protected static final int SHOW_COMMON_NBH = 4;
 	protected static final int RANGE_SEL = 5;
-	protected static final int COMPARE_CM = 6;
 	
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
@@ -71,7 +70,8 @@ public class View extends JFrame implements ActionListener {
 	//JPanel tbPane;				// tool bar panel
 
 	// Tool bar buttons
-	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowSel3D, tbShowComNbh, tbShowComNbh3D,  tbDelete;  
+	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
+	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
 	
 	
@@ -274,16 +274,14 @@ public class View extends JFrame implements ActionListener {
 		tbFilePrint = makeToolBarButton(icon_file_print, LABEL_FILE_PRINT);
 		tbFileQuit = makeToolBarButton(icon_file_quit, LABEL_FILE_QUIT);
 		toolBar.addSeparator();
-		tbSquareSel = makeToolBarButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE);
-		tbFillSel = makeToolBarButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE);
-		tbDiagSel = makeToolBarButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE);
-		tbNbhSel = makeToolBarButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE);
+		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
+		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
+		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
+		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
+		tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
 		toolBar.addSeparator();		
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
-		toolBar.addSeparator();
-		tbShowComNbh = makeToolBarButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE);
 		tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
-		toolBar.addSeparator();
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		toolBar.addSeparator(new Dimension(100, 10));
 		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, selCommonContactsInComparedMode, true, false);
@@ -297,6 +295,14 @@ public class View extends JFrame implements ActionListener {
 		tbViewDistanceMap = new JToggleButton();
 		tbViewDensityMap = new JToggleButton();
 		toolBar.setFloatable(Start.ICON_BAR_FLOATABLE);
+		
+		// group selection modes buttons together in one ButtonGroup
+		ButtonGroup selectionModeButtons = new ButtonGroup();
+		selectionModeButtons.add(tbSquareSel);
+		selectionModeButtons.add(tbFillSel);
+		selectionModeButtons.add(tbDiagSel);
+		selectionModeButtons.add(tbNbhSel);
+		selectionModeButtons.add(tbShowComNbh);
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -326,14 +332,12 @@ public class View extends JFrame implements ActionListener {
 		popup.add(fillP);
 		popup.add(rangeP);
 		popup.add(nodeNbhSelP);
+		popup.add(comNeiP);
+		
 		if (Start.USE_PYMOL) {
 			popup.addSeparator();
 			popup.add(sendP);
 			popup.add(popupSendEdge);
-		}		
-		popup.addSeparator();	
-		popup.add(comNeiP);
-		if (Start.USE_PYMOL) {
 			popup.add(triangleP);
 		}		
 		popup.addSeparator();
@@ -439,15 +443,12 @@ public class View extends JFrame implements ActionListener {
 		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, menu);
 		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, menu);
 		nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
+		comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
 		if (Start.USE_PYMOL) {
 			menu.addSeparator();
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
-		}			
-		menu.addSeparator();			
-		comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
-		if (Start.USE_PYMOL) {
 			triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
-		}	
+		}
 		menu.addSeparator();		
 		delEdgesM = makeMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, menu);
 		menuBar.add(menu);
@@ -609,13 +610,11 @@ public class View extends JFrame implements ActionListener {
 			currentAction = SQUARE_SEL;
 		}
 
-
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP || e.getSource() == tbFillSel) {
 			currentAction = FILL_SEL;
 		}
-		
-		
+			
 		// range selection clicked
 		if (e.getSource() == rangeM || e.getSource() == rangeP || e.getSource() == tbDiagSel) {
 			currentAction = RANGE_SEL;
