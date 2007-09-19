@@ -1534,6 +1534,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/**
+	 * Select contacts by residue numbers using a selection string. Example selection string: "1-3,7,8-9".
+	 * @param selStr selection string
+	 * @return number of selected contacts or -1 on error
+	 */
+	public int selectByResNum(String selStr) {
+		if(selStr.length() == 0) return 0;	// nothing to select
+		if(!NodeSet.isValidSelectionString(selStr)) return -1;
+		NodeSet nodeSet1 = NodeSet.parseSelectionString(selStr);
+		NodeSet nodeSet2 = NodeSet.parseSelectionString(selStr);
+		selContacts = new EdgeSet();
+		for(Edge e:allContacts) {
+			if(nodeSet1.contains(e.i) && nodeSet2.contains(e.j)) {
+				selContacts.add(e);
+			}
+		}
+		this.repaint();
+		return selContacts.size();
+	}
+	
+	/**
 	 * Add to the current selection all contacts along the diagonal that
 	 * contains cont
 	 */

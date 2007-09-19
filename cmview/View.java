@@ -46,10 +46,10 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_FILL_SELECTION_MODE = "Fill Selection Mode";
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
-	protected static final String LABEL_COMPARE_CM = "Compare Contact Maps"; 
-	private static final String LABEL_SHOW_COMMON = "Show common contacts";
-	private static final String LABEL_SHOW_FIRST = "Show contacts unique to first structure";
-	private static final String LABEL_SHOW_SECOND = "Show contacts unique to second structure";
+	protected static final String LABEL_COMPARE_CM = "Load second structure from"; 
+	private static final String LABEL_SHOW_COMMON = "Show/hide common contacts";
+	private static final String LABEL_SHOW_FIRST = "Show/hide contacts unique to first structure";
+	private static final String LABEL_SHOW_SECOND = "Show/hide contacts unique to second structure";
 	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
@@ -74,7 +74,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
-	JMenuItem mmSelectAll, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
+	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
 	JMenuItem mmToggleDiffDistMap;
@@ -233,9 +233,7 @@ public class View extends JFrame implements ActionListener {
 		cmp2 = new JLayeredPane(); // added for testing
 		topRul = new JPanel(new BorderLayout());
 		leftRul = new JPanel(new BorderLayout());
-			
-		
-			
+						
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
@@ -441,6 +439,7 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
 		mmSelectAll = makeMenuItem("All contacts", null, menu);
+		mmSelectByResNum = makeMenuItem("By residue number", null, menu);
 		menu.addSeparator();
 		mmSelectHelixHelix = makeMenuItem("Helix-Helix contacts", null, menu);
 		mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
@@ -492,8 +491,8 @@ public class View extends JFrame implements ActionListener {
 		mmLoadCm2 = makeMenuItem("Contact map file", null, submenu);		
 		menu.addSeparator();
 		mmSelCommonContactsInComparedMode = makeMenuItem("Toggle show common contacts", icon_selected, menu);
-		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show only first structure contacts", icon_selected, menu);
-		mmSelSecondStrucInComparedMode = makeMenuItem("Toggle show only second structure contacts", icon_selected, menu);		
+		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
+		mmSelSecondStrucInComparedMode = makeMenuItem("Toggle show contacts unique in second structure ", icon_selected, menu);		
 		menu.addSeparator();
 		mmToggleDiffDistMap = makeMenuItem("Toggle show difference map", icon_deselected, menu);
 		menuBar.add(menu);
@@ -601,6 +600,9 @@ public class View extends JFrame implements ActionListener {
 		
 		if(e.getSource() == mmSelectAll  ) {
 			handleSelectAll();
+		}
+		if(e.getSource() == mmSelectByResNum  ) {
+			handleSelectByResNum();
 		}
 		if(e.getSource() == mmSelectHelixHelix  ) {
 			handleSelectHelixHelix();
@@ -1233,6 +1235,30 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+	private void handleSelectByResNum() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			String selStr = (String)JOptionPane.showInputDialog(
+					this,
+					"Enter residue numbers to be selected:\n"
+					+ "e.g. 1-5,7,10-11",
+					"");
+			if (selStr == null) {
+				// user clicked cancel
+				return;
+			} else {
+				if(!NodeSet.isValidSelectionString(selStr)) {
+					showInvalidSelectionStringWarning();
+					return;
+				} else {
+					int selectedContacts = cmPane.selectByResNum(selStr);
+					System.out.println(selectedContacts + " contacts selected");					
+				}
+			}
+		}
+	}
+	
 	private void handleSelectHelixHelix() {
 		if(mod==null) {
 			showNoContactMapWarning();
@@ -1519,11 +1545,9 @@ public class View extends JFrame implements ActionListener {
 	
 	private void handleSelContactsInComparedMode(){		
 		if(mod==null) {
-			tbShowCommon.setSelected(selCommonContactsInComparedMode);
 			showNoContactMapWarning();
 		} else
 		if(!cmPane.hasSecondModel()) {
-			tbShowCommon.setSelected(selCommonContactsInComparedMode);
 			showNoSecondContactMapWarning();
 		} else {
 			selCommonContactsInComparedMode = !selCommonContactsInComparedMode;
@@ -1534,34 +1558,33 @@ public class View extends JFrame implements ActionListener {
 				mmSelCommonContactsInComparedMode.setIcon(icon_deselected);
 			}
 		}
+		tbShowCommon.setSelected(selCommonContactsInComparedMode);
 	}
 	
 	private void handleSelFirstStrucInComparedMode(){
 		if(mod==null) {
-			tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
 			showNoContactMapWarning();
 		} else
 		if(!cmPane.hasSecondModel()) {
-			tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
 			showNoSecondContactMapWarning();
 		} else {
 			selFirstStrucInComparedMode = !selFirstStrucInComparedMode;
 			cmPane.toggleCompareMode(selFirstStrucInComparedMode);
+			tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
 			if(selFirstStrucInComparedMode) {
 				mmSelFirstStrucInComparedMode.setIcon(icon_selected);
 			} else {
 				mmSelFirstStrucInComparedMode.setIcon(icon_deselected);
 			}
 		}
+		tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
 	}
 	
 	private void handleSelSecondStrucInComparedMode(){
 		if(mod==null) {
-			tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
 			showNoContactMapWarning();
 		} else
 		if(!cmPane.hasSecondModel()) {
-			tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
 			showNoSecondContactMapWarning();
 		} else {
 			selSecondStrucInComparedMode = !selSecondStrucInComparedMode;
@@ -1572,6 +1595,7 @@ public class View extends JFrame implements ActionListener {
 				mmSelSecondStrucInComparedMode.setIcon(icon_deselected);
 			}
 		}
+		tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
 	}
 	
 	private void handleToggleDiffDistMap() {
@@ -1711,6 +1735,10 @@ public class View extends JFrame implements ActionListener {
 	
 	private void showDifferentSizeContactMapsError() {
 		JOptionPane.showMessageDialog(this, "The two contact maps can not be compared because they have different size.", "Can not compare contact maps", JOptionPane.ERROR_MESSAGE);		
+	}
+	
+	private void showInvalidSelectionStringWarning() {
+		JOptionPane.showMessageDialog(this, "Invalid selection string", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
 	/*---------------------------- public methods ---------------------------*/
