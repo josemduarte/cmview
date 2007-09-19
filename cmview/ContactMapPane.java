@@ -334,7 +334,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
-		if (dragging && view.getCurrentAction()==View.SQUARE_SEL) {
+		if (dragging && view.getCurrentSelectionMode()==View.SQUARE_SEL) {
 			
 			g2d.setColor(squareSelColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
@@ -350,7 +350,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} 
 		
 		// drawing temp selection in red while dragging in range selection mode
-		if (dragging && view.getCurrentAction()==View.RANGE_SEL) {
+		if (dragging && view.getCurrentSelectionMode()==View.RANGE_SEL) {
 			
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
@@ -670,7 +670,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(allContacts.contains(currentCell)) {
 			g2d.drawLine(48, outputSize-55, 55, outputSize-55);
 		}
-		if(view.getCurrentAction()==View.RANGE_SEL){
+		if(view.getCurrentSelectionMode()==View.RANGE_SEL){
 			g2d.drawString("SeqSep", 100, outputSize-70);
 			g2d.drawString(Math.abs(currentCell.j-currentCell.i)+"", 100, outputSize-50);
 		}
@@ -702,7 +702,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
-		if (view.getCurrentAction()==View.RANGE_SEL){
+		if (view.getCurrentSelectionMode()==View.RANGE_SEL){
 			g2d.setColor(diagCrosshairColor);			
 			g2d.drawLine(mousePos.x-mousePos.y, 0, getOutputSize(), getOutputSize()-(mousePos.x-mousePos.y));
 		// all other cases cursor is a cross-hair
@@ -886,7 +886,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 
-			switch (view.getCurrentAction()) {
+			switch (view.getCurrentSelectionMode()) {
 			case View.SHOW_COMMON_NBH:
 				Edge c = screen2cm(mousePressedPos); 
 				this.currCommonNbh = mod.getEdgeNbh (c.i,c.j);
@@ -1038,7 +1038,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(lastMouseButtonPressed == MouseEvent.BUTTON1) {
 			dragging = true;
 			mouseDraggingPos = evt.getPoint();
-			switch (view.getCurrentAction()) {
+			switch (view.getCurrentSelectionMode()) {
 			case View.SQUARE_SEL:
 				if (this.hasSecondModel()){
 					if (common == false && firstS == false && secondS == true){

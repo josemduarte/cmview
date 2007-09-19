@@ -242,7 +242,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 				int clickedRes = screen2cm(pos);
 
 				// node nbh selection mode
-				if (view.getCurrentAction()==View.NODE_NBH_SEL){				
+				if (view.getCurrentSelectionMode()==View.NODE_NBH_SEL){				
 					if (evt.isControlDown()){
 						cmPane.selectNodeNbh(screen2cm(mousePressedPos));
 					} else{

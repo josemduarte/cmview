@@ -33,13 +33,6 @@ public class View extends JFrame implements ActionListener {
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
 	
-	private boolean common;
-	private boolean firstS;
-	private boolean secondS;
-	
-	private String[] ModelColors = {"lightorange", "lightpink", "palecyan", "bluewhite","gray70", "slate", "wheat"};
-	private int modelColor = 0;
-	
 	// menu item labels
 	private static final String LABEL_FILE_INFO = "Info";
 	private static final String LABEL_FILE_PRINT = "Print";	
@@ -74,7 +67,6 @@ public class View extends JFrame implements ActionListener {
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
 	
-	
 	// Menu items
 	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge;
@@ -95,9 +87,16 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler leftRuler;
 	private int pymolSelSerial;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
 	private int pymolNbhSerial;			// for incremental numbering // TODO: Move this to PymolAdaptor
+	
+	private boolean common;
+	private boolean firstS;
+	private boolean secondS;
+	
+	private String[] ModelColors = {"lightorange", "lightpink", "palecyan", "bluewhite","gray70", "slate", "wheat"};
+	private int modelColor = 0;
 
 	// current gui state
-	private int currentAction;			// currently selected action (see constants above)
+	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
 	private boolean showPdbSers;		// whether showing pdb serials is switched on
 	private boolean showRulers;			// whether showing residue rulers is switched on
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
@@ -111,10 +110,12 @@ public class View extends JFrame implements ActionListener {
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
 	private boolean comparisonMode;		// whether comparison functions are enabled
 	
-	// global icons TODO: replace these by tickboxes
+	// global icons TODO: replace these by tickboxes?
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/icons/bullet_blue.png"));
 
+	/*----------------------------- constructors ----------------------------*/
+	
 	/** Create a new View object */
 	public View(Model mod, String title) {
 		super(title);
@@ -122,7 +123,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
-		this.currentAction = SQUARE_SEL;
+		this.currentSelectionMode = SQUARE_SEL;
 		this.pymolSelSerial = 1;
 		this.pymolNbhSerial = 1;
 		this.showPdbSers = false;
@@ -140,6 +141,24 @@ public class View extends JFrame implements ActionListener {
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front
 		this.compareStatus = false;	
+	}
+	
+	/*---------------------------- private methods --------------------------*/
+	
+	/**
+	 * Sets the current selection mode. This sets the internal state variable and changes some gui components.
+	 * Use getSelectionMode to retrieve the current state.
+	 */
+	private void setSelectionMode(int mode) {
+		switch(mode) {
+		case(SQUARE_SEL): tbSquareSel.setSelected(true); break;
+		case(FILL_SEL): tbFillSel.setSelected(true); break;
+		case(NODE_NBH_SEL): tbNbhSel.setSelected(true); break;
+		case(SHOW_COMMON_NBH): tbShowComNbh.setSelected(true); break;
+		case(RANGE_SEL): tbDiagSel.setSelected(true); break;
+		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
+		}
+		this.currentSelectionMode = mode;
 	}
 	
 	/**
@@ -606,26 +625,23 @@ public class View extends JFrame implements ActionListener {
 
 		// square button clicked
 		if (e.getSource() == squareM || e.getSource() == squareP || e.getSource() == tbSquareSel ) {
-//			System.out.println("square sel menu bar");
-			currentAction = SQUARE_SEL;
+			setSelectionMode(SQUARE_SEL);
 		}
-
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP || e.getSource() == tbFillSel) {
-			currentAction = FILL_SEL;
-		}
-			
-		// range selection clicked
+			setSelectionMode(FILL_SEL);
+		}			
+		// diagonal selection clicked
 		if (e.getSource() == rangeM || e.getSource() == rangeP || e.getSource() == tbDiagSel) {
-			currentAction = RANGE_SEL;
+			setSelectionMode(RANGE_SEL);
 		}
 		// node neihbourhood selection button clicked 
 		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP || e.getSource() == tbNbhSel) {
-			currentAction = NODE_NBH_SEL;
+			setSelectionMode(NODE_NBH_SEL);
 		}		
 		// showing com. Nei. button clicked
 		if (e.getSource() == comNeiM || e.getSource() == comNeiP || e.getSource() == tbShowComNbh) {
-			currentAction = SHOW_COMMON_NBH;
+			setSelectionMode(SHOW_COMMON_NBH);
 		}
 		// send selection button clicked
 		if (e.getSource() == sendM || e.getSource() == sendP || e.getSource() == tbShowSel3D) {	
@@ -638,8 +654,7 @@ public class View extends JFrame implements ActionListener {
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP || e.getSource() == tbShowComNbh3D) {
 			handleShowTriangles3D();
-		}
-		
+		}		
 		// delete selected edges button clicked
 		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP || e.getSource() == tbDelete) {
 			handleDeleteSelContacts();
@@ -1478,7 +1493,7 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	
-	/* -------------------- Tool menu -------------------- */
+	/* -------------------- Compare menu -------------------- */
 	
 	
 	private void handleSelContactsInComparedMode(){		
@@ -1730,11 +1745,12 @@ public class View extends JFrame implements ActionListener {
 	
 	/* -------------------- getter methods -------------------- */
 	// TODO: Make all these parameters of calls to CMPane
-	/** 
-	 * Returns the currently selected action 
+	/**
+	 * Returns the current selection mode. The selection mode defines the meaning of user mouse actions.
+	 * @return The current selection mode
 	 */
-	public int getCurrentAction(){
-		return currentAction;
+	public int getCurrentSelectionMode(){
+		return currentSelectionMode;
 	}
 	
 	public boolean getCompareStatus(){
