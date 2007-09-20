@@ -13,12 +13,17 @@ import proteinstructure.*;
  * TODO: Should be designed such that the visualization frontend can be easily changed (e.g. to JMol). 
  */	
 public class PyMolAdaptor {
+
+	
+
 	
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	// colors for triangles, one is chosen randomly from this list
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
+
+	private String[] ModelColors = {"lightpink", "palegreen"};
 
 	/*--------------------------- member variables --------------------------*/
 	private String url;
@@ -171,15 +176,28 @@ public class PyMolAdaptor {
 	/**
 	 * Send command to the pymol server to load a structure with the given name from the given temporary pdb file.
 	 */
-	public void loadStructure(String fileName, String pdbCode, String chainCode) {
+	public void loadStructure(String fileName, String pdbCode, String chainCode, boolean secondModel) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		sendCommand("load " + fileName + ", " + chainObjName);
 		sendCommand("hide lines");
 		sendCommand("show cartoon");		
+		sendCommand("hide sticks");
+		
+		if (secondModel){
+			// color second model green
+			sendCommand("color " + ModelColors[1] + ", " + pdbCode+chainCode);
+		}else {
+			// color main model red
+			sendCommand("color " + ModelColors[0] + ", " + pdbCode+chainCode);
+		}
+		
+		sendCommand("cmd.refresh()");
 	}
 	
 	public void alignStructure(String pdbCodeFirst, String chainCodeFirst,  String pdbCodeSecond, String chainCodeSecond){
 		sendCommand("align " + pdbCodeSecond + chainCodeSecond + "," + pdbCodeFirst + chainCodeFirst);
+		sendCommand("hide lines");
+		sendCommand("hide sticks");
 		sendCommand("zoom");
 	}
 	
@@ -210,7 +228,7 @@ public class PyMolAdaptor {
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
-	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelColor, int pymolSelSerial, EdgeSet selContacts, boolean dash){
+	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelContactColor, int pymolSelSerial, EdgeSet selContacts, boolean dash, boolean centzoom){
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
 		ArrayList<Integer> residues = new ArrayList<Integer>();
@@ -223,12 +241,25 @@ public class PyMolAdaptor {
 			residues.add(i);
 			residues.add(j);
 		}
+		
 		sendCommand("hide labels, " + selObjName);
-		this.sendCommand(modelColor +  pdbCode + chainCode + "Sel"+  selectionType + pymolSelSerial);
+		this.sendCommand(modelContactColor + selObjName);
 		if (dash ==true){
-			this.setDashes(pdbCode, chainCode, selectionType, pymolSelSerial);
+			// setting the dashed lines for present and absent distinction
+			setDashes(pdbCode, chainCode, selectionType, pymolSelSerial);
+		}else { // fixing the side chain problem
+				// side chains only occur in case of common contacts
+			sendCommand("hide lines, "+ selObjName);
+			sendCommand("hide sticks, " + selObjName);
+		}
+		
+		if (centzoom ==true){
+			// centers and zooms into the selected object
+			this.sendCommand("center " + selObjName);
+			this.sendCommand("zoom " + selObjName);
 		}
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
+		sendCommand("deselect " + selObjName+"Node");
 	}
 	
 	/** Show a single contact or non-contact as distance object in pymol */
@@ -248,6 +279,12 @@ public class PyMolAdaptor {
 	public void setDashes( String pdbCode, String chainCode, String selectionType, int pymolSelSerial){
 		this.sendCommand("set dash_gap, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
 		this.sendCommand("set dash_length, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
+	}
+	
+	public void setView(String pdbCode1, String chainCode1, String pdbCode2, String chainCode2){
+		sendCommand("disable all");
+		sendCommand("enable " + pdbCode1 + chainCode1 );
+		sendCommand("enable " + pdbCode2 + chainCode2);
 	}
 	
 	

@@ -91,9 +91,6 @@ public class View extends JFrame implements ActionListener {
 	private boolean common;
 	private boolean firstS;
 	private boolean secondS;
-	
-	private String[] ModelColors = {"lightorange", "lightpink", "palecyan", "bluewhite","gray70", "slate", "wheat"};
-	private int modelColor = 0;
 
 	// current gui state
 	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
@@ -756,10 +753,7 @@ public class View extends JFrame implements ActionListener {
 				}else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 					
 				}
@@ -806,10 +800,7 @@ public class View extends JFrame implements ActionListener {
 				} else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 					
 				}
@@ -857,12 +848,9 @@ public class View extends JFrame implements ActionListener {
 				}else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-				
+//					disable all old objects and selections
 				}
 			} else {
 				this.spawnNewViewWindow(mod);
@@ -903,10 +891,7 @@ public class View extends JFrame implements ActionListener {
 				}else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				}
@@ -943,10 +928,7 @@ public class View extends JFrame implements ActionListener {
 				}else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				}
@@ -984,10 +966,7 @@ public class View extends JFrame implements ActionListener {
 				} else {
 					compareStatus = true;
 					cmPane.toggleCompareMode(compareStatus);
-					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-					Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-					Start.getPyMolAdaptor().sendCommand("color " + ModelColors[modelColor] + ", " + mod.getPDBCode()+mod.getChainCode());
-					modelColor++;
+					Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 					Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 					
 				}
@@ -1369,11 +1348,14 @@ public class View extends JFrame implements ActionListener {
 				EdgeSet trueGreen = array[0];	// red contacts
 				String selectionType = cmPane.getSecondModel().getChainCode();
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
 
 				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, true);
 				this.pymolSelSerial++;
 			}
 
@@ -1383,10 +1365,13 @@ public class View extends JFrame implements ActionListener {
 				EdgeSet trueRed = array[0];	// red contacts
 				String selectionType = mod.getChainCode();
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);
 				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
 				this.pymolSelSerial++;
 			}
 
@@ -1401,13 +1386,16 @@ public class View extends JFrame implements ActionListener {
 				// red contacts are n PyMol: red and not dashed in main structure && green and dashed in second structure
 				// green contacts: analogous w.r.t. second structure and main structure
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				//present and unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true, false);	
 
 				// present and unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
 				this.pymolSelSerial++;
 			}
 
@@ -1420,9 +1408,12 @@ public class View extends JFrame implements ActionListener {
 
 				// no unpresent contacts
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				// present contacts in main and second structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, true);	
 				this.pymolSelSerial++;
 			}
 
@@ -1433,14 +1424,17 @@ public class View extends JFrame implements ActionListener {
 				EdgeSet trueGreen = array[1];	// green contacts
 				String selectionType = mod.getChainCode();
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				//present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
 
 				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true, false);
 				//present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
 				this.pymolSelSerial++;
 			}
 
@@ -1451,14 +1445,17 @@ public class View extends JFrame implements ActionListener {
 				EdgeSet trueGreen = array[1];	// green contacts
 				String selectionType =  cmPane.getSecondModel().getChainCode();
 
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueRed, true);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueRed, true, false);	
 				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
 
 				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
 				this.pymolSelSerial++;
 			}
 			else if (common == true && firstS == true && secondS == true){
@@ -1467,18 +1464,21 @@ public class View extends JFrame implements ActionListener {
 				EdgeSet trueGreen = array[1];	// green contacts
 				EdgeSet trueCommon = array[2]; 	// common contacts
 				String selectionType =  mod.getChainCode()+cmPane.getSecondModel().getChainCode();
-
+				
+				//disable all old objects and selections and enable the two actual objects 
+				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
+				
 				// present contacts in both structures
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false, false);
 
 				// present and unpresent contacts only in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, false);	
 
 				// present and unpresent contacts only in second struture
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
 				this.pymolSelSerial++;
 			}
 		}
@@ -1486,7 +1486,12 @@ public class View extends JFrame implements ActionListener {
 			EdgeSet[] array = cmPane.getSelectedContacts();
 			EdgeSet contacts = array[0];
 			String selectionType = mod.getChainCode();
-			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, "color magenta, ", pymolSelSerial, contacts, false);
+			
+			//disable all old objects and selections
+			Start.getPyMolAdaptor().sendCommand("disable all");
+			Start.getPyMolAdaptor().sendCommand("enable " + mod.getPDBCode()+mod.getChainCode());
+			
+			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, "color magenta, ", pymolSelSerial, contacts, false, true);
 			this.pymolSelSerial++;
 		}
 	}
@@ -1761,11 +1766,9 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
-			// load structure in pymol
-			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode());
-			Start.getPyMolAdaptor().sendCommand("cmd.refresh()");
-			Start.getPyMolAdaptor().sendCommand("color lightblue, " + mod.getPDBCode()+mod.getChainCode());
-			
+			// load structure in PyMol
+			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), false);
+	
 		}		
 		// if previous window was empty (not showing a contact map) dispose it
 		if(this.mod == null) {
