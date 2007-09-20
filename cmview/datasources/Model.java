@@ -241,7 +241,7 @@ public abstract class Model {
 	 * @return A string with the one letter residue type of the residue with serial resser
 	 */	
 	public String getResType1Letter(int resser){
-		return AA.threeletter2oneletter(graph.getResType(resser));
+		return AAinfo.threeletter2oneletter(graph.getResType(resser));
 	}	
 	
 	public NodeNbh getNodeNbh(int i_resser){

@@ -2,9 +2,10 @@ package cmview;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.Set;
 
 import javax.swing.*;
-import proteinstructure.AA;
+import proteinstructure.AAinfo;
 
 /**
  * A dialog to load a contact map. This dialog is used by several load commands
@@ -54,7 +55,7 @@ public class LoadDialog extends JDialog implements ActionListener{
 		selectMaxSeqSep = new JTextField();		
 		selectDb = new JTextField();
 		
-		String[] contactTypes = AA.contactTypes();
+		Set<String> contactTypes = AAinfo.getAllContactTypes();
 		comboCt = new JComboBox();
 		Object o;
 		for(String ct:contactTypes) {
@@ -215,7 +216,7 @@ public class LoadDialog extends JDialog implements ActionListener{
 	 * @throws LoadDialogInputError */
 	public String getSelectedCt() throws LoadDialogInputError {
 		String selectedCt = comboCt.getSelectedItem().toString();
-		if(!AA.isValidCT(selectedCt)) {
+		if(!AAinfo.isValidContactType(selectedCt)) {
 			//System.err.println("The contact type " + selectedCt + " is invalid.");
 			throw new LoadDialogInputError("The contact type " + selectedCt + " is invalid.");
 		}
