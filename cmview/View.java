@@ -28,7 +28,8 @@ public class View extends JFrame implements ActionListener {
 	protected static final int FILL_SEL = 2;
 	protected static final int NODE_NBH_SEL = 3;
 	protected static final int SHOW_COMMON_NBH = 4;
-	protected static final int RANGE_SEL = 5;
+	protected static final int DIAG_SEL = 5;
+	protected static final int SEL_MODE_COLOR = 6;
 	
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
@@ -45,31 +46,32 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
 	private static final String LABEL_FILL_SELECTION_MODE = "Fill Selection Mode";
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
-	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";
-	protected static final String LABEL_COMPARE_CM = "Load second structure from"; 
+	private static final String LABEL_SEL_MODE_COLOR = "Select by color mode";
+	private static final String LABEL_COMPARE_CM = "Load second structure from"; 
 	private static final String LABEL_SHOW_COMMON = "Show/hide common contacts";
 	private static final String LABEL_SHOW_FIRST = "Show/hide contacts unique to first structure";
 	private static final String LABEL_SHOW_SECOND = "Show/hide contacts unique to second structure";
+	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";	// used in ContactMapPane.showPopup
 	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
 	JLabel statusBar; 			// TODO: Create a class StatusBar
 	JToolBar toolBar;			// icon tool bar 
 	JPanel cmp; 				// Main panel holding the Contact map pane
-	JLayeredPane cmp2; // added for testing
 	JPanel topRul;				// Panel for top ruler	// TODO: Move this to ContactMapPane?
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
 	JPopupMenu popup; 			// right-click context menu
-	//JPanel tbPane;				// tool bar panel
+	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
+	//JLayeredPane cmp2; 		// added for testing
 
 	// Tool bar buttons
 	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
-	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh;
+	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
 	
 	// Menu items
-	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM;
-	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge;
+	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
+	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
@@ -154,7 +156,8 @@ public class View extends JFrame implements ActionListener {
 		case(FILL_SEL): tbFillSel.setSelected(true); break;
 		case(NODE_NBH_SEL): tbNbhSel.setSelected(true); break;
 		case(SHOW_COMMON_NBH): tbShowComNbh.setSelected(true); break;
-		case(RANGE_SEL): tbDiagSel.setSelected(true); break;
+		case(DIAG_SEL): tbDiagSel.setSelected(true); break;
+		case(SEL_MODE_COLOR) : tbSelModeColor.setSelected(true); break;
 		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
 		}
 		this.currentSelectionMode = mode;
@@ -162,13 +165,24 @@ public class View extends JFrame implements ActionListener {
 	
 	/**
 	 * Sets up and returns a new menu item with the given icon and label, adds it to the given JMenu and
-	 * registers this class as the action listener.
+	 * registers 'this' as the action listener.
 	 */
 	private JMenuItem makeMenuItem(String label, Icon icon, JMenu menu) {
 		JMenuItem newItem = new JMenuItem(label, icon);
 		newItem.addActionListener(this);
 		menu.add(newItem);
 		return newItem;
+	}
+	
+	/**
+	 * Sets up and returns a new popup menu item with the given icon and label, adds it to the given JPopupMenu and
+	 * registers 'this' as the action listener.
+	 */	
+	private JMenuItem makePopupMenuItem(String label, Icon icon, JPopupMenu menu) {
+		JMenuItem newItem = new JMenuItem(label, icon);
+		newItem.addActionListener(this);
+		menu.add(newItem);
+		return newItem;		
 	}
 
 	/**
@@ -198,6 +212,52 @@ public class View extends JFrame implements ActionListener {
 		return newButton;
 	}
 	
+	/**
+	 * Creates an icon which changes the color with the variable 'currentPaintingColor'.
+	 * @return The 'magic' icon
+	 */
+	private Icon getCurrentColorIcon() {
+		return new Icon() {
+			public void paintIcon(Component c, Graphics g, int x, int y) {
+				Color oldColor = c.getForeground();
+				g.setColor(currentPaintingColor);
+				g.translate(x, y);
+				g.fillRect(2,2,12,12);
+				g.translate(-x, -y);  // Restore Graphics object
+				g.setColor(oldColor);
+			}			
+			public int getIconHeight() {
+				return 16;
+			}
+			public int getIconWidth() {
+				return 16;
+			}
+		};
+	}
+	
+	/**
+	 * Creates a black-square icon.
+	 * @return The black icon
+	 */
+	private Icon getBlackSquareIcon() {
+		return new Icon() {
+			public void paintIcon(Component c, Graphics g, int x, int y) {
+				Color oldColor = c.getForeground();
+				g.setColor(Color.black);
+				g.translate(x, y);
+				g.fillRect(2,2,12,12);
+				g.translate(-x, -y);  // Restore Graphics object
+				g.setColor(oldColor);
+			}	
+			public int getIconHeight() {
+				return 16;
+			}
+			public int getIconWidth() {
+				return 16;
+			}
+		};
+	}
+	
 	/** Initialize and show the main GUI window */
 	private void initGUI(){
 
@@ -207,30 +267,14 @@ public class View extends JFrame implements ActionListener {
 		setLocation(20,20);
 
 		// Creating the Panels
-		statusPane = new JPanel(); // TODO: Create a class StatusBar
-		statusBar = new JLabel(" ");
-		
-//		if (mod!= null){
-//			int[] statusRuler = new int[3];
-//			statusRuler = cmPane.getRulerCoordinates();
-//			String r1 = "" + statusRuler[0] + "";
-//			String r2 = "" + statusRuler[1] + "";
-//			String r3 = "" + statusRuler[2] + "";
-//
-//
-//			statusBar.setText(r1 +" , " + r2 + " , " +r3);
-//			statusPane.setLayout(new BorderLayout());
-//			statusPane.add(statusBar, BorderLayout.CENTER);
-//			statusPane.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
-//		}
-		
-		//tbPane = new JPanel();
-		toolBar = new JToolBar();
-		cmp = new JPanel(new BorderLayout()); // Contact Map Panel
-		cmp2 = new JLayeredPane(); // added for testing
-		topRul = new JPanel(new BorderLayout());
-		leftRul = new JPanel(new BorderLayout());
-						
+		tbPane = new JPanel(new BorderLayout());	// toolbar pane, holding only toolbar and cmp (all the rest)
+		cmp = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
+		topRul = new JPanel(new BorderLayout()); 	// pane holding the top ruler
+		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
+		statusPane = new JPanel(); 					// pane holding the status bar, TODO: Create a class StatusBar
+		statusBar = new JLabel(" ");				// a primitive status bar for testing
+		//cmp2 = new JLayeredPane(); 				// for testing with layered panes
+								
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
@@ -248,44 +292,14 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/icons/page_copy.png"));
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/icons/page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/icons/page_add.png"));
-		
-		// square icon with current painting color
-		Icon icon_color = new Icon() {
-			public void paintIcon(Component c, Graphics g, int x, int y) {
-				Color oldColor = c.getForeground();
-				g.setColor(currentPaintingColor);
-				g.translate(x, y);
-				g.fillRect(2,2,12,12);
-				g.translate(-x, -y);  // Restore Graphics object
-				g.setColor(oldColor);
-			}			
-			public int getIconHeight() {
-				return 16;
-			}
-			public int getIconWidth() {
-				return 16;
-			}
-		};
-		
-		// black square icon
-		Icon icon_black = new Icon() {
-			public void paintIcon(Component c, Graphics g, int x, int y) {
-				Color oldColor = c.getForeground();
-				g.setColor(Color.black);
-				g.translate(x, y);
-				g.fillRect(2,2,12,12);
-				g.translate(-x, -y);  // Restore Graphics object
-				g.setColor(oldColor);
-			}	
-			public int getIconHeight() {
-				return 16;
-			}
-			public int getIconWidth() {
-				return 16;
-			}
-		};
+		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource("/icons/color_swatch.png"));
+		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
+		Icon icon_black = getBlackSquareIcon();		// black square icon
 		
 		// Tool bar
+		toolBar = new JToolBar();
+		toolBar.setVisible(Start.SHOW_ICON_BAR);
+		
 		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
 		tbFilePrint = makeToolBarButton(icon_file_print, LABEL_FILE_PRINT);
 		tbFileQuit = makeToolBarButton(icon_file_quit, LABEL_FILE_QUIT);
@@ -295,6 +309,7 @@ public class View extends JFrame implements ActionListener {
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
 		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
 		tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
+		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
 		toolBar.addSeparator();		
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
 		tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
@@ -304,7 +319,7 @@ public class View extends JFrame implements ActionListener {
 		tbShowFirstStructure = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, selFirstStrucInComparedMode, true, false);
 		tbShowSecondStructure = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, selSecondStrucInComparedMode, true, false);
 		
-		// Toggle buttons in view menu
+		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
 		tbViewNbhSizeMap = new JToggleButton();
@@ -312,11 +327,12 @@ public class View extends JFrame implements ActionListener {
 		tbViewDensityMap = new JToggleButton();
 		toolBar.setFloatable(Start.ICON_BAR_FLOATABLE);
 		
-		// group selection modes buttons together in one ButtonGroup
+		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
 		selectionModeButtons.add(tbSquareSel);
 		selectionModeButtons.add(tbFillSel);
 		selectionModeButtons.add(tbDiagSel);
+		selectionModeButtons.add(tbSelModeColor);
 		selectionModeButtons.add(tbNbhSel);
 		selectionModeButtons.add(tbShowComNbh);
 		
@@ -324,78 +340,33 @@ public class View extends JFrame implements ActionListener {
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
 		
-		squareP = new JMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode);
-		fillP = new JMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode);
-		rangeP = new JMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode);
-		nodeNbhSelP = new JMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode);
-		sendP = new JMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d);
-		popupSendEdge = new JMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d);
-		comNeiP = new JMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode);
-		triangleP = new JMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d);
-		delEdgesP = new JMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts);
-
-		squareP.addActionListener(this);
-		fillP.addActionListener(this);
-		rangeP.addActionListener(this);
-		nodeNbhSelP.addActionListener(this);
-		comNeiP.addActionListener(this);
-		sendP.addActionListener(this);
-		triangleP.addActionListener(this);
-		delEdgesP.addActionListener(this);
-		popupSendEdge.addActionListener(this);
-
-		popup.add(squareP);
-		popup.add(fillP);
-		popup.add(rangeP);
-		popup.add(nodeNbhSelP);
-		popup.add(comNeiP);
-		
+		squareP = makePopupMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, popup);
+		fillP = makePopupMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, popup);
+		rangeP = makePopupMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode, popup);
+		nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
+		comNeiP = makePopupMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, popup);
+		pmSelModeColor = makePopupMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, popup);
 		if (Start.USE_PYMOL) {
-			popup.addSeparator();
-			popup.add(sendP);
-			popup.add(popupSendEdge);
-			popup.add(triangleP);
-		}		
-		popup.addSeparator();
-		popup.add(delEdgesP);
-
-		if(mod != null) {
-			cmPane = new ContactMapPane(mod, this);
-			cmp.add(cmPane);
-
-			// testing: use two separate layers for contacts and interaction
-//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
-//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this, cmPaneBg);
-//			cmp.setLayout(new OverlayLayout(cmp));
-//			cmp.add(cmPaneInt);
-//			cmp.add(cmPaneBg);
-
-			// alternative: use JLayeredPane
-//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this);
-//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
-//			cmp2.setLayout(new OverlayLayout(cmp2));
-//			cmp2.add(cmPaneInt, new Integer(2));
-//			cmp2.add(cmPaneBg, new Integer(1));
-			 //add cmp2 to contentPane
-			
-			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
-			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
-			topRul.add(topRuler);
-			leftRul.add(leftRuler);
+			popup.addSeparator();		
+			sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
+			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
+			triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
 		}
+		popup.addSeparator();		
+		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
 
-		// Creating the menu bar
+		// Main menu
 		JMenuBar menuBar;
 		JMenu menu, submenu;
-
 		menuBar = new JMenuBar();
+		this.setJMenuBar(menuBar);
 
 		// File menu
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
-		mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);
+		mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);		
+		// Load
 		submenu = new JMenu("Load from");
-
 		if(Start.USE_DATABASE) {
 			mmLoadGraph = makeMenuItem("Graph database",null,submenu);
 			mmLoadPdbase = makeMenuItem("Pdbase",null,submenu);
@@ -404,25 +375,23 @@ public class View extends JFrame implements ActionListener {
 		mmLoadFtp = makeMenuItem("Online PDB", null, submenu);
 		mmLoadPdb = makeMenuItem("PDB file", null, submenu);
 		mmLoadCm = makeMenuItem("Contact map file", null, submenu);		
-
 		menu.add(submenu);
+		// Save
 		submenu = new JMenu("Save to");
-
 		mmSaveCmFile = makeMenuItem("Contact map file", null, submenu);
 		mmSavePng = makeMenuItem("PNG file", null, submenu);
 		if(Start.USE_DATABASE) {
 			mmSaveGraphDb = makeMenuItem("Graph database", null, submenu);
 		}
-
-		menu.add(submenu);
+		menu.add(submenu);		
+		// Print, Quit
 		mmPrint = makeMenuItem(LABEL_FILE_PRINT, null, menu);
 		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		menuBar.add(menu);
 
 		// View menu
 		menu = new JMenu("View");
-		menu.setMnemonic(KeyEvent.VK_V);
-		
+		menu.setMnemonic(KeyEvent.VK_V);		
 		mmViewShowPdbResSers = makeMenuItem("Toggle show PDB residue numbers", icon_deselected, menu);
 		mmViewRulers = makeMenuItem("Toggle rulers", icon_deselected, menu);
 		mmViewIconBar = makeMenuItem("Toggle icon bar", icon_deselected, menu);	// doesn't work properly if icon bar is floatable
@@ -441,8 +410,7 @@ public class View extends JFrame implements ActionListener {
 		mmSelectHelixHelix = makeMenuItem("Helix-Helix contacts", null, menu);
 		mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
 		mmSelectInterSsContacts = makeMenuItem("Contacts between SS elements", null, menu);
-		mmSelectIntraSsContacts = makeMenuItem("Contacts within SS elements", null, menu);
-		
+		mmSelectIntraSsContacts = makeMenuItem("Contacts within SS elements", null, menu);		
 		menuBar.add(menu);
 		
 		// Color menu
@@ -453,15 +421,15 @@ public class View extends JFrame implements ActionListener {
 		mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
 		menuBar.add(menu);
 		
-		// Action menu
+		// Action menu, TODO: split into 'Mode' and 'Action'
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
-
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, menu);
 		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, menu);
 		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, menu);
 		nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
 		comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
+		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, menu);
 		if (Start.USE_PYMOL) {
 			menu.addSeparator();
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
@@ -474,10 +442,9 @@ public class View extends JFrame implements ActionListener {
 		// Comparison Menu
 		menu = new JMenu("Compare");
 		menu.setMnemonic(KeyEvent.VK_P);
-		
+		// Load
 		submenu = new JMenu(LABEL_COMPARE_CM);
-		menu.add(submenu);
-		
+		menu.add(submenu);		
 		if(Start.USE_DATABASE) {
 			mmLoadGraph2 = makeMenuItem("Graph database",null,submenu);
 			mmLoadPdbase2 = makeMenuItem("Pdbase",null,submenu);
@@ -501,14 +468,51 @@ public class View extends JFrame implements ActionListener {
 		mmHelpWriteConfig = makeMenuItem("Write example configuration file", null, menu);
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		menuBar.add(menu);
+		
+		// Status bar
+//		if (mod!= null){
+//			int[] statusRuler = new int[3];
+//			statusRuler = cmPane.getRulerCoordinates();
+//			String r1 = "" + statusRuler[0] + "";
+//			String r2 = "" + statusRuler[1] + "";
+//			String r3 = "" + statusRuler[2] + "";
+//
+//
+//			statusBar.setText(r1 +" , " + r2 + " , " +r3);
+//			statusPane.setLayout(new BorderLayout());
+//			statusPane.add(statusBar, BorderLayout.CENTER);
+//			statusPane.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+//		}
+		
+		// Creating contact map pane if model loaded
+		if(mod != null) {
+			// testing: use two separate layers for contacts and interaction
+//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
+//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this, cmPaneBg);
+//			cmp.setLayout(new OverlayLayout(cmp));
+//			cmp.add(cmPaneInt);
+//			cmp.add(cmPaneBg);
 
-		this.setJMenuBar(menuBar);
+			// alternative: use JLayeredPane
+//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this);
+//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
+//			cmp2.setLayout(new OverlayLayout(cmp2));
+//			cmp2.add(cmPaneInt, new Integer(2));
+//			cmp2.add(cmPaneBg, new Integer(1));
+			 //add cmp2 to contentPane
+			
+			cmPane = new ContactMapPane(mod, this);
+			cmp.add(cmPane, BorderLayout.CENTER);
+			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
+			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
+			topRul.add(topRuler);
+			leftRul.add(leftRuler);
+		}
 		
-		toolBar.setVisible(Start.SHOW_ICON_BAR);
-		this.getContentPane().add(toolBar, BorderLayout.NORTH);
-		
-		//this.getContentPane().add(tbPane, BorderLayout.NORTH);
-		this.getContentPane().add(cmp,BorderLayout.CENTER);
+		// Add everything to the content pane		
+		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
+		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
+		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
 		if(showRulers) {
 			cmp.add(topRul, BorderLayout.NORTH);
 			cmp.add(leftRul, BorderLayout.WEST);
@@ -628,6 +632,8 @@ public class View extends JFrame implements ActionListener {
 
 		/* ---------- Action menu ---------- */
 
+		// Selection modes
+		
 		// square button clicked
 		if (e.getSource() == squareM || e.getSource() == squareP || e.getSource() == tbSquareSel ) {
 			setSelectionMode(SQUARE_SEL);
@@ -638,7 +644,7 @@ public class View extends JFrame implements ActionListener {
 		}			
 		// diagonal selection clicked
 		if (e.getSource() == rangeM || e.getSource() == rangeP || e.getSource() == tbDiagSel) {
-			setSelectionMode(RANGE_SEL);
+			setSelectionMode(DIAG_SEL);
 		}
 		// node neihbourhood selection button clicked 
 		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP || e.getSource() == tbNbhSel) {
@@ -648,13 +654,16 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == comNeiM || e.getSource() == comNeiP || e.getSource() == tbShowComNbh) {
 			setSelectionMode(SHOW_COMMON_NBH);
 		}
+		// color selection mode button clicked
+		if (e.getSource() == mmSelModeColor || e.getSource() == pmSelModeColor || e.getSource() == tbSelModeColor) {
+			setSelectionMode(SEL_MODE_COLOR);
+		}		
+		
+		// Actions
+		
 		// send selection button clicked
 		if (e.getSource() == sendM || e.getSource() == sendP || e.getSource() == tbShowSel3D) {	
 			handleShowSelContacts3D();
-		}
-		// send current edge (only available in context menu)
-		if(e.getSource() == popupSendEdge) {
-			handleShowDistance3D();
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP || e.getSource() == tbShowComNbh3D) {
@@ -663,7 +672,11 @@ public class View extends JFrame implements ActionListener {
 		// delete selected edges button clicked
 		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP || e.getSource() == tbDelete) {
 			handleDeleteSelContacts();
-		}	
+		}
+		// send current edge (only available in popup menu)
+		if(e.getSource() == popupSendEdge) {
+			handleShowDistance3D();
+		}
 		
 		/* ---------- Comparison Menu ---------- */
 		

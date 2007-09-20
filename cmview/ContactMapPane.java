@@ -350,7 +350,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} 
 		
 		// drawing temp selection in red while dragging in range selection mode
-		if (dragging && view.getCurrentSelectionMode()==View.RANGE_SEL) {
+		if (dragging && view.getCurrentSelectionMode()==View.DIAG_SEL) {
 			
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
@@ -670,7 +670,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(allContacts.contains(currentCell)) {
 			g2d.drawLine(48, outputSize-55, 55, outputSize-55);
 		}
-		if(view.getCurrentSelectionMode()==View.RANGE_SEL){
+		if(view.getCurrentSelectionMode()==View.DIAG_SEL){
 			g2d.drawString("SeqSep", 100, outputSize-70);
 			g2d.drawString(Math.abs(currentCell.j-currentCell.i)+"", 100, outputSize-50);
 		}
@@ -702,7 +702,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
-		if (view.getCurrentSelectionMode()==View.RANGE_SEL){
+		if (view.getCurrentSelectionMode()==View.DIAG_SEL){
 			g2d.setColor(diagCrosshairColor);			
 			g2d.drawLine(mousePos.x-mousePos.y, 0, getOutputSize(), getOutputSize()-(mousePos.x-mousePos.y));
 		// all other cases cursor is a cross-hair
@@ -895,6 +895,33 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;
 				
+			case View.SEL_MODE_COLOR:
+				dragging=false;		// TODO: can we pull this up?
+				Edge clickedPos = screen2cm(mousePressedPos); // TODO: this as well?
+				if(!evt.isControlDown()) {
+					resetSelections();
+				}
+				Color clickedColor = userContactColors.get(clickedPos);
+				if(clickedColor != null) {
+					for(Edge e:userContactColors.keySet()) {
+						if(userContactColors.get(e) == clickedColor) selContacts.add(e); 
+					}
+				} else {
+					if(allContacts.contains(clickedPos)) {
+						// select all black contacts
+						if(userContactColors.size() == 0) {
+							selectAllContacts();
+						} else {
+							for(Edge e:allContacts) {
+								Color col = userContactColors.get(e);
+								if(col == null) selContacts.add(e);
+							}
+						}
+					}
+				}
+				this.repaint();
+				return;	
+				
 			case View.SQUARE_SEL:
 				
 			
@@ -1004,7 +1031,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;
 			
-			case View.RANGE_SEL:
+			case View.DIAG_SEL:
 				if (!dragging){
 					Edge clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
@@ -1077,7 +1104,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				} else {squareSelect(allContacts);
 					}
 				break;
-			case View.RANGE_SEL:
+			case View.DIAG_SEL:
 				if (this.hasSecondModel()){
 					if (common == false && firstS == false && secondS == true){
 						rangeSelect(secStrucContacts);
@@ -1412,8 +1439,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		rulerArray[2]= currentRulerMouseLocation;
 		
 		return rulerArray;
-		
-		
 	}
 	
 	/** Called by ResidueRuler to switch off showing ruler coordinates */
