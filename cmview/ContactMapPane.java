@@ -2226,8 +2226,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		for (Edge cont:selContacts){
 			if(commonContacts.contains(cont)){
 				commonPContacts.add(cont);
-				redPContacts.add(cont);
-				greenPContacts.add(cont);
+
 			}
 			
 			if(mainStrucContacts.contains(cont)){

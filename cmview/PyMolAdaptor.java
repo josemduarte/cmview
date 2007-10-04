@@ -55,9 +55,9 @@ public class PyMolAdaptor {
 	 * @param selSerial The serial number of the selection
 	 * @return The selection name
 	 */
-	private String getSelObjectName(String chainObjName, String selectionType, int selSerial) {
+	private String getSelObjectName(String chainObjName, String selectionType, int pymolSelSerial) {
 		
-		return chainObjName + "Sel"+ selectionType + selSerial;
+		return selectionType + chainObjName+ "Sel" + pymolSelSerial;
 	}
 	
 	/**
@@ -188,6 +188,8 @@ public class PyMolAdaptor {
 			sendCommand("color " + ModelColors[1] + ", " + pdbCode+chainCode);
 		}else {
 			// color main model red
+			sendCommand("disable all");
+			sendCommand("enable " + chainObjName);
 			sendCommand("color " + ModelColors[0] + ", " + pdbCode+chainCode);
 		}
 		
@@ -199,6 +201,7 @@ public class PyMolAdaptor {
 		sendCommand("hide lines");
 		sendCommand("hide sticks");
 		sendCommand("zoom");
+		sendCommand("cmd.refresh()");
 	}
 	
 	/**
@@ -265,7 +268,7 @@ public class PyMolAdaptor {
 	/** Show a single contact or non-contact as distance object in pymol */
 	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Edge cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
-		String selObjName = getSelObjectName(chainObjName,chainCode, pymolSelSerial);
+		String selObjName = getSelObjectName(chainObjName, chainCode, pymolSelSerial);
 		setDistance(cont.i, cont.j, pymolSelSerial, selObjName, chainObjName, chainCode);
 		ArrayList<Integer> residues = new ArrayList<Integer>();
 		residues.add(cont.i);
@@ -276,15 +279,27 @@ public class PyMolAdaptor {
 	}
 	
 	/** setting the dashes lines for missed/added contacts */
-	public void setDashes( String pdbCode, String chainCode, String selectionType, int pymolSelSerial){
-		this.sendCommand("set dash_gap, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
-		this.sendCommand("set dash_length, 0.5, " + pdbCode + chainCode + "Sel" + selectionType + pymolSelSerial);
+	public void setDashes(String pdbCode, String chainCode, String selectionType, int pymolSelSerial){
+		String chainObjName = this.getChainObjectName(pdbCode, chainCode);
+		String selObjName = getSelObjectName(chainObjName, selectionType, pymolSelSerial);
+		
+		this.sendCommand("set dash_gap, 0.5, " + selObjName);
+		this.sendCommand("set dash_length, 0.5, " + selObjName);
 	}
 	
+	/** setting the view in PyMol if new selections were done */
 	public void setView(String pdbCode1, String chainCode1, String pdbCode2, String chainCode2){
 		sendCommand("disable all");
 		sendCommand("enable " + pdbCode1 + chainCode1 );
 		sendCommand("enable " + pdbCode2 + chainCode2);
+	}
+	
+	public void groupSelections(String pdbCode, String chainCode, int pymolSelSerial, String memberName1, String memberName2){
+
+		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1 +" " + memberName2 + "'),");
+		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1+"Node', action= 'add'),");
+		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName2+"Node', action= 'add'),");
+		
 	}
 	
 	

@@ -1365,10 +1365,22 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+		
 				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, true);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont" + selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, true);
+				
+				String memberNameA1 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode()+ "Sel"+ pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(),  pymolSelSerial, memberNameA1, "");
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, memberNameB1, "");
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+
+				
 				this.pymolSelSerial++;
 			}
 
@@ -1382,9 +1394,21 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);
 				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont" + selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				
+				
+				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode()+ "Sel" + pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, memberNameA1, "");
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, "");
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" "+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+				
 				this.pymolSelSerial++;
 			}
 
@@ -1403,12 +1427,26 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				//present and unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true, false);	
-
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont"+selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true, false);	
+				
 				// present and unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				
+							
+				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
+				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1, memberNameA2);
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+				
 				this.pymolSelSerial++;
 			}
 
@@ -1425,8 +1463,19 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				// present contacts in main and second structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, true);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, true);	
+				
+				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1,"");
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1,"");
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+				
 				this.pymolSelSerial++;
 			}
 
@@ -1441,34 +1490,59 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				//present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
 
+				// present contacts in second structure
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
 				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true, false);
-				//present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont"+ selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true, false);
+		
+				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode() + mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel"+ pymolSelSerial;
+				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel"+ pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, memberNameA1,"");
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+
 				this.pymolSelSerial++;
 			}
 
 			// common and second structure mode == complete second structure
 			else if (common == true && firstS == false && secondS == true){
 				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red contacts
+				EdgeSet trueRed = array[0];		// red cTrueontacts
 				EdgeSet trueGreen = array[1];	// green contacts
 				String selectionType =  cmPane.getSecondModel().getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
-				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueRed, true, false);	
 				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
+				// unpresent contacts in main structure
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont" + selectionType, firstModelContactColor, pymolSelSerial, trueRed, true, false);	
 
 				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
+				
+				
+				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(),pymolSelSerial, memberNameA1, memberNameA2);
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),pymolSelSerial, memberNameB1, "");
+				// grouping complete selection
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" "+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+
 				this.pymolSelSerial++;
 			}
 			else if (common == true && firstS == true && secondS == true){
@@ -1482,16 +1556,31 @@ public class View extends JFrame implements ActionListener {
 				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 				
 				// present contacts in both structures
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false, false);
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false, false);
 
 				// present and unpresent contacts only in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "True"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
+				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont"+ selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, false);	
 
 				// present and unpresent contacts only in second struture
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "True"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
+				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont" +selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
+				
+				
+				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
+				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
+				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
+				
+				// grouping main structure selection
+				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1, memberNameA2);
+				// grouping second structure selection
+				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
+				// grouping complete structure
+				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
+				
+				
 				this.pymolSelSerial++;
 			}
 		}
