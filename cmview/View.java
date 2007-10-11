@@ -36,7 +36,7 @@ public class View extends JFrame implements ActionListener {
 	
 	// menu item labels
 	private static final String LABEL_FILE_INFO = "Info";
-	private static final String LABEL_FILE_PRINT = "Print";	
+	private static final String LABEL_FILE_PRINT = "Print...";	
 	private static final String LABEL_FILE_QUIT = "Quit";	
 	private static final String LABEL_DELETE_CONTACTS = "Delete selected contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
@@ -368,20 +368,20 @@ public class View extends JFrame implements ActionListener {
 		// Load
 		submenu = new JMenu("Load from");
 		if(Start.USE_DATABASE) {
-			mmLoadGraph = makeMenuItem("Graph database",null,submenu);
-			mmLoadPdbase = makeMenuItem("Pdbase",null,submenu);
-			mmLoadMsd = makeMenuItem("MSD",null, submenu);
+			mmLoadGraph = makeMenuItem("Graph database...",null,submenu);
+			mmLoadPdbase = makeMenuItem("Pdbase...",null,submenu);
+			mmLoadMsd = makeMenuItem("MSD...",null, submenu);
 		}		
-		mmLoadFtp = makeMenuItem("Online PDB", null, submenu);
-		mmLoadPdb = makeMenuItem("PDB file", null, submenu);
-		mmLoadCm = makeMenuItem("Contact map file", null, submenu);		
+		mmLoadFtp = makeMenuItem("Online PDB...", null, submenu);
+		mmLoadPdb = makeMenuItem("PDB file...", null, submenu);
+		mmLoadCm = makeMenuItem("Contact map file...", null, submenu);		
 		menu.add(submenu);
 		// Save
 		submenu = new JMenu("Save to");
-		mmSaveCmFile = makeMenuItem("Contact map file", null, submenu);
-		mmSavePng = makeMenuItem("PNG file", null, submenu);
+		mmSaveCmFile = makeMenuItem("Contact map file...", null, submenu);
+		mmSavePng = makeMenuItem("PNG file...", null, submenu);
 		if(Start.USE_DATABASE) {
-			mmSaveGraphDb = makeMenuItem("Graph database", null, submenu);
+			mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
 		}
 		menu.add(submenu);		
 		// Print, Quit
@@ -405,7 +405,7 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
 		mmSelectAll = makeMenuItem("All contacts", null, menu);
-		mmSelectByResNum = makeMenuItem("By residue number", null, menu);
+		mmSelectByResNum = makeMenuItem("By residue number...", null, menu);
 		menu.addSeparator();
 		mmSelectHelixHelix = makeMenuItem("Helix-Helix contacts", null, menu);
 		mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
@@ -416,7 +416,7 @@ public class View extends JFrame implements ActionListener {
 		// Color menu
 		menu = new JMenu("Color");
 		menu.setMnemonic(KeyEvent.VK_C);
-		mmColorChoose = makeMenuItem("Choose painting color", icon_colorwheel, menu);
+		mmColorChoose = makeMenuItem("Choose painting color...", icon_colorwheel, menu);
 		mmColorPaint = makeMenuItem("Color selected contacts", icon_color, menu);
 		mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
 		menuBar.add(menu);
@@ -446,13 +446,13 @@ public class View extends JFrame implements ActionListener {
 		submenu = new JMenu(LABEL_COMPARE_CM);
 		menu.add(submenu);		
 		if(Start.USE_DATABASE) {
-			mmLoadGraph2 = makeMenuItem("Graph database",null,submenu);
-			mmLoadPdbase2 = makeMenuItem("Pdbase",null,submenu);
-			mmLoadMsd2 = makeMenuItem("MSD",null, submenu);
+			mmLoadGraph2 = makeMenuItem("Graph database...",null,submenu);
+			mmLoadPdbase2 = makeMenuItem("Pdbase...",null,submenu);
+			mmLoadMsd2 = makeMenuItem("MSD...",null, submenu);
 		}		
-		mmLoadFtp2 = makeMenuItem("Online PDB", null, submenu);
-		mmLoadPdb2 = makeMenuItem("PDB file", null, submenu);
-		mmLoadCm2 = makeMenuItem("Contact map file", null, submenu);		
+		mmLoadFtp2 = makeMenuItem("Online PDB...", null, submenu);
+		mmLoadPdb2 = makeMenuItem("PDB file...", null, submenu);
+		mmLoadCm2 = makeMenuItem("Contact map file...", null, submenu);		
 		menu.addSeparator();
 		mmSelCommonContactsInComparedMode = makeMenuItem("Toggle show common contacts", icon_selected, menu);
 		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
