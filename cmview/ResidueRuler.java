@@ -12,6 +12,7 @@ import java.util.Iterator;
 import javax.swing.JPanel;
 
 import proteinstructure.Interval;
+import proteinstructure.Node;
 import proteinstructure.SecStrucElement;
 
 import cmview.datasources.Model;
@@ -271,7 +272,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 							// adding to current selection
 							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end);
 							if(location==TOP || location==BOTTOM) {
-								if(cmPane.getSelVertNodes().contains(clickedRes)) {
+								if(cmPane.getSelVertNodes().contains(new Node(clickedRes))) {
 									// selected already: deselect
 									cmPane.deselectNodesVertically(ssint);
 								} else {
@@ -279,7 +280,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 									cmPane.selectNodesVertically(ssint);
 								}
 							} else {
-								if(cmPane.getSelHorNodes().contains(clickedRes)) {
+								if(cmPane.getSelHorNodes().contains(new Node(clickedRes))) {
 									// selected already: deselect
 									cmPane.deselectNodesHorizontally(ssint);
 								} else {

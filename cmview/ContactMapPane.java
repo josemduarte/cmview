@@ -21,6 +21,7 @@ import proteinstructure.Edge;
 import proteinstructure.EdgeSet;
 import proteinstructure.EdgeNbh;
 import proteinstructure.Interval;
+import proteinstructure.Node;
 import proteinstructure.NodeNbh;
 import proteinstructure.NodeSet;
 import proteinstructure.SecStrucElement;
@@ -1596,7 +1597,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void selectNodesHorizontally(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selHorNodes.add(i);
+			selHorNodes.add(new Node(i));
 		}
 		checkNodeIntersectionAndSelect();
 	}
@@ -1607,7 +1608,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void deselectNodesHorizontally(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selHorNodes.remove(i);
+			selHorNodes.remove(new Node(i));
 		}	
 		checkNodeIntersectionAndSelect();
 	}
@@ -1623,7 +1624,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void selectNodesVertically(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selVertNodes.add(i);
+			selVertNodes.add(new Node(i));
 		}
 		checkNodeIntersectionAndSelect();
 	}
@@ -1634,7 +1635,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void deselectNodesVertically(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selVertNodes.remove(i);
+			selVertNodes.remove(new Node(i));
 		}
 		checkNodeIntersectionAndSelect();
 	}
@@ -2015,10 +2016,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(selHorNodes.size() > 0 && selVertNodes.size() > 0) {
 			resetContactSelection();
 			Edge c;
-			for(int i:selHorNodes) {				// TODO: this gets very slow
-													// for large selections,
-													// needs to be optimized
-				for(int j:selVertNodes) {
+			for(Node i:selHorNodes) {	// TODO: Can this be optimized?
+				for(Node j:selVertNodes) {
 					c = new Edge(i,j);
 					if(allContacts.contains(c)) selContacts.add(c);
 				}
