@@ -1571,7 +1571,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		NodeSet nodeSet2 = NodeSet.parseSelectionString(selStr);
 		selContacts = new EdgeSet();
 		for(Edge e:allContacts) {
-			if(nodeSet1.contains(e.i) && nodeSet2.contains(e.j)) {
+			if(nodeSet1.contains(new Node(e.i)) && nodeSet2.contains(new Node(e.j))) {
 				selContacts.add(e);
 			}
 		}
