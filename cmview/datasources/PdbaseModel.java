@@ -41,4 +41,8 @@ public class PdbaseModel extends Model {
 			throw new ModelConstructionError(e.getMessage());
 		}
 	}
+	
+	public PdbaseModel(Model mod) {
+	    super(mod);
+	}
 }

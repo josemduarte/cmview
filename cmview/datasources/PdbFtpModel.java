@@ -9,7 +9,7 @@ import cmview.Start;
  * A contact map data model based on a structure loaded from a CIF file downloaded from pdb's ftp
  */
 public class PdbFtpModel extends Model {
-
+    
 	/**
 	 * Overloaded constructor to load the data.
 	 * @throws ModelConstructionError 
@@ -39,6 +39,10 @@ public class PdbFtpModel extends Model {
 		}
 
 				
+	}
+	
+	public PdbFtpModel(Model mod) {
+	    super(mod);
 	}
 	
 }

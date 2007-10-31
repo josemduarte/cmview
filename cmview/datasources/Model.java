@@ -34,9 +34,28 @@ public abstract class Model {
 	
 	/*----------------------------- constructors ----------------------------*/
 	
-	// no constructors here, see derived classes for implemented constructors
-	// In the constructor, the variables pdb and graph have to be initialized
+	// see derived classes for main constructors
+	// In implemented constructors, the variables pdb and graph have to be initialized
 	// and the following private methods have to be called in turn.
+	
+	// needed as implicit super constructor for derived classes
+	public Model() {}
+	
+	/**
+	 * Create a new model as a shallow copy of the given model
+	 * @param mod the original model
+	 */
+	public Model(Model mod) {
+	    this.pdb = mod.pdb;
+	    this.graph = mod.graph;
+	    this.matrixSize = mod.matrixSize;
+	    this.unobservedResidues = mod.unobservedResidues;
+	    this.minSeqSep = mod.minSeqSep; 				  
+	    this.maxSeqSep = mod.maxSeqSep;
+	    this.distMatrix = mod.distMatrix;
+	    this.secondaryStructure = mod.secondaryStructure;
+	    this.tempPdbFile = mod.tempPdbFile;
+	}
 	
 	/*---------------------------- private methods --------------------------*/
 	
@@ -127,6 +146,15 @@ public abstract class Model {
 	/** Returns the graph object */
 	public Graph getGraph(){
 		return this.graph;
+	}
+	
+	/**
+	 * Sets the graph member variable
+	 * @param newGraph the new graph
+	 */
+	public void setGraph(Graph newGraph) {
+	    this.graph = newGraph;
+	    initializeContactMap();
 	}
 	
 	/** Returns the number of contacts */
@@ -332,6 +360,37 @@ public abstract class Model {
 		return diffDistMatrix;
 	}
 	
+	public HashMap<Edge,Double> getDiffDistMatrix(Alignment ali, Model secondModel) {
+		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
+		double diff, min, max;
+		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
+			System.err.println("Failed to compute difference distance map. No 3D coordinates.");
+			return null; // distance doesn't make sense without 3D data	
+		}
+		if(this.getMatrixSize() != secondModel.getMatrixSize()) {
+			System.err.println("Failed to compute difference distance map. Matrix sizes do not match.");
+			return null; // can only calculate matrix difference if sizes match TODO: use alignment
+		}
+		
+		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
+		
+		if(diffDistMatrix == null) {
+			System.err.println("Failed to compute difference distance map.");
+		} else {
+			max = Collections.max(diffDistMatrix.values());
+			min = Collections.min(diffDistMatrix.values());
+			if(max == min) System.err.println("Failed to scale difference distance matrix. Matrix is empty or all matrix entries are the same.");
+			else {
+				// scale matrix to [0;1]
+				for(Edge e:diffDistMatrix.keySet()) {
+					diff = diffDistMatrix.get(e); 
+					diffDistMatrix.put(e, (diff-min)/(max-min));
+				}
+			}
+		}
+		return diffDistMatrix;
+	}
+	
 	/**
 	 * Returns true if this model contains 3D coordinates. Certain other methods can only be used
 	 * if 3D coordinates are available.
@@ -339,6 +398,16 @@ public abstract class Model {
 	 */
 	public boolean has3DCoordinates(){
 		return (pdb!=null);
+	}
+	
+	/**
+	 * Gets the pdb coordinates.
+	 * @return the coordinates, returns null if there is no such 
+	 *  information available.
+	 * @see #has3DCoordinates()
+	 */
+	public Pdb get3DCoordinates() {
+	    return pdb;
 	}
 	
 	/**

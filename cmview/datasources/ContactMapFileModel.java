@@ -70,4 +70,8 @@ public class ContactMapFileModel extends Model {
 
 	}
 	
+	public ContactMapFileModel(Model mod) {
+	    super(mod);
+	}
+	
 }

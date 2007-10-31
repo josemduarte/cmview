@@ -42,4 +42,8 @@ public class MsdsdModel extends Model {
 		}
 	}
 	
+	public MsdsdModel(Model mod) {
+	    super(mod);
+	}
+	
 }

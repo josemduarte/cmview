@@ -93,5 +93,9 @@ public class GraphDbModel extends Model {
 		}		
 		
 	}
+	
+	public GraphDbModel(Model mod) {
+	    super(mod);
+	}
 
 }

@@ -1,6 +1,8 @@
 package cmview;
 import java.io.*;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
@@ -22,7 +24,7 @@ public class Start {
 
 	static final long serialVersionUID = 1l;
 	
-	// internal constants (not user changable)
+	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
 	public static final String      VERSION = 				"0.8.5";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
@@ -93,6 +95,9 @@ public class Start {
 	private static JFileChooser fileChooser;
 	private static JColorChooser colorChooser;
 	private static PyMolAdaptor pymolAdaptor;
+	
+	// the thread pool
+	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 

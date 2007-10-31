@@ -38,4 +38,8 @@ public class PdbFileModel extends Model {
 				
 	}
 	
+	public PdbFileModel(Model mod) {
+	    super(mod);
+	}
+	
 }
