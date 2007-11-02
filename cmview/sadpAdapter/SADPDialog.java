@@ -33,8 +33,8 @@ public class SADPDialog extends ToolDialog {
     private Future     runnerTask         = null;
     private SADPDialogDoneNotifier notifier = null;
 
-    public SADPDialog(View view, String title, SADPRunner runner) {
-	super(view,title,true);
+    public SADPDialog(View view, String title, SADPRunner runner, int constructionInfo) {
+	super(view,title,constructionInfo,true);
 	this.runner = runner;
 	// create the SADP progress information retriever which redirects the
 	// current progress status to the dialog's progress bar.
@@ -150,7 +150,7 @@ public class SADPDialog extends ToolDialog {
 	frame.setVisible(true);
 	frame.pack();
 	SADPRunner runner     = new SADPRunner(mod1,mod2);
-	SADPDialog sadpDialog = new SADPDialog(new View(null,"bla"),"Pairwise Protein Alignment",runner);
+	SADPDialog sadpDialog = new SADPDialog(new View(null,"bla"),"Pairwise Protein Alignment",runner,SADPDialog.CONSTRUCT_EVERYTHING);
 	Future<Integer> futureDialog = Start.threadPool.submit((Callable<Integer>) sadpDialog);
 	Integer exitStatus = 0;
 	try {
