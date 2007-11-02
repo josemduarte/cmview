@@ -372,7 +372,9 @@ public abstract class Model {
 			return null; // can only calculate matrix difference if sizes match TODO: use alignment
 		}
 		
-		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
+		String name1 = this.getPDBCode() + this.getChainCode();
+		String name2 = secondModel.getPDBCode() + secondModel.getChainCode();
+		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE,ali,name1,name2);
 		
 		if(diffDistMatrix == null) {
 			System.err.println("Failed to compute difference distance map.");
