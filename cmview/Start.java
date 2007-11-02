@@ -26,15 +26,15 @@ public class Start {
 	
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String      VERSION = 				"0.8.5";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"0.8.5";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
-	public static final String      PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
+	public static final String		PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
 	public static final String		PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
-	
+		
 	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
 	
@@ -47,9 +47,10 @@ public class Start {
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
 	
 	// user customizations
-	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static int			INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
+	public static boolean                   INCLUDE_GROUP_INTERNALS = true; // this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
 	
