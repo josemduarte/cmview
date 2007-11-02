@@ -5,9 +5,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.awt.image.BufferedImage;
@@ -77,6 +83,19 @@ public class View extends JFrame implements ActionListener {
     JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
     JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
 
+    // indices of the all main menus in the frame's menu bar
+    TreeMap<String, Integer> menu2idx;
+    
+    // contains all types of component that shall not be 
+    // considered for the right setting of the visibility 
+    // mode of a menu
+    HashSet<Class<?>> disregardedTypes;
+    
+    HashMap<JPopupMenu,JMenu> popupMenu2Parent;
+    
+    TreeMap<String,JMenu> smFile;
+    TreeMap<String,JMenu> smCompare;
+    
     // Menu items
     JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
     JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
@@ -328,12 +347,16 @@ public class View extends JFrame implements ActionListener {
 	tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 	tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 	tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
-	tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
-	tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
+	if(Start.INCLUDE_GROUP_INTERNALS) {
+	    tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
+	    tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
+	}
 	tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
 	toolBar.addSeparator();		
 	tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
-	tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
+	if(Start.INCLUDE_GROUP_INTERNALS) {
+	    tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
+	}
 	tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 	toolBar.addSeparator(new Dimension(100, 10));
 	tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, selCommonContactsInComparedMode, true, false);
@@ -354,8 +377,10 @@ public class View extends JFrame implements ActionListener {
 	selectionModeButtons.add(tbFillSel);
 	selectionModeButtons.add(tbDiagSel);
 	selectionModeButtons.add(tbSelModeColor);
-	selectionModeButtons.add(tbNbhSel);
-	selectionModeButtons.add(tbShowComNbh);
+	if(Start.INCLUDE_GROUP_INTERNALS) {
+	    selectionModeButtons.add(tbNbhSel);
+	    selectionModeButtons.add(tbShowComNbh);
+	}
 
 	// Popup menu
 	JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -364,14 +389,18 @@ public class View extends JFrame implements ActionListener {
 	squareP = makePopupMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, popup);
 	fillP = makePopupMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, popup);
 	rangeP = makePopupMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode, popup);
-	nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
-	comNeiP = makePopupMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, popup);
+	if(Start.INCLUDE_GROUP_INTERNALS) {
+	    nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
+	    comNeiP = makePopupMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, popup);
+	}
 	pmSelModeColor = makePopupMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, popup);
 	if (Start.USE_PYMOL) {
 	    popup.addSeparator();		
 	    sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
 	    popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
-	    triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
+	    if(Start.INCLUDE_GROUP_INTERNALS) {
+		triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
+	    }
 	}
 	popup.addSeparator();		
 	delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
@@ -381,6 +410,10 @@ public class View extends JFrame implements ActionListener {
 	JMenu menu, submenu;
 	menuBar = new JMenuBar();
 	this.setJMenuBar(menuBar);
+	menu2idx = new TreeMap<String, Integer>();
+	smFile = new TreeMap<String, JMenu>();
+	smCompare = new TreeMap<String, JMenu>();
+	popupMenu2Parent = new HashMap<JPopupMenu, JMenu>();
 
 	// File menu
 	menu = new JMenu("File");
@@ -388,28 +421,32 @@ public class View extends JFrame implements ActionListener {
 	mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);		
 	// Load
 	submenu = new JMenu("Load from");
+	popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 	if(Start.USE_DATABASE) {
 			mmLoadGraph = makeMenuItem("Graph database...",null,submenu);
 			mmLoadPdbase = makeMenuItem("Pdbase...",null,submenu);
 			mmLoadMsd = makeMenuItem("MSD...",null, submenu);
 	}		
-		mmLoadFtp = makeMenuItem("Online PDB...", null, submenu);
-		mmLoadPdb = makeMenuItem("PDB file...", null, submenu);
-		mmLoadCm = makeMenuItem("Contact map file...", null, submenu);		
+	mmLoadFtp = makeMenuItem("Online PDB...", null, submenu);
+	mmLoadPdb = makeMenuItem("PDB file...", null, submenu);
+	mmLoadCm = makeMenuItem("Contact map file...", null, submenu);		
 	menu.add(submenu);
+	smFile.put("Load", submenu);
 	// Save
 	submenu = new JMenu("Save to");
-		mmSaveCmFile = makeMenuItem("Contact map file...", null, submenu);
-		mmSavePng = makeMenuItem("PNG file...", null, submenu);
+	popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
+	mmSaveCmFile = makeMenuItem("Contact map file...", null, submenu);
+	mmSavePng = makeMenuItem("PNG file...", null, submenu);
 	if(Start.USE_DATABASE) {
-			mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
+	    mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
 	}
-	menu.add(submenu);		
+	menu.add(submenu);
+	smFile.put("Save", submenu);
 	// Print, Quit
 	mmPrint = makeMenuItem(LABEL_FILE_PRINT, null, menu);
 	mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
-	menuBar.add(menu);
-
+	addToJMenuBar(menu);
+	
 	// View menu
 	menu = new JMenu("View");
 	menu.setMnemonic(KeyEvent.VK_V);		
@@ -420,8 +457,8 @@ public class View extends JFrame implements ActionListener {
 	mmViewHighlightComNbh = makeMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected, menu);
 	mmViewShowDensity = makeMenuItem("Toggle show contact density", icon_deselected, menu);
 	mmViewShowDistMatrix = makeMenuItem("Toggle show distance matrix", icon_deselected, menu);
-	menuBar.add(menu);
-
+	addToJMenuBar(menu);
+	
 	// Select menu
 	menu = new JMenu("Select");
 	menu.setMnemonic(KeyEvent.VK_S);
@@ -432,40 +469,45 @@ public class View extends JFrame implements ActionListener {
 	mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
 	mmSelectInterSsContacts = makeMenuItem("Contacts between SS elements", null, menu);
 	mmSelectIntraSsContacts = makeMenuItem("Contacts within SS elements", null, menu);		
-	menuBar.add(menu);
-
+	addToJMenuBar(menu);
+	
 	// Color menu
 	menu = new JMenu("Color");
 	menu.setMnemonic(KeyEvent.VK_C);
 	mmColorChoose = makeMenuItem("Choose painting color...", icon_colorwheel, menu);
 	mmColorPaint = makeMenuItem("Color selected contacts", icon_color, menu);
 	mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
-	menuBar.add(menu);
-		
+	addToJMenuBar(menu);
+	
 	// Action menu, TODO: split into 'Mode' and 'Action'
 	menu = new JMenu("Action");
 	menu.setMnemonic(KeyEvent.VK_A);
 	squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, menu);
 	fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, menu);
 	rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, menu);
-	nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
-	comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
+	if(Start.INCLUDE_GROUP_INTERNALS) {
+	    nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
+	    comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
+	}
 	mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, menu);
 	if (Start.USE_PYMOL) {
 	    menu.addSeparator();
 	    sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
-	    triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
+	    if(Start.INCLUDE_GROUP_INTERNALS) {
+		triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
+	    }
 	}
 	menu.addSeparator();		
 	delEdgesM = makeMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, menu);
-	menuBar.add(menu);
-
+	addToJMenuBar(menu);
+	
 	// Comparison Menu
 	menu = new JMenu("Compare");
 	menu.setMnemonic(KeyEvent.VK_P);
 	// Load
 	submenu = new JMenu(LABEL_COMPARE_CM);
-	menu.add(submenu);		
+	menu.add(submenu);
+	smCompare.put("Load", submenu);
 	if(Start.USE_DATABASE) {
 	    mmLoadGraph2 = makeMenuItem("Graph database...",null,submenu);
 	    mmLoadPdbase2 = makeMenuItem("Pdbase...",null,submenu);
@@ -485,8 +527,7 @@ public class View extends JFrame implements ActionListener {
 	mmSuposition.setEnabled(false);
 	mmShowAlignedResidues = makeMenuItem("Show corresponding residues from selection",null,menu);
 	mmShowAlignedResidues.setEnabled(false);
-	menuBar.add(menu);
-
+	addToJMenuBar(menu);
 
 	// Help menu
 	menu = new JMenu("Help");
@@ -494,8 +535,8 @@ public class View extends JFrame implements ActionListener {
 	mmHelpHelp = makeMenuItem("Help", null, menu);
 	mmHelpWriteConfig = makeMenuItem("Write example configuration file", null, menu);
 	mmHelpAbout = makeMenuItem("About", null, menu);
-	menuBar.add(menu);
-		
+	addToJMenuBar(menu);
+	
 		// Status bar
 //		if (mod!= null){
 //			int[] statusRuler = new int[3];
@@ -546,9 +587,293 @@ public class View extends JFrame implements ActionListener {
 	}
 	//this.getContentPane().add(statusPane,BorderLayout.SOUTH);
 
+	// menu item types to be disregarded
+	disregardedTypes = new HashSet<Class<?>>();
+	disregardedTypes.add(JPopupMenu.Separator.class);
+	disregardedTypes.add(JToolBar.Separator.class);
+	
+	for(int i=0; i < getJMenuBar().getMenuCount(); ++i) {
+	    System.out.println(getJMenuBar().getMenu(i).getText() + ": visible == " + getJMenuBar().getMenu(i).isVisible()); 
+	}
+	
+	// toggle the visibility of menu-items 
+	setAccessibility(initMenuBarAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
+		
 	// Show GUI
 	pack();
 	setVisible(true);
+    }
+    
+    /**
+     * Adds a menu to the menubar of this View object. Moreover, some mappings are done:
+     * <ul>
+     * <li>mapping from menu identifier (string value obtained by <code>menu.getText()</code>)</li>
+     * <li>mapping from the menu's JPopupMenu to the menu</li>
+     * </ul> 
+     * @param menu  the menu to be added
+     */
+    public void addToJMenuBar(JMenu menu) {
+	getJMenuBar().add(menu);
+	menu2idx.put(menu.getText(), getJMenuBar().getMenuCount()-1);
+	popupMenu2Parent.put(menu.getPopupMenu(),menu);
+    }
+
+    /**
+     * Toggles the visibility status of all components in the map. 
+     * @param components  items to be considered
+     * @param parentCheck  enable this to consider the visibility of the parent component which means whenever all child-components of the parent component are invisible make the parent component invisible, too.
+     * @param topLevelComponent  pointer to the top level component where changes to its visibility is prohibited
+     * @param disregardedTypes  collection of component types not to be considered
+     */
+    public void setAccessibility(Map<Component,Boolean> components, boolean parentCheck, Component topLevelComponent, Collection<Class<?>> disregardedTypes) {
+	for( Component c : components.keySet() ) {
+	    if( c != null ) {
+		setAccessibility(c,components.get(c),parentCheck,topLevelComponent,disregardedTypes);
+	    }
+	}
+    }
+
+    /**
+     * Toggles the visibility status of the given component. As its visibility 
+     * might have an effect on its parent component we also have to consider 
+     * the parent component. Nevertheless, the desired treatment of the parent 
+     * component can be set as well. The recursive ascension in the component 
+     * tree stops if the given component is the top level component.
+     * @param comp  component whose visibility shall be changed
+     * @param visible  the new visibility status of <code>comp</code>. Enable 
+     *  this to make it visible
+     * @param parentCheck  toggles the parent check. If this is enabled the 
+     *  parents visibility mode will be adapted with respect to the visibility 
+     *  mode of <code>comp</code>
+     * @param topLevelComponent  the top level component. Stop if 
+     *  <code>comp</code> equals this component.key
+     * @param disregardedTypes  collection of component types not to be 
+     *  considered
+     * @see #setAccessibility(Map, boolean, Component, Collection)
+     */
+    public void setAccessibility(Component comp, boolean visible, boolean parentCheck, Component topLevelComponent, Collection<Class<?>> disregardedTypes) {
+
+	try {
+	    System.out.println("set:"+((AbstractButton) comp).getText());
+	} catch(Exception e) {
+	    System.out.println("not an abstract button:"+comp.getClass());
+	    System.out.println("comp==popup:"+(comp==this.popup));
+	}
+	
+	if( comp == topLevelComponent ) {
+	    return;
+	}
+
+	Component parent = comp.getParent();
+	
+	if(parent != topLevelComponent) {
+	    // disable and hide element
+	    comp.setEnabled(visible);
+	    //comp.setVisible(visible);
+	}
+	
+	if( parentCheck ) {
+	
+	    JMenu menu = popupMenu2Parent.get(parent);
+	    if( parent == null || menu == null ) {
+		return;
+	    }	    
+	    
+	    if( visible == false && parent.isEnabled() ) {
+				
+		// shall hold pointers to the siblings of 'comp', that is the 
+		// children of 'parent'
+		Component[] siblings;
+		
+		// get child-list
+		if( parent.getClass() == JPopupMenu.class || parent.getClass() == Container.class ) {
+		    siblings = ((Container) parent).getComponents();
+		} else {
+		    System.err.println("Cannot handle component type: " + parent.getClass());
+		    return;
+		}
+		
+		boolean allDisabled = true;
+		
+		// check all sibling components of 'comp'
+		for( Component c: siblings ) {
+		    if( !disregardedTypes.contains(c.getClass()) ) {
+			if( c.isEnabled() ) {
+			    allDisabled = false;
+			    break;
+			}
+		    }
+		}
+		
+		if( allDisabled ) {
+		    if( parent.getClass() == JPopupMenu.class ) { 
+			setAccessibility(popupMenu2Parent.get(parent),false,true,topLevelComponent,disregardedTypes);
+		    } else {
+			setAccessibility(parent,false,true,topLevelComponent,disregardedTypes);		    
+		    }
+		}		
+		
+	    } else if ( visible == true  ) {
+		setAccessibility(parent,true,true,topLevelComponent,disregardedTypes);
+	    }
+	}
+    }
+    
+    /**
+     * Gets all menu items (for the menu-bar as well as for the popup-menu), 
+     * that is {@link JMenuItem} and {@link JMenu} objects. 
+     * @return a map containg all menu item of this View instance 
+     */
+    @SuppressWarnings("unused")
+    private Map<Component,Boolean> getMenuItemToggleMap() {
+	HashMap<Component,Boolean> h = new HashMap<Component, Boolean>();
+	Class<?> componentClass;
+	
+	try {
+	    for(Field f : this.getClass().getDeclaredFields() ) {
+		componentClass = f.getDeclaringClass();
+		if( componentClass == JMenuItem.class ) {
+		    h.put((JMenuItem) f.get(this),true);
+		} else if (componentClass == JMenu.class) {
+		    h.put((JMenuItem) f.get(this),true);		
+		}
+	    }
+	} catch (IllegalAccessException e) {
+	    System.err.println(e.getMessage());
+	}	// menu -> View
+	return h;
+    }
+    
+    /**
+     * Gets a map containing accessibility rules for the initialization of the 
+     * menu-bar. Use this map as an input to function 
+     * {@link #setAccessibility(Map, boolean, Component, Collection)}.
+     * @param hasMod  set this to true if the View holds a first model
+     * @return a map containing accessibility rules for menu bar at startup 
+     */
+    private Map<Component,Boolean> initMenuBarAccessibility(boolean hasMod) {
+	HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
+	
+	// menu -> File
+	map.put(smFile.get("Save"), hasMod);
+	map.put(mmPrint,hasMod);	
+	map.put(mmInfo,hasMod);
+	// menu -> View
+	map.put(mmViewShowPdbResSers, hasMod);
+	map.put(mmViewRulers, hasMod);
+	map.put(mmViewHighlightComNbh, hasMod);
+	map.put(mmViewShowDensity, hasMod);
+	map.put(mmViewShowDistMatrix, hasMod);
+	// menu -> Select
+	map.put(mmSelectAll, hasMod);
+	map.put(mmSelectByResNum, hasMod);
+	map.put(mmSelectHelixHelix, hasMod);
+	map.put(mmSelectBetaBeta, hasMod);
+	map.put(mmSelectInterSsContacts, hasMod);
+	map.put(mmSelectIntraSsContacts, hasMod);
+	// menu -> Color
+	map.put(mmColorChoose, hasMod);
+	map.put(mmColorPaint, hasMod);
+	map.put(mmColorReset, hasMod);
+	// menu -> Action
+	map.put(squareM, hasMod);
+	map.put(fillM, hasMod);
+	map.put(rangeM, hasMod);
+	map.put(nodeNbhSelM, hasMod); 
+	map.put(comNeiM, hasMod);
+	map.put(mmSelModeColor, hasMod); 
+	map.put(sendM, hasMod);
+	map.put(triangleM, hasMod); 
+	map.put(delEdgesM, hasMod);
+	// menu -> Compare
+	map.put(smCompare.get("Load"), hasMod);
+	map.put(mmSelCommonContactsInComparedMode,false);
+	map.put(mmSelFirstStrucInComparedMode,false);
+	map.put(mmSelSecondStrucInComparedMode,false);
+	map.put(mmToggleDiffDistMap,false);
+	//map.put(this.getJMenuBar().getMenu(menu2idx.get("Compare")), hasMod);
+
+	return map;
+    }
+    
+    /**
+     * Gets the accessibility rules for the popup-menu item  which can be 
+     * applied with {@link #setAccessibility(Map, boolean, Component, Collection)} 
+     * if a second model has been loaded.   
+     * @return a map containing accessibility rules for the popup-menu items in 
+     * the compare mode
+     */
+    private Map<Component,Boolean> compareModePopupMenuAccessibility() {
+	HashMap<Component, Boolean> map = new HashMap<Component, Boolean>();
+	
+	map.put(nodeNbhSelP, false);
+	map.put(comNeiP, false);
+	map.put(pmSelModeColor, false);
+	map.put(triangleP, false);
+	map.put(popupSendEdge, false);
+	
+	return map;
+    }
+
+    /**
+     * Gets the accessibility rules for the menu bar item  which can be 
+     * applied with {@link #setAccessibility(Map, boolean, Component, Collection)} 
+     * if a second model has been loaded.   
+     * @return a map containing accessibility rules for the menu bar item in 
+     * the compare mode
+     */
+    private Map<Component,Boolean> compareModeMenuBarAccessibility() {
+	HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
+	
+	// menu -> File
+	map.put(mmInfo,true);
+	// menu -> View
+	map.put(mmViewShowPdbResSers,false);
+	map.put(mmViewRulers,false);
+	map.put(mmViewHighlightComNbh,false);
+	map.put(mmViewShowDensity,false);
+	map.put(mmViewShowDistMatrix,false);
+	// menu -> Select
+	map.put(mmSelectByResNum,false);
+	map.put(mmSelectHelixHelix,false);
+	map.put(mmSelectBetaBeta,false);
+	map.put(mmSelectInterSsContacts,false);
+	map.put(mmSelectIntraSsContacts,false);
+	// menu -> Color
+	map.put(mmColorChoose,false);
+	map.put(mmColorPaint,false);
+	map.put(mmColorReset,false);
+	// menu -> Action
+	map.put(nodeNbhSelM,false);
+	map.put(comNeiM,false);
+	map.put(mmSelModeColor,false);
+	map.put(triangleM,false);
+	// menu -> Compare
+	map.put(mmSelCommonContactsInComparedMode,true);
+	map.put(mmSelFirstStrucInComparedMode,true);
+	map.put(mmSelSecondStrucInComparedMode,true);
+	map.put(mmToggleDiffDistMap,true);
+		
+	return map;
+    }
+
+    /**
+     * Gets the accessibility rules for the buttons of the toolbar which can be 
+     * applied with {@link #setAccessibility(Map, boolean, Component, Collection)} 
+     * if a second model has been loaded.   
+     * @return a map containing accessibility rules for the buttons of the 
+     * toolbar in the compare mode
+     */    
+    private Map<Component,Boolean> compareModeButtonAccessibility() {
+	HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
+	
+	map.put(tbNbhSel, false);
+	map.put(tbShowComNbh, false);
+	map.put(tbSelModeColor, false);
+	map.put(tbShowSel3D, false);
+	map.put(tbShowComNbh3D, false);
+	
+	return map;
     }
 
     /*------------------------------ event handling -------------------------*/
@@ -1011,12 +1336,28 @@ public class View extends JFrame implements ActionListener {
 	System.out.println("view location in View.handlePairwiseAlignment:"+(this.getLocation()==null?"n.a.":this.getLocation()));
 	actLoadDialog.dispose();
 	SADPRunner runner   = new SADPRunner(mod1,mod2);
-	SADPDialog sadpDiag = new SADPDialog(this,"Pairwise Protein Alignment",runner);
+	// version 1.0 used to be as simple as possible -> no preferences 
+	// settings available
+	SADPDialog sadpDiag = new SADPDialog(
+		this,
+		"Pairwise Protein Alignment",
+		runner,
+		(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_PREFERENCES));
 	sadpNotifier = sadpDiag.getNotifier();
 	sadpDiag.createGUI();
     }
 
     private void handlePairwiseAlignmentResults(SADPDialogDoneNotifier notifier) {
+	// disable/enable some menu-bar items, popup-menu items and buttons
+	setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
+	setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
+	setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
+	
+	// disable rulers
+	if(showRulers) {
+	    handleShowRulers();
+	}
+	
 	SADPRunner runner = notifier.getRunner();
 
 	System.out.println("=========================================");
@@ -1042,6 +1383,7 @@ public class View extends JFrame implements ActionListener {
 		    cmPane.toggleCompareMode(compareStatus);
 		    cmPane.updateScreenBuffer();
 		    Start.getPyMolAdaptor().loadStructure(mod2.getTempPdbFileName(), mod2.getPDBCode(), mod2.getChainCode(), true);
+		    Start.getPyMolAdaptor().sendCommand("orient");
 		    cmPane.repaint();
 		}
 	    }
