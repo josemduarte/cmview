@@ -63,7 +63,7 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
     Integer status = IDLE; 
     
     // construction settings
-    protected static final int CONSTRUCT_EVERYTHING = -1;
+    public static final int CONSTRUCT_EVERYTHING = -1;
     /** construct dialog without the cancel button */
     public static final int CONSTRUCT_WITHOUT_CANCEL = 0;
     /** construct dialog without the preferences button */
