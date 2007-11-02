@@ -1424,7 +1424,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	new Thread() {
 	    public void run() {
 		registerThread(true);
-		diffDistMap = mod.getDiffDistMatrix(mod2);
+		diffDistMap = mod.getDiffDistMatrix(ali,mod2);
 		// updateScreenBuffer();
 		registerThread(false);
 	    }
@@ -1476,7 +1476,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
      * Triggers the difference distance map to be updated
      */
     public synchronized void updateDiffDistMap() {
-	diffDistMap = mod.getDiffDistMatrix(mod2);
+	diffDistMap = mod.getDiffDistMatrix(ali,mod2);
     }	
 
     /**
