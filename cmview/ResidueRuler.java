@@ -36,6 +36,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	private static final Color TURN_COLOR = new Color(115, 244, 81);
 	//private static final Color SHEET_COLOR = new Color(25,162,223);
 	private static final Color SHEET_COLOR = new Color(255, 0, 51);
+	private static final Color OTHER_COLOR = Color.WHITE;
 	private static final Color UNEXPECTED_SS_COLOR = Color.gray;
 	
 	private ContactMapPane cmPane;
@@ -105,6 +106,8 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					g2d.setColor(TURN_COLOR);
 				} else if (ssElem.isStrand()){
 					g2d.setColor(SHEET_COLOR);
+				} else if (ssElem.isOther()){
+					g2d.setColor(OTHER_COLOR);
 				} else {
 					g2d.setColor(UNEXPECTED_SS_COLOR);
 				}

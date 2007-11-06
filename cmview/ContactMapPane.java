@@ -1654,7 +1654,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	for(Edge e:allContacts) {
 	    SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
 	    SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
-	    if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.getType() == SecStrucElement.STRAND && ss2.getType() == SecStrucElement.STRAND) {
+	    if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.isStrand() && ss2.isStrand()) {
 		selContacts.add(e);
 	    }
 	}
@@ -1667,7 +1667,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	for(Edge e:allContacts) {
 	    SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
 	    SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
-	    if(ss1 != null && ss2 != null && ss1 != ss2) {
+	    if(ss1 != null && ss2 != null && (ss1 != ss2 && !ss1.inSameSheet(ss2)) && !ss1.isOther() && !ss2.isOther()) {
 		selContacts.add(e);
 	    }
 	}
@@ -1680,7 +1680,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	for(Edge e:allContacts) {
 	    SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
 	    SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
-	    if(ss1 != null && ss2 != null && ss1 == ss2) {
+	    if(ss1 != null && ss2 != null && (ss1 == ss2 || ss1.inSameSheet(ss2)) && !ss1.isOther()) {
 		selContacts.add(e);
 	    }
 	}
