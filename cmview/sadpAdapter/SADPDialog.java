@@ -63,7 +63,7 @@ public class SADPDialog extends ToolDialog {
 	    public void doit() {
 		((SADPDialog)             ((Object[]) getObject())[0]).setStatus(SADPDialog.DONE);
 		((SADPDialog)             ((Object[]) getObject())[0]).dispose();
-		((SADPDialogDoneNotifier) ((Object[]) getObject())[1]).notify(SADPDialog.DONE);
+		((SADPDialogDoneNotifier) ((Object[]) getObject())[1]).secureNotify(SADPDialog.DONE);
 	    }
 	});
 

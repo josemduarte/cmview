@@ -1,14 +1,12 @@
 package cmview.sadpAdapter;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import cmview.datasources.Model;
 import cmview.toolUtils.ToolRunner;
 import actionTools.Doer;
 import actionTools.Retriever;
 
 import proteinstructure.Alignment;
+import proteinstructure.AlignmentConstructionError;
 import proteinstructure.EdgeSet;
 import proteinstructure.Graph;
 import proteinstructure.PairwiseAlignmentConverter;
@@ -81,13 +79,13 @@ public class SADPRunner extends ToolRunner {
 	try {
 	    cm1 = new ContactMap(inG1);
 	} catch( ContactMapConstructorError e ) {
-	    System.err.println("Error: convert first graph into a contact map: "+e.getMessage());
+	    System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 	    return;
 	}
 	try {
 	    cm2 = new ContactMap(inG2);
 	} catch( ContactMapConstructorError e ) {
-	    System.err.println("Error: convert first graph into a contact map: "+e.getMessage());
+	    System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 	    return;
 	}
 	
@@ -97,7 +95,13 @@ public class SADPRunner extends ToolRunner {
 	sadp.setSecondSequence(inG2.getSequence());
 	sadp.run(); // compute alignment
 	matching = sadp.getMatching();
-	ali = makeAlignment(matching);
+	
+	try {
+	    ali = makeAlignment(matching);
+	} catch(AlignmentConstructionError e) {
+	    System.err.println("Error: Construction of alignment from mapping failed: " + e.getMessage());
+	    return;
+	}
 	makeAlignedGraphs(ali);
 		
 	if( getActionWhenDone() != null ) {
@@ -143,48 +147,17 @@ public class SADPRunner extends ToolRunner {
 	return outG2;
     }
     
-    public Model getFirstOutputModel()
-    throws NoSuchMethodException, InstantiationException,InvocationTargetException,IllegalAccessException 
-    {
-	return getXoutputModel(1);
+    public Model getFirstOutputModel() {
+	return getXoutputModel(getFirstInputModel(),getFirstAlignedGraph());
     }
     
-    public Model getSecondOutputModel() 
-    throws NoSuchMethodException, InstantiationException,InvocationTargetException,IllegalAccessException 
-    {
-	return getXoutputModel(2);
+    public Model getSecondOutputModel() {
+	return getXoutputModel(getSecondInputModel(),getSecondAlignedGraph());
     }
     
-    private Model getXoutputModel(int i) 
-    throws NoSuchMethodException, InstantiationException,InvocationTargetException,IllegalAccessException 
-    {
-	Model inMod = null;
-	if( i==1) {
-	    inMod = inMod1;
-	} else {
-	    inMod = inMod2;
-	}
-	Class[] ctorArgTypes = new Class[1];
-	ctorArgTypes[0]      = Model.class;
-	Object[] ctorArgData = new Object[1];
-	ctorArgData[0]       = inMod;
-	// construct aligned models with the class-type of the 
-	// corresponding orginal models as this seems quite reasonable 
-	// (TODO: at least for the moment)
-	Model outMod = null;
-//	try {
-	    Constructor modCopyCtor = inMod.getClass().getDeclaredConstructor(ctorArgTypes);
-	    outMod = (Model) modCopyCtor.newInstance(ctorArgData);
-	    outMod.setGraph(i==1 ? getFirstAlignedGraph() : getSecondAlignedGraph());
-//	} catch (NoSuchMethodException e) {
-//	    System.err.println("Error: Failed to create new Model instance due to missing constructor! ("+e.getMessage()+")");
-//	} catch (InstantiationException e) {
-//	    System.err.println("Error: Failed to instanciate new Model instance! ("+e.getMessage()+")");
-//	} catch (InvocationTargetException e) {
-//	    System.err.println("Error: Failed to instanciate new Model instance! ("+e.getMessage()+")");
-//	} catch (IllegalAccessException e) {
-//	    System.err.println("Error: Failed to instanciate new Model instance! ("+e.getMessage()+")");
-//	}
+    private Model getXoutputModel(Model inMod, Graph g) {
+	Model outMod = inMod.copy();
+	outMod.setGraph(g);
 	return outMod;
     }
     
@@ -209,7 +182,7 @@ public class SADPRunner extends ToolRunner {
     /**
      * Makes the alignment based an a set of alignment edges.
      * */
-    private Alignment makeAlignment( EdgeSet matching ) {
+    private Alignment makeAlignment( EdgeSet matching ) throws AlignmentConstructionError {
 	Alignment ali;
 	if( inG1.getSequence() == null ) {
 	    if( inG2.getSequence() == null ) {
