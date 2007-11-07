@@ -34,10 +34,10 @@ public class ScreenBuffer {
      */
     public void clear() {
 	if(g2d!=null){
-	    if(g2d!=null){
+	    
 		g2d.dispose();
 		g2d=null;
-	    }
+	    
 	    if(image!=null){
 		image.flush();
 		image=null;

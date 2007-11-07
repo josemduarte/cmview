@@ -285,10 +285,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
      * @return false if the model is not the same size as the existing first
      * model.
      */
-    public boolean addSecondModel(Model mod2) {
+    public boolean addSecondModel(Model mod2) 
+    throws DifferentContactMapSizeError {
 	// check for number of residues
 	if(mod.getMatrixSize() != mod2.getMatrixSize()) {
-	    return false;
+	    throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of differnt size.");
 	} else {
 	    System.out.println("Second model loaded.");
 	    view.setComparisonMode(true);
@@ -1330,6 +1331,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	screenBuffer.clear();
 	Graphics2D g2d = screenBuffer.getGraphics();
 
+//	if(g2d.getClip() != null) {
+//	    g2d.fillRect(0,0,g2d.getClip().getBounds().height,g2d.getClip().getBounds().width);
+//	}
+	
 	// paint background
 	int bgSizeX = Math.max(outputSize, getWidth());		// fill background
 	// even if window is

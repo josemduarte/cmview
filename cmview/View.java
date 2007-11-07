@@ -4,9 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -101,7 +102,7 @@ public class View extends JFrame implements ActionListener {
     JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
     JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
     JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
-    JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng;
+    JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng, mmSaveAli;
     JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
     JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
     JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
@@ -440,6 +441,7 @@ public class View extends JFrame implements ActionListener {
 	if(Start.USE_DATABASE) {
 	    mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
 	}
+	mmSaveAli = makeMenuItem("Alignment...", null, submenu);
 	menu.add(submenu);
 	smFile.put("Save", submenu);
 	// Print, Quit
@@ -756,6 +758,7 @@ public class View extends JFrame implements ActionListener {
 	
 	// menu -> File
 	map.put(smFile.get("Save"), hasMod);
+	map.put(mmSaveAli,false);
 	map.put(mmPrint,hasMod);	
 	map.put(mmInfo,hasMod);
 	// menu -> View
@@ -827,6 +830,9 @@ public class View extends JFrame implements ActionListener {
 	
 	// menu -> File
 	map.put(mmInfo,true);
+	map.put(mmSaveCmFile,false);
+	map.put(mmSaveGraphDb, false);
+	map.put(mmSaveAli, true);
 	// menu -> View
 	map.put(mmViewShowPdbResSers,false);
 	map.put(mmViewRulers,false);
@@ -853,6 +859,7 @@ public class View extends JFrame implements ActionListener {
 	map.put(mmSelFirstStrucInComparedMode,true);
 	map.put(mmSelSecondStrucInComparedMode,true);
 	map.put(mmToggleDiffDistMap,true);
+	map.put(smCompare.get("Load"),false);
 		
 	return map;
     }
@@ -915,7 +922,10 @@ public class View extends JFrame implements ActionListener {
 	}
 	if(e.getSource() == mmSavePng) {
 	    handleSaveToPng();
-	}	
+	}
+	if(e.getSource() == mmSaveAli) {
+	    handleSaveAlignment();
+	}
 
 	// Info, Print, Quit
 	if(e.getSource() == mmInfo || e.getSource() == tbFileInfo) {
@@ -1129,7 +1139,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1171,7 +1181,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1213,7 +1223,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1251,7 +1261,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1283,7 +1293,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1316,7 +1326,7 @@ public class View extends JFrame implements ActionListener {
 	    if(secondModel) {
 		//handleLoadSecondModel(mod);
 		mod2 = mod;
-		handlePairwiseAlignment(this.mod, mod);
+		handlePairwiseAlignment();
 	    } else {
 		this.spawnNewViewWindow(mod);
 	    }
@@ -1331,10 +1341,122 @@ public class View extends JFrame implements ActionListener {
      * @param mod1 first model
      * @param mod2 second model
      */
-    private void handlePairwiseAlignment(Model mod1, Model mod2) {
-	//actLoadDialog.setVisible(false);
-	System.out.println("view location in View.handlePairwiseAlignment:"+(this.getLocation()==null?"n.a.":this.getLocation()));
-	actLoadDialog.dispose();
+    private void handlePairwiseAlignment() {
+	
+	actLoadDialog.dispose();	
+	Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping"};
+	String source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
+		
+	if( source != null ) {
+	    try {
+		if( source == possibilities[0] ) {
+		    // compute contact map alignment using SADP
+		    doPairwiseAlignment(mod, mod2);
+		} else if( source == possibilities[1] ) {
+		    // load a user provided alignment from an external source
+		    doLoadPairwiseAlignment(mod,mod2);
+		} else if( source == possibilities[2] ) {
+		    // do a greedy residue-residue alignment
+		    doGreedyPairwiseAlignment(mod, mod2);
+		} else {
+		    System.err.println("Error: Detected unhandled input option for the alignment retrieval!");
+		    return;
+		}
+	    } catch (Exception e) {
+		JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		
+		// reset all fields connected to the compare mode and clean up 
+		// the scene
+		mod2 = null;
+		alignedMod1 = null;
+		alignedMod2 = null;
+		ali = null;
+		System.gc();
+	    }
+	}
+    }
+    
+    /**
+     * Enables and disables some GUI features for the compare mode.
+     */
+    private void setGUIStatusCompareMode() {
+	// enable computation of the superposition and the showing of 
+	// corresponding residues for both structures
+	mmSuposition.setEnabled(true);	
+	mmShowAlignedResidues.setEnabled(true);
+
+	// disable/enable some menu-bar items, popup-menu items and buttons
+	setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
+	setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
+	setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
+
+	// disable rulers
+	if(showRulers) {
+	    handleShowRulers();
+	}
+
+    }
+
+    /**
+     * Loads the pairwise alignment for the given model from a external source.
+     * @param mod1  the first model
+     * @param mod2  the second model
+     */
+    public void doLoadPairwiseAlignment(Model mod1, Model mod2)
+    throws FileNotFoundException, IOException, PirFileFormatError, FastaFileFormatError, Exception {
+	
+	// open global file-chooser and get the name the alignment file
+	JFileChooser fileChooser = Start.getFileChooser();
+	int ret = fileChooser.showOpenDialog(this);
+	File source = null;
+	if(ret == JFileChooser.APPROVE_OPTION) {
+	    source = fileChooser.getSelectedFile();
+	} else {
+	    return;
+	}
+
+	// load alignment
+	ali = new Alignment(source.getPath(),"FASTA");
+
+	// prepare expected sequence identifiers of 'mod1' and 'mod2' in 
+	// 'ali'
+	String name1 = mod1.getPDBCode() + mod1.getChainCode();
+	String name2 = mod2.getPDBCode() + mod2.getChainCode();
+
+	// as we cannot guess identifiers we throw an exception if either 
+	// of them is not defined
+	if( !(ali.hasTag(name1) && ali.hasTag(name2)) ) {
+	    throw new Exception(
+		    "Cannot assign a sequence to each structure! The expected sequence tags are:\n"+
+		    "for the first structure:  " + name1 + "\n" +
+		    "for the second structure: " + name2
+	    );
+	}
+
+	// compute aligned graphs
+	PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
+
+	// create the aligned models from the original once
+	alignedMod1 = mod1.copy();
+	alignedMod1.setGraph(pagc.getFirstGraph());
+	alignedMod2 = mod2.copy();
+	alignedMod2.setGraph(pagc.getSecondGraph());
+
+	// load stuff onto the contact map pane and the visualizer
+	doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+	doLoadModelOntoVisualizer(alignedMod2);
+	
+	// adapt GUI behavior
+	setGUIStatusCompareMode();
+    }
+    
+    /**
+     * Computes the pairwise contact map alignment of the two passed models in 
+     * a new thread.
+     * @param mod1 first model
+     * @param mod2 second model
+     */
+    public void doPairwiseAlignment(Model mod1, Model mod2) {
 	SADPRunner runner   = new SADPRunner(mod1,mod2);
 	// version 1.0 used to be as simple as possible -> no preferences 
 	// settings available
@@ -1342,66 +1464,263 @@ public class View extends JFrame implements ActionListener {
 		this,
 		"Pairwise Protein Alignment",
 		runner,
-		(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_PREFERENCES));
+		(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES));
 	sadpNotifier = sadpDiag.getNotifier();
+	
+	if( sadpDiag.getConstructionStatus() == SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES ) {
+	    sadpDiag.getStartButton().doClick();
+	}
+	
 	sadpDiag.createGUI();
     }
 
-    private void handlePairwiseAlignmentResults(SADPDialogDoneNotifier notifier) {
-	// disable/enable some menu-bar items, popup-menu items and buttons
-	setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
-	setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
-	setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
+    /**
+     * Construct a pairwise alignment of the given models in a rather greedy 
+     * manner: The residues of both models are mapped index-wise, i.e. residue 
+     * 1 in the first model is mapped to residue 1 in the second and so on. The 
+     * shorter sequence is being extended with gap characters to accomplish the 
+     * length of the longer sequence. If either (or both) sequence(s) do(es) 
+     * not provide sequence information the sequence length is being estimated 
+     * by size of the underlying graph structure (i.e. the maximum node index). 
+     * In that case, the sequences do only consist of X's.  
+     * @param mod1  the first model
+     * @param mod2  the second model
+     * @throws AlignmentConstructionError
+     */
+    public void doGreedyPairwiseAlignment(Model mod1, Model mod2) 
+    throws AlignmentConstructionError, DifferentContactMapSizeError {
 	
-	// disable rulers
-	if(showRulers) {
-	    handleShowRulers();
+	String alignedSeq1 = mod1.getSequence();
+	String alignedSeq2 = mod2.getSequence();
+	int len1,len2,cap;
+	StringBuffer s = null;
+	char gap = Alignment.getGapCharacter();
+	
+	if( alignedSeq1 == null || alignedSeq1 == "" ) {
+	    
+	    len1 = mod1.getGraph().getFullLength();
+	    
+	    if( alignedSeq2 == null || alignedSeq2 == "" ) {
+		// alignedSeq1 -> NOT present, alignedSeq2 -> NOT present
+		
+		len2 = mod2.getGraph().getFullLength();
+		cap  = Math.max(len1,len2);
+		s    = new StringBuffer(cap);
+
+		
+		// fill dummy string with 'X' characters denoting unobserved 
+		// residues in the size of the longer sequence 
+		for(int i = 0; i < cap; ++i) {
+		    s.append('X');
+		}
+
+		if( len1 < len2 ) {
+		    alignedSeq2 = new String(s);
+		    
+		    // replace the different position in the aligned sequences 
+		    // with gap characters in the shorter one
+		    for(int i = len1; i < len2; ++i) {
+			s.setCharAt(i, gap);
+		    }
+		    
+		    alignedSeq1 = new String(s);
+		    
+		} else if( len1 > len2 ){
+		    alignedSeq1 = new String(s);
+		    
+		    // replace the different position in the aligned sequences 
+		    // with gap characters in the shorter one
+		    for(int i = len1; i < len2; ++i) {
+			s.setCharAt(i, gap);
+		    }
+		    
+		    alignedSeq2 = new String(s);
+		}
+	    } else {
+		// alignedSeq1 -> NOT present, alignedSeq2 -> present
+		
+		len2 = alignedSeq2.length();
+		s    = new StringBuffer(Math.max(len1, len2));
+
+		for(int i = 0; i < len1; ++i) {
+		    s.append('X');
+		}
+		
+		if( len1 < len2 ) {
+		    // appends gaps to alignedSeq1
+		    for(int i = len1; i < len2; ++i) {
+			s.append(gap);
+		    }
+		    
+		    alignedSeq1 = new String(s);
+		    
+		} else if( len1 > len2 ) {
+		    alignedSeq1 = new String(s);
+
+		    // appends gaps to alignedSeq2
+		    for(int i = 0; i < len1-len2; ++i) {
+			s.setCharAt(i, gap);
+		    }		    
+		    
+		    alignedSeq2 += s;
+		}
+	    } 
+	} else {
+	    
+	    len1 = alignedSeq1.length();
+	    
+	    if( alignedSeq2 == null || alignedSeq2 == "" ) {
+		// alignedSeq1 -> present, alignedSeq2 -> NOT present
+		
+		len2 = mod2.getGraph().getFullLength();
+		s    = new StringBuffer(Math.max(len1, len2));
+
+		for(int i = 0; i < len2; ++i) {
+		    s.append('X');
+		}
+
+		if( len1 < len2 ) {
+		    alignedSeq2 = new String(s);
+
+		    // append gaps to alignedSeq1
+		    for(int i = 0; i < len2-len1; ++i) {
+			s.setCharAt(i, gap);
+		    }
+
+		    alignedSeq1 += s.substring(0,len2-len1);
+
+		} else if( len1 > len2 ) {
+		    // append gaps to alignedSeq2
+		    for(int i = len2; i < len1-len2; ++i) {
+			s.append(gap);
+		    }
+
+		    alignedSeq2 = new String(s);
+		}
+	    } else {
+		// alignedSeq1 -> present, alignedSeq2 -> present
+
+		// append gaps to the shorter of alignedSeq1 and alignedSeq2
+		len2 = alignedSeq2.length();
+
+		if( len1 != len2 ) {
+		    cap = Math.abs(len1-len2);
+		    s   = new StringBuffer(cap);
+
+		    for(int i = 0; i < cap; ++i) {
+			s.append(gap);
+		    }
+		}
+
+		if( len1 < len2 ) {
+		    alignedSeq1 += s;
+		} else if( len1 > len2 ) {
+		    alignedSeq2 += s;
+		}
+	    }
 	}
 	
-	SADPRunner runner = notifier.getRunner();
-
-	System.out.println("=========================================");
-	runner.getAlignment().printFasta();
-	System.out.println("=========================================");
-
+	// create alignement
+	TreeMap<String,String> name2seq = new TreeMap<String, String>();
+	String name1 = mod1.getPDBCode()+mod1.getChainCode();
+	String name2 = mod2.getPDBCode()+mod2.getChainCode();
+	name2seq.put(name1, alignedSeq1);
+	name2seq.put(name2, alignedSeq2);
+	ali = new Alignment(name2seq);
+	
+	// use alignment along with the graphs of the original models to 
+	// create the gapped graphs
+	PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
+	alignedMod1 = mod1.copy();
+	alignedMod1.setGraph(pagc.getFirstGraph());
+	alignedMod2 = mod2.copy();
+	alignedMod2.setGraph(pagc.getSecondGraph());
+	
+	// load stuff onto the contact map pane and the visualizer
+	doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+	doLoadModelOntoVisualizer(alignedMod2);
+	
+	// adapt GUI behavior
+	setGUIStatusCompareMode();
+    }
+    
+    /**
+     * Handles the results retrieval of the SADP run which has invoked this 
+     * notifier.
+     * @param notifier  a notifier of an SADP run
+     */
+    private void handlePairwiseAlignmentResults(SADPDialogDoneNotifier notifier) {
 	try {
 	    Integer exitStatus = notifier.notification();
 
 	    if( exitStatus == ToolDialog.DONE ) {
+		SADPRunner runner = notifier.getRunner();
+
+		System.out.println("=========================================");
+		runner.getAlignment().printFasta();
+		System.out.println("=========================================");
+		
 		// TODO: retrieve gapped graphs from SADPRunner and display them on the contact map pane
 		alignedMod1 = runner.getFirstOutputModel();
 		alignedMod2 = runner.getSecondOutputModel();
 		ali         = runner.getAlignment();
-		cmPane.setAlignment(ali, runner.getFirstName(), runner.getSecondName());
-		cmPane.setModel(alignedMod1);
-		cmPane.updateScreenBuffer();
 
-		if( cmPane.addSecondModel(alignedMod2) == false ) {
-		    showDifferentSizeContactMapsError();		    
-		} else {
-		    compareStatus = true;
-		    cmPane.toggleCompareMode(compareStatus);
-		    cmPane.updateScreenBuffer();
-		    Start.getPyMolAdaptor().loadStructure(mod2.getTempPdbFileName(), mod2.getPDBCode(), mod2.getChainCode(), true);
-		    Start.getPyMolAdaptor().sendCommand("orient");
-		    cmPane.repaint();
-		}
+		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, runner.getFirstName(), runner.getSecondName());
+		doLoadModelOntoVisualizer(alignedMod2);
+		
+		// adapt GUI behavior
+		setGUIStatusCompareMode();
 	    }
-	} catch (NoSuchMethodException e) {
-	    JOptionPane.showMessageDialog(this, "Cannot find constructor "+mod.getClass().getName()+"(Model)!");
-	} catch (InvocationTargetException e) {
-	    JOptionPane.showMessageDialog(this, e.getMessage());		    
-	} catch (IllegalAccessException e) {
-	    JOptionPane.showMessageDialog(this, e.getMessage());
-	} catch (InstantiationException e) {
-	    JOptionPane.showMessageDialog(this, e.getMessage());
+	} catch (Exception e) {
+	    JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+	    mod2 = null;
+	    alignedMod1 = null;
+	    alignedMod2 = null;
+	    ali = null;
+	    System.gc();
 	}
-	
-	// enable computation of the superposition and the showing of 
-	// corresponding residues for both structures
-	mmSuposition.setEnabled(true);	
-	mmShowAlignedResidues.setEnabled(true);
     }
+    
+    /**
+     * Loads the given aligned models onto the contact map panel. 
+     * @param alignedMod1  the first aligned model
+     * @param alignedMod2  the second aligned model
+     * @param ali  alignment of rediues in <code>alignedMod1</code> to residues 
+     *  in <code>alignedMod2</code>
+     * @param name1  sequence identifier (tag) of <code>alignedMod1</code> in 
+     *  <code>ali</code>
+     * @param name2  sequence identifier (tag) of <code>alignedMod2</code> in 
+     *  <code>ali</code>
+     * @throws DifferentContactMapSizeError
+     */
+    private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali, String name1, String name2) 
+    throws DifferentContactMapSizeError {
+	
+	// add alignment
+	cmPane.setAlignment(ali, name1, name2);
+	
+	// add first model and update the image buffer
+	cmPane.setModel(alignedMod1);
+	cmPane.updateScreenBuffer();
+
+	// add the second model and update the image buffer
+	cmPane.addSecondModel(alignedMod2); // throws DifferentContactMapSizeError
+	compareStatus = true;
+	cmPane.toggleCompareMode(compareStatus);
+	cmPane.updateScreenBuffer();
+	
+	// finally repaint the whole thing to display the whole set of contacts
+	cmPane.repaint();
+    }
+    
+    /**
+     * Loads the given model onto the visualizer.
+     * @param mod  the model to be loaded
+     */
+    private void doLoadModelOntoVisualizer(Model mod) {
+	Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
+	Start.getPyMolAdaptor().sendCommand("orient");
+    }	
     
     private void handleSuperposition() {
 	doSuperposition(mod, mod2, 
@@ -1411,6 +1730,21 @@ public class View extends JFrame implements ActionListener {
 		cmPane.getSelectedContacts() );
     }
 
+    /**
+     * Superimposes the given models with respect the given alignment. Instead 
+     * of considering the alignment as a whole it is reduced to the induced 
+     * alignment columns defined by a set of contacts. The residues incident to 
+     * the contact in the selection can be mapped to alignment columns which 
+     * construct the set of paired residues (matches and/or mismatches) to be 
+     * consulted for the superpositioning.
+     * @param mod1  the first model
+     * @param mod2  the second model
+     * @param name1  sequence identifier of <code>mod1</code> in the alignment
+     * @param name2  sequence identifier of <code>mod2</code> in the alignment
+     * @param ali  alignment of residues in <code>mod1</code> to residues in 
+     *  <code>mod2</code>
+     * @param selection  set of contacts to be considered
+     */
     public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, EdgeSet[] selection) {
 
 	try { 
@@ -1466,13 +1800,15 @@ public class View extends JFrame implements ActionListener {
     }
     
     /**
-     * 
-     * @param mod1
-     * @param mod2
-     * @param name1
-     * @param name2
-     * @param ali
-     * @param selection
+     * Sends the induced residue-residue alignment of the given contact 
+     * selection to the visualizer. 
+     * @param mod1  the first model
+     * @param mod2  the second model
+     * @param name1  sequence identifier of <code>mod1</code> in the alignment
+     * @param name2  sequence identifier of <code>mod2</code> in the alignment
+     * @param ali  alignment of residues in <code>mod1</code> to residues in 
+     *  <code>mod2</code>
+     * @param selection  selection of contacts to be considered
      */
     public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, EdgeSet[] selection) {
 	try {
@@ -1612,16 +1948,13 @@ public class View extends JFrame implements ActionListener {
      * @deprecated This one is meant to be a fallback routine if the strategy of pairwise alignment failes for any reason.
      */
     @SuppressWarnings("unused")
-    private void handleLoadSecondModel(Model mod) {
-	if(cmPane.addSecondModel(mod) == false) {
-	    showDifferentSizeContactMapsError();
-	} else {
-	    compareStatus = true;
-	    cmPane.toggleCompareMode(compareStatus);
-	    Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
-	    Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-	}	    
+    private void handleLoadSecondModel(Model mod) 
+    throws DifferentContactMapSizeError {
+	cmPane.addSecondModel(mod); // throws DifferentContactMapSizeError
+	compareStatus = true;
+	cmPane.toggleCompareMode(compareStatus);
+	doLoadModelOntoVisualizer(mod);
+	Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
     }
 
     private void handleSaveToGraphDb() {
@@ -1696,31 +2029,108 @@ public class View extends JFrame implements ActionListener {
 	}
     }
 
+    private void handleSaveAlignment() {
+	doSaveAlignment(ali);
+    }
+    
+    public void doSaveAlignment(Alignment ali) {
+	if(ali == null) {
+	    //System.out.println("No contact map loaded yet.");
+	    showCannotSaveEmptyAlignment();
+	} else {
+	    int ret = Start.getFileChooser().showSaveDialog(this);
+	    if(ret == JFileChooser.APPROVE_OPTION) {
+		File chosenFile = Start.getFileChooser().getSelectedFile();
+		try {
+		    ali.writeFasta(new FileOutputStream(chosenFile), 80, true);
+		} catch (IOException e) {
+		    System.err.println("Error while trying to write to FASTA file " + chosenFile.getPath());
+		}
+	    }
+	}	
+    }
+    
     private void handleInfo() {
 	if(this.mod == null) {
 	    //System.out.println("No contact map loaded yet.");
 	    showNoContactMapWarning();
 	} else {
+//	    String seq = mod.getSequence();
+//	    String s = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
+//	    String message = "Pdb code: " + mod.getPDBCode() + "\n"
+//	    + "Chain code: " + mod.getChainCode() + "\n"
+//	    + "Contact type: " + mod.getContactType() + "\n"
+//	    + "Distance cutoff: " + mod.getDistanceCutoff() + "\n"
+//	    + "Min Seq Sep: " + (mod.getMinSequenceSeparation()<1?"none":mod.getMinSequenceSeparation()) + "\n"
+//	    + "Max Seq Sep: " + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "\n"
+//	    + "\n"
+//	    + "Contact map size: " + mod.getMatrixSize() + "\n"
+//	    + "Unobserved Residues: " + mod.getNumberOfUnobservedResidues() + "\n"
+//	    + "Number of contacts: " + mod.getNumberOfContacts() + "\n"
+//	    + "Directed: " + (mod.isDirected()?"Yes":"No")
+//	    + "\n"
+//	    + "Sequence: " + s + "\n"
+//	    + "Secondary structure: " + mod.getSecondaryStructure().getComment();
+//	    JOptionPane.showMessageDialog(this,
+//		    message,
+//		    "Contact map info",
+//		    JOptionPane.PLAIN_MESSAGE);
+	    
 	    String seq = mod.getSequence();
-	    String s = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
-	    String message = "Pdb code: " + mod.getPDBCode() + "\n"
-	    + "Chain code: " + mod.getChainCode() + "\n"
-	    + "Contact type: " + mod.getContactType() + "\n"
-	    + "Distance cutoff: " + mod.getDistanceCutoff() + "\n"
-	    + "Min Seq Sep: " + (mod.getMinSequenceSeparation()<1?"none":mod.getMinSequenceSeparation()) + "\n"
-	    + "Max Seq Sep: " + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "\n"
-	    + "\n"
-	    + "Contact map size: " + mod.getMatrixSize() + "\n"
-	    + "Unobserved Residues: " + mod.getNumberOfUnobservedResidues() + "\n"
-	    + "Number of contacts: " + mod.getNumberOfContacts() + "\n"
-	    + "Directed: " + (mod.isDirected()?"Yes":"No")
-	    + "\n"
-	    + "Sequence: " + s + "\n"
-	    + "Secondary structure: " + mod.getSecondaryStructure().getComment();
-	    JOptionPane.showMessageDialog(this,
-		    message,
-		    "Contact map info",
-		    JOptionPane.PLAIN_MESSAGE);
+	    String s1 = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
+	    String s2 = "";
+	    if( mod2 != null ) {
+		seq = mod2.getSequence();
+		s2  = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
+	    }
+		    
+	    String message = 
+		"<html><table>" +
+		/* print pdb code */
+		"<tr><td>Pdb Code:</td><td>"            + mod.getPDBCode()         + "</td>"  + 
+		(mod2 == null ? "" :  "<td>"            + mod2.getPDBCode()        + "</td>") + "</tr>" +
+		/* print chain code */
+		"<tr><td>Chain code:</td><td>"          + mod.getChainCode()       + "</td>" + 
+		(mod2 == null ? "" : "<td>"             + mod2.getChainCode()      + "</td>") + "</tr>" +
+		/* print contact type */
+		"<tr><td>Contact type:</td><td>"        + mod.getContactType()     + "</td>" +
+		(mod2 == null ? "" : "<td>"             + mod2.getContactType()    + "</td>") + "</tr>" +
+		/* print distance cutoff */
+		"<tr><td>Distance cutoff:</td><td>"     + mod.getDistanceCutoff()  + "</td>" + 
+		(mod2 == null ? "" : "<td>"             + mod2.getDistanceCutoff() + "</td>") + "</tr>" +
+		/* print minimal sequence separation */
+		"<tr><td>Min Seq Sep:</td><td>" + (mod.getMinSequenceSeparation()<1?"none":mod.getMinSequenceSeparation()) + "</td>" +
+		(mod2 == null ? "" : "<td>"     + (mod2.getMinSequenceSeparation()<1?"none":mod2.getMinSequenceSeparation()) + "</td>") + "</tr>" +
+		/* print maximal sequence separation */
+		"<tr><td>Max Seq Sep:</td><td>" + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "</td>" +
+		(mod2 == null ? "" : "<td>"     + (mod2.getMaxSequenceSeparation()<1?"none":mod2.getMaxSequenceSeparation()) + "</td>") + "</tr>" +
+		/* BLANK LINE */
+		"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
+		/* print contact map size */
+		"<tr><td>Contact map size:</td><td>"    + mod.getMatrixSize()                       + "</td>" + 
+		(mod2 == null ? "" : "<td>"             + mod2.getMatrixSize()                      + "</td>") + "</tr>" +
+		/* print number of unobserved residues */
+		"<tr><td>Unobserved Residues:</td><td>" + mod.getNumberOfUnobservedResidues()       + "</td>" + 
+		(mod2 == null ? "" : "<td>"             + mod2.getNumberOfUnobservedResidues()      + "</td>") + "</tr>" +
+		/* print number of contacts */
+		"<tr><td>Number of contacts:</td><td>"  + mod.getNumberOfContacts()                 + "</td>" +
+		(mod2 == null ? "" : "<td>"             + mod2.getNumberOfContacts()                + "</td>") + "</tr>" +
+		/* print whether graph is directed */
+		"<tr><td>Directed:</td><td>"            + (mod.isDirected()?"Yes":"No")             + "</td>" +
+		(mod2 == null ? "" : "<td>"             + (mod2.isDirected()?"Yes":"No")            + "</td>") + "</tr>" +
+		/* BLANK LINE */
+		"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
+		/* print the first ten characters of all available sequences */
+		"<tr><td>Sequence:</td><td>"            + s1                                        + "</td>" +
+		(mod2 == null ? "" : "<td>"             + s2                                        + "</td>") + "</tr>" +
+		/* print secondary structure source */
+		"<tr><td>Secondary structure:</td><td>" + mod.getSecondaryStructure().getComment()  + "</td>" +
+		(mod2 == null ? "" : "<td>"             + mod2.getSecondaryStructure().getComment() + "</td></tr>");
+
+		JOptionPane.showMessageDialog(this,
+			message,
+			"Contact map info",
+			JOptionPane.PLAIN_MESSAGE);
 	}
     }
 
@@ -2495,6 +2905,7 @@ public class View extends JFrame implements ActionListener {
 	JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
     }
 
+    @SuppressWarnings("unused")
     private void showDifferentSizeContactMapsError() {
 	JOptionPane.showMessageDialog(this, "The two contact maps cannot be compared because they have different size.", "Cannot compare contact maps", JOptionPane.ERROR_MESSAGE);		
     }
@@ -2503,7 +2914,10 @@ public class View extends JFrame implements ActionListener {
 	JOptionPane.showMessageDialog(this, "Invalid selection string", "Warning", JOptionPane.INFORMATION_MESSAGE);				
     }
     
-
+    private void showCannotSaveEmptyAlignment() {
+	JOptionPane.showMessageDialog(this, "Cannot save empty alignment!", "Save error", JOptionPane.ERROR_MESSAGE);
+    }
+    
     
     /*---------------------------- public methods ---------------------------*/
 
