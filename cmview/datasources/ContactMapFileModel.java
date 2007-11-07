@@ -74,4 +74,8 @@ public class ContactMapFileModel extends Model {
 	    super(mod);
 	}
 	
+	public ContactMapFileModel copy() {
+	    return new ContactMapFileModel(this);
+	}
+	
 }

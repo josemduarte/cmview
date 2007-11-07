@@ -57,6 +57,12 @@ public abstract class Model {
 	    this.tempPdbFile = mod.tempPdbFile;
 	}
 	
+	/**
+	 * Creates a new model as a shallow copy of this model.
+	 * @return the new model
+	 */
+	public abstract Model copy();
+	
 	/*---------------------------- private methods --------------------------*/
 	
 	/** Write temporary PDB file with atom lines for the current structure.

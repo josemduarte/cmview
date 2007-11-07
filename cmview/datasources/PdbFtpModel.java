@@ -45,4 +45,7 @@ public class PdbFtpModel extends Model {
 	    super(mod);
 	}
 	
+	public PdbFtpModel copy() {
+	    return new PdbFtpModel(this);
+	}
 }

@@ -46,4 +46,7 @@ public class MsdsdModel extends Model {
 	    super(mod);
 	}
 	
+	public MsdsdModel copy() {
+	    return new MsdsdModel(this);
+	}
 }

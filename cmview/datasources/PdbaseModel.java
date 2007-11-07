@@ -45,4 +45,8 @@ public class PdbaseModel extends Model {
 	public PdbaseModel(Model mod) {
 	    super(mod);
 	}
+	
+	public PdbaseModel copy() {
+	    return new PdbaseModel(this);
+	}
 }

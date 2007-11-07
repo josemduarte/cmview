@@ -42,4 +42,7 @@ public class PdbFileModel extends Model {
 	    super(mod);
 	}
 	
+	public PdbFileModel copy() {
+	    return new PdbFileModel(this);
+	}
 }
