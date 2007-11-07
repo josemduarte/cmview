@@ -70,6 +70,13 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
     public static final int CONSTRUCT_WITHOUT_PREFERENCES = 1;
     /** construct dialog without the cancel and the preferences button */
     public static final int CONSTRUCT_WITHOUT_CANCEL_AND_PREFERENCES = 2;
+    /** construct dialog with the start and the preferences button */
+    public static final int CONSTRUCT_WITHOUT_START_AND_PREFERENCES = 4;
+    /** construct dialog with any button */
+    public static final int CONSTRUCT_WITHOUT_ANY_BUTTONS = 5;
+    
+    /** construction status */
+    int constructionStatus;
     
     public ToolDialog( Frame f, String title, boolean model ) {
 	super(f,title,model);
@@ -121,14 +128,23 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
 	JPanel buttonPane = new JPanel();
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-	buttonPane.add(startButton);
+	// add Start button
+	if( !(constructionInfo == CONSTRUCT_WITHOUT_START_AND_PREFERENCES
+		|| constructionInfo == CONSTRUCT_WITHOUT_ANY_BUTTONS) ) {
+	    buttonPane.add(startButton);
+	}
+	// add Preferences button
 	if( !(constructionInfo == CONSTRUCT_WITHOUT_PREFERENCES 
-		|| constructionInfo == CONSTRUCT_WITHOUT_CANCEL_AND_PREFERENCES) ) {
+		|| constructionInfo == CONSTRUCT_WITHOUT_CANCEL_AND_PREFERENCES 
+		|| constructionInfo == CONSTRUCT_WITHOUT_START_AND_PREFERENCES 
+		|| constructionInfo == CONSTRUCT_WITHOUT_ANY_BUTTONS) ) {
 	    buttonPane.add(Box.createHorizontalStrut(10));
 	    buttonPane.add(preferencesButton);
 	}
+	// add cancel button
 	if( !(constructionInfo == CONSTRUCT_WITHOUT_CANCEL 
-		|| constructionInfo == CONSTRUCT_WITHOUT_CANCEL_AND_PREFERENCES) ) {
+		|| constructionInfo == CONSTRUCT_WITHOUT_CANCEL_AND_PREFERENCES
+		|| constructionInfo == CONSTRUCT_WITHOUT_ANY_BUTTONS) ) {
 	    buttonPane.add(Box.createHorizontalStrut(10));
 	    buttonPane.add(cancelButton);
 	}
@@ -140,6 +156,8 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
 	contentPane.add(infoComponent(),BorderLayout.NORTH);
 	contentPane.add(progressBar,BorderLayout.CENTER);
 	contentPane.add(buttonPane,BorderLayout.SOUTH);
+	
+	constructionStatus = constructionInfo;
     }
         
     /**
@@ -208,28 +226,53 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
     }
     
     /**
-     * Gets progress bar. This one can be manipulated with the progress status of the running tool. 
+     * Gets progress bar. This one can be manipulated with the progress status 
+     * of the running tool. 
      */
     public JProgressBar getProgressBar() {
 	return progressBar;
     }
     
+    /**
+     * Sets runtime status of this instance. Do not use this function directly. 
+     * The proper value is set according to the recently pressed button and the 
+     * previous state of the dialog.
+     * @param status  set this value to one of these class constants: 
+     * <code>IDLE</code>, <code>START</code>, <code>CANCELED_AT_IDLE</code>, 
+     * <code>CANCELED_AT_STARTED</code> and <code>DONE</code>.
+     */
     public void setStatus(int status) {
 	this.status = status;
     }
     
+    /**
+     * Gets the runtime status of this instance. The value shall equal to one 
+     * of these class constants: <code>IDLE</code>, <code>START</code>, 
+     * <code>CANCELED_AT_IDLE</code>, <code>CANCELED_AT_STARTED</code> or 
+     * <code>DONE</code>.
+     * @return the runtime status
+     */
     public int getStatus() {
 	return status;
     }
     
     /**
+     * Gets the construction status, i.e. a number defining the set of visible 
+     * buttons of this object.
+     * @return  the contruction status
+     */
+    public int getConstructionStatus() {
+	return constructionStatus;
+    }
+    
+    /**
      * Action to be performed when button START has been pressed.
-     * */
+     */
     public abstract void start();
     
     /**
      * Action to be performed when button CANCEL has been pressed.
-     * */
+     */
     public abstract void cancel();
     
     /**
@@ -240,6 +283,6 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
     /**
      * Pane holding user defined information concerning the tool in use.
      * @return any kind of informative component
-     * */
+     */
     protected abstract Component infoComponent();
 }
