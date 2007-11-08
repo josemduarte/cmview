@@ -30,6 +30,7 @@ public class SADPDialogDoneNotifier extends JButton {
     public void secureNotify(Integer status) {
 	if(this.status == SADPDialog.IDLE) {
 	    this.status = status;
+	    doClick();
 	}
     }
 
