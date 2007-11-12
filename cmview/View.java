@@ -26,6 +26,7 @@ import cmview.sadpAdapter.SADPDialogDoneNotifier;
 import cmview.sadpAdapter.SADPRunner;
 import cmview.toolUtils.ToolDialog;
 import proteinstructure.*;
+import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 
 /**
  * Main GUI window and associated event handling.
@@ -1342,37 +1343,52 @@ public class View extends JFrame implements ActionListener {
      * @param mod2 second model
      */
     private void handlePairwiseAlignment() {
-	
+	String error = null;
+    	
 	actLoadDialog.dispose();	
-	Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping"};
+	Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping","compute Needleman-Wunsch sequence alignment"};
 	String source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
 		
 	if( source != null ) {
 	    try {
 		if( source == possibilities[0] ) {
 		    // compute contact map alignment using SADP
-		    doPairwiseAlignment(mod, mod2);
+		    doPairwiseSadpAlignment(mod, mod2);
 		} else if( source == possibilities[1] ) {
 		    // load a user provided alignment from an external source
 		    doLoadPairwiseAlignment(mod,mod2);
 		} else if( source == possibilities[2] ) {
 		    // do a greedy residue-residue alignment
 		    doGreedyPairwiseAlignment(mod, mod2);
+		} else if( source == possibilities[3] ) {
+		    // do a greedy residue-residue alignment
+		    doPairwiseSequenceAlignment(mod, mod2);		
 		} else {
 		    System.err.println("Error: Detected unhandled input option for the alignment retrieval!");
 		    return;
 		}
-	    } catch (Exception e) {
-		JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+	    } catch (AlignmentConstructionError e) {
+	    	error = e.getMessage();
+	    } catch (DifferentContactMapSizeError e) {
+	    	error = e.getMessage();
+		} catch (FileNotFoundException e) {
+	    	error = e.getMessage();
+		} catch (PirFileFormatError e) {
+	    	error = e.getMessage();
+		} catch (FastaFileFormatError e) {
+	    	error = e.getMessage();
+		} catch (IOException e) {
+	    	error = e.getMessage();
+		}
+		finally{
+			if(error != null) {
+		    	// reset all fields connected to the compare mode and clean up the scene
+		    	mod2 = null; alignedMod1 = null; alignedMod2 = null; ali = null;
+		    	JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);		    	
+		    	
+			}
+		}
 		
-		// reset all fields connected to the compare mode and clean up 
-		// the scene
-		mod2 = null;
-		alignedMod1 = null;
-		alignedMod2 = null;
-		ali = null;
-		System.gc();
-	    }
 	}
     }
     
@@ -1403,7 +1419,8 @@ public class View extends JFrame implements ActionListener {
      * @param mod2  the second model
      */
     public void doLoadPairwiseAlignment(Model mod1, Model mod2)
-    throws FileNotFoundException, IOException, PirFileFormatError, FastaFileFormatError, Exception {
+    throws FileNotFoundException, IOException, PirFileFormatError, FastaFileFormatError, 
+           AlignmentConstructionError, DifferentContactMapSizeError {
 	
 	// open global file-chooser and get the name the alignment file
 	JFileChooser fileChooser = Start.getFileChooser();
@@ -1426,7 +1443,7 @@ public class View extends JFrame implements ActionListener {
 	// as we cannot guess identifiers we throw an exception if either 
 	// of them is not defined
 	if( !(ali.hasTag(name1) && ali.hasTag(name2)) ) {
-	    throw new Exception(
+	    throw new AlignmentConstructionError(
 		    "Cannot assign a sequence to each structure! The expected sequence tags are:\n"+
 		    "for the first structure:  " + name1 + "\n" +
 		    "for the second structure: " + name2
@@ -1456,7 +1473,7 @@ public class View extends JFrame implements ActionListener {
      * @param mod1 first model
      * @param mod2 second model
      */
-    public void doPairwiseAlignment(Model mod1, Model mod2) {
+    public void doPairwiseSadpAlignment(Model mod1, Model mod2) {
 	SADPRunner runner   = new SADPRunner(mod1,mod2);
 	// version 1.0 used to be as simple as possible -> no preferences 
 	// settings available
@@ -1474,6 +1491,61 @@ public class View extends JFrame implements ActionListener {
 	sadpDiag.createGUI();
     }
 
+    /**
+     * Constructs a pairwise sequence alignment using the Needleman-Wunsch algorithm with default parameters.
+     * @param mod1 the first model
+     * @param mod2 the second model
+     * @throws AlignmentConstructionError
+     */
+    public void doPairwiseSequenceAlignment(Model mod1, Model mod2) throws AlignmentConstructionError {
+    	String seq1 = mod1.getSequence();
+    	String seq2 = mod2.getSequence();
+    	
+    	if(seq1 == null || seq2 == null || seq1.length() == 0 || seq2.length() == 0) {
+    		throw new AlignmentConstructionError("No sequence found.");
+    	}
+    	
+		String name1 = mod1.getPDBCode()+mod1.getChainCode();
+		String name2 = mod2.getPDBCode()+mod2.getChainCode();
+    	
+    	PairwiseSequenceAlignment jalign = null;
+    	try {
+			jalign = new PairwiseSequenceAlignment(seq1, seq2, name1, name2);
+		} catch (PairwiseSequenceAlignmentException e) {
+			throw new AlignmentConstructionError("Error during alignment: " + e.getMessage());
+		}
+		jalign.printAlignment();
+		String[] alignedSeqs = jalign.getAlignedSequences();
+		String alignedSeq1 = alignedSeqs[0];
+		String alignedSeq2 = alignedSeqs[1];
+		
+		// create alignement
+		TreeMap<String,String> name2seq = new TreeMap<String, String>();
+		name2seq.put(name1, alignedSeq1);
+		name2seq.put(name2, alignedSeq2);
+		ali = new Alignment(name2seq);
+		//ali.printSimple();
+		
+		// use alignment along with the graphs of the original models to 
+		// create the gapped graphs
+		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
+		alignedMod1 = mod1.copy();
+		alignedMod1.setGraph(pagc.getFirstGraph());
+		alignedMod2 = mod2.copy();
+		alignedMod2.setGraph(pagc.getSecondGraph());
+		
+		// load stuff onto the contact map pane and the visualizer
+		try {
+			doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+		} catch (DifferentContactMapSizeError e) {
+			throw new AlignmentConstructionError("Sizes of aligned contact maps do not match: " + e.getMessage());
+		}
+		doLoadModelOntoVisualizer(alignedMod2);
+		
+		// adapt GUI behavior
+		setGUIStatusCompareMode();	
+    }
+    
     /**
      * Construct a pairwise alignment of the given models in a rather greedy 
      * manner: The residues of both models are mapped index-wise, i.e. residue 
@@ -1496,11 +1568,11 @@ public class View extends JFrame implements ActionListener {
 	StringBuffer s = null;
 	char gap = Alignment.getGapCharacter();
 	
-	if( alignedSeq1 == null || alignedSeq1 == "" ) {
+	if( alignedSeq1 == null || alignedSeq1.length() == 0 ) {		// changed by HS, hope this is safer
 	    
 	    len1 = mod1.getGraph().getFullLength();
 	    
-	    if( alignedSeq2 == null || alignedSeq2 == "" ) {
+	    if( alignedSeq2 == null || alignedSeq2.length() == 0) {
 		// alignedSeq1 -> NOT present, alignedSeq2 -> NOT present
 		
 		len2 = mod2.getGraph().getFullLength();
