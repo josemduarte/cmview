@@ -43,6 +43,8 @@ fi
 # copying from aglappetag to cmviewtag
 cp -R $aglappetag/proteinstructure $cmviewtag
 cp -R $aglappetag/tools $cmviewtag
+cp -R $aglappetag/sadp $cmviewtag
+cp -R $aglappetag/actionTools $cmviewtag
 rm -rf $aglappetag
 
 # compiling
