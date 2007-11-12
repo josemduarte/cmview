@@ -512,12 +512,12 @@ public class Start {
 			}
 		}
 
+		setLookAndFeel();
+		
 		// initialize session variables
 		fileChooser = new JFileChooser();
 		colorChooser = new JColorChooser();
 		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
-
-		setLookAndFeel();
 		
 		// start gui without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
