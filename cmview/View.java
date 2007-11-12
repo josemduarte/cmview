@@ -594,11 +594,7 @@ public class View extends JFrame implements ActionListener {
 	disregardedTypes = new HashSet<Class<?>>();
 	disregardedTypes.add(JPopupMenu.Separator.class);
 	disregardedTypes.add(JToolBar.Separator.class);
-	
-	for(int i=0; i < getJMenuBar().getMenuCount(); ++i) {
-	    System.out.println(getJMenuBar().getMenu(i).getText() + ": visible == " + getJMenuBar().getMenu(i).isVisible()); 
-	}
-	
+		
 	// toggle the visibility of menu-items 
 	setAccessibility(initMenuBarAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
 		
@@ -656,12 +652,12 @@ public class View extends JFrame implements ActionListener {
      */
     public void setAccessibility(Component comp, boolean visible, boolean parentCheck, Component topLevelComponent, Collection<Class<?>> disregardedTypes) {
 
-	try {
-	    System.out.println("set:"+((AbstractButton) comp).getText());
-	} catch(Exception e) {
-	    System.out.println("not an abstract button:"+comp.getClass());
-	    System.out.println("comp==popup:"+(comp==this.popup));
-	}
+//	try {
+//	    System.out.println("set:"+((AbstractButton) comp).getText());
+//	} catch(Exception e) {
+//	    System.out.println("not an abstract button:"+comp.getClass());
+//	    System.out.println("comp==popup:"+(comp==this.popup));
+//	}
 	
 	if( comp == topLevelComponent ) {
 	    return;
@@ -742,7 +738,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	    }
 	} catch (IllegalAccessException e) {
-	    System.err.println(e.getMessage());
+	    System.err.println("Error: " + e.getMessage());
 	}	// menu -> View
 	return h;
     }
@@ -1727,12 +1723,6 @@ public class View extends JFrame implements ActionListener {
 
 	    if( exitStatus == ToolDialog.DONE ) {
 		SADPRunner runner = notifier.getRunner();
-
-		System.out.println("=========================================");
-		runner.getAlignment().printFasta();
-		System.out.println("=========================================");
-		
-		// TODO: retrieve gapped graphs from SADPRunner and display them on the contact map pane
 		alignedMod1 = runner.getFirstOutputModel();
 		alignedMod2 = runner.getSecondOutputModel();
 		ali         = runner.getAlignment();
