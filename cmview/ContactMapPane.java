@@ -1614,7 +1614,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	    }
 
 	    else if (common == false && firstS == true && secondS == true){
-		selContacts.addAll(contacts);
+	    	// removed "selContacts.addAll(contacts)" as contacts is only 
+	    	// being filled in the mouse drag/release mode
+	    	selContacts.addAll(mainStrucContacts);
+	    	selContacts.addAll(secStrucContacts);
+	    	selContacts.addAll(contacts);
 	    }
 
 	    else if (common == true && firstS == false && secondS == false){
@@ -1630,7 +1634,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	    }
 
 	    else if (common == true && firstS == true && secondS == true){
-		selContacts.addAll(bothStrucContacts);
+			bothStrucContacts.addAll(commonContacts);
+			bothStrucContacts.addAll(secStrucContacts);
+			bothStrucContacts.addAll(mainStrucContacts);
+			selContacts.addAll(bothStrucContacts);
 	    }
 
 	} else { 
