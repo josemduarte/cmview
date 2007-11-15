@@ -76,7 +76,7 @@ public class LoadDialog extends JDialog implements ActionListener{
 		JLabel labelAc = new JLabel("PDB Code:");
 		JLabel labelAfterAc = new JLabel("e.g. 7adh");
 		JLabel labelCc = new JLabel("Chain code:");
-		JLabel labelAfterCc = new JLabel("e.g. A");
+		JLabel labelAfterCc = new JLabel("e.g. A (case sensitive)");
 		JLabel labelCt = new JLabel("Contact type:");
 		JLabel labelDist = new JLabel("Distance cutoff:");
 		JLabel labelAfterDist = new JLabel("e.g. 8.0");
