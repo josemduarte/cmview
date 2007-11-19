@@ -27,7 +27,9 @@ public class GraphDbModel extends Model {
 				System.err.println("No database connection. Can't load structure.");					
 			} else {
 				try {
+					//TODO eventually we should read from pdbase, new graphs in db are now based on pdbase
 					this.pdb = new MsdsdPdb(pdbCode, pdbChainCode, Start.DEFAULT_MSDSD_DB, Start.getDbConnection());
+					System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from MSD database "+Start.DEFAULT_MSDSD_DB);
 					super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 				} catch (PdbCodeNotFoundError e) {
 					System.err.println("Failed to load structure because accession code was not found in MSD");
@@ -69,7 +71,9 @@ public class GraphDbModel extends Model {
 			
 			// load structure from MSD (to display in Pymol)
 			try {
+				//TODO eventually we should read from pdbase, new graphs in db are now based on pdbase
 				this.pdb = new MsdsdPdb(pdbCode, pdbChainCode, Start.DEFAULT_MSDSD_DB, Start.getDbConnection());
+				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from MSD database "+Start.DEFAULT_MSDSD_DB);
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 			} catch (PdbCodeNotFoundError e) {
 				System.err.println("Failed to load structure because accession code was not found in MSD");
