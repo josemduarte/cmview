@@ -11,7 +11,7 @@ tempdir=$1
 cmviewtag=$2
 aglappetag=$3
 
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar:/project/StruPPi/jars/Jama-1.0.2.jar
+CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:/project/StruPPi/jars/commons-codec-1.3.jar:/project/StruPPi/jars/xmlrpc-client-3.0.jar:/project/StruPPi/jars/xmlrpc-common-3.0.jar:/project/StruPPi/jars/ws-commons-util-1.0.1.jar:/project/StruPPi/jars/vecmath.jar:/project/StruPPi/jars/Jama-1.0.2.jar:/project/StruPPi/jars/jaligner.jar
 
 cd $tempdir
 
