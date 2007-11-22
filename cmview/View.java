@@ -23,6 +23,7 @@ import javax.imageio.*;
 import cmview.datasources.*;
 import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
+import cmview.sadpAdapter.SADPResult;
 import cmview.sadpAdapter.SADPRunner;
 import cmview.toolUtils.ToolDialog;
 import proteinstructure.*;
@@ -1470,13 +1471,15 @@ public class View extends JFrame implements ActionListener {
 	 * @param mod2 second model
 	 */
 	public void doPairwiseSadpAlignment(Model mod1, Model mod2) {
-		SADPRunner runner   = new SADPRunner(mod1,mod2);
+		SADPResult result   = new SADPResult();
+		SADPRunner runner   = new SADPRunner(mod1,mod2,result);
 		// version 1.0 used to be as simple as possible -> no preferences 
 		// settings available
 		SADPDialog sadpDiag = new SADPDialog(
 				this,
 				"Pairwise Protein Alignment",
 				runner,
+				result,
 				(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES));
 		sadpNotifier = sadpDiag.getNotifier();
 
@@ -1722,12 +1725,13 @@ public class View extends JFrame implements ActionListener {
 			Integer exitStatus = notifier.notification();
 
 			if( exitStatus == ToolDialog.DONE ) {
-				SADPRunner runner = notifier.getRunner();
-				alignedMod1 = runner.getFirstOutputModel();
-				alignedMod2 = runner.getSecondOutputModel();
-				ali         = runner.getAlignment();
+				//SADPRunner runner = notifier.getRunner();
+				SADPResult result = notifier.getResult();
+				alignedMod1 = result.getFirstOutputModel();
+				alignedMod2 = result.getSecondOutputModel();
+				ali         = result.getAlignment();
 
-				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, runner.getFirstName(), runner.getSecondName());
+				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, result.getFirstName(), result.getSecondName());
 				doLoadModelOntoVisualizer(alignedMod2);
 
 				// adapt GUI behavior
@@ -1810,7 +1814,7 @@ public class View extends JFrame implements ActionListener {
 	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, EdgeSet[] selection) {
 
 		try { 
-			NodeSet positions = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
+			TreeSet<Integer> positions = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
 
 			if( positions.isEmpty() ) {
 				showNo3DCoordFromComparedSelection();
@@ -1821,7 +1825,7 @@ public class View extends JFrame implements ActionListener {
 
 			// get consecutive sequence chunks in mod1 from positions
 			projectionTags.add(name2);
-			EdgeSet chunks1 = ali.getMatchingBlocks(name1, projectionTags, positions, 1);
+			IntervalSet chunks1 = ali.getMatchingBlocks(name1, projectionTags, positions, 1);
 			//System.out.println("chunks1:"+chunks1);
 
 			if( chunks1.isEmpty() ) {
@@ -1832,7 +1836,7 @@ public class View extends JFrame implements ActionListener {
 			// get consecutive sequence chunks in mod2 from positions
 			projectionTags.clear();
 			projectionTags.add(name1);
-			EdgeSet chunks2 = ali.getMatchingBlocks(name2, projectionTags, positions, 1);
+			IntervalSet chunks2 = ali.getMatchingBlocks(name2, projectionTags, positions, 1);
 			//System.out.println("chunks2:"+chunks2);
 
 			if( chunks2.isEmpty() ) {
@@ -1876,7 +1880,7 @@ public class View extends JFrame implements ActionListener {
 		try {
 			// get all addressed alignment columns, do not consider column 
 			// which contain unobserved residues (indicated by the 'true') 
-			NodeSet columns = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
+			TreeSet<Integer> columns = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
 
 			if( columns.isEmpty() ) {
 				showNo3DCoordFromComparedSelection();
@@ -1887,9 +1891,9 @@ public class View extends JFrame implements ActionListener {
 			// consider (mis)matches
 			EdgeSet residuePairs = new EdgeSet();
 			int pos1,pos2;
-			for(Node col : columns) {
-				pos1 = ali.al2seq(name1,col.num);
-				pos2 = ali.al2seq(name2,col.num);
+			for(int col : columns) {
+				pos1 = ali.al2seq(name1,col);
+				pos2 = ali.al2seq(name2,col);
 
 				if( pos1 != -1 && pos2 != -1 ) {
 					residuePairs.add(new Edge(pos1,pos2));
@@ -1943,7 +1947,7 @@ public class View extends JFrame implements ActionListener {
 	 * @throws CoordinatesNotFoundError
 	 * @throws EmptyContactSelectionError
 	 */    
-	public NodeSet getAlignmentPositionsFromSelection(Model mod1, Model mod2, EdgeSet[] selection, Alignment ali, boolean observedOnly) 
+	public TreeSet<Integer> getAlignmentPositionsFromSelection(Model mod1, Model mod2, EdgeSet[] selection, Alignment ali, boolean observedOnly) 
 	throws CoordinatesNotFoundError, EmptyContactSelectionError  {
 
 		// TODO: in future versions we should put this function to the contact map pane. 
@@ -1964,14 +1968,14 @@ public class View extends JFrame implements ActionListener {
 		//   mapping from the alignment space (which assignes to the node 
 		//   indexing in the aligned models) to the sequence space (which in 
 		//   turn addresses the indexing in the orignal ones)]
-		NodeSet positions = new NodeSet();
+		TreeSet<Integer> positions = new TreeSet<Integer>();
 		for( int i=0; i<selection.length; ++i ) {
 			// we have again to take account for the sequence <-> alignment 
 			// indexing problem, which essentially means that we have to 
 			// substract 1 to map from sequence space to the alignment space 
 			// as 'positions' is supposed to hold alignment positions
 			for( Node n : selection[i].getIncidentNodes() ) {
-				positions.add(new Node(n.num-1));		
+				positions.add(n.num-1);		
 			}
 		}
 
@@ -1991,8 +1995,8 @@ public class View extends JFrame implements ActionListener {
 			Pdb coordsMod1 = mod1.get3DCoordinates();
 			Pdb coordsMod2 = mod2.get3DCoordinates();
 			int p;
-			for( Iterator<Node> it = positions.iterator();  it.hasNext(); ) {
-				p = it.next().num;
+			for( Iterator<Integer> it = positions.iterator();  it.hasNext(); ) {
+				p = it.next();
 				// TODO: what we actually should do here is to check whether the current 'p' has coordinates for the CA atoms as the superposition is performed on CA backbone
 				if( !(coordsMod1.hasCoordinates(ali.al2seq(name1,p)) 
 						&& coordsMod2.hasCoordinates(ali.al2seq(name2,p)) ) ) {
@@ -2141,9 +2145,21 @@ public class View extends JFrame implements ActionListener {
 			String seq = mod.getSequence();
 			String s1 = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
 			String s2 = "";
-			if( mod2 != null ) {
+			int numSelectedContacts = 0;
+			if( mod2 == null ) {
+				// settings if mod2 is absent
+				numSelectedContacts = cmPane.getSelContacts().size();
+			} else {
+				// settings if mod2 is present
 				seq = mod2.getSequence();
 				s2  = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
+
+				EdgeSet[] selectedContacts = cmPane.getSelectedContacts();
+				EdgeSet union = new EdgeSet();
+				for(int i = 0; i < selectedContacts.length; ++i ) {
+					union.addAll(selectedContacts[i]);
+				}
+				numSelectedContacts = union.size();
 			}
 
 			String message = 
@@ -2166,8 +2182,10 @@ public class View extends JFrame implements ActionListener {
 				/* print maximal sequence separation */
 				"<tr><td>Max Seq Sep:</td><td>" + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "</td>" +
 				(mod2 == null ? "" : "<td>"     + (mod2.getMaxSequenceSeparation()<1?"none":mod2.getMaxSequenceSeparation()) + "</td>") + "</tr>" +
+
 				/* BLANK LINE */
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
+
 				/* print contact map size */
 				"<tr><td>Contact map size:</td><td>"    + mod.getMatrixSize()                       + "</td>" + 
 				(mod2 == null ? "" : "<td>"             + mod2.getMatrixSize()                      + "</td>") + "</tr>" +
@@ -2180,14 +2198,22 @@ public class View extends JFrame implements ActionListener {
 				/* print whether graph is directed */
 				"<tr><td>Directed:</td><td>"            + (mod.isDirected()?"Yes":"No")             + "</td>" +
 				(mod2 == null ? "" : "<td>"             + (mod2.isDirected()?"Yes":"No")            + "</td>") + "</tr>" +
+
 				/* BLANK LINE */
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
+
 				/* print the first ten characters of all available sequences */
 				"<tr><td>Sequence:</td><td>"            + s1                                        + "</td>" +
 				(mod2 == null ? "" : "<td>"             + s2                                        + "</td>") + "</tr>" +
 				/* print secondary structure source */
 				"<tr><td>Secondary structure:</td><td>" + mod.getSecondaryStructure().getComment()  + "</td>" +
-				(mod2 == null ? "" : "<td>"             + mod2.getSecondaryStructure().getComment() + "</td></tr>");
+				(mod2 == null ? "" : "<td>"             + mod2.getSecondaryStructure().getComment() + "</td></tr>") +
+
+				/* BLANK LINE */
+				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
+				(mod2 == null ? "" : "<tr><td>Number of common contacts:</td><td>" + cmPane.getCommonContacts(1, 2).size() + "</td>") +
+				"<tr><td>Number of selected contacts:</td><td>" + numSelectedContacts + "</td>";
+
 
 			JOptionPane.showMessageDialog(this,
 					message,

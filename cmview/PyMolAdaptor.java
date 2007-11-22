@@ -14,9 +14,9 @@ import proteinstructure.*;
  */	
 public class PyMolAdaptor {
 
-	
 
-	
+
+
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
@@ -31,7 +31,7 @@ public class PyMolAdaptor {
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
 
 	/*----------------------------- constructors ----------------------------*/
-	
+
 	/**
 	 *  Create a new Pymol communication object 
 	 */
@@ -48,7 +48,7 @@ public class PyMolAdaptor {
 	private String getChainObjectName(String pdbCode, String chainCode) {
 		return pdbCode + chainCode;
 	}
-	
+
 	/**
 	 * Constructs a name for a selection.
 	 * @param chainObjName The name of the chain object
@@ -56,10 +56,10 @@ public class PyMolAdaptor {
 	 * @return The selection name
 	 */
 	private String getSelObjectName(String chainObjName, String selectionType, int pymolSelSerial) {
-		
+
 		return selectionType + chainObjName+ "Sel" + pymolSelSerial;
 	}
-	
+
 	/**
 	 * Gets a proper name for a selection of multiple chains.
 	 * @param chainObjNames  collection of chain object identifiers
@@ -72,35 +72,35 @@ public class PyMolAdaptor {
 	 *  <code>&lt;selectionType&gt;&lt;"chainObjName 1"_"chainObjName 2"_...&gt;&lt;"Sel"&gt;&lt;pymolSelSerial&gt;</code>.
 	 */
 	private String getMultiChainSelObjectName(Collection<String> chainObjNames, String selectionType, int pymolSelSerial) {
-	    
-	    // construct output string buffer and estimate its capacity with
-	    // factor 6 -> pdb-code + chain-id + "_"
-	    // 5        -> estimated length of the pymolSelSerial + "Sel"
-	    StringBuffer output = new StringBuffer(chainObjNames.size()*6+selectionType.length()+2); 
-	    output.append(selectionType);
-	    boolean first = true;
-	    
-	    for( Iterator<String> it = chainObjNames.iterator(); it.hasNext(); ) {
-		if( first ) {
-		    first = false;
-		    output.append(it.next());
-		} else {
-		    output.append("_"+it.next());
+
+		// construct output string buffer and estimate its capacity with
+		// factor 6 -> pdb-code + chain-id + "_"
+		// 5        -> estimated length of the pymolSelSerial + "Sel"
+		StringBuffer output = new StringBuffer(chainObjNames.size()*6+selectionType.length()+2); 
+		output.append(selectionType);
+		boolean first = true;
+
+		for( Iterator<String> it = chainObjNames.iterator(); it.hasNext(); ) {
+			if( first ) {
+				first = false;
+				output.append(it.next());
+			} else {
+				output.append("_"+it.next());
+			}
 		}
-	    }
-	    
-	    output.append("Sel"+pymolSelSerial);
-	    
-	    return output.toString();
+
+		output.append("Sel"+pymolSelSerial);
+
+		return output.toString();
 	}
-	
+
 	/**
 	 * Construct a name for a neighbourhood object.
 	 */
 	private String getNbhObjectName(String chainObjName, int nbhSerial) {
 		return chainObjName + "Nbh" + nbhSerial;
 	}
-	
+
 	/** Send command to pymol and check for errors */
 	public void sendCommand(String cmd) {
 		Out.println(cmd);
@@ -109,7 +109,7 @@ public class PyMolAdaptor {
 			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 		}
 	}
-	
+
 	/**
 	 * Creates an edge between the C-alpha atoms of the given residues in the given chain. 
 	 * The selection in pymol will be names pdbcodeChaincode+"Sel"+selNum 
@@ -117,12 +117,12 @@ public class PyMolAdaptor {
 	private void setDistance(int i, int j, int pymolSelSerial, String selObjName, String chainObjNameFirst, String chainCodeFirst, String chainObjNameSecond, String chainCodeSecond){
 		String pymolStr;
 		pymolStr = "distance "+selObjName +", " 
-			+ chainObjNameFirst  + " and chain " + chainCodeFirst  + " and resi " + i + " and name ca, " 
-			+ chainObjNameSecond + " and chain " + chainCodeSecond + " and resi " + j + " and name ca"; 
+		+ chainObjNameFirst  + " and chain " + chainCodeFirst  + " and resi " + i + " and name ca, " 
+		+ chainObjNameSecond + " and chain " + chainCodeSecond + " and resi " + j + " and name ca"; 
 		this.sendCommand(pymolStr);
 	}
 
-	
+
 	/** 
 	 * Create a selection of the given residues in pymol.
 	 * @param selObjName
@@ -133,7 +133,7 @@ public class PyMolAdaptor {
 	private void createSelectionObject(String selObjName, String chainObjName, String chainCode, ArrayList<Integer> residues) {
 		String resString = "";
 		int start, last;
-		
+
 		// TODO: use NodeSet instead of ArrayList and replace the following by NodeSet.getIntervals()
 		Collections.sort(residues);
 		last = residues.get(0);
@@ -144,12 +144,12 @@ public class PyMolAdaptor {
 				start = i;
 				last = i;
 			} else
-			if(i == last) {
-				// skip
-			} else
-			if(i == last+1) {
-				last = i;
-			}
+				if(i == last) {
+					// skip
+				} else
+					if(i == last+1) {
+						last = i;
+					}
 		}
 		resString += "resi " + (last-start == 0?last:(start + "-" + last));
 		resString = "(" + resString + ")";
@@ -161,7 +161,7 @@ public class PyMolAdaptor {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
 	}
-	
+
 	/**
 	 * Adds a selection of residues of certain chain of a pymol object to 
 	 * a previously created selection. 
@@ -175,25 +175,25 @@ public class PyMolAdaptor {
 	 */
 	@SuppressWarnings("unused")
 	private void add2SelectionObject(String selObjName, String chainObjName, String chainCode, NodeSet residues) {
-	    String resString = "(";
-	    Vector<Interval> intervals = residues.getIntervals();
-	    for(Interval i : intervals) {
-		resString += "resi " + (i.end-i.beg == 0?i.beg:(i.beg + "-" + i.end)) + " or ";
-	    }
-	    // we put the last interval twice to encalulate the trailing 'or' 
-	    // which has been added in the for-loop
-	    Interval last = intervals.lastElement();
-	    resString += "resi " + (last.beg == 0?last.beg:(last.beg + "-" + last.end)) + ")";
-	    
-	    if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
-		sendCommand("select " + selObjName + ", " + 
-			selObjName +                /* put previous selection in the selection string */
-			" or (" + chainObjName +    /* the chain object */
-			" and chain "+chainCode +   /* the chain identifier in the chain object */
-			" and " + resString + ")"); /* the interval sequence of residues to be considered */
-	    } else {
-		System.err.println("Couldn't create pymol selection. Too many residues.");
-	    }
+		String resString = "(";
+		Vector<Interval> intervals = residues.getIntervals();
+		for(Interval i : intervals) {
+			resString += "resi " + (i.end-i.beg == 0?i.beg:(i.beg + "-" + i.end)) + " or ";
+		}
+		// we put the last interval twice to encalulate the trailing 'or' 
+		// which has been added in the for-loop
+		Interval last = intervals.lastElement();
+		resString += "resi " + (last.beg == 0?last.beg:(last.beg + "-" + last.end)) + ")";
+
+		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
+			sendCommand("select " + selObjName + ", " + 
+					selObjName +                /* put previous selection in the selection string */
+					" or (" + chainObjName +    /* the chain object */
+					" and chain "+chainCode +   /* the chain identifier in the chain object */
+					" and " + resString + ")"); /* the interval sequence of residues to be considered */
+		} else {
+			System.err.println("Couldn't create pymol selection. Too many residues.");
+		}
 	}
 
 	/*---------------------------- public methods ---------------------------*/
@@ -228,7 +228,7 @@ public class PyMolAdaptor {
 		}
 		return false;
 	}
-	
+
 	/** being called when a connection to pymol has been successfully established */ 
 	private void hooray(OutputStream s) {
 		this.connected = true;
@@ -236,7 +236,7 @@ public class PyMolAdaptor {
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
 	}
-	
+
 	/**
 	 * Shuts down the external viewer instance and releases all resources of this Adaptor.
 	 * @param url The PyMol server url // TODO: can we get rid of this?
@@ -245,7 +245,7 @@ public class PyMolAdaptor {
 		Out.println("quit");
 		Out.close();
 	}
-	
+
 	/**
 	 * Send command to the pymol server to load a structure with the given name from the given temporary pdb file.
 	 */
@@ -256,7 +256,7 @@ public class PyMolAdaptor {
 		sendCommand("hide lines");
 		sendCommand("show cartoon");		
 		sendCommand("hide sticks");
-		
+
 		if (secondModel){
 			// color second model green
 			sendCommand("color " + ModelColors[1] + ", " + pdbCode+chainCode);
@@ -266,11 +266,11 @@ public class PyMolAdaptor {
 			sendCommand("enable " + chainObjName);
 			sendCommand("color " + ModelColors[0] + ", " + pdbCode+chainCode);
 		}
-		
+
 		sendCommand("cmd.refresh()");
 		System.out.println("DONE loading structure "+chainObjName);
 	}
-	
+
 	/**
 	 * Alignes two structures employing PyMol's <code>align</code> command.
 	 * PyMol internally makes a sequence alignment of both structures and
@@ -296,7 +296,7 @@ public class PyMolAdaptor {
 		sendCommand("zoom");
 		sendCommand("cmd.refresh()");
 	}
-	
+
 	/**
 	 * Alignes two structures employing PyMol's <code>pair_fit</code> 
 	 * command.
@@ -307,104 +307,104 @@ public class PyMolAdaptor {
 	 * @see aglappe.sadp.SADP
 	 */
 	public void alignStructureUserDefined(String pdbCodeFirst, String chainCodeFirst, String pdbCodeSecond, String chainCodeSecond, String aliTagFirst, String aliTagSecond, Alignment ali) {
-	
-	    String          commandLine = "pair_fit " + pdbCodeFirst + chainCodeFirst + "///";
-	    TreeSet<String> projectionTags = new TreeSet<String>();
-	    EdgeSet         chunks      = null;
-	    StringBuffer    chunkSeq    = null;
-	    
-	    // get chunks of first sequence with respect to the second sequence 
-	    // (consider all alignment columns (-> 0 to 
-	    // ali.getAlignmentLength(), do not allow for gaps in any sequence 
-	    // in the projection)
-	    projectionTags.add(aliTagSecond);
-	    chunks   = ali.getMatchingBlocks(aliTagFirst,projectionTags,0,ali.getAlignmentLength(),projectionTags.size());
 
-	    if( !chunks.isEmpty() ) {
+		String          commandLine = "pair_fit " + pdbCodeFirst + chainCodeFirst + "///";
+		TreeSet<String> projectionTags = new TreeSet<String>();
+		IntervalSet     chunks      = null;
+		StringBuffer    chunkSeq    = null;
+
+		// get chunks of first sequence with respect to the second sequence 
+		// (consider all alignment columns (-> 0 to 
+		// ali.getAlignmentLength(), do not allow for gaps in any sequence 
+		// in the projection)
+		projectionTags.add(aliTagSecond);
+		chunks   = ali.getMatchingBlocks(aliTagFirst,projectionTags,0,ali.getAlignmentLength(),projectionTags.size());
+
+		if( !chunks.isEmpty() ) {
+			// put edge set into the recommended string format
+			chunkSeq = new StringBuffer(chunks.size()*2);
+			Interval e;
+			for( Iterator<Interval> it = chunks.iterator(); it.hasNext(); ) {
+				e = it.next();
+				chunkSeq.append(e.beg + "-" + e.end + "+");
+			}
+			// delete trailing '+' character
+			chunkSeq.deleteCharAt(chunkSeq.length()-1);
+
+			// append sequence of chunks to the command line along with the
+			// atom types to be considered for superpositioning (here: CA)
+			commandLine = commandLine + chunkSeq + "/CA";
+
+			// get chunks of second sequence with respect to the first 
+			// sequence
+			projectionTags.clear();
+			chunks.clear();
+			chunkSeq.delete(0, chunkSeq.length());
+			projectionTags.add(aliTagFirst);
+			chunks = ali.getMatchingBlocks(aliTagSecond,projectionTags,0,ali.getAlignmentLength(),projectionTags.size());
+
+			if( !chunks.isEmpty() ) {
+				for( Iterator<Interval> it = chunks.iterator(); it.hasNext(); ) {
+					e = it.next();
+					chunkSeq.append(e.beg + "-" + e.end + "+");
+				}
+				chunkSeq.deleteCharAt(chunkSeq.length()-1);
+				commandLine = 
+					commandLine + ", " + pdbCodeSecond + chainCodeSecond + "///" +
+					chunkSeq + "/CA";
+
+				System.out.println("superpositioning cmd:"+commandLine);
+
+				sendCommand(commandLine);//	    Start.getPyMolAdaptor().alignStructureUserDefined(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(),
+//				cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),
+//				runner.getFirstName(),runner.getSecondName(),runner.getAlignment());
+
+				sendCommand("hide lines");
+				sendCommand("hide sticks");
+				sendCommand("zoom");
+				sendCommand("cmd.refresh()");
+
+				return;    
+			}
+		}
+
+		System.err.println(
+				"Warning: The alignment of "+pdbCodeFirst+chainCodeFirst+" and "+
+				pdbCodeSecond+chainCodeSecond+" lacks of corresponding residues! "+
+				"No superposition of the structures can be displayed!"
+		);	        
+	}
+
+	public void pairFitSuperposition(String pdbCodeFirst, String chainCodeFirst, String pdbCodeSecond, String chainCodeSecond, IntervalSet chunksFirst, IntervalSet chunksSecond) {
 		// put edge set into the recommended string format
-		chunkSeq = new StringBuffer(chunks.size()*2);
-		Edge e;
-		for( Iterator<Edge> it = chunks.iterator(); it.hasNext(); ) {
-		    e = it.next();
-		    chunkSeq.append(e.i + "-" + e.j + "+");
+		StringBuffer chunkSeq = new StringBuffer(chunksFirst.size()*2);
+		for( Interval e : chunksFirst ) {
+			chunkSeq.append(e.beg + "-" + e.end + "+");
 		}
 		// delete trailing '+' character
 		chunkSeq.deleteCharAt(chunkSeq.length()-1);
-		
+
 		// append sequence of chunks to the command line along with the
 		// atom types to be considered for superpositioning (here: CA)
-		commandLine = commandLine + chunkSeq + "/CA";
-		
-		// get chunks of second sequence with respect to the first 
-		// sequence
-		projectionTags.clear();
-		chunks.clear();
+		String commandLine = "pair_fit " + pdbCodeFirst + chainCodeFirst + "///" + chunkSeq + "/CA";
+
 		chunkSeq.delete(0, chunkSeq.length());
-		projectionTags.add(aliTagFirst);
-		chunks = ali.getMatchingBlocks(aliTagSecond,projectionTags,0,ali.getAlignmentLength(),projectionTags.size());
-		
-		if( !chunks.isEmpty() ) {
-		    for( Iterator<Edge> it = chunks.iterator(); it.hasNext(); ) {
-			e = it.next();
-			chunkSeq.append(e.i + "-" + e.j + "+");
-		    }
-		    chunkSeq.deleteCharAt(chunkSeq.length()-1);
-		    commandLine = 
-			commandLine + ", " + pdbCodeSecond + chainCodeSecond + "///" +
-			chunkSeq + "/CA";
-		    
-		    System.out.println("superpositioning cmd:"+commandLine);
-		    
-		    sendCommand(commandLine);//	    Start.getPyMolAdaptor().alignStructureUserDefined(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(),
-//		    cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),
-//		    runner.getFirstName(),runner.getSecondName(),runner.getAlignment());
-
-		    sendCommand("hide lines");
-		    sendCommand("hide sticks");
-		    sendCommand("zoom");
-		    sendCommand("cmd.refresh()");
-		    
-		    return;    
+		for( Interval e : chunksSecond ) {
+			chunkSeq.append(e.beg + "-" + e.end + "+");
 		}
-	    }
-	    
-	    System.err.println(
-		    "Warning: The alignment of "+pdbCodeFirst+chainCodeFirst+" and "+
-		    pdbCodeSecond+chainCodeSecond+" lacks of corresponding residues! "+
-		    "No superposition of the structures can be displayed!"
-		    );	        
-	}
-	
-	public void pairFitSuperposition(String pdbCodeFirst, String chainCodeFirst, String pdbCodeSecond, String chainCodeSecond, EdgeSet chunksFirst, EdgeSet chunksSecond) {
-	    // put edge set into the recommended string format
-	    StringBuffer chunkSeq = new StringBuffer(chunksFirst.size()*2);
-	    for( Edge e : chunksFirst ) {
-		chunkSeq.append(e.i + "-" + e.j + "+");
-	    }
-	    // delete trailing '+' character
-	    chunkSeq.deleteCharAt(chunkSeq.length()-1);
+		chunkSeq.deleteCharAt(chunkSeq.length()-1);
 
-	    // append sequence of chunks to the command line along with the
-	    // atom types to be considered for superpositioning (here: CA)
-	    String commandLine = "pair_fit " + pdbCodeFirst + chainCodeFirst + "///" + chunkSeq + "/CA";
-	
-	    chunkSeq.delete(0, chunkSeq.length());
-	    for( Edge e : chunksSecond ) {
-		chunkSeq.append(e.i + "-" + e.j + "+");
-	    }
-	    chunkSeq.deleteCharAt(chunkSeq.length()-1);
-	    
-	    commandLine = commandLine + ", " + pdbCodeSecond + chainCodeSecond + "///" + chunkSeq + "/CA";
-	    
-	    //System.out.println("superpositioning cmd:"+commandLine);
+		commandLine = commandLine + ", " + pdbCodeSecond + chainCodeSecond + "///" + chunkSeq + "/CA";
 
-	    sendCommand(commandLine);
-	    sendCommand("hide lines");
-	    sendCommand("hide sticks");
-	    sendCommand("zoom");
-	    sendCommand("cmd.refresh()");
+		//System.out.println("superpositioning cmd:"+commandLine);
+
+		sendCommand(commandLine);
+		sendCommand("hide lines");
+		sendCommand("hide sticks");
+		sendCommand("zoom");
+		sendCommand("cmd.refresh()");
 	}
-	
+
 	/**
 	 * Show the given edge neighbourhood as triangles in PyMol
 	 */
@@ -419,10 +419,10 @@ public class PyMolAdaptor {
 		residues.add(j);
 
 		for (int k:commonNbh.keySet()){
-						
+
 			Random generator = new Random(trinum/2);
 			int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
-			
+
 			sendCommand("triangle('"+ nbhObjName +"Tri"+trinum + "', "+ i+ ", "+j +", "+k +", '" + COLORS[random] +"', " + 0.7+")");
 			trinum++;
 			residues.add(k);	
@@ -433,16 +433,16 @@ public class PyMolAdaptor {
 
 	/** Show the contacts in the given contact list as edges in pymol */
 	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelContactColor, int pymolSelSerial, EdgeSet selContacts, boolean dash, boolean centzoom){
-	    	String chainObjName = getChainObjectName(pdbCode,  chainCode);
-		
+		String chainObjName = getChainObjectName(pdbCode,  chainCode);
+
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
-		
+
 		ArrayList<Integer> residues = new ArrayList<Integer>();
-		
+
 		// the selection object name contains both chain object names 
 		// if they differ, otherwise only the first chain object name 
 		String selObjName = getSelObjectName(chainObjName, selectionType, pymolSelSerial);
-				
+
 		for (Edge cont:selContacts){ 
 			int i = cont.i;
 			int j = cont.j;
@@ -451,10 +451,10 @@ public class PyMolAdaptor {
 			residues.add(i);
 			residues.add(j);
 		}
-		
+
 		// hide distance labels
 		sendCommand("hide labels, " + selObjName);
-		
+
 		// color distances
 		this.sendCommand("color " + modelContactColor + "," + selObjName);
 
@@ -462,11 +462,11 @@ public class PyMolAdaptor {
 			// setting the dashed lines for present and absent distinction
 			setDashes(pdbCode, chainCode, selectionType, pymolSelSerial);
 		}else { // fixing the side chain problem
-				// side chains only occur in case of common contacts
+			// side chains only occur in case of common contacts
 			sendCommand("hide lines, "+ selObjName);
 			sendCommand("hide sticks, " + selObjName);
 		}
-		
+
 		if (centzoom ==true){
 			// centers and zooms into the selected object
 			this.sendCommand("center " + selObjName);
@@ -475,7 +475,7 @@ public class PyMolAdaptor {
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
 		sendCommand("deselect " + selObjName+"Nodes");
 	}
-	
+
 	/** Show a single contact or non-contact as distance object in pymol */
 	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Edge cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
@@ -485,76 +485,76 @@ public class PyMolAdaptor {
 		residues.add(cont.i);
 		residues.add(cont.j);
 		sendCommand("color orange, " + selObjName);
-		
+
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
 	}
-	
+
 	public void sendTwoChainsEdgeSelection(String pdbCodeFirst, String chainCodeFirst, 
-						String pdbCodeSecond, String chainCodeSecond,
-						String selectionType, 
-						String modelContactColor, 
-						int pymolSelSerial, 
-						EdgeSet residuePairs, 
-						boolean dash, boolean centzoom) {
-	    
-	    Vector<String> chainObjNames = new Vector<String>(2);
-	    chainObjNames.add(getChainObjectName(pdbCodeFirst,  chainCodeFirst));
-	    chainObjNames.add(getChainObjectName(pdbCodeSecond, chainCodeSecond));
-	    
-	    if (residuePairs.size()== 0) return; // if no contacts in selection do nothing
+			String pdbCodeSecond, String chainCodeSecond,
+			String selectionType, 
+			String modelContactColor, 
+			int pymolSelSerial, 
+			EdgeSet residuePairs, 
+			boolean dash, boolean centzoom) {
 
-	    ArrayList<Integer> residuesFirst = new ArrayList<Integer>();
-	    NodeSet residuesSecond = new NodeSet();
+		Vector<String> chainObjNames = new Vector<String>(2);
+		chainObjNames.add(getChainObjectName(pdbCodeFirst,  chainCodeFirst));
+		chainObjNames.add(getChainObjectName(pdbCodeSecond, chainCodeSecond));
 
-	    // the selection object name contains both chain object names 
-	    // if they differ, otherwise only the first chain object name 
-	    String selObjName = getMultiChainSelObjectName(chainObjNames,selectionType,pymolSelSerial);
+		if (residuePairs.size()== 0) return; // if no contacts in selection do nothing
 
-	    for (Edge cont:residuePairs){ 
-		int i = cont.i;
-		int j = cont.j;
-		//inserts an edge between the selected residues
-		this.setDistance(i, j, pymolSelSerial, selObjName, chainObjNames.get(0), chainCodeFirst, chainObjNames.get(1), chainCodeSecond);
-		residuesFirst.add(i);
-		residuesSecond.add(new Node(j));
-	    }
+		ArrayList<Integer> residuesFirst = new ArrayList<Integer>();
+		NodeSet residuesSecond = new NodeSet();
 
-	    // hide distance labels
-	    sendCommand("hide labels, " + selObjName);
-	    
-	    // color distances
-	    this.sendCommand("color " + modelContactColor + "," + selObjName);
-	    
-	    if (dash ==true){
-		// setting the dashed lines for present and absent distinction
-		setDashes(selObjName);
-	    } else { // fixing the side chain problem
-		// side chains only occur in case of common contacts
-		sendCommand("hide lines, "+ selObjName);
-		sendCommand("hide sticks, " + selObjName);
-	    }
+		// the selection object name contains both chain object names 
+		// if they differ, otherwise only the first chain object name 
+		String selObjName = getMultiChainSelObjectName(chainObjNames,selectionType,pymolSelSerial);
 
-	    if (centzoom ==true){
-		// centers and zooms into the selected object
-		this.sendCommand("center " + selObjName);
-		this.sendCommand("zoom " + selObjName);
-	    }
-	    
-	    // TODO: lars@all: what is the reason for doing this selcting delselecting thing?
-//	    createSelectionObject(selObjName+"Nodes", chainObjNames.get(0), chainCodeFirst,  residuesFirst);
-//	    add2SelectionObject(selObjName+"Nodes",   chainObjNames.get(1), chainCodeSecond, residuesSecond);
-//	    sendCommand("deselect " + selObjName+"Nodes");
+		for (Edge cont:residuePairs){ 
+			int i = cont.i;
+			int j = cont.j;
+			//inserts an edge between the selected residues
+			this.setDistance(i, j, pymolSelSerial, selObjName, chainObjNames.get(0), chainCodeFirst, chainObjNames.get(1), chainCodeSecond);
+			residuesFirst.add(i);
+			residuesSecond.add(new Node(j));
+		}
+
+		// hide distance labels
+		sendCommand("hide labels, " + selObjName);
+
+		// color distances
+		this.sendCommand("color " + modelContactColor + "," + selObjName);
+
+		if (dash ==true){
+			// setting the dashed lines for present and absent distinction
+			setDashes(selObjName);
+		} else { // fixing the side chain problem
+			// side chains only occur in case of common contacts
+			sendCommand("hide lines, "+ selObjName);
+			sendCommand("hide sticks, " + selObjName);
+		}
+
+		if (centzoom ==true){
+			// centers and zooms into the selected object
+			this.sendCommand("center " + selObjName);
+			this.sendCommand("zoom " + selObjName);
+		}
+
+		// TODO: lars@all: what is the reason for doing this selcting delselecting thing?
+//		createSelectionObject(selObjName+"Nodes", chainObjNames.get(0), chainCodeFirst,  residuesFirst);
+//		add2SelectionObject(selObjName+"Nodes",   chainObjNames.get(1), chainCodeSecond, residuesSecond);
+//		sendCommand("deselect " + selObjName+"Nodes");
 	}
-	
+
 	/** setting the dashes lines for missed/added contacts */
 	public void setDashes(String pdbCode, String chainCode, String selectionType, int pymolSelSerial){
 		String chainObjName = this.getChainObjectName(pdbCode, chainCode);
 		String selObjName = getSelObjectName(chainObjName, selectionType, pymolSelSerial);
-		
+
 		this.sendCommand("set dash_gap, 0.5, " + selObjName);
 		this.sendCommand("set dash_length, 0.5, " + selObjName);
 	}
-	
+
 	/**
 	 * Converts the lines of the given selection (e.g. a distance object) 
 	 * into dashed lines. 
@@ -564,26 +564,26 @@ public class PyMolAdaptor {
 	 *  {@link #getMultiChainSelObjectName(Collection, String, int)} only)
 	 */
 	public void setDashes(String selObjName) {
-	   this.sendCommand("set dash_gap, 0.5, "   +selObjName);
-	   this.sendCommand("set dash_length, 0.5, "+selObjName);
+		this.sendCommand("set dash_gap, 0.5, "   +selObjName);
+		this.sendCommand("set dash_length, 0.5, "+selObjName);
 	}
-	
+
 	/** setting the view in PyMol if new selections were done */
 	public void setView(String pdbCode1, String chainCode1, String pdbCode2, String chainCode2){
 		sendCommand("disable all");
 		sendCommand("enable " + pdbCode1 + chainCode1 );
 		sendCommand("enable " + pdbCode2 + chainCode2);
 	}
-	
+
 	public void groupSelections(String pdbCode, String chainCode, int pymolSelSerial, String memberName1, String memberName2){
 
 		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1 +" " + memberName2 + "'),");
 		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1+"Node', action= 'add'),");
 		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName2+"Node', action= 'add'),");
-		
+
 	}
-	
-	
+
+
 	/**
 	 * Returns whether a connection of this Adaptor to the server had been already successfully established.
 	 * @return true if connection was established, false otherwise
@@ -591,7 +591,7 @@ public class PyMolAdaptor {
 	public boolean isConnected() {
 		return this.connected;
 	}
-	
+
 }
 
 
