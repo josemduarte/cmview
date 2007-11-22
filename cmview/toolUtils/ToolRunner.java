@@ -1,5 +1,7 @@
 package cmview.toolUtils;
 
+import java.util.concurrent.Callable;
+
 import actionTools.Action;
 
 /**
@@ -11,7 +13,7 @@ import actionTools.Action;
  * @author Lars Petzold
  *
  */
-public abstract class ToolRunner implements Runnable {
+public abstract class ToolRunner<V> implements Callable<V>{
     
     boolean done = false;
     Action  actionWhenDone;
