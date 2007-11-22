@@ -50,7 +50,7 @@ rm -rf $aglappetag
 # compiling
 echo "Compiling..."
 cd $cmviewtag
-javac cmview/*.java cmview/datasources/*.java
+javac cmview/*.java cmview/datasources/*.java cmview/toolUtils/*.java cmview/sadpAdapter/*.java
 
 # creating jar file
 echo "Creating jar file: $cmviewtag-StruPPi.jar ..."
