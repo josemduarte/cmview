@@ -6,9 +6,14 @@ public class SADPDialogDoneNotifier extends JButton {
     static final long serialVersionUID = 1l;
     Integer    status = SADPDialog.IDLE;
     SADPRunner runner;
+    SADPResult result;
     
     public SADPDialogDoneNotifier(SADPRunner runner) {
 	this.runner = runner;
+    }
+    
+    public SADPDialogDoneNotifier(SADPResult result) {
+    	this.result = result;
     }
     
     /**
@@ -40,5 +45,9 @@ public class SADPDialogDoneNotifier extends JButton {
         
     public SADPRunner getRunner() {
 	return runner;
+    }
+    
+    public SADPResult getResult() {
+    	return result;
     }
 }
