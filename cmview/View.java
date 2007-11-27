@@ -875,7 +875,6 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbNbhSel, false);
 		map.put(tbShowComNbh, false);
 		map.put(tbSelModeColor, false);
-		map.put(tbShowSel3D, false);
 		map.put(tbShowComNbh3D, false);
 
 		return map;
