@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import tools.PymolServerOutputStream;
 import java.util.*;
 
+import edu.uci.ics.jung.graph.util.Pair;
+
 import proteinstructure.*;
 
 /**
@@ -174,15 +176,15 @@ public class PyMolAdaptor {
 	 *  <code>chainObjName</code>
 	 */
 	@SuppressWarnings("unused")
-	private void add2SelectionObject(String selObjName, String chainObjName, String chainCode, NodeSet residues) {
+	private void add2SelectionObject(String selObjName, String chainObjName, String chainCode, TreeSet<Integer> residues) {
 		String resString = "(";
-		Vector<Interval> intervals = residues.getIntervals();
+		IntervalSet intervals = Interval.getIntervals(residues);
 		for(Interval i : intervals) {
 			resString += "resi " + (i.end-i.beg == 0?i.beg:(i.beg + "-" + i.end)) + " or ";
 		}
 		// we put the last interval twice to encalulate the trailing 'or' 
 		// which has been added in the for-loop
-		Interval last = intervals.lastElement();
+		Interval last = intervals.last();
 		resString += "resi " + (last.beg == 0?last.beg:(last.beg + "-" + last.end)) + ")";
 
 		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
@@ -408,13 +410,13 @@ public class PyMolAdaptor {
 	/**
 	 * Show the given edge neighbourhood as triangles in PyMol
 	 */
-	public void showTriangles(String pdbCode, String chainCode, EdgeNbh commonNbh, int pymolNbhSerial){
+	public void showTriangles(String pdbCode, String chainCode, RIGCommonNbhood commonNbh, int pymolNbhSerial){
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		String nbhObjName = getNbhObjectName(chainObjName, pymolNbhSerial);
 		int trinum=1;
 		ArrayList<Integer> residues = new ArrayList<Integer>();
-		int i = commonNbh.i_resser;
-		int j = commonNbh.j_resser;
+		int i = commonNbh.getFirstNode().getResidueSerial();
+		int j = commonNbh.getSecondNode().getResidueSerial();
 		residues.add(i);
 		residues.add(j);
 
@@ -432,7 +434,7 @@ public class PyMolAdaptor {
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
-	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelContactColor, int pymolSelSerial, EdgeSet selContacts, boolean dash, boolean centzoom){
+	public void edgeSelection(String pdbCode, String chainCode, String selectionType, String modelContactColor, int pymolSelSerial, IntPairSet selContacts, boolean dash, boolean centzoom){
 		String chainObjName = getChainObjectName(pdbCode,  chainCode);
 
 		if (selContacts.size()== 0) return; // if no contacts in selection do nothing
@@ -443,9 +445,9 @@ public class PyMolAdaptor {
 		// if they differ, otherwise only the first chain object name 
 		String selObjName = getSelObjectName(chainObjName, selectionType, pymolSelSerial);
 
-		for (Edge cont:selContacts){ 
-			int i = cont.i;
-			int j = cont.j;
+		for (Pair<Integer> cont:selContacts){ 
+			int i = cont.getFirst();
+			int j = cont.getSecond();
 			//inserts an edge between the selected residues
 			this.setDistance(i, j, pymolSelSerial, selObjName, chainObjName, chainCode, chainObjName, chainCode);
 			residues.add(i);
@@ -477,13 +479,13 @@ public class PyMolAdaptor {
 	}
 
 	/** Show a single contact or non-contact as distance object in pymol */
-	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Edge cont) {
+	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Pair<Integer> cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
 		String selObjName = getSelObjectName(chainObjName, chainCode, pymolSelSerial);
-		setDistance(cont.i, cont.j, pymolSelSerial, selObjName, chainObjName, chainCode, chainObjName, chainCode);
+		setDistance(cont.getFirst(), cont.getSecond(), pymolSelSerial, selObjName, chainObjName, chainCode, chainObjName, chainCode);
 		ArrayList<Integer> residues = new ArrayList<Integer>();
-		residues.add(cont.i);
-		residues.add(cont.j);
+		residues.add(cont.getFirst());
+		residues.add(cont.getSecond());
 		sendCommand("color orange, " + selObjName);
 
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
@@ -494,7 +496,7 @@ public class PyMolAdaptor {
 			String selectionType, 
 			String modelContactColor, 
 			int pymolSelSerial, 
-			EdgeSet residuePairs, 
+			IntPairSet residuePairs, 
 			boolean dash, boolean centzoom) {
 
 		Vector<String> chainObjNames = new Vector<String>(2);
@@ -504,19 +506,19 @@ public class PyMolAdaptor {
 		if (residuePairs.size()== 0) return; // if no contacts in selection do nothing
 
 		ArrayList<Integer> residuesFirst = new ArrayList<Integer>();
-		NodeSet residuesSecond = new NodeSet();
+		TreeSet<Integer> residuesSecond = new TreeSet<Integer>();
 
 		// the selection object name contains both chain object names 
 		// if they differ, otherwise only the first chain object name 
 		String selObjName = getMultiChainSelObjectName(chainObjNames,selectionType,pymolSelSerial);
 
-		for (Edge cont:residuePairs){ 
-			int i = cont.i;
-			int j = cont.j;
+		for (Pair<Integer> cont:residuePairs){ 
+			int i = cont.getFirst();
+			int j = cont.getSecond();
 			//inserts an edge between the selected residues
 			this.setDistance(i, j, pymolSelSerial, selObjName, chainObjNames.get(0), chainCodeFirst, chainObjNames.get(1), chainCodeSecond);
 			residuesFirst.add(i);
-			residuesSecond.add(new Node(j));
+			residuesSecond.add(j);
 		}
 
 		// hide distance labels

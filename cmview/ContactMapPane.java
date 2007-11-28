@@ -12,6 +12,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import java.util.Hashtable;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -19,16 +20,14 @@ import javax.swing.border.Border;
 
 import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
-import proteinstructure.Edge;
-import proteinstructure.EdgeSet;
-import proteinstructure.EdgeNbh;
+import proteinstructure.IntPairSet;
+import proteinstructure.RIGCommonNbhood;
 import proteinstructure.Interval;
-import proteinstructure.Node;
-import proteinstructure.NodeNbh;
-import proteinstructure.NodeSet;
+import proteinstructure.RIGNbhood;
 import proteinstructure.SecStrucElement;
 import proteinstructure.SecondaryStructure;
 import cmview.datasources.Model;
+import edu.uci.ics.jung.graph.util.Pair;
 
 /**
  * The panel containing the contact map and associated event handling.
@@ -87,10 +86,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	// usual coordinates
 	private boolean showRulerCrosshair;		// while true, ruler "crosshair" is
 	// being shown
-	private Edge rightClickCont;	 		// position in contact map where
+	private Pair<Integer> rightClickCont;	 		// position in contact map where
 	// right mouse button was pressed to
 	// open context menu
-	private EdgeNbh currCommonNbh;	 		// common nbh that the user selected
+	private RIGCommonNbhood currCommonNbh;	 		// common nbh that the user selected
 	// last (used to show it in 3D)
 	private int lastMouseButtonPressed;		// mouse button which was pressed
 	// last (being updated by
@@ -121,39 +120,39 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private boolean secondS;
 
 	// selections
-	private EdgeSet allContacts; 		// all contacts from the underlying
+	private IntPairSet allContacts; 		// all contacts from the underlying
 	// contact map model
-	private EdgeSet selContacts; 		// permanent list of currently selected
+	private IntPairSet selContacts; 		// permanent list of currently selected
 	// contacts
-	private EdgeSet tmpContacts; 		// transient list of contacts selected
+	private IntPairSet tmpContacts; 		// transient list of contacts selected
 	// while dragging
-	private EdgeSet allSecondContacts; // all contacts from the second loaded
+	private IntPairSet allSecondContacts; // all contacts from the second loaded
 	// structure
 
-	private EdgeSet commonContacts;		// only common contacts 
-	private EdgeSet mainStrucContacts;	// only main structure contacts
-	private EdgeSet secStrucContacts;	// only second structure contacts
-	private EdgeSet bothStrucContacts;	// EdgeSet used in compared mode to handle different EdgeSets
-	private EdgeSet contacts;			// EdgeSet used in compared mode to handle different EdgeSets
-	private EdgeSet greenPContacts;		// only green present contacts
-	private EdgeSet redPContacts;		// only red present contacts
-	private EdgeSet commonPContacts;	// only commen (present) contacts
+	private IntPairSet commonContacts;		// only common contacts 
+	private IntPairSet mainStrucContacts;	// only main structure contacts
+	private IntPairSet secStrucContacts;	// only second structure contacts
+	private IntPairSet bothStrucContacts;	// IntPairSet used in compared mode to handle different EdgeSets
+	private IntPairSet contacts;			// IntPairSet used in compared mode to handle different EdgeSets
+	private IntPairSet greenPContacts;		// only green present contacts
+	private IntPairSet redPContacts;		// only red present contacts
+	private IntPairSet commonPContacts;	// only commen (present) contacts
 
-	private NodeSet selHorNodes;			// current horizontal residue
+	private TreeSet<Integer> selHorNodes;			// current horizontal residue
 	// selection
-	private NodeSet selVertNodes;			// current vertical residue
+	private TreeSet<Integer> selVertNodes;			// current vertical residue
 	// selection
 
 
 	// other displayable data
-	private Hashtable<Edge,Color> userContactColors;  // user defined colors
+	private Hashtable<Pair<Integer>,Color> userContactColors;  // user defined colors
 	// for individual
 	// contacts
 	private double[][] densityMatrix; 					 // matrix of contact
 	// density
-	private HashMap<Edge,Integer> comNbhSizes;		 // matrix of common
+	private HashMap<Pair<Integer>,Integer> comNbhSizes;		 // matrix of common
 	// neighbourhood sizes
-	private HashMap<Edge,Double> diffDistMap;		// difference distance map (in comparison mode)
+	private HashMap<Pair<Integer>,Double> diffDistMap;		// difference distance map (in comparison mode)
 
 	// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// buffer containing the more of
@@ -251,15 +250,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void setModel(Model mod) {
 		this.mod = mod;
 		this.allContacts = mod.getContacts();
-		this.selContacts = new EdgeSet();
-		this.tmpContacts = new EdgeSet();
-		this.selHorNodes = new NodeSet();
-		this.selVertNodes = new NodeSet();
-		this.commonContacts = new EdgeSet();
-		this.mainStrucContacts = new EdgeSet();
-		this.secStrucContacts = new EdgeSet();
-		this.bothStrucContacts = new EdgeSet();
-		this.contacts = new EdgeSet();
+		this.selContacts = new IntPairSet();
+		this.tmpContacts = new IntPairSet();
+		this.selHorNodes = new TreeSet<Integer>();
+		this.selVertNodes = new TreeSet<Integer>();
+		this.commonContacts = new IntPairSet();
+		this.mainStrucContacts = new IntPairSet();
+		this.secStrucContacts = new IntPairSet();
+		this.bothStrucContacts = new IntPairSet();
+		this.contacts = new IntPairSet();
 
 		this.contactMapSize = mod.getMatrixSize();
 		this.mousePos = new Point();
@@ -270,7 +269,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.dragging = false;
 		this.showCommonNbs = false;
 		this.showRulerCoord = false;
-		this.userContactColors = new Hashtable<Edge, Color>();
+		this.userContactColors = new Hashtable<Pair<Integer>, Color>();
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
 		this.diffDistMap = null;
@@ -295,7 +294,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			view.setComparisonMode(true);
 			view.setTitle("Comparing " + mod.getPDBCode()+mod.getChainCode() + " and " + mod2.getPDBCode() + mod2.getChainCode());
 			this.mod2 = mod2;
-			selContacts = new EdgeSet();
+			selContacts = new IntPairSet();
 			return true;
 		}
 	}
@@ -405,7 +404,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 
 			g2d.setColor(selContactsColor);
-			for (Edge cont:tmpContacts){ 
+			for (Pair<Integer> cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
 		} 
@@ -417,14 +416,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
 
 			g2d.setColor(selContactsColor);
-			for (Edge cont:tmpContacts){ 
+			for (Pair<Integer> cont:tmpContacts){ 
 				drawContact(g2d, cont);
 			}
 		}
 
 		// draw permanent selection in red
 		g2d.setColor(selContactsColor);
-		for (Edge cont:selContacts){
+		for (Pair<Integer> cont:selContacts){
 			drawContact(g2d, cont);
 		}
 
@@ -433,12 +432,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.setColor(Color.white);
 		g2d.setXORMode(horizontalNodeSelectionColor);
 		// g2d.setColor(horizontalNodeSelectionColor);
-		for(Interval intv:selHorNodes.getIntervals()) {
+		for(Interval intv:Interval.getIntervals(selHorNodes)) {
 			drawHorizontalNodeSelection(g2d, intv);
 		}
 		g2d.setXORMode(verticalNodeSelectionColor);
 		// g2d.setColor(verticalNodeSelectionColor);
-		for(Interval intv:selVertNodes.getIntervals()) {
+		for(Interval intv:Interval.getIntervals(selVertNodes)) {
 			drawVerticalNodeSelection(g2d, intv);
 		}
 		g2d.setPaintMode();
@@ -467,23 +466,23 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		// draw common neighbours
 		if(this.showCommonNbs) {
-			Edge cont = screen2cm(mousePressedPos);
+			Pair<Integer> cont = screen2cm(mousePressedPos);
 			drawCommonNeighbours(g2d, cont);
 			this.showCommonNbs = false;
 		}
 	}
 
 	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
-		Point upperLeft = getCellUpperLeft(new Edge(residues.beg,1));
-		Point lowerRight = getCellLowerRight(new Edge(residues.end, contactMapSize));
+		Point upperLeft = getCellUpperLeft(new Pair<Integer>(residues.beg,1));
+		Point lowerRight = getCellLowerRight(new Pair<Integer>(residues.end, contactMapSize));
 		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO:
 		// Check
 		// this
 	}
 
 	private void drawVerticalNodeSelection(Graphics2D g2d, Interval residues) {
-		Point upperLeft = getCellUpperLeft(new Edge(1,residues.beg));
-		Point lowerRight = getCellLowerRight(new Edge(contactMapSize, residues.end));
+		Point upperLeft = getCellUpperLeft(new Pair<Integer>(1,residues.beg));
+		Point lowerRight = getCellLowerRight(new Pair<Integer>(contactMapSize, residues.end));
 		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO:
 		// Check
 		// this
@@ -495,8 +494,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawDistanceMap(Graphics2D g2d) {
 		// this actually contains all possible contacts in matrix so is doing a
 		// full loop on all cells
-		HashMap<Edge,Double> distMatrix = mod.getDistMatrix();
-		for (Edge cont:distMatrix.keySet()){
+		HashMap<Pair<Integer>,Double> distMatrix = mod.getDistMatrix();
+		for (Pair<Integer> cont:distMatrix.keySet()){
 			Color c = colorMapScaledHeatmap(distMatrix.get(cont), scaledDistCutoff);
 			g2d.setColor(c);
 			drawContact(g2d, cont);
@@ -508,7 +507,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	private void drawNbhSizeMap(Graphics2D g2d) {
 		// showing common neighbourhood sizes
-		for (Edge cont:comNbhSizes.keySet()){
+		for (Pair<Integer> cont:comNbhSizes.keySet()){
 			int size = comNbhSizes.get(cont);
 			if (allContacts.contains(cont)) {
 				// coloring pinks when the cell is a contact, 1/size is simply
@@ -530,7 +529,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawContactMap(Graphics2D g2d) {
 
 		// drawing the contact map
-		for (Edge cont:allContacts){ 
+		for (Pair<Integer> cont:allContacts){ 
 			if(userContactColors.containsKey(cont)) {
 				g2d.setColor(userContactColors.get(cont)); 
 			} else {
@@ -553,19 +552,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// getting all contacts of the second structure
 		this.allSecondContacts = mod2.getContacts();
 		// running through the second data set
-		for (Edge cont2:allSecondContacts){
+		for (Pair<Integer> cont2:allSecondContacts){
 			// looking for contacts which are also in the first set
 			if (allContacts.contains(cont2)) {
-				//add to commonContacts-EdgeSet
+				//add to commonContacts-IntPairSet
 				commonContacts.add(cont2);
 			}
 			else if(!allContacts.contains(cont2)){
-				// add to secStrucContacts-EdgeSet
+				// add to secStrucContacts-IntPairSet
 				secStrucContacts.add(cont2);
 			}
 		}
 
-		for (Edge cont:allContacts){
+		for (Pair<Integer> cont:allContacts){
 			if (!allSecondContacts.contains(cont)){
 				// add to mainStrucContacts_EdgeSet
 				mainStrucContacts.add(cont);
@@ -592,7 +591,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only second structure mode is toggled
 		else if (common == false && firstS == false && secondS == true){
 
-			for(Edge secCont:secStrucContacts){;
+			for(Pair<Integer> secCont:secStrucContacts){;
 			g2d.setColor(contactsSecStrucColor);
 			drawContact(g2d, secCont);}	
 		}
@@ -601,7 +600,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only main structure mode is toggled
 		else if (common == false && firstS == true && secondS == false){
 
-			for(Edge mainCont:mainStrucContacts){;
+			for(Pair<Integer> mainCont:mainStrucContacts){;
 			g2d.setColor(contactsMainStrucColor);
 			drawContact(g2d, mainCont);}
 		}
@@ -610,11 +609,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// main structure and second structure mode is toggled
 		else if (common == false && firstS == true && secondS == true){
 
-			for(Edge mainCont:mainStrucContacts){;
+			for(Pair<Integer> mainCont:mainStrucContacts){;
 			g2d.setColor(contactsMainStrucColor);
 			drawContact(g2d, mainCont);}
 
-			for(Edge secCont:secStrucContacts){;
+			for(Pair<Integer> secCont:secStrucContacts){;
 			g2d.setColor(contactsSecStrucColor);
 			drawContact(g2d, secCont);}
 
@@ -623,7 +622,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// common structure mode is toggled
 		else if (common == true && firstS == false && secondS == false){
 
-			for(Edge comCont:commonContacts){;
+			for(Pair<Integer> comCont:commonContacts){;
 			g2d.setColor(commonContactsColor);
 			drawContact(g2d, comCont);}
 
@@ -632,11 +631,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// common structure and second structure mode is toggled
 		else if (common == true && firstS == false && secondS == true){
 
-			for(Edge comCont:commonContacts){;
+			for(Pair<Integer> comCont:commonContacts){;
 			g2d.setColor(commonContactsColor);
 			drawContact(g2d, comCont);}
 
-			for(Edge secCont:secStrucContacts){;
+			for(Pair<Integer> secCont:secStrucContacts){;
 			g2d.setColor(contactsSecStrucColor);
 			drawContact(g2d, secCont);}
 
@@ -644,11 +643,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// common structure and first structure mode is toggled
 		else if (common == true && firstS == true && secondS == false){
 
-			for(Edge comCont:commonContacts){;
+			for(Pair<Integer> comCont:commonContacts){;
 			g2d.setColor(commonContactsColor);
 			drawContact(g2d, comCont);}
 
-			for(Edge mainCont:mainStrucContacts){;
+			for(Pair<Integer> mainCont:mainStrucContacts){;
 			g2d.setColor(contactsMainStrucColor);
 			drawContact(g2d, mainCont);}
 
@@ -656,15 +655,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		else {
 
 			// all modes are toggled
-			for(Edge comCont:commonContacts){;
+			for(Pair<Integer> comCont:commonContacts){;
 			g2d.setColor(commonContactsColor);
 			drawContact(g2d, comCont);}
 
-			for(Edge mainCont:mainStrucContacts){;
+			for(Pair<Integer> mainCont:mainStrucContacts){;
 			g2d.setColor(contactsMainStrucColor);
 			drawContact(g2d, mainCont);}
 
-			for(Edge secCont:secStrucContacts){;
+			for(Pair<Integer> secCont:secStrucContacts){;
 			g2d.setColor(contactsSecStrucColor);
 			drawContact(g2d, secCont);}
 
@@ -675,7 +674,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Draws the given contact cont to the given graphics object g2d using the
 	 * global contactSquareSize and g2d current painting color.
 	 */
-	private void drawContact(Graphics2D g2d, Edge cont) {
+	private void drawContact(Graphics2D g2d, Pair<Integer> cont) {
 		int x = getCellUpperLeft(cont).x;
 		int y = getCellUpperLeft(cont).y;
 		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
@@ -693,7 +692,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				Color c = colorMapRedBlue(densityMatrix[i][j]);
 				if(!c.equals(backgroundColor)) {
 					g2d.setColor(c);
-					Edge cont = new Edge(i+1,j+1);
+					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
 					drawContact(g2d, cont);
 				}
 			}
@@ -703,7 +702,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawDiffDistMap(Graphics2D g2d) {
 		// this actually contains all possible contacts in matrix so is doing a
 		// full loop on all cells
-		for (Edge cont:diffDistMap.keySet()){
+		for (Pair<Integer> cont:diffDistMap.keySet()){
 			Color c = colorMapHeatmap(1-diffDistMap.get(cont));
 			g2d.setColor(c);
 			drawContact(g2d, cont);
@@ -738,16 +737,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 *  true -> show alignment as well as sequence positions, false -> show 
 	 *  sequence position only
 	 */
-	protected void drawCoordinates(Graphics2D g2d, Model mod, EdgeSet modContacts, int x, int y, String aliTag, String title, boolean showAliAndSeqPos) {
-		Edge currentCell = screen2cm(mousePos);
+	protected void drawCoordinates(Graphics2D g2d, Model mod, IntPairSet modContacts, int x, int y, String aliTag, String title, boolean showAliAndSeqPos) {
+		Pair<Integer> currentCell = screen2cm(mousePos);
 
 		// return if any position equals zero
-		if( currentCell.i == 0 || currentCell.j == 0 ) {
+		if( currentCell.getFirst() == 0 || currentCell.getSecond() == 0 ) {
 			return;
 		}
 
-		String i_res = mod.getResType(currentCell.i);
-		String j_res = mod.getResType(currentCell.j);
+		String i_res = mod.getResType(currentCell.getFirst());
+		String j_res = mod.getResType(currentCell.getSecond());
 
 		if( i_res == AAinfo.getGapCharacterThreeLetter() ) {
 			i_res = AAinfo.getGapCharacterOneLetter()+"";
@@ -773,14 +772,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		g2d.drawString("i", x,           y+extraTitleY);
 		g2d.drawString("j", x+extraX+40, y+extraTitleY);
-		g2d.drawString(currentCell.i+"", x,           y+extraTitleY+20);
-		g2d.drawString(currentCell.j+"", x+extraX+40, y+extraTitleY+20);
+		g2d.drawString(currentCell.getFirst()+"", x,           y+extraTitleY+20);
+		g2d.drawString(currentCell.getSecond()+"", x+extraX+40, y+extraTitleY+20);
 		if( showAliAndSeqPos ) {
 			// substract 1 from the cell's coordinates to map from alignment 
 			// to sequence space
 			try {
-				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.i-1)+")", x+extraX,      y+extraTitleY+20);
-				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.j-1)+")", x+2*extraX+40, y+extraTitleY+20);
+				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.getFirst()-1)+")", x+extraX,      y+extraTitleY+20);
+				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.getSecond()-1)+")", x+2*extraX+40, y+extraTitleY+20);
 			} catch( NullPointerException e ) {
 				System.err.println(currentCell);
 			}
@@ -790,8 +789,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(j_res==null?"?":j_res, x+extraX+40, y+extraTitleY+40);
 		if (mod.hasSecondaryStructure()){
 			SecondaryStructure ss = mod.getSecondaryStructure();
-			g2d.drawString(ss.getSecStrucElement(currentCell.i)==null?"":(new Character(ss.getSecStrucElement(currentCell.i).getType()).toString()), x,           y+extraTitleY+60);
-			g2d.drawString(ss.getSecStrucElement(currentCell.j)==null?"":(new Character(ss.getSecStrucElement(currentCell.j).getType()).toString()), x+extraX+40, y+extraTitleY+60);
+			g2d.drawString(ss.getSecStrucElement(currentCell.getFirst())==null?"":(new Character(ss.getSecStrucElement(currentCell.getFirst()).getType()).toString()), x,           y+extraTitleY+60);
+			g2d.drawString(ss.getSecStrucElement(currentCell.getSecond())==null?"":(new Character(ss.getSecStrucElement(currentCell.getSecond()).getType()).toString()), x+extraX+40, y+extraTitleY+60);
 		}
 
 		if(modContacts.contains(currentCell) ) {
@@ -801,13 +800,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(view.getCurrentSelectionMode()==View.DIAG_SEL) {
 			if( !showAliAndSeqPos) {
 				g2d.drawString("SeqSep", x+80, y+extraTitleY+20);
-				g2d.drawString(Math.abs(currentCell.j-currentCell.i)+"", x+extraX+80, y+extraTitleY+40);		
+				g2d.drawString(getRange(currentCell)+"", x+extraX+80, y+extraTitleY+40);		
 			}
 		}
 
 		if (view.getShowPdbSers()){
-			String i_pdbresser = mod.getPdbResSerial(currentCell.i);
-			String j_pdbresser = mod.getPdbResSerial(currentCell.j);
+			String i_pdbresser = mod.getPdbResSerial(currentCell.getFirst());
+			String j_pdbresser = mod.getPdbResSerial(currentCell.getSecond());
 			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+80);
 			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, x+extraX+40, y+extraTitleY+80);
 		}
@@ -863,8 +862,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 //	/** visualize a contact as an arc */
 //	private void drawContactAsArc(Contact cont, Graphics2D g2d) {
-//	Point start = getCellCenter(new Contact(cont.i,cont.i));
-//	Point end = getCellCenter(new Contact(cont.j,cont.j));
+//	Point start = getCellCenter(new Contact(cont.getFirst(),cont.getFirst()));
+//	Point end = getCellCenter(new Contact(cont.getSecond(),cont.getSecond()));
 
 //	// draw half circle
 //	double xc = (start.x + end.x) / 2;
@@ -876,8 +875,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	g2d.draw(arc);
 //	}
 
-	private void drawCommonNeighbours(Graphics2D g2d, Edge cont){
-		EdgeNbh comNbh = this.currCommonNbh;
+	private void drawCommonNeighbours(Graphics2D g2d, Pair<Integer> cont){
+		RIGCommonNbhood comNbh = this.currCommonNbh;
 
 		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
 		System.out.println("Motif: "+comNbh);
@@ -891,11 +890,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue
 			// serial)
 			System.out.print(k+" ");
-			if (k>cont.i && k<cont.j) {
+			if (k>cont.getFirst() && k<cont.getSecond()) {
 				// draw cyan triangles for neighbours within the box
 				drawTriangle(k, cont, g2d, inBoxTriangleColor);
 			}
-			else { // i.e. k<cont.i || k>cont.j
+			else { // i.e. k<cont.getFirst() || k>cont.getSecond()
 				// draw red triangles for neighbours out of the box
 				drawTriangle(k, cont, g2d, outBoxTriangleColor);
 			}
@@ -903,7 +902,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		System.out.println();
 	}
 
-	private void drawCrossOnContact(Edge cont, Graphics2D g2d,Color color){
+	private void drawCrossOnContact(Pair<Integer> cont, Graphics2D g2d,Color color){
 		g2d.setColor(color);
 		if (ratio<6){ // if size of square is too small, then use fixed size 3
 			// in each side of the cross
@@ -925,7 +924,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
-	private void drawCorridor(Edge cont, Graphics2D g2d){
+	private void drawCorridor(Pair<Integer> cont, Graphics2D g2d){
 		Point point = getCellCenter(cont);
 		int x = point.x;
 		int y = point.y;
@@ -936,13 +935,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawLine(y,y,y,outputSize);
 	}
 
-	private void drawTriangle(int k, Edge cont, Graphics2D g2d,Color color) {
-		int i = cont.i;
-		int j = cont.j;
+	private void drawTriangle(int k, Pair<Integer> cont, Graphics2D g2d,Color color) {
+		int i = cont.getFirst();
+		int j = cont.getSecond();
 		// we put the i,k and j,k contacts in the right side of the contact map
-		// (upper side, i.e.j>i)
-		Edge ikCont = new Edge(Math.min(i, k), Math.max(i, k));
-		Edge jkCont = new Edge(Math.min(j, k), Math.max(j, k));
+		// (upper side, i.e.getSecond()>i)
+		Pair<Integer> ikCont = new Pair<Integer>(Math.min(i, k), Math.max(i, k));
+		Pair<Integer> jkCont = new Pair<Integer>(Math.min(j, k), Math.max(j, k));
 
 		// we mark the 2 edges i,k and j,k with a cross
 		this.drawCrossOnContact(ikCont, g2d, crossOnContactColor);
@@ -963,19 +962,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
 
 		// drawing light gray common neighbour corridor markers
-		Edge kkCont = new Edge(k,k); // k node point in the diagonal: the
+		Pair<Integer> kkCont = new Pair<Integer>(k,k); // k node point in the diagonal: the
 		// start point of the light gray
 		// corridor
 		Point kkPoint = getCellCenter(kkCont);
 		Point endPoint = new Point();
-		if (k<(j+i)/2) endPoint = getCellCenter(new Edge(j,k)); // if k below
+		if (k<(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(j,k)); // if k below
 		// center of
 		// segment i->j,
 		// the endpoint
 		// is j,k i.e.
 		// we draw a
 		// vertical line
-		if (k>(j+i)/2) endPoint = getCellCenter(new Edge(k,i)); // if k above
+		if (k>(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(k,i)); // if k above
 		// center of
 		// segment i->j,
 		// the endpoint
@@ -1018,8 +1017,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			switch (view.getCurrentSelectionMode()) {
 			case View.SHOW_COMMON_NBH:
-				Edge c = screen2cm(mousePressedPos); 
-				this.currCommonNbh = mod.getEdgeNbh (c.i,c.j);
+				Pair<Integer> c = screen2cm(mousePressedPos); 
+				this.currCommonNbh = mod.getEdgeNbh (c.getFirst(),c.getSecond());
 				dragging = false;
 				showCommonNbs = true;
 				this.repaint();
@@ -1027,13 +1026,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			case View.SEL_MODE_COLOR:
 				dragging=false;		// TODO: can we pull this up?
-				Edge clickedPos = screen2cm(mousePressedPos); // TODO: this as well?
+				Pair<Integer> clickedPos = screen2cm(mousePressedPos); // TODO: this as well?
 				if(!evt.isControlDown()) {
 					resetSelections();
 				}
 				Color clickedColor = userContactColors.get(clickedPos);
 				if(clickedColor != null) {
-					for(Edge e:userContactColors.keySet()) {
+					for(Pair<Integer> e:userContactColors.keySet()) {
 						if(userContactColors.get(e) == clickedColor) selContacts.add(e); 
 					}
 				} else {
@@ -1042,7 +1041,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						if(userContactColors.size() == 0) {
 							selectAllContacts();
 						} else {
-							for(Edge e:allContacts) {
+							for(Pair<Integer> e:allContacts) {
 								Color col = userContactColors.get(e);
 								if(col == null) selContacts.add(e);
 							}
@@ -1056,7 +1055,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 
 				if(!dragging) {					
-					Edge clicked = screen2cm(mousePressedPos);
+					Pair<Integer> clicked = screen2cm(mousePressedPos);
 					if(allContacts.contains(clicked)) { // if clicked position
 						// is a contact
 						if(selContacts.contains(clicked)) {
@@ -1065,14 +1064,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							if(evt.isControlDown()) {
 								selContacts.remove(clicked);
 							} else {
-								selContacts = new EdgeSet();
+								selContacts = new IntPairSet();
 								selContacts.add(clicked);
 							}
 						} else {
 							// if clicked position is a contact but not
 							// selected, select it
 							if(!evt.isControlDown()) {
-								selContacts = new EdgeSet();
+								selContacts = new IntPairSet();
 							}
 							selContacts.add(clicked);
 						}
@@ -1086,7 +1085,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
-						selContacts = new EdgeSet();
+						selContacts = new IntPairSet();
 						selContacts.addAll(tmpContacts);
 					}
 				}
@@ -1150,26 +1149,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				}
 				// we select the node neighbourhoods of both i and j of the
 				// mousePressedPos
-				Edge cont = screen2cm(mousePressedPos);
-				if (cont.j>cont.i){ // only if we clicked on the upper side of
+				Pair<Integer> cont = screen2cm(mousePressedPos);
+				if (cont.getSecond()>cont.getFirst()){ // only if we clicked on the upper side of
 					// the matrix
-					selectNodeNbh(cont.i);
-					selectNodeNbh(cont.j);
-				} else if (cont.j==cont.i){
-					selectNodeNbh(cont.i);
+					selectNodeNbh(cont.getFirst());
+					selectNodeNbh(cont.getSecond());
+				} else if (cont.getSecond()==cont.getFirst()){
+					selectNodeNbh(cont.getFirst());
 				}
 				this.repaint();
 				return;
 
 			case View.DIAG_SEL:
 				if (!dragging){
-					Edge clicked = screen2cm(mousePressedPos);
+					Pair<Integer> clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
 					if(!evt.isControlDown()) {
 						resetSelections();
 					}
 
-					selectDiagonal(clicked.getRange());
+					selectDiagonal(getRange(clicked));
 
 
 					this.repaint();
@@ -1177,7 +1176,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (evt.isControlDown()){
 						selContacts.addAll(tmpContacts);
 					} else{
-						selContacts = new EdgeSet();
+						selContacts = new IntPairSet();
 						selContacts.addAll(tmpContacts);
 					}
 				}
@@ -1387,7 +1386,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		new Thread() {
 			public void run() {
 				registerThread(true);
-				comNbhSizes = mod.getAllEdgeNbhSizes();
+				comNbhSizes = mod.getAllCommonNbhSizes();
 				// updateScreenBuffer();
 				registerThread(false);
 			}
@@ -1459,7 +1458,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Triggers the nbh size map to be updated
 	 */
 	public synchronized void updateNbhSizeMap() {
-		comNbhSizes = mod.getAllEdgeNbhSizes();
+		comNbhSizes = mod.getAllCommonNbhSizes();
 	}
 
 	/**
@@ -1547,7 +1546,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to reset the user defined contact colors */
 	public void resetUserContactColors() {
-		userContactColors = new Hashtable<Edge, Color>();
+		userContactColors = new Hashtable<Pair<Integer>, Color>();
 		updateScreenBuffer();
 	}
 
@@ -1590,7 +1589,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * to the given color
 	 */
 	public void paintCurrentSelection(Color paintingColor) {
-		for(Edge cont:selContacts) {
+		for(Pair<Integer> cont:selContacts) {
 			userContactColors.put(cont, paintingColor);
 		}
 		updateScreenBuffer();
@@ -1599,7 +1598,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to select all contacts */
 	public void selectAllContacts() {
-		selContacts = new EdgeSet();
+		selContacts = new IntPairSet();
 		common = view.getSelCommonContactsInComparedMode();
 		firstS = view.getSelFirstStrucInComparedMode();
 		secondS = view.getSelSecondStrucInComparedMode();
@@ -1649,10 +1648,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to select all helix-helix contacts */
 	public void selectHelixHelix() {
-		selContacts = new EdgeSet();
-		for(Edge e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+		selContacts = new IntPairSet();
+		for(Pair<Integer> e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
 			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.getType() == SecStrucElement.HELIX && ss2.getType() == SecStrucElement.HELIX) {
 				selContacts.add(e);
 			}
@@ -1662,10 +1661,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to select all strand-strand contacts */
 	public void selectBetaBeta() {
-		selContacts = new EdgeSet();
-		for(Edge e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+		selContacts = new IntPairSet();
+		for(Pair<Integer> e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
 			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.isStrand() && ss2.isStrand()) {
 				selContacts.add(e);
 			}
@@ -1675,10 +1674,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to select all contacts between secondary structure elements */
 	public void selectInterSsContacts() {
-		selContacts = new EdgeSet();
-		for(Edge e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+		selContacts = new IntPairSet();
+		for(Pair<Integer> e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
 			if(ss1 != null && ss2 != null && (ss1 != ss2 && !ss1.inSameSheet(ss2)) && !ss1.isOther() && !ss2.isOther()) {
 				selContacts.add(e);
 			}
@@ -1688,10 +1687,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Called by view to select all contacts within secondary structure elements */
 	public void selectIntraSsContacts() {
-		selContacts = new EdgeSet();
-		for(Edge e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.i);
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.j);
+		selContacts = new IntPairSet();
+		for(Pair<Integer> e:allContacts) {
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
 			if(ss1 != null && ss2 != null && (ss1 == ss2 || ss1.inSameSheet(ss2)) && !ss1.isOther()) {
 				selContacts.add(e);
 			}
@@ -1706,12 +1705,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	public int selectByResNum(String selStr) {
 		if(selStr.length() == 0) return 0;	// nothing to select
-		if(!NodeSet.isValidSelectionString(selStr)) return -1;
-		NodeSet nodeSet1 = NodeSet.parseSelectionString(selStr);
-		NodeSet nodeSet2 = NodeSet.parseSelectionString(selStr);
-		selContacts = new EdgeSet();
-		for(Edge e:allContacts) {
-			if(nodeSet1.contains(new Node(e.i)) && nodeSet2.contains(new Node(e.j))) {
+		if(!Interval.isValidSelectionString(selStr)) return -1;
+		TreeSet<Integer> nodeSet1 = Interval.parseSelectionString(selStr);
+		TreeSet<Integer> nodeSet2 = Interval.parseSelectionString(selStr);
+		selContacts = new IntPairSet();
+		for(Pair<Integer> e:allContacts) {
+			if(nodeSet1.contains(e.getFirst()) && nodeSet2.contains(e.getSecond())) {
 				selContacts.add(e);
 			}
 		}
@@ -1724,8 +1723,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * contains cont
 	 */
 	protected void selectDiagonal(int range) {
-		for(Edge c: allContacts) {
-			if(c.getRange() == range) {
+		for(Pair<Integer> c: allContacts) {
+			if(getRange(c) == range) {
 				selContacts.add(c);
 			}
 		}
@@ -1737,7 +1736,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void selectNodesHorizontally(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selHorNodes.add(new Node(i));
+			selHorNodes.add(i);
 		}
 		checkNodeIntersectionAndSelect();
 	}
@@ -1748,14 +1747,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void deselectNodesHorizontally(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selHorNodes.remove(new Node(i));
+			selHorNodes.remove(i);
 		}	
 		checkNodeIntersectionAndSelect();
 	}
 
 	/** Resets the current horizontal residue selection */
 	protected void resetHorizontalNodeSelection() {
-		selHorNodes = new NodeSet();
+		selHorNodes = new TreeSet<Integer>();
 	}
 
 	/**
@@ -1764,7 +1763,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void selectNodesVertically(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selVertNodes.add(new Node(i));
+			selVertNodes.add(i);
 		}
 		checkNodeIntersectionAndSelect();
 	}
@@ -1775,14 +1774,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void deselectNodesVertically(Interval intv) {
 		for(int i=intv.beg; i <= intv.end; i++) {
-			selVertNodes.remove(new Node(i));
+			selVertNodes.remove(i);
 		}
 		checkNodeIntersectionAndSelect();
 	}
 
 	/** Resets the current horizontal residue selection */
 	protected void resetVerticalNodeSelection() {
-		selVertNodes = new NodeSet();
+		selVertNodes = new TreeSet<Integer>();
 	}
 
 	/**
@@ -1909,8 +1908,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}		
 
 	public void deleteSelectedContacts() {
-		for (Edge cont:selContacts){
-			mod.delEdge(cont);
+		for (Pair<Integer> cont:selContacts){
+			mod.removeEdge(cont);
 		}
 		resetSelections();
 		reloadContacts();	// will update screen buffer and repaint
@@ -1920,22 +1919,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContact with the contacts contained in the rectangle given by
 	 * the upperLeft and lowerRight.
 	 */
-	public void squareSelect(EdgeSet contacts){
-		Edge upperLeft = screen2cm(mousePressedPos);
-		Edge lowerRight = screen2cm(mouseDraggingPos);
+	public void squareSelect(IntPairSet contacts){
+		Pair<Integer> upperLeft = screen2cm(mousePressedPos);
+		Pair<Integer> lowerRight = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts
 		// from a blank list
-		tmpContacts = new EdgeSet();
+		tmpContacts = new IntPairSet();
 
-		int imin = Math.min(upperLeft.i,lowerRight.i);
-		int jmin = Math.min(upperLeft.j,lowerRight.j);
-		int imax = Math.max(upperLeft.i,lowerRight.i);
-		int jmax = Math.max(upperLeft.j,lowerRight.j);
+		int imin = Math.min(upperLeft.getFirst(),lowerRight.getFirst());
+		int jmin = Math.min(upperLeft.getSecond(),lowerRight.getSecond());
+		int imax = Math.max(upperLeft.getFirst(),lowerRight.getFirst());
+		int jmax = Math.max(upperLeft.getSecond(),lowerRight.getSecond());
 		// we loop over all contacts so time is o(number of contacts) instead of
 		// looping over the square (o(n2) being n size of square)
 
-		for (Edge cont:contacts){
-			if (cont.i<=imax && cont.i>=imin && cont.j<=jmax && cont.j>=jmin){
+		for (Pair<Integer> cont:contacts){
+			if (cont.getFirst()<=imax && cont.getFirst()>=imin && cont.getSecond()<=jmax && cont.getSecond()>=jmin){
 				tmpContacts.add(cont);
 			}
 		}
@@ -1946,18 +1945,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContacts with the contacts contained in the range selection
 	 * (selection by diagonals)
 	 */
-	public void rangeSelect(EdgeSet contacts){
-		Edge startContact = screen2cm(mousePressedPos);
-		Edge endContact = screen2cm(mouseDraggingPos);
+	public void rangeSelect(IntPairSet contacts){
+		Pair<Integer> startContact = screen2cm(mousePressedPos);
+		Pair<Integer> endContact = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts
 		// from a blank list
-		tmpContacts = new EdgeSet();
-		int rangeMin = Math.min(startContact.getRange(), endContact.getRange());
-		int rangeMax = Math.max(startContact.getRange(), endContact.getRange());
+		tmpContacts = new IntPairSet();
+		int rangeMin = Math.min(getRange(startContact), getRange(endContact));
+		int rangeMax = Math.max(getRange(startContact), getRange(endContact));
 		// we loop over all contacts so time is o(number of contacts) instead of
 		// looping over the square (o(n2) being n size of square)
-		for (Edge cont:contacts){
-			if (cont.getRange()<=rangeMax && cont.getRange()>=rangeMin){
+		for (Pair<Integer> cont:contacts){
+			if (getRange(cont)<=rangeMax && getRange(cont)>=rangeMin){
 				tmpContacts.add(cont);
 			}
 		}
@@ -1972,9 +1971,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 *            tmpContacts first and then copy to selContacts (if we want
 	 *            this behaviour)
 	 */
-	private void fillSelect(EdgeSet contacts, Edge cont){
-		int i = cont.i;
-		int j = cont.j;
+	private void fillSelect(IntPairSet contacts, Pair<Integer> cont){
+		int i = cont.getFirst();
+		int j = cont.getSecond();
 		if ((i < 1) || (j < 1) || (i > contactMapSize) || (j > contactMapSize)) {
 			return;
 		} else {
@@ -1989,32 +1988,32 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				selContacts.add(cont);
 
 				// 1 distance
-				fillSelect(contacts, new Edge(i-1,j));
-				fillSelect(contacts, new Edge(i+1,j));
-				fillSelect(contacts, new Edge(i,j-1));
-				fillSelect(contacts, new Edge(i,j+1));
+				fillSelect(contacts, new Pair<Integer>(i-1,j));
+				fillSelect(contacts, new Pair<Integer>(i+1,j));
+				fillSelect(contacts, new Pair<Integer>(i,j-1));
+				fillSelect(contacts, new Pair<Integer>(i,j+1));
 
 				// 2 distance
-				fillSelect(contacts, new Edge(i-2,j));
-				fillSelect(contacts, new Edge(i+2,j));
-				fillSelect(contacts, new Edge(i,j-2));
-				fillSelect(contacts, new Edge(i,j+2));
-				fillSelect(contacts, new Edge(i-1,j+1));
-				fillSelect(contacts, new Edge(i+1,j+1));
-				fillSelect(contacts, new Edge(i-1,j-1));
-				fillSelect(contacts, new Edge(i+1,j-1));
+				fillSelect(contacts, new Pair<Integer>(i-2,j));
+				fillSelect(contacts, new Pair<Integer>(i+2,j));
+				fillSelect(contacts, new Pair<Integer>(i,j-2));
+				fillSelect(contacts, new Pair<Integer>(i,j+2));
+				fillSelect(contacts, new Pair<Integer>(i-1,j+1));
+				fillSelect(contacts, new Pair<Integer>(i+1,j+1));
+				fillSelect(contacts, new Pair<Integer>(i-1,j-1));
+				fillSelect(contacts, new Pair<Integer>(i+1,j-1));
 			}
 		}
 	}
 
 	protected void selectNodeNbh(int i) {
-		NodeNbh nbh = mod.getNodeNbh(i);
+		RIGNbhood nbh = mod.getNodeNbh(i);
 		System.out.println("Selecting node neighbourhood of node: "+i);
 		System.out.println("Motif: "+nbh);
 		System.out.print("Neighbours: ");
 		for (int j:nbh.keySet()){
 			System.out.print(j+" ");
-			selContacts.add(new Edge(Math.min(i, j),Math.max(i, j)));
+			selContacts.add(new Pair<Integer>(Math.min(i, j),Math.max(i, j)));
 		}
 		System.out.println();
 
@@ -2029,7 +2028,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/** Resets the current contact selection */
 	protected void resetContactSelection() {
-		this.selContacts = new EdgeSet();
+		this.selContacts = new IntPairSet();
 	}
 
 	/**
@@ -2053,7 +2052,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 
 	/** Returns the currently selected common neighbourhood (to show it in 3D) */
-	public EdgeNbh getCommonNbh(){
+	public RIGCommonNbhood getCommonNbh(){
 		return currCommonNbh;
 	}
 
@@ -2061,7 +2060,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Returns the contact where the right mouse button was last clicked to open
 	 * a context menu (to show it in 3D)
 	 */
-	public Edge getRightClickCont() {
+	public Pair<Integer> getRightClickCont() {
 		return this.rightClickCont;
 	}
 
@@ -2071,7 +2070,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/** Return the selContacts variable */
-	public EdgeSet getSelContacts(){
+	public IntPairSet getSelContacts(){
 		return selContacts;
 	}
 
@@ -2079,8 +2078,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Gets the whole set of selected contacts.
 	 * @return The size of the returned array of edge sets depends on the types of selected contacts. As there are  
 	 */
-	public EdgeSet[] getSelectedContacts(){
-		EdgeSet[] array = new EdgeSet[2];
+	public IntPairSet[] getSelectedContacts(){
+		IntPairSet[] array = new IntPairSet[2];
 		if (this.hasSecondModel()){
 			if (common == false && firstS == false && secondS == true){
 				array = this.getGreenContacts();
@@ -2111,19 +2110,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 
 		} else { 
-			EdgeSet edge = this.getSelContacts();
+			IntPairSet edge = this.getSelContacts();
 			array[0] = edge;
 		}
 		return array;
 	}
 
 	/** Returns the set of horizontally selected nodes. */
-	public NodeSet getSelHorNodes() {
+	public TreeSet<Integer> getSelHorNodes() {
 		return selHorNodes;
 	}
 
 	/** Returns the set of vertically selected nodes. */
-	public NodeSet getSelVertNodes() {
+	public TreeSet<Integer> getSelVertNodes() {
 		return selVertNodes;
 	}
 
@@ -2159,10 +2158,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void checkNodeIntersectionAndSelect() {
 		if(selHorNodes.size() > 0 && selVertNodes.size() > 0) {
 			resetContactSelection();
-			Edge c;
-			for(Node i:selHorNodes) {	// TODO: Can this be optimized?
-				for(Node j:selVertNodes) {
-					c = new Edge(i,j);
+			Pair<Integer> c;
+			for(int i:selHorNodes) {	// TODO: Can this be optimized?
+				for(int j:selVertNodes) {
+					c = new Pair<Integer>(i,j);
 					if(allContacts.contains(c)) selContacts.add(c);
 				}
 			}
@@ -2234,7 +2233,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	private void showPopup(MouseEvent e) {
 		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));
-		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,rightClickCont.i,rightClickCont.j));
+		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,rightClickCont.getFirst(),rightClickCont.getSecond()));
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 
@@ -2242,22 +2241,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Returns the corresponding contact in the contact map given screen
 	 * coordinates
 	 */
-	private Edge screen2cm(Point point){
-		return new Edge((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
+	private Pair<Integer> screen2cm(Point point){
+		return new Pair<Integer>((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
 	/**
 	 * Returns upper left corner of the square representing the contact
 	 */
-	private Point getCellUpperLeft(Edge cont){
-		return new Point((int) Math.round((cont.j-1)*ratio), (int) Math.round((cont.i-1)*ratio));
+	private Point getCellUpperLeft(Pair<Integer> cont){
+		return new Point((int) Math.round((cont.getSecond()-1)*ratio), (int) Math.round((cont.getFirst()-1)*ratio));
 	}
 
 	/**
 	 * Return the center of a cell on screen given its coordinates in the
 	 * contact map
 	 */
-	private Point getCellCenter(Edge cont){
+	private Point getCellCenter(Pair<Integer> cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio/2),point.y+(int)Math.ceil(ratio/2));
 	}
@@ -2266,7 +2265,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Return the upper right corner of a cell on screen given its coordinates
 	 * in the contact map
 	 */
-	private Point getCellUpperRight(Edge cont){
+	private Point getCellUpperRight(Pair<Integer> cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y);
 	}
@@ -2275,7 +2274,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Return the lower left corner of a cell on screen given its coordinates in
 	 * the contact map
 	 */
-	private Point getCellLowerLeft(Edge cont){
+	private Point getCellLowerLeft(Pair<Integer> cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x,point.y+(int)Math.ceil(ratio));
 
@@ -2285,7 +2284,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Return the lower right corner of a cell on screen given its coordinates
 	 * in the contact map
 	 */
-	private Point getCellLowerRight(Edge cont){
+	private Point getCellLowerRight(Pair<Integer> cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
 		// actually these are the green contacts
@@ -2297,11 +2296,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return Array of edge sets of size one.
 	 * @see #addSecondModel(Model)
 	 */
-	private EdgeSet[] getGreenContacts(){
-		EdgeSet[] array = new EdgeSet[1];
-		greenPContacts = new EdgeSet();
+	private IntPairSet[] getGreenContacts(){
+		IntPairSet[] array = new IntPairSet[1];
+		greenPContacts = new IntPairSet();
 
-		for (Edge cont:selContacts){
+		for (Pair<Integer> cont:selContacts){
 			if(secStrucContacts.contains(cont)){
 				greenPContacts.add(cont);
 			}
@@ -2319,11 +2318,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @see #setModel(Model)
 	 * @see #ContactMapPane(Model, View)
 	 */
-	private EdgeSet[] getRedContacts(){
-		EdgeSet[] array = new EdgeSet[1];
-		redPContacts = new EdgeSet();
+	private IntPairSet[] getRedContacts(){
+		IntPairSet[] array = new IntPairSet[1];
+		redPContacts = new IntPairSet();
 
-		for (Edge cont:selContacts){
+		for (Pair<Integer> cont:selContacts){
 			if(mainStrucContacts.contains(cont)){
 				redPContacts.add(cont);
 			}
@@ -2340,12 +2339,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return Array of edge sets of size 2! First array entry contains the
 	 *  red and the second the green contacts, only. 
 	 */
-	private EdgeSet[] getRedGreenContacts(){
-		EdgeSet[] array = new EdgeSet[2];
+	private IntPairSet[] getRedGreenContacts(){
+		IntPairSet[] array = new IntPairSet[2];
 
-		redPContacts = new EdgeSet();
-		greenPContacts = new EdgeSet();
-		for (Edge cont:selContacts){
+		redPContacts = new IntPairSet();
+		greenPContacts = new IntPairSet();
+		for (Pair<Integer> cont:selContacts){
 			if(mainStrucContacts.contains(cont)){
 				redPContacts.add(cont);
 			}
@@ -2367,12 +2366,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * an identical set of contacts.
 	 * @see #getRedGreenContacts()
 	 */
-	private EdgeSet[] getCommonPContacts(){
-		EdgeSet[] array = new EdgeSet[2];
+	private IntPairSet[] getCommonPContacts(){
+		IntPairSet[] array = new IntPairSet[2];
 
-		redPContacts = new EdgeSet();
-		greenPContacts = new EdgeSet();
-		for (Edge cont:selContacts){
+		redPContacts = new IntPairSet();
+		greenPContacts = new IntPairSet();
+		for (Pair<Integer> cont:selContacts){
 			if(commonContacts.contains(cont)){
 				redPContacts.add(cont);
 				greenPContacts.add(cont);
@@ -2390,13 +2389,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return Array of edge set of size 3! First entry contains red, the 
 	 * second green and the third common contact only. 
 	 */
-	private EdgeSet[] getAllCommonPContacts(){
-		EdgeSet[] array = new EdgeSet[3];
+	private IntPairSet[] getAllCommonPContacts(){
+		IntPairSet[] array = new IntPairSet[3];
 
-		commonPContacts = new EdgeSet();
-		redPContacts = new EdgeSet();
-		greenPContacts = new EdgeSet();
-		for (Edge cont:selContacts){
+		commonPContacts = new IntPairSet();
+		redPContacts = new IntPairSet();
+		greenPContacts = new IntPairSet();
+		for (Pair<Integer> cont:selContacts){
 			if(commonContacts.contains(cont)){
 				commonPContacts.add(cont);
 
@@ -2422,13 +2421,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return Array of edge sets of size 2! First entry holds only common 
 	 * and the second only red contacts.
 	 */
-	private EdgeSet[] getRedCommonContacts(){
-		EdgeSet[] array = new EdgeSet[2];
+	private IntPairSet[] getRedCommonContacts(){
+		IntPairSet[] array = new IntPairSet[2];
 
-		redPContacts = new EdgeSet();
-		greenPContacts = new EdgeSet();
+		redPContacts = new IntPairSet();
+		greenPContacts = new IntPairSet();
 		// these are the black contacts
-		for (Edge cont:selContacts){
+		for (Pair<Integer> cont:selContacts){
 			if(commonContacts.contains(cont)){
 				// TODO: lars@all: for what reason do we abuse redPContacts as container for the common contact??
 				redPContacts.add(cont);
@@ -2450,13 +2449,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return Array of edge sets of size 2! First entry holds common 
 	 * contacts, the second entry the green ones.
 	 */
-	private EdgeSet[] getGreenCommonContacts(){
-		EdgeSet[] array = new EdgeSet[2];
+	private IntPairSet[] getGreenCommonContacts(){
+		IntPairSet[] array = new IntPairSet[2];
 
-		redPContacts = new EdgeSet();
-		greenPContacts = new EdgeSet();
+		redPContacts = new IntPairSet();
+		greenPContacts = new IntPairSet();
 		// these are the black contacts
-		for (Edge cont:selContacts){
+		for (Pair<Integer> cont:selContacts){
 			// TODO: lars@all: see TODO tags in getRedCommonContacts()
 			if(commonContacts.contains(cont)){
 				greenPContacts.add(cont);
@@ -2483,7 +2482,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return the edge set of common contacts corresponding to the given model
 	 *  identifiers
 	 */
-	public EdgeSet getCommonContacts(int idxFirst, int idxSecond) {
+	public IntPairSet getCommonContacts(int idxFirst, int idxSecond) {
 		if(idxFirst == 1 && idxSecond == 2 || idxFirst == 2 && idxSecond == 1) {
 			return commonContacts;
 		} else {
@@ -2497,7 +2496,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @return  edge set of common contact, null if whichOne is not a valid 
 	 *  model index
 	 */
-	public EdgeSet getModelContacts( int whichOne) {
+	public IntPairSet getModelContacts( int whichOne) {
 		switch (whichOne) {
 		case 1:
 			return mainStrucContacts;
@@ -2508,7 +2507,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
-
+	private int getRange(Pair<Integer> cont) {
+		return Math.abs(cont.getFirst()-cont.getSecond());
+	}
+	
 //	/** Returns the size in pixels of a single contact on screen
 //	* TODO: Check whether this number is really the number in pixels (and not
 //	plus or minus 1) */

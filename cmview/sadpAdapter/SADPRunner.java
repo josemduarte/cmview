@@ -1,16 +1,18 @@
 package cmview.sadpAdapter;
 
+import java.util.TreeSet;
+
 import cmview.Start;
 import cmview.datasources.Model;
 import cmview.toolUtils.ToolRunner;
+import edu.uci.ics.jung.graph.util.Pair;
 import actionTools.Doer;
 import actionTools.Retriever;
 import actionTools.Runner;
 
 import proteinstructure.Alignment;
 import proteinstructure.AlignmentConstructionError;
-import proteinstructure.EdgeSet;
-import proteinstructure.Graph;
+import proteinstructure.RIGraph;
 import proteinstructure.PairwiseAlignmentConverter;
 import proteinstructure.PairwiseAlignmentGraphConverter;
 
@@ -22,11 +24,11 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 
 	Model     inMod1;
 	Model     inMod2;
-	Graph     inG1;
-	Graph     inG2;
-	Graph     outG1;
-	Graph     outG2;
-	EdgeSet   matching;
+	RIGraph     inG1;
+	RIGraph     inG2;
+	RIGraph     outG1;
+	RIGraph     outG2;
+	TreeSet<Pair<Integer>>  matching;
 	Alignment ali;
 	String    name1;
 	String    name2;
@@ -152,7 +154,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	 * @see getAlignment()
 	 * @see getFirstName();
 	 */
-	private Graph getFirstAlignedGraph() {
+	private RIGraph getFirstAlignedGraph() {
 		return outG1; 
 	}
 
@@ -164,7 +166,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	 * @see getAlignment()
 	 * @see getSecondName();
 	 */
-	private Graph getSecondAlignedGraph() {
+	private RIGraph getSecondAlignedGraph() {
 		return outG2;
 	}
 
@@ -176,7 +178,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		return getXoutputModel(getSecondInputModel(),getSecondAlignedGraph());
 	}
 
-	private Model getXoutputModel(Model inMod, Graph g) {
+	private Model getXoutputModel(Model inMod, RIGraph g) {
 		Model outMod = inMod.copy();
 		outMod.setGraph(g);
 		return outMod;
@@ -203,7 +205,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	/**
 	 * Makes the alignment based an a set of alignment edges.
 	 * */
-	private Alignment makeAlignment( EdgeSet matching ) throws AlignmentConstructionError {
+	private Alignment makeAlignment( TreeSet<Pair<Integer>> matching ) throws AlignmentConstructionError {
 		Alignment ali;
 		if( inG1.getSequence() == null ) {
 			if( inG2.getSequence() == null ) {

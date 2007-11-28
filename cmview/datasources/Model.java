@@ -6,8 +6,20 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 
+import proteinstructure.AAinfo;
+import proteinstructure.Alignment;
+import proteinstructure.IntPairSet;
+import proteinstructure.Pdb;
+import proteinstructure.RIGCommonNbhood;
+import proteinstructure.RIGEdge;
+import proteinstructure.RIGNbhood;
+import proteinstructure.RIGNode;
+import proteinstructure.RIGraph;
+import proteinstructure.SecondaryStructure;
+
 import cmview.Start;
-import proteinstructure.*;
+import edu.uci.ics.jung.graph.util.Pair;
+
 
 /** 
  * A contact map data model. Derived classes have to implement the constructor in which
@@ -20,12 +32,12 @@ public abstract class Model {
 		
 	// structure and contact map data
 	protected Pdb pdb;								// this can be null if there are no 3D coordinates available
-	protected Graph graph;							// currently every model must have a valid graph object
+	protected RIGraph graph;						// currently every model must have a valid graph object
 	protected int matrixSize;						// number of residues (in known sequence)
 	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
-	protected HashMap<Edge,Double> distMatrix; 		// the scaled [0-1] distance matrix
+	protected HashMap<Pair<Integer>,Double> distMatrix; 		// the scaled [0-1] distance matrix
 	// The following two variables are pointers to the respective objects in pdb or graph. The only purpose of having them here is to allow
 	// us to take the seondary structure either from the graph or from the pdb object. A cleaner way would be to have both of them implement
 	// an interface hasSecondaryStructure and then just specify a secondaryStructureSource variable of that interface type.
@@ -145,12 +157,17 @@ public abstract class Model {
 	}
 	
 	/** Returns the contacts as an EdgeSet */
-	public EdgeSet getContacts(){
-		return this.graph.contacts; // this re-references graph's contacts, no deep copy
+	public IntPairSet getContacts(){
+		IntPairSet contacts = new IntPairSet();
+		for (RIGEdge edge:this.graph.getEdges()) {
+			Pair<RIGNode> pair = this.graph.getEndpoints(edge);
+			contacts.add(new Pair<Integer>(pair.getFirst().getResidueSerial(),pair.getSecond().getResidueSerial()));
+		}
+		return contacts;
 	}
 	
 	/** Returns the graph object */
-	public Graph getGraph(){
+	public RIGraph getGraph(){
 		return this.graph;
 	}
 	
@@ -158,14 +175,14 @@ public abstract class Model {
 	 * Sets the graph member variable
 	 * @param newGraph the new graph
 	 */
-	public void setGraph(Graph newGraph) {
+	public void setGraph(RIGraph newGraph) {
 	    this.graph = newGraph;
 	    initializeContactMap();
 	}
 	
 	/** Returns the number of contacts */
 	public int getNumberOfContacts() {
-		return graph.getNumContacts();
+		return graph.getEdgeCount();
 	}
 	
 	/** Returns true if the graph is directed, false otherwise */
@@ -260,30 +277,31 @@ public abstract class Model {
 	
 	/**
 	 * Returns the three letter residue type for the given residue serial.
-	 * This may only be called if there is sequence information in the graph object, i.e. hasSequence()==true
 	 * @param resser
 	 * @return A string with the three letter residue type of the residue with serial resser
 	 */
 	public String getResType(int resser){
-		return graph.getResType(resser);
+		RIGNode node = graph.getNodeFromSerial(resser);
+		// this happens ONLY when hasSequence()==false AND the residue is unobserved, i.e. graph loaded from file/db without the full sequence info: the unobserved nodes won't be present -> null
+		if (node==null) return null; 
+		return node.getResidueType();
 	}
 	
 	/**
 	 * Returns the one letter residue type for the given residue serial.
-	 * This may only be called if there is sequence information in the graph object, i.e. hasSequence()==true
 	 * @param resser
 	 * @return A string with the one letter residue type of the residue with serial resser
 	 */	
 	public String getResType1Letter(int resser){
-		return AAinfo.threeletter2oneletter(graph.getResType(resser));
+		return AAinfo.threeletter2oneletter(this.getResType(resser));
 	}	
 	
-	public NodeNbh getNodeNbh(int i_resser){
-		return graph.getNodeNbh(i_resser);
+	public RIGNbhood getNodeNbh(int i_resser){
+		return graph.getNbhood(graph.getNodeFromSerial(i_resser));
 	}
 	
-	public EdgeNbh getEdgeNbh(int i_resser, int j_resser){
-		return graph.getEdgeNbh(i_resser, j_resser);
+	public RIGCommonNbhood getEdgeNbh(int i_resser, int j_resser){
+		return graph.getCommonNbhood(graph.getNodeFromSerial(i_resser), graph.getNodeFromSerial(j_resser));
 	}
 	
 	/**
@@ -296,12 +314,12 @@ public abstract class Model {
 		return pdb.get_pdbresser_from_resser(resser);
 	}
 			
-	public HashMap<Edge,Integer> getAllEdgeNbhSizes(){
-		return graph.getAllEdgeNbhSizes();
+	public HashMap<Pair<Integer>,Integer> getAllCommonNbhSizes(){
+		return graph.getAllCommonNbhSizes();
 	}
 	
-	public void delEdge(Edge cont){
-		this.graph.delEdge(cont);
+	public void removeEdge(Pair<Integer> cont){
+		this.graph.removeEdge(this.graph.findEdge(this.graph.getNodeFromSerial(cont.getFirst()),this.graph.getNodeFromSerial(cont.getSecond())));
 	}
 	
 	/**
@@ -310,11 +328,11 @@ public abstract class Model {
 	 * May only be called if has3DCoordinates is true.
 	 */
 	public double initDistMatrix(){
-		HashMap<Edge,Double> distMatrixRes = this.pdb.calculate_dist_matrix(Start.DIST_MAP_CONTACT_TYPE);
+		HashMap<Pair<Integer>,Double> distMatrixRes = this.pdb.calculate_dist_matrix(Start.DIST_MAP_CONTACT_TYPE);
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
-		distMatrix = new HashMap<Edge, Double>();	// TODO: Use old matrix to save memory
-		for (Edge cont:distMatrixRes.keySet()){
+		distMatrix = new HashMap<Pair<Integer>, Double>();	// TODO: Use old matrix to save memory
+		for (Pair<Integer> cont:distMatrixRes.keySet()){
 			distMatrix.put(cont, (distMatrixRes.get(cont)-min)/(max-min));
 		}
 		double dist = (graph.getCutoff()-min)/(max-min);
@@ -325,7 +343,7 @@ public abstract class Model {
 	 * Returns the current distance matrix. Before initDistMatrix has been called this will be null.
 	 * @return A map assigning to each edge the corresponding distance (scaled to [0;1]).
 	 */
-	public HashMap<Edge,Double> getDistMatrix(){
+	public HashMap<Pair<Integer>,Double> getDistMatrix(){
 		return distMatrix;
 	}
 	
@@ -335,7 +353,7 @@ public abstract class Model {
 	 * @param secondModel the second model to compare agains
 	 * @return A map assigning to each edge the corresponding value in the difference distance matrix or null on error.
 	 */
-	public HashMap<Edge,Double> getDiffDistMatrix(Model secondModel) {
+	public HashMap<Pair<Integer>,Double> getDiffDistMatrix(Model secondModel) {
 		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
 		double diff, min, max;
 		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
@@ -347,7 +365,7 @@ public abstract class Model {
 			return null; // can only calculate matrix difference if sizes match TODO: use alignment
 		}
 		
-		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
+		HashMap<Pair<Integer>,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
 		
 		if(diffDistMatrix == null) {
 			System.err.println("Failed to compute difference distance map.");
@@ -357,7 +375,7 @@ public abstract class Model {
 			if(max == min) System.err.println("Failed to scale difference distance matrix. Matrix is empty or all matrix entries are the same.");
 			else {
 				// scale matrix to [0;1]
-				for(Edge e:diffDistMatrix.keySet()) {
+				for(Pair<Integer> e:diffDistMatrix.keySet()) {
 					diff = diffDistMatrix.get(e); 
 					diffDistMatrix.put(e, (diff-min)/(max-min));
 				}
@@ -366,7 +384,7 @@ public abstract class Model {
 		return diffDistMatrix;
 	}
 	
-	public HashMap<Edge,Double> getDiffDistMatrix(Alignment ali, Model secondModel) {
+	public HashMap<Pair<Integer>,Double> getDiffDistMatrix(Alignment ali, Model secondModel) {
 		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
 		double diff, min, max;
 		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
@@ -380,7 +398,7 @@ public abstract class Model {
 		
 		String name1 = this.getPDBCode() + this.getChainCode();
 		String name2 = secondModel.getPDBCode() + secondModel.getChainCode();
-		HashMap<Edge,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE,ali,name1,name2);
+		HashMap<Pair<Integer>,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE,ali,name1,name2);
 		
 		if(diffDistMatrix == null) {
 			System.err.println("Failed to compute difference distance map.");
@@ -390,7 +408,7 @@ public abstract class Model {
 			if(max == min) System.err.println("Failed to scale difference distance matrix. Matrix is empty or all matrix entries are the same.");
 			else {
 				// scale matrix to [0;1]
-				for(Edge e:diffDistMatrix.keySet()) {
+				for(Pair<Integer> e:diffDistMatrix.keySet()) {
 					diff = diffDistMatrix.get(e); 
 					diffDistMatrix.put(e, (diff-min)/(max-min));
 				}
@@ -419,17 +437,17 @@ public abstract class Model {
 	}
 	
 	/**
-	 * Returns true iff there is no sequence information whatsoever
-	 * @return true if sequence information is availbale, false otherwise
+	 * Returns true if full sequence information is available
+	 * @return true if sequence information is available, false otherwise
 	 */
 	public boolean hasSequence() {
-		return graph.getSequence().equals("");
+		return graph.hasSequence();
 	}
 	
 	// secondary structure related methods
 	
 	/** 
-	 * Returns true iff this model has secondary structure information.
+	 * Returns true if this model has secondary structure information.
 	 * @return true if secondary structure information is available, false otherwise
 	 */
 	public boolean hasSecondaryStructure() {
@@ -455,8 +473,9 @@ public abstract class Model {
 		double[][] d = new double[size][size]; // density matrix
 		
 		// initialize matrix with contacts
-		for(Edge cont:graph.getContacts()) {
-			d[cont.i-1][cont.j-1] = 1;
+		for(RIGEdge cont:graph.getEdges()) {
+			Pair<RIGNode> pair = graph.getEndpoints(cont); 
+			d[pair.getFirst().getResidueSerial()-1][pair.getSecond().getResidueSerial()-1] = 1;
 		}
 		
 		// fill diagonal - avoids artefacts near main diagonal

@@ -20,7 +20,7 @@ public class GraphDbModel extends Model {
 		
 		// load contact graph from user specified graph database
 		try {
-			graph = new DbGraph(db, Start.getDbConnection(), pdbCode, pdbChainCode, distCutoff, edgeType);
+			graph = new DbRIGraph(db, Start.getDbConnection(), pdbCode, pdbChainCode, distCutoff, edgeType);
 			
 			// load structure from MSD (to display in Pymol)
 			if (!Start.isDatabaseConnectionAvailable()) {
@@ -63,7 +63,7 @@ public class GraphDbModel extends Model {
 		
 		// load contact graph from user specified graph database
 		try {
-			graph = new DbGraph(db, Start.getDbConnection(), graphId);
+			graph = new DbRIGraph(db, Start.getDbConnection(), graphId);
 			
 			// read information about structure from graph object
 			String pdbCode = graph.getPdbCode();

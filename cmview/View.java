@@ -26,6 +26,7 @@ import cmview.sadpAdapter.SADPDialogDoneNotifier;
 import cmview.sadpAdapter.SADPResult;
 import cmview.sadpAdapter.SADPRunner;
 import cmview.toolUtils.ToolDialog;
+import edu.uci.ics.jung.graph.util.Pair;
 import proteinstructure.*;
 import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 
@@ -1810,7 +1811,7 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>mod2</code>
 	 * @param selection  set of contacts to be considered
 	 */
-	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, EdgeSet[] selection) {
+	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, IntPairSet[] selection) {
 
 		try { 
 			TreeSet<Integer> positions = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
@@ -1875,7 +1876,7 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>mod2</code>
 	 * @param selection  selection of contacts to be considered
 	 */
-	public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, EdgeSet[] selection) {
+	public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, IntPairSet[] selection) {
 		try {
 			// get all addressed alignment columns, do not consider column 
 			// which contain unobserved residues (indicated by the 'true') 
@@ -1888,14 +1889,14 @@ public class View extends JFrame implements ActionListener {
 
 			// extract the residue indices from the 'columns', do not only 
 			// consider (mis)matches
-			EdgeSet residuePairs = new EdgeSet();
+			IntPairSet residuePairs = new IntPairSet();
 			int pos1,pos2;
 			for(int col : columns) {
 				pos1 = ali.al2seq(name1,col);
 				pos2 = ali.al2seq(name2,col);
 
 				if( pos1 != -1 && pos2 != -1 ) {
-					residuePairs.add(new Edge(pos1,pos2));
+					residuePairs.add(new Pair<Integer>(pos1,pos2));
 				}
 			}
 
@@ -1946,7 +1947,7 @@ public class View extends JFrame implements ActionListener {
 	 * @throws CoordinatesNotFoundError
 	 * @throws EmptyContactSelectionError
 	 */    
-	public TreeSet<Integer> getAlignmentPositionsFromSelection(Model mod1, Model mod2, EdgeSet[] selection, Alignment ali, boolean observedOnly) 
+	public TreeSet<Integer> getAlignmentPositionsFromSelection(Model mod1, Model mod2, IntPairSet[] selection, Alignment ali, boolean observedOnly) 
 	throws CoordinatesNotFoundError, EmptyContactSelectionError  {
 
 		// TODO: in future versions we should put this function to the contact map pane. 
@@ -1973,8 +1974,8 @@ public class View extends JFrame implements ActionListener {
 			// indexing problem, which essentially means that we have to 
 			// substract 1 to map from sequence space to the alignment space 
 			// as 'positions' is supposed to hold alignment positions
-			for( Node n : selection[i].getIncidentNodes() ) {
-				positions.add(n.num-1);		
+			for( int n : selection[i].getIncidentNodes() ) {
+				positions.add(n-1);		
 			}
 		}
 
@@ -2153,8 +2154,8 @@ public class View extends JFrame implements ActionListener {
 				seq = mod2.getSequence();
 				s2  = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
 
-				EdgeSet[] selectedContacts = cmPane.getSelectedContacts();
-				EdgeSet union = new EdgeSet();
+				IntPairSet[] selectedContacts = cmPane.getSelectedContacts();
+				IntPairSet union = new IntPairSet();
 				for(int i = 0; i < selectedContacts.length; ++i ) {
 					union.addAll(selectedContacts[i]);
 				}
@@ -2368,7 +2369,7 @@ public class View extends JFrame implements ActionListener {
 				// user clicked cancel
 				return;
 			} else {
-				if(!NodeSet.isValidSelectionString(selStr)) {
+				if(!Interval.isValidSelectionString(selStr)) {
 					showInvalidSelectionStringWarning();
 					return;
 				} else {
@@ -2485,8 +2486,8 @@ public class View extends JFrame implements ActionListener {
 
 			// only second structure contacts
 			if (common == false && firstS == false && secondS == true){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueGreen = array[0];	// red contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueGreen = array[0];	// red contacts
 				String selectionType = cmPane.getSecondModel().getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
@@ -2514,8 +2515,8 @@ public class View extends JFrame implements ActionListener {
 
 			// only first structure contacts
 			else if (common == false && firstS == true && secondS == false){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];	// red contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];	// red contacts
 				String selectionType = mod.getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
@@ -2542,9 +2543,9 @@ public class View extends JFrame implements ActionListener {
 
 			// only first and second structure contacts
 			else if (common == false && firstS == true && secondS == true){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red contacts
-				EdgeSet trueGreen = array[1];	// green contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];		// red contacts
+				IntPairSet trueGreen = array[1];	// green contacts
 				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
 
 				// all contacts are either red or green. 
@@ -2580,9 +2581,9 @@ public class View extends JFrame implements ActionListener {
 
 			// only common toggle mode			
 			else if (common == true && firstS == false && secondS == false){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red contacts
-				EdgeSet trueGreen = array[1];	// green contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];		// red contacts
+				IntPairSet trueGreen = array[1];	// green contacts
 				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
 
 				// no unpresent contacts
@@ -2609,9 +2610,9 @@ public class View extends JFrame implements ActionListener {
 
 			// common and first structure mode == complete first structure
 			else if (common == true && firstS == true && secondS == false){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red contacts
-				EdgeSet trueGreen = array[1];	// green contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];		// red contacts
+				IntPairSet trueGreen = array[1];	// green contacts
 				String selectionType = mod.getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
@@ -2642,9 +2643,9 @@ public class View extends JFrame implements ActionListener {
 
 			// common and second structure mode == complete second structure
 			else if (common == true && firstS == false && secondS == true){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red cTrueontacts
-				EdgeSet trueGreen = array[1];	// green contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];		// red cTrueontacts
+				IntPairSet trueGreen = array[1];	// green contacts
 				String selectionType =  cmPane.getSecondModel().getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
@@ -2674,10 +2675,10 @@ public class View extends JFrame implements ActionListener {
 				this.pymolSelSerial++;
 			}
 			else if (common == true && firstS == true && secondS == true){
-				EdgeSet[] array = cmPane.getSelectedContacts();
-				EdgeSet trueRed = array[0];		// red contacts
-				EdgeSet trueGreen = array[1];	// green contacts
-				EdgeSet trueCommon = array[2]; 	// common contacts
+				IntPairSet[] array = cmPane.getSelectedContacts();
+				IntPairSet trueRed = array[0];		// red contacts
+				IntPairSet trueGreen = array[1];	// green contacts
+				IntPairSet trueCommon = array[2]; 	// common contacts
 				String selectionType =  mod.getChainCode()+cmPane.getSecondModel().getChainCode();
 
 				//disable all old objects and selections and enable the two actual objects 
@@ -2713,8 +2714,8 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 		else {
-			EdgeSet[] array = cmPane.getSelectedContacts();
-			EdgeSet contacts = array[0];
+			IntPairSet[] array = cmPane.getSelectedContacts();
+			IntPairSet contacts = array[0];
 			String selectionType = mod.getChainCode();
 
 			//disable all old objects and selections

@@ -19,7 +19,7 @@ public class ContactMapFileModel extends Model {
 		// load Contact graph from file
 		try {
 			
-			this.graph = new FileGraph(fileName);
+			this.graph = new FileRIGraph(fileName);
 			
 			String pdbCode = graph.getPdbCode();
 			String pdbChainCode = graph.getPdbChainCode();
