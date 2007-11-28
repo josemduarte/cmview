@@ -1,6 +1,7 @@
 package cmview;
 import java.io.*;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -99,6 +100,30 @@ public class Start {
 	
 	// the thread pool
 	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
+	
+	// mapping pdb-code to mmCIF files in the tmp-directory
+	private static TreeMap<String, String> pdbCode2file = new TreeMap<String, String>();
+	
+	/**
+	 * Gets the filename of the local copy of the structure file corresponding 
+	 * to the given pdb code. 
+	 * @param pdbCode  pdb code
+	 * @return  path to the file of the given pdb code. Returns null if there 
+	 *  is no such file. 
+	 */
+	public static String getFilename2PdbCode(String pdbCode) {
+		return pdbCode2file.get(pdbCode.toLowerCase());
+	}
+	
+	/**
+	 * Sets the name of the local copy of the structure file corresponding to 
+	 * the given pdb code.
+	 * @param pdbCode  pdb code
+	 * @param filename  name of the file corresponding to <code>pdbCode</code>
+	 */
+	public static void setFilename2PdbCode(String pdbCode, String filename) {
+		pdbCode2file.put(pdbCode, filename);
+	}	
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 
