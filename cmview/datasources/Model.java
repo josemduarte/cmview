@@ -277,12 +277,12 @@ public abstract class Model {
 	
 	/**
 	 * Returns the three letter residue type for the given residue serial.
+	 * If node is not present in RIGraph (unobserved or non-standard) then returns null
 	 * @param resser
 	 * @return A string with the three letter residue type of the residue with serial resser
 	 */
 	public String getResType(int resser){
 		RIGNode node = graph.getNodeFromSerial(resser);
-		// this happens ONLY when hasSequence()==false AND the residue is unobserved, i.e. graph loaded from file/db without the full sequence info: the unobserved nodes won't be present -> null
 		if (node==null) return null; 
 		return node.getResidueType();
 	}
@@ -296,11 +296,11 @@ public abstract class Model {
 		return AAinfo.threeletter2oneletter(this.getResType(resser));
 	}	
 	
-	public RIGNbhood getNodeNbh(int i_resser){
+	public RIGNbhood getNbhood(int i_resser){
 		return graph.getNbhood(graph.getNodeFromSerial(i_resser));
 	}
 	
-	public RIGCommonNbhood getEdgeNbh(int i_resser, int j_resser){
+	public RIGCommonNbhood getCommonNbhood(int i_resser, int j_resser){
 		return graph.getCommonNbhood(graph.getNodeFromSerial(i_resser), graph.getNodeFromSerial(j_resser));
 	}
 	

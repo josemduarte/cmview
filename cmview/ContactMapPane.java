@@ -1018,7 +1018,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			switch (view.getCurrentSelectionMode()) {
 			case View.SHOW_COMMON_NBH:
 				Pair<Integer> c = screen2cm(mousePressedPos); 
-				this.currCommonNbh = mod.getEdgeNbh (c.getFirst(),c.getSecond());
+				this.currCommonNbh = mod.getCommonNbhood (c.getFirst(),c.getSecond());
 				dragging = false;
 				showCommonNbs = true;
 				this.repaint();
@@ -2007,7 +2007,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	protected void selectNodeNbh(int i) {
-		RIGNbhood nbh = mod.getNodeNbh(i);
+		RIGNbhood nbh = mod.getNbhood(i);
 		System.out.println("Selecting node neighbourhood of node: "+i);
 		System.out.println("Motif: "+nbh);
 		System.out.print("Neighbours: ");
