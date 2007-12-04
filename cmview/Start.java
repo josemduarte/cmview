@@ -1,5 +1,6 @@
 package cmview;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -10,6 +11,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import proteinstructure.PdbCodeNotFoundError;
 
 import tools.MySQLConnection;
 
@@ -80,8 +83,8 @@ public class Start {
 	public static String			DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"pdbase";			// for loading from command line
 	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";	// used when loading structures for cm file graphs
-	public static String     		DEFAULT_CONTACT_TYPE = 		"ALL";				// loading from command line and shown in LoadDialog
-	public static double 			DEFAULT_DISTANCE_CUTOFF = 	4.2; 				// dito
+	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
@@ -360,8 +363,15 @@ public class Start {
 				chainCode = NULL_CHAIN_CODE;
 			}
 			try {
-				mod = new PdbaseModel(pdbCode,chainCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				mod = new PdbaseModel(pdbCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				mod.load(chainCode, 1);
 			} catch(ModelConstructionError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			} catch (PdbCodeNotFoundError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			} catch (SQLException e) {
 				System.err.println("Could not load structure for given command line parameters:");
 				System.err.println(e.getMessage());
 			}			
