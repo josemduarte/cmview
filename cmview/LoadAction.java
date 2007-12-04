@@ -14,6 +14,20 @@ public abstract class LoadAction {
 		this.secondModel = secondModel;
 	}
 	
-	public abstract void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
+	/**
+	 * 
+	 * @param o
+	 * @param f
+	 * @param ac
+	 * @param modelSerial  the pdb model identifier
+	 * @param cc
+	 * @param ct
+	 * @param dist
+	 * @param minss
+	 * @param maxss
+	 * @param db
+	 * @param gid
+	 */
+	public abstract void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
 
 }

@@ -172,14 +172,16 @@ public class SADPDialog extends ToolDialog {
 		PdbFileModel mod1,mod2;
 
 		try {
-			mod1 = new PdbFileModel(args[0],"A","Ca",8.0,0,20);
+			mod1 = new PdbFileModel(args[0],"Ca",8.0,0,20);
+			mod1.load("A",1);
 		} catch (ModelConstructionError e) {
 			System.err.println("Error: Construction of first model failed! ("+e.getMessage()+")");
 			return;
 		}
 
 		try {
-			mod2 = new PdbFileModel(args[1]," ","Ca",8.0,0,20);
+			mod2 = new PdbFileModel(args[1],"Ca",8.0,0,20);
+			mod1.load(" ",1);
 		} catch (ModelConstructionError e) {
 			System.err.println("Error: Construction of second model failed! ("+e.getMessage()+")");
 			return;

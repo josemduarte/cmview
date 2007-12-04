@@ -23,6 +23,7 @@ public class ContactMapFileModel extends Model {
 			
 			String pdbCode = graph.getPdbCode();
 			String pdbChainCode = graph.getPdbChainCode();
+			int modelSerial = graph.getModel();
 			
 			// check whether sequence info exists
 			if(graph.getSequence().equals("")) {
@@ -35,22 +36,23 @@ public class ContactMapFileModel extends Model {
 					System.err.println("No database connection. Can't load structure.");					
 				} else {
 					try {
-						this.pdb = new PdbasePdb(pdbCode, pdbChainCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
+						this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
+						this.pdb.load(pdbChainCode,modelSerial);
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 					} catch (PdbCodeNotFoundError e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
-					} catch (PdbChainCodeNotFoundError e) {
-						System.err.println("Failed to load structure because chain code was not found in Pdbase");
-					} catch (PdbaseInconsistencyError e) {
-						System.err.println("Failed to load structure because of inconsistency in Pdbase");
+						pdb = null;
+					} catch (PdbLoadError e) {
+						System.err.println("Failed to load structure:" + e.getMessage());
+						pdb = null;
 					} catch(SQLException e) {
 						System.err.println("Failed to load structure because of database error");
-					}
+						pdb = null;
+					} 
 					// if pdb creation failed then pdb=null
 				}
 				
-			} else
-			{
+			} else {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
 			}
 			
@@ -76,6 +78,18 @@ public class ContactMapFileModel extends Model {
 	
 	public ContactMapFileModel copy() {
 	    return new ContactMapFileModel(this);
+	}
+
+	/**
+	 * The loading of the contact map is implemented in the constructor not in 
+	 * this function. This function essentially does'nt do anything!
+	 * @param pdbChainCode pdb chain code of the chain to be loaded (ignored!)
+	 * @param modelSerial  a model serial
+	 * @throws ModelConstructionError
+	 */
+	@Override
+	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
+		return;
 	}
 	
 }
