@@ -1583,6 +1583,16 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
 
+		// show superpositioning based on the common contacts in 
+		// pymol
+		IntPairSet[] contactArray = new IntPairSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
+		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
 	}
@@ -1664,6 +1674,16 @@ public class View extends JFrame implements ActionListener {
 		}
 		doLoadModelOntoVisualizer(alignedMod2);
 
+		// show superpositioning based on the common contacts in 
+		// pymol
+		IntPairSet[] contactArray = new IntPairSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
+		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
 	}
@@ -1834,6 +1854,16 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
 
+		// show superpositioning based on the common contacts in 
+		// pymol
+		IntPairSet[] contactArray = new IntPairSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
+		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
 	}
@@ -1854,9 +1884,24 @@ public class View extends JFrame implements ActionListener {
 				alignedMod2 = result.getSecondOutputModel();
 				ali         = result.getAlignment();
 
+				// load aligned models onto contact map pane
 				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, result.getFirstName(), result.getSecondName());
+				
+				// load second model onto 3D visualizer (as alignedMod2 holds 
+				// the atom coordinates of the original structure this also 
+				// works fine by taking the aligned model as pdb source)
 				doLoadModelOntoVisualizer(alignedMod2);
 
+				// show superpositioning according to the common contacts in 
+				// pymol
+				IntPairSet[] contactArray = new IntPairSet[1];
+				contactArray[0] = cmPane.getCommonContacts(1, 2); 
+				doSuperposition(alignedMod1, alignedMod2, 
+						mod.getPDBCode()+mod.getChainCode(),
+						mod2.getPDBCode()+mod2.getChainCode(),
+						ali,
+						contactArray );
+				
 				// adapt GUI behavior
 				setGUIStatusCompareMode();
 			}
@@ -1920,7 +1965,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Superimposes the given models with respect the given alignment. Instead 
+	 * Superimposes the given models with respect to the given alignment. Instead 
 	 * of considering the alignment as a whole it is reduced to the induced 
 	 * alignment columns defined by a set of contacts. The residues incident to 
 	 * the contact in the selection can be mapped to alignment columns which 
