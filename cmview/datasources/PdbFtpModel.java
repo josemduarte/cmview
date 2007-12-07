@@ -1,4 +1,5 @@
 package cmview.datasources;
+import java.io.File;
 import java.io.IOException;
 
 import proteinstructure.*;
@@ -10,6 +11,7 @@ import cmview.Start;
  */
 public class PdbFtpModel extends Model {
     
+	File cifFile;
 	String edgeType;
 	double distCutoff;
 	
@@ -23,6 +25,16 @@ public class PdbFtpModel extends Model {
 		super.setMinSequenceSeparation(minSeqSep);
 		super.setMaxSequenceSeparation(maxSeqSep);
 		this.pdb = new CiffilePdb(pdbCode, Start.PDB_FTP_URL);
+		this.cifFile = ((CiffilePdb) this.pdb).getCifFile();
+	}
+	
+	public PdbFtpModel(File cifFile, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws IOException  {
+		this.cifFile = cifFile;
+		this.edgeType = edgeType; 
+		this.distCutoff = distCutoff;
+		super.setMinSequenceSeparation(minSeqSep);
+		super.setMaxSequenceSeparation(maxSeqSep);
+		this.pdb = new CiffilePdb(cifFile);
 	}
 	
 	public PdbFtpModel(Model mod) {
@@ -33,6 +45,10 @@ public class PdbFtpModel extends Model {
 	    return new PdbFtpModel(this);
 	}
 
+	public File getCifFile() {
+		return cifFile;
+	}
+	
 	/**
 	 * Loads the chain corresponding to the passed chain code identifier.
 	 * @param pdbChainCode  pdb chain code of the chain to be loaded

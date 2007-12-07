@@ -1419,7 +1419,44 @@ public class View extends JFrame implements ActionListener {
 						view.doLoadFromFtp(ac, modelSerial, cc, ct, dist, minss, maxss, secondModel);
 					}
 				}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
-
+				dialog.setChainCodeGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbCode = dialog.getSelectedAc();
+						try {
+							File localFile = Start.getFilename2PdbCode(pdbCode);
+							PdbFtpModel mod = null;
+							if( localFile != null ) {
+								mod = new PdbFtpModel(localFile,"",0.0,0,0);
+							} else {
+								mod = new PdbFtpModel(pdbCode,"",0.0,0,0);
+								Start.setFilename2PdbCode(pdbCode, mod.getCifFile());
+							}
+							return mod.getChains();
+						} catch (IOException e) {
+							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						}
+					}
+				});
+				dialog.setModelsGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbCode = dialog.getSelectedAc();
+						try {
+							File localFile = Start.getFilename2PdbCode(pdbCode);
+							PdbFtpModel mod = null;
+							if( localFile != null ) {
+								mod = new PdbFtpModel(localFile,"",0.0,0,0);
+							} else {
+								mod = new PdbFtpModel(pdbCode,"",0.0,0,0);
+								Start.setFilename2PdbCode(pdbCode, mod.getCifFile());
+							}
+							return mod.getModels();
+						} catch (IOException e) {
+							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						}
+					}
+				});
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
@@ -1440,7 +1477,13 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));	
 		try{
-			Model mod = new PdbFtpModel(ac, ct, dist, minss, maxss);
+			File localFile = Start.getFilename2PdbCode(ac);
+			Model mod = null;
+			if( localFile != null ) {
+				mod = new PdbFtpModel(localFile, ct, dist, minss, maxss);
+			} else { 
+				mod = new PdbFtpModel(ac, ct, dist, minss, maxss);
+			}
 			mod.load(cc, modelSerial);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
