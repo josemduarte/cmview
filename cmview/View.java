@@ -1656,7 +1656,10 @@ public class View extends JFrame implements ActionListener {
 				"Pairwise Protein Alignment",
 				runner,
 				result,
-				(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES));
+				SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES);
+		// TODO: to enable the preferences dialog implement the parameter 
+		//       retrieval through the preference settings and set construction 
+		//       flag to SADPDialog.CONSTRUCT_EVERYTHING
 		sadpNotifier = sadpDiag.getNotifier();
 
 		if( sadpDiag.getConstructionStatus() == SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES ) {
@@ -2000,6 +2003,7 @@ public class View extends JFrame implements ActionListener {
 	}	
 
 	private void handleSuperposition() {
+		// TODO: check for coordinates in both models
 		doSuperposition(mod, mod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),

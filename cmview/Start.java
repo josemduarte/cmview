@@ -5,6 +5,8 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
@@ -27,6 +29,8 @@ import cmview.datasources.PdbaseModel;
 public class Start {
 
 	static final long serialVersionUID = 1l;
+
+	public static String			PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
@@ -36,7 +40,6 @@ public class Start {
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
-	public static final String		PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
 		
 	// The following config file name may be overwritten by a command line switch
@@ -316,7 +319,9 @@ public class Start {
 	}
 	
 	/**
-	 * Runs external pymol executable if possible. Return true on success, false otherwise.
+	 * Runs external pymol executable if possible.
+	 * Tries to determine the port the PyMol server is running on.  
+	 * @return true on success, false otherwise.
 	 */
 	private static boolean runPymol() {
 		try {
@@ -326,7 +331,29 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
+			
+			// determine the rpc port from PyMol's output stream as it might be
+			// different from 9123 which is used to be the default port. 
+			// However, if the connection to this port fails, PyMol tries 
+			// a certain number of different ports for starting the server. 
+			// Therefore, we have to determine the possibly new server port.
+			BufferedReader in = new BufferedReader(new InputStreamReader(pymolProcess.getInputStream()));
+			String pymolOut = null;
+			// the group of wild-cards accepting digitals is for getting the 
+			// port number 
+			Pattern portPattern = Pattern.compile("^.*port\\s(\\d+).*");
+			Matcher matchPortPattern = null; 
+			while( true ) {
+				// TODO: we hopefully won't get stuck in this line if the stream is empty ?!?!?! maybe some Timer functionality would do ...
+				pymolOut = in.readLine();  
+				matchPortPattern = portPattern.matcher(pymolOut);
+				if( matchPortPattern.matches() ) {
+					PYMOL_PORT = matchPortPattern.group(1);
+					System.out.println("Found PyMol server running on port " + PYMOL_PORT + ".");
+					break;
+				}
+			}
 		} catch(IOException e) {
 			return false;
 		}
@@ -528,11 +555,15 @@ public class Start {
 							pymol_found = true;
 						}						
 					}
+				} else {
+					pymol_found = false;
 				}
 			}
 			if(!pymol_found) {
 				System.err.println("Could not connect to PyMol server. Some functionality will not be available.");
 			}
+		} else {
+			pymol_found = false;
 		}
 		
 		// connect to database
