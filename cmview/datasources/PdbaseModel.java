@@ -9,37 +9,22 @@ import proteinstructure.*;
  * A contact map data model based on a structure loaded from Pdbase.
  */
 public class PdbaseModel extends Model {
-
+	
+	String edgeType;
+	double distCutoff;
+		
 	/**
 	 * Overloaded constructor to load the data.
-	 * @throws ModelConstructionError 
+	 * @throws SQLException 
+	 * @throws PdbCodeNotFoundError 
 	 */
-	public PdbaseModel(String pdbCode, String pdbChainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) throws ModelConstructionError {
-		
-		// load structure from Pdbase
-		try {
-			this.pdb = new PdbasePdb(pdbCode, pdbChainCode, db, Start.getDbConnection());
-			this.graph = pdb.get_graph(edgeType, distCutoff);
-			
-			super.writeTempPdbFile();
-			super.initializeContactMap();
-			super.filterContacts(minSeqSep, maxSeqSep);
-			super.printWarnings(pdbChainCode);
-			super.checkAndAssignSecondaryStructure();
-			
-		} catch (PdbCodeNotFoundError e) {
-			System.err.println("Failed to load structure because accession code was not found in Pdbase");
-			throw new ModelConstructionError(e.getMessage());
-		} catch (PdbChainCodeNotFoundError e) {
-			System.err.println("Failed to load structure because chain code was not found in Pdbase");
-			throw new ModelConstructionError(e.getMessage());
-		} catch (PdbaseInconsistencyError e) {
-			System.err.println("Failed to load structure because of inconsistency in Pdbase");
-			throw new ModelConstructionError(e.getMessage());
-		} catch(SQLException e) {
-			System.err.println("Failed to load structure because of database error");
-			throw new ModelConstructionError(e.getMessage());
-		}
+	public PdbaseModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) 
+	throws PdbCodeNotFoundError, SQLException   {
+		this.edgeType = edgeType; 
+		this.distCutoff = distCutoff;
+		super.setMinSequenceSeparation(minSeqSep);
+		super.setMaxSequenceSeparation(maxSeqSep);
+		this.pdb = new PdbasePdb(pdbCode, db, Start.getDbConnection());
 	}
 	
 	public PdbaseModel(Model mod) {
@@ -48,5 +33,31 @@ public class PdbaseModel extends Model {
 	
 	public PdbaseModel copy() {
 	    return new PdbaseModel(this);
+	}
+
+
+	/**
+	 * Loads the chain corresponding to the passed chain code identifier.
+	 * @param pdbChainCode  pdb chain code of the chain to be loaded
+	 * @param modelSerial  a model serial
+	 * @throws ModelConstructionError
+	 */
+	@Override
+	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
+		// load structure from Pdbase
+		try {
+			this.pdb.load(pdbChainCode,modelSerial);
+			this.graph = pdb.get_graph(edgeType, distCutoff);
+			
+			super.writeTempPdbFile();
+			super.initializeContactMap();
+			super.filterContacts(minSeqSep, maxSeqSep);
+			super.printWarnings(pdbChainCode);
+			super.checkAndAssignSecondaryStructure();
+			
+		} catch (PdbLoadError e) {
+			System.err.println("Failed to load structure");
+			throw new ModelConstructionError(e.getMessage());
+		}		
 	}
 }

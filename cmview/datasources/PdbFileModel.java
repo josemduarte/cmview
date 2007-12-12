@@ -1,21 +1,46 @@
 package cmview.datasources;
 import proteinstructure.*;
-import java.io.IOException;
+
 
 /** 
  * A contact map data model based on a structure loaded from a PDB file.
  */
 public class PdbFileModel extends Model {
 
+	String fileName;
+	String edgeType;
+	double distCutoff; 
+	
 	/**
 	 * Overloaded constructor to load the data.
 	 * @throws ModelConstructionError 
 	 */
-	public PdbFileModel(String fileName, String pdbChainCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws ModelConstructionError {
-		
+	public PdbFileModel(String fileName, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws ModelConstructionError {
+		this.fileName = fileName;
+		this.edgeType = edgeType; 
+		this.distCutoff = distCutoff;
+		super.setMinSequenceSeparation(minSeqSep);
+		super.setMaxSequenceSeparation(maxSeqSep);
+		this.pdb = new PdbfilePdb(fileName);
+	}
+
+	public PdbFileModel(Model mod) {
+	    super(mod);
+	}
+	
+	public PdbFileModel copy() {
+	    return new PdbFileModel(this);
+	}
+
+	/**
+	 * Loads the chain corresponding to the passed chain code identifier.
+	 * @param pdbChainCode  pdb chain code of the chain to be loaded
+	 * @throws ModelConstructionError
+	 */
+	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
 		// load PDB file
 		try {
-			this.pdb = new PdbfilePdb(fileName, pdbChainCode);
+			this.pdb.load(pdbChainCode,modelSerial);
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 
 			super.writeTempPdbFile();
@@ -24,25 +49,8 @@ public class PdbFileModel extends Model {
 			super.printWarnings(pdbChainCode);
 			super.checkAndAssignSecondaryStructure();
 			
-		} catch (IOException e) {
-			System.err.println("Error while reading from PDB file.");
-			throw new ModelConstructionError(e.getMessage());
-		} catch (PdbfileFormatError e){
-			System.err.println("Failed to load structure from PDB file. Wrong file format");
-			throw new ModelConstructionError(e.getMessage());		
-		} catch (PdbChainCodeNotFoundError e){
-			System.err.println("Failed to load structure. Chain code not found in PDB file.");
+		} catch (PdbLoadError e) {
 			throw new ModelConstructionError(e.getMessage());
 		}
-
-				
-	}
-	
-	public PdbFileModel(Model mod) {
-	    super(mod);
-	}
-	
-	public PdbFileModel copy() {
-	    return new PdbFileModel(this);
 	}
 }

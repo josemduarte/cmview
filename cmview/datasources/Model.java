@@ -6,8 +6,19 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 
+import actionTools.GetterError;
+
+import proteinstructure.AAinfo;
+import proteinstructure.Alignment;
+import proteinstructure.Edge;
+import proteinstructure.EdgeNbh;
+import proteinstructure.EdgeSet;
+import proteinstructure.Graph;
+import proteinstructure.NodeNbh;
+import proteinstructure.Pdb;
+import proteinstructure.SecondaryStructure;
+
 import cmview.Start;
-import proteinstructure.*;
 
 /** 
  * A contact map data model. Derived classes have to implement the constructor in which
@@ -62,6 +73,8 @@ public abstract class Model {
 	 * @return the new model
 	 */
 	public abstract Model copy();
+	
+	public abstract void load(String pdbChainCode, int modelSerial) throws ModelConstructionError;
 	
 	/*---------------------------- private methods --------------------------*/
 	
@@ -137,7 +150,40 @@ public abstract class Model {
 		}
 	}
 	
+	/**
+	 * Sets the minimal sequence separation.
+	 * @param minSeqSep
+	 */
+	protected void setMinSequenceSeparation(int minSeqSep) {
+		this.minSeqSep = minSeqSep;
+	}
+	
+	/**
+	 * Sets the maximal sequence separation.
+	 * @param maxSeqSep
+	 */
+	protected void setMaxSequenceSeparation(int maxSeqSep) {
+		this.maxSeqSep = maxSeqSep;
+	}
+	
 	/*---------------------------- public methods ---------------------------*/
+
+	/**
+	 * Gets chain codes for all chains being present in the source.
+	 * @throws GetterError
+	 */
+	public String[] getChains() throws GetterError {
+		return pdb.getChains();
+	}
+	
+	/**
+	 * Gets model indices for all models being present in the source.
+	 * @return array of model identifiers, null if such thing
+	 * @throws GetterError 
+	 */
+	public Integer[] getModels() throws GetterError {
+		return pdb.getModels(); 
+	}
 	
 	/** Returns the size of the data matrix */
 	public int getMatrixSize() {
@@ -429,7 +475,7 @@ public abstract class Model {
 	// secondary structure related methods
 	
 	/** 
-	 * Returns true iff this model has secondary structure information.
+	 * Returns true if this model has secondary structure information.
 	 * @return true if secondary structure information is available, false otherwise
 	 */
 	public boolean hasSecondaryStructure() {
