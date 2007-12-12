@@ -390,8 +390,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		
 		if(item == null) {
 			throw new LoadDialogInputError("<html>" +
-					"Chain code ist missing. Click on the drop-down menu to see all present chain codes.<br>" +
-					"Try NULL if the chain code retrieval failes!" +
+					"Chain code is missing. Click on the drop-down menu to see valid chain codes. " +
 					"</html>");
 		}
 		

@@ -1182,6 +1182,8 @@ public class View extends JFrame implements ActionListener {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
+							} catch (PdbLoadError e) {
+								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 							}
 						}
 					});
@@ -1197,6 +1199,8 @@ public class View extends JFrame implements ActionListener {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
+							} catch (PdbLoadError e) {
+								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 							}
 						}				
 					});
@@ -1254,21 +1258,29 @@ public class View extends JFrame implements ActionListener {
 					}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
 					dialog.setChainCodeGetter(new Getter(dialog) {
 						public Object get() throws GetterError {
-							LoadDialog dialog = (LoadDialog) getObject();
-							String pdbCode    = dialog.getSelectedAc();
-							String db         = dialog.getSelectedDb();
-							MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
-							return mod.getChains();
+							try {
+								LoadDialog dialog = (LoadDialog) getObject();
+								String pdbCode    = dialog.getSelectedAc();
+								String db         = dialog.getSelectedDb();
+								MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
+								return mod.getChains();
+							} catch (PdbLoadError e) {
+								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+							}
 						}
 					});
 					dialog.setModelsGetter(new Getter(dialog) {
 						public Object get() throws GetterError {
-							LoadDialog dialog = (LoadDialog) getObject();
-							String pdbCode    = dialog.getSelectedAc();
-							String db         = dialog.getSelectedDb();
-							MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
-							return mod.getModels();
-						}				
+							try {
+								LoadDialog dialog = (LoadDialog) getObject();
+								String pdbCode    = dialog.getSelectedAc();
+								String db         = dialog.getSelectedDb();
+								MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
+								return mod.getModels();
+							} catch (PdbLoadError e) {
+								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+							}
+						}
 					});
 					actLoadDialog = dialog;
 					dialog.showIt();
@@ -1325,6 +1337,8 @@ public class View extends JFrame implements ActionListener {
 							return mod.getChains();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read chains from ftp:"+e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
 				});
@@ -1337,6 +1351,8 @@ public class View extends JFrame implements ActionListener {
 							return mod.getModels();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read models from ftp:"+e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
 				});
@@ -1435,6 +1451,8 @@ public class View extends JFrame implements ActionListener {
 							return mod.getChains();
 						} catch (IOException e) {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
 				});
@@ -1454,6 +1472,8 @@ public class View extends JFrame implements ActionListener {
 							return mod.getModels();
 						} catch (IOException e) {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
 				});

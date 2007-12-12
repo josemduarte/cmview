@@ -12,6 +12,7 @@ import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
 import proteinstructure.IntPairSet;
 import proteinstructure.Pdb;
+import proteinstructure.PdbLoadError;
 import proteinstructure.RIGCommonNbhood;
 import proteinstructure.RIGEdge;
 import proteinstructure.RIGNbhood;
@@ -175,7 +176,7 @@ public abstract class Model {
 	 * Gets chain codes for all chains being present in the source.
 	 * @throws GetterError
 	 */
-	public String[] getChains() throws GetterError {
+	public String[] getChains() throws PdbLoadError {
 		return pdb.getChains();
 	}
 	
@@ -184,7 +185,7 @@ public abstract class Model {
 	 * @return array of model identifiers, null if such thing
 	 * @throws GetterError 
 	 */
-	public Integer[] getModels() throws GetterError {
+	public Integer[] getModels() throws PdbLoadError {
 		return pdb.getModels(); 
 	}
 	
