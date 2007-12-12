@@ -14,6 +14,22 @@ public abstract class LoadAction {
 		this.secondModel = secondModel;
 	}
 	
-	public abstract void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
+	/**
+	 * Loads the chain from the given source. Some of these arguments might be 
+	 * null according to the chosen source (e.g. if the source is a local pdb 
+	 * file the database name does not need to be present).
+	 * @param o  parent
+	 * @param f  filename
+	 * @param ac  accession code
+	 * @param modelSerial the model serial
+	 * @param cc  chain code
+	 * @param ct  contact type
+	 * @param dist  distance threshold for the contacts
+	 * @param minss  minimal sequence separation
+	 * @param maxss  maximal sequence separation
+	 * @param db  name of the database
+	 * @param gid  graph id
+	 */
+	public abstract void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
 
 }

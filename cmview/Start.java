@@ -1,14 +1,20 @@
 package cmview;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import proteinstructure.PdbCodeNotFoundError;
 
 import tools.MySQLConnection;
 
@@ -23,6 +29,8 @@ import cmview.datasources.PdbaseModel;
 public class Start {
 
 	static final long serialVersionUID = 1l;
+
+	public static String			PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
@@ -32,7 +40,6 @@ public class Start {
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
-	public static final String		PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
 	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
 		
 	// The following config file name may be overwritten by a command line switch
@@ -79,8 +86,8 @@ public class Start {
 	public static String			DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"pdbase";			// for loading from command line
 	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";	// used when loading structures for cm file graphs
-	public static String     		DEFAULT_CONTACT_TYPE = 		"ALL";				// loading from command line and shown in LoadDialog
-	public static double 			DEFAULT_DISTANCE_CUTOFF = 	4.2; 				// dito
+	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
@@ -99,6 +106,30 @@ public class Start {
 	
 	// the thread pool
 	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
+	
+	// mapping pdb-code to mmCIF files in the tmp-directory, only to be used for ftp loading
+	private static TreeMap<String, File> pdbCode2file = new TreeMap<String, File>();
+	
+	/**
+	 * Gets the filename of the local copy of the structure file corresponding 
+	 * to the given pdb code. 
+	 * @param pdbCode  pdb code
+	 * @return  path to the file of the given pdb code. Returns null if there 
+	 *  is no such file. 
+	 */
+	public static File getFilename2PdbCode(String pdbCode) {
+		return pdbCode2file.get(pdbCode.toLowerCase());
+	}
+	
+	/**
+	 * Sets the name of the local copy of the structure file corresponding to 
+	 * the given pdb code.
+	 * @param pdbCode  pdb code
+	 * @param filename  name of the file corresponding to <code>pdbCode</code>
+	 */
+	public static void setFilename2PdbCode(String pdbCode, File file) {
+		pdbCode2file.put(pdbCode.toLowerCase(), file);
+	}	
 	
 	/** 
 	 * Get user name from operating system (for use as database username). 
@@ -288,7 +319,9 @@ public class Start {
 	}
 	
 	/**
-	 * Runs external pymol executable if possible. Return true on success, false otherwise.
+	 * Runs external pymol executable if possible.
+	 * Tries to determine the port the PyMol server is running on.  
+	 * @return true on success, false otherwise.
 	 */
 	private static boolean runPymol() {
 		try {
@@ -298,7 +331,29 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
+			
+			// determine the rpc port from PyMol's output stream as it might be
+			// different from 9123 which is used to be the default port. 
+			// However, if the connection to this port fails, PyMol tries 
+			// a certain number of different ports for starting the server. 
+			// Therefore, we have to determine the possibly new server port.
+			BufferedReader in = new BufferedReader(new InputStreamReader(pymolProcess.getInputStream()));
+			String pymolOut = null;
+			// the group of wild-cards accepting digitals is for getting the 
+			// port number 
+			Pattern portPattern = Pattern.compile("^.*port\\s(\\d+).*");
+			Matcher matchPortPattern = null; 
+			while( true ) {
+				// TODO: we hopefully won't get stuck in this line if the stream is empty ?!?!?! maybe some Timer functionality would do ...
+				pymolOut = in.readLine();  
+				matchPortPattern = portPattern.matcher(pymolOut);
+				if( matchPortPattern.matches() ) {
+					PYMOL_PORT = matchPortPattern.group(1);
+					System.out.println("Found PyMol server running on port " + PYMOL_PORT + ".");
+					break;
+				}
+			}
 		} catch(IOException e) {
 			return false;
 		}
@@ -335,8 +390,15 @@ public class Start {
 				chainCode = NULL_CHAIN_CODE;
 			}
 			try {
-				mod = new PdbaseModel(pdbCode,chainCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				mod = new PdbaseModel(pdbCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+				mod.load(chainCode, 1);
 			} catch(ModelConstructionError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			} catch (PdbCodeNotFoundError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+			} catch (SQLException e) {
 				System.err.println("Could not load structure for given command line parameters:");
 				System.err.println(e.getMessage());
 			}			
@@ -493,11 +555,15 @@ public class Start {
 							pymol_found = true;
 						}						
 					}
+				} else {
+					pymol_found = false;
 				}
 			}
 			if(!pymol_found) {
 				System.err.println("Could not connect to PyMol server. Some functionality will not be available.");
 			}
+		} else {
+			pymol_found = false;
 		}
 		
 		// connect to database

@@ -20,6 +20,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
 
+import actionTools.Getter;
+import actionTools.GetterError;
+
 import cmview.datasources.*;
 import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
@@ -1115,16 +1118,23 @@ public class View extends JFrame implements ActionListener {
 			if (secondModel == SECOND_MODEL && mod == null){
 				this.showNoContactMapWarning();
 			} else{
-				LoadDialog dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+				LoadDialog dialog;
+				try {
+					dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
+						public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromGraphDb(db, gid, secondModel);
 					}
-				}, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+					}, null, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+					
 				actLoadDialog = dialog;
 				dialog.showIt();
+					
+				} catch (LoadDialogConstructionError e) {
+					System.err.println("Failed to load the load-dialog.");
 			}
 		}
+	}
 	}
 
 	public void doLoadFromGraphDb(String db, int gid, boolean secondModel) {
@@ -1152,21 +1162,56 @@ public class View extends JFrame implements ActionListener {
 			if (secondModel == SECOND_MODEL && mod == null){
 				this.showNoContactMapWarning();
 			} else{
+				try {
 				LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
-						view.doLoadFromPdbase(ac, cc, ct, dist, minss, maxss, db, secondModel);
+							view.doLoadFromPdbase(ac, modelSerial, cc, ct, dist, minss, maxss, db, secondModel);
 					}
-				}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
+					}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
+					dialog.setChainCodeGetter(new Getter(dialog) {
+						public Object get() throws GetterError {
+							LoadDialog dialog = (LoadDialog) getObject();
+							String pdbCode    = dialog.getSelectedAc();
+							String db         = dialog.getSelectedDb();
+							try {
+								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
+								return mod.getChains();
+							} catch (PdbCodeNotFoundError e) {
+								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
+							} catch (SQLException e) {
+								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
+							}
+						}
+					});
+					dialog.setModelsGetter(new Getter(dialog) {
+						public Object get() throws GetterError {
+							LoadDialog dialog = (LoadDialog) getObject();
+							String pdbCode    = dialog.getSelectedAc();
+							String db         = dialog.getSelectedDb();
+							try {
+								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
+								return mod.getModels();
+							} catch (PdbCodeNotFoundError e) {
+								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
+							} catch (SQLException e) {
+								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
+							}
+						}				
+					});
 				actLoadDialog = dialog;
 				dialog.showIt();
+				} catch (LoadDialogConstructionError e) {
+					System.err.println("Failed to load the load-dialog.");
 			}
 		}
 	}
+	}
 
-	public void doLoadFromPdbase(String ac, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
+	public void doLoadFromPdbase(String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
 		System.out.println("Loading from Pdbase");
 		System.out.println("PDB code:\t" + ac);
+		System.out.println("Model serial:\t" + modelSerial);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
@@ -1174,7 +1219,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		System.out.println("Database:\t" + db);	
 		try{
-			Model mod = new PdbaseModel(ac, cc, ct, dist, minss, maxss, db);
+			Model mod = new PdbaseModel(ac, ct, dist, minss, maxss, db);
+			mod.load(cc, modelSerial);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1183,6 +1229,10 @@ public class View extends JFrame implements ActionListener {
 				this.spawnNewViewWindow(mod);
 			}
 		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		} catch (PdbCodeNotFoundError e) {	
+			showLoadError(e.getMessage());
+		} catch (SQLException e) {
 			showLoadError(e.getMessage());
 		}
 	}
@@ -1194,21 +1244,44 @@ public class View extends JFrame implements ActionListener {
 			if (secondModel == SECOND_MODEL && mod == null){
 				this.showNoContactMapWarning();
 			} else{
+				try {
 				LoadDialog dialog = new LoadDialog(this, "Load from MSD", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
-						view.doLoadFromMsd(ac, cc, ct, dist, minss, maxss, db, secondModel);
+							view.doLoadFromMsd(ac, modelSerial, cc, ct, dist, minss, maxss, db, secondModel);
 					}
-				}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
+					}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_MSDSD_DB, null);
+					dialog.setChainCodeGetter(new Getter(dialog) {
+						public Object get() throws GetterError {
+							LoadDialog dialog = (LoadDialog) getObject();
+							String pdbCode    = dialog.getSelectedAc();
+							String db         = dialog.getSelectedDb();
+							MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
+							return mod.getChains();
+						}
+					});
+					dialog.setModelsGetter(new Getter(dialog) {
+						public Object get() throws GetterError {
+							LoadDialog dialog = (LoadDialog) getObject();
+							String pdbCode    = dialog.getSelectedAc();
+							String db         = dialog.getSelectedDb();
+							MsdsdModel mod    = new MsdsdModel(pdbCode,"",0.0,1,1,db);
+							return mod.getModels();
+						}				
+					});
 				actLoadDialog = dialog;
 				dialog.showIt();
+				} catch (LoadDialogConstructionError e) {
+					System.err.println("Failed to load load-dialog.");
 			}
 		}
 	}
+	}
 
-	public void doLoadFromMsd(String ac, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
+	public void doLoadFromMsd(String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
 		System.out.println("Loading from MSD");
 		System.out.println("PDB code:\t" + ac);
+		System.out.println("Model index:\t" + modelSerial);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
@@ -1216,7 +1289,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		System.out.println("Database:\t" + db);	
 		try {
-			Model mod = new MsdsdModel(ac, cc, ct, dist, minss, maxss, db);
+			Model mod = new MsdsdModel(ac, ct, dist, minss, maxss, db);
+			mod.load(cc, modelSerial);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1234,27 +1308,57 @@ public class View extends JFrame implements ActionListener {
 		if (secondModel == SECOND_MODEL && mod == null){
 			this.showNoContactMapWarning();
 		} else{
+			try {
 			LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction(secondModel) {
-				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 					View view = (View) o;
-					view.doLoadFromPdbFile(f, cc, ct, dist, minss, maxss, secondModel);
+						view.doLoadFromPdbFile(f, modelSerial, cc, ct, dist, minss, maxss, secondModel);
 				}
-			}, "", null, "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, "", null, "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				dialog.setChainCodeGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbFilename    = dialog.getSelectedFileName();
+						try {
+							PdbFileModel mod = new PdbFileModel(pdbFilename,"",0.0,1,1);
+							return mod.getChains();
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to read chains from ftp:"+e.getMessage());
+						}
+					}
+				});
+				dialog.setModelsGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbFilename    = dialog.getSelectedFileName();
+						try {
+							PdbFileModel mod = new PdbFileModel(pdbFilename,"",0.0,1,1);
+							return mod.getModels();
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to read models from ftp:"+e.getMessage());
+						}
+					}
+				});
 			actLoadDialog = dialog;
 			dialog.showIt();
+			} catch (LoadDialogConstructionError e1) {
+				System.err.println("Failed to load the load-dialog.");
 		}
 	}
+	}
 
-	public void doLoadFromPdbFile(String f, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
+	public void doLoadFromPdbFile(String f, int modelSerial, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
 		System.out.println("Loading from Pdb file");
 		System.out.println("Filename:\t" + f);
+		System.out.println("Model serial:\t" + modelSerial);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		try {
-			Model mod = new PdbFileModel(f, cc, ct, dist, minss, maxss);
+			Model mod = new PdbFileModel(f, ct, dist, minss, maxss);
+			mod.load(cc, modelSerial);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1272,15 +1376,19 @@ public class View extends JFrame implements ActionListener {
 		if (secondModel == SECOND_MODEL && mod == null){
 			this.showNoContactMapWarning();
 		} else{
+			try {
 			LoadDialog dialog = new LoadDialog(this, "Load from Contact map file", new LoadAction(secondModel) {
-				public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 					View view = (View) o;
 					view.doLoadFromCmFile(f, secondModel);
 				}
-			}, "", null, null, null, null, null, null, null, null);
+				}, "", null, null, null, null, null, null, null, null, null);
 			actLoadDialog = dialog;
 			dialog.showIt();		  
+			} catch (LoadDialogConstructionError e) {
+				System.err.println("Failed to load the load-dialog.");
 		}
+	}
 	}
 
 	public void doLoadFromCmFile(String f, boolean secondModel) {
@@ -1300,26 +1408,82 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleLoadFromFtp(boolean secondModel) {
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			try {
 		LoadDialog dialog = new LoadDialog(this, "Load from online PDB", new LoadAction(secondModel) {
-			public void doit(Object o, String f, String ac, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 				View view = (View) o;
-				view.doLoadFromFtp(ac, cc, ct, dist, minss, maxss, secondModel);
+						view.doLoadFromFtp(ac, modelSerial, cc, ct, dist, minss, maxss, secondModel);
 			}
-		}, null, "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				dialog.setChainCodeGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbCode = dialog.getSelectedAc();
+						try {
+							File localFile = Start.getFilename2PdbCode(pdbCode);
+							PdbFtpModel mod = null;
+							if( localFile != null ) {
+								mod = new PdbFtpModel(localFile,"",0.0,0,0);
+							} else {
+								mod = new PdbFtpModel(pdbCode,"",0.0,0,0);
+								Start.setFilename2PdbCode(pdbCode, mod.getCifFile());
+							}
+							return mod.getChains();
+						} catch (IOException e) {
+							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						}
+					}
+				});
+				dialog.setModelsGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbCode = dialog.getSelectedAc();
+						try {
+							File localFile = Start.getFilename2PdbCode(pdbCode);
+							PdbFtpModel mod = null;
+							if( localFile != null ) {
+								mod = new PdbFtpModel(localFile,"",0.0,0,0);
+							} else {
+								mod = new PdbFtpModel(pdbCode,"",0.0,0,0);
+								Start.setFilename2PdbCode(pdbCode, mod.getCifFile());
+							}
+							return mod.getModels();
+						} catch (IOException e) {
+							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
+						}
+					}
+				});
 		actLoadDialog = dialog;
 		dialog.showIt();
+			} catch (LoadDialogConstructionError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 	}
 
-	public void doLoadFromFtp(String ac, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
+		}
+	}
+
+	public void doLoadFromFtp(String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
 		System.out.println("Loading from online PDB");
 		System.out.println("PDB code:\t" + ac);
+		System.out.println("Model serial:\t" + modelSerial);
 		System.out.println("Chain code:\t" + cc);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));	
 		try{
-			Model mod = new PdbFtpModel(ac, cc, ct, dist, minss, maxss);
+			File localFile = Start.getFilename2PdbCode(ac);
+			Model mod = null;
+			if( localFile != null ) {
+				mod = new PdbFtpModel(localFile, ct, dist, minss, maxss);
+			} else { 
+				mod = new PdbFtpModel(ac, ct, dist, minss, maxss);
+			}
+			mod.load(cc, modelSerial);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1329,6 +1493,8 @@ public class View extends JFrame implements ActionListener {
 			}
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
+		} catch (IOException e) {
+			System.err.println("Failed to load structure from ftp:" + e.getMessage());
 		}
 	}
 
@@ -1458,7 +1624,17 @@ public class View extends JFrame implements ActionListener {
 		// load stuff onto the contact map pane and the visualizer
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
-
+		
+		// show superpositioning based on the common contacts in 
+		// pymol
+		EdgeSet[] contactArray = new EdgeSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
+				
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
 	}
@@ -1479,7 +1655,10 @@ public class View extends JFrame implements ActionListener {
 				"Pairwise Protein Alignment",
 				runner,
 				result,
-				(Start.INCLUDE_GROUP_INTERNALS?SADPDialog.CONSTRUCT_EVERYTHING:SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES));
+				SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES);
+		// TODO: to enable the preferences dialog implement the parameter 
+		//       retrieval through the preference settings and set construction 
+		//       flag to SADPDialog.CONSTRUCT_EVERYTHING
 		sadpNotifier = sadpDiag.getNotifier();
 
 		if( sadpDiag.getConstructionStatus() == SADPDialog.CONSTRUCT_WITHOUT_START_AND_PREFERENCES ) {
@@ -1539,7 +1718,17 @@ public class View extends JFrame implements ActionListener {
 			throw new AlignmentConstructionError("Sizes of aligned contact maps do not match: " + e.getMessage());
 		}
 		doLoadModelOntoVisualizer(alignedMod2);
-
+		
+		// show superpositioning based on the common contacts in 
+		// pymol
+		EdgeSet[] contactArray = new EdgeSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
+				
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
 	}
@@ -1709,6 +1898,16 @@ public class View extends JFrame implements ActionListener {
 		// load stuff onto the contact map pane and the visualizer
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
+		
+		// show superpositioning based on the common contacts in 
+		// pymol
+		EdgeSet[] contactArray = new EdgeSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
 
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -1730,8 +1929,23 @@ public class View extends JFrame implements ActionListener {
 				alignedMod2 = result.getSecondOutputModel();
 				ali         = result.getAlignment();
 
+				// load aligned models onto contact map pane
 				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, result.getFirstName(), result.getSecondName());
+				
+				// load second model onto 3D visualizer (as alignedMod2 holds 
+				// the atom coordinates of the original structure this also 
+				// works fine by taking the aligned model as pdb source)
 				doLoadModelOntoVisualizer(alignedMod2);
+
+		// show superpositioning based on the common contacts in 
+		// pymol
+		EdgeSet[] contactArray = new EdgeSet[1];
+		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		doSuperposition(alignedMod1, alignedMod2, 
+				mod.getPDBCode()+mod.getChainCode(),
+				mod2.getPDBCode()+mod2.getChainCode(),
+				ali,
+				contactArray );
 
 				// adapt GUI behavior
 				setGUIStatusCompareMode();
@@ -1788,6 +2002,7 @@ public class View extends JFrame implements ActionListener {
 	}	
 
 	private void handleSuperposition() {
+		// TODO: check for coordinates in both models
 		doSuperposition(mod, mod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
@@ -1796,7 +2011,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Superimposes the given models with respect the given alignment. Instead 
+	 * Superimposes the given models with respect to the given alignment. Instead 
 	 * of considering the alignment as a whole it is reduced to the induced 
 	 * alignment columns defined by a set of contacts. The residues incident to 
 	 * the contact in the selection can be mapped to alignment columns which 
