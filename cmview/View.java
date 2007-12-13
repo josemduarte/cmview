@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -128,10 +127,6 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler leftRuler;
 	private int pymolSelSerial;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
 	private int pymolNbhSerial;			// for incremental numbering // TODO: Move this to PymolAdaptor
-
-	private boolean common;
-	private boolean firstS;
-	private boolean secondS;
 
 	// current gui state
 	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
@@ -1648,13 +1643,13 @@ public class View extends JFrame implements ActionListener {
 
 		// show superpositioning based on the common contacts in 
 		// pymol
-		IntPairSet[] contactArray = new IntPairSet[1];
-		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		TreeSet<Integer> columns = new TreeSet<Integer>();
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
 				ali,
-				contactArray );
+				columns );
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -1742,13 +1737,13 @@ public class View extends JFrame implements ActionListener {
 
 		// show superpositioning based on the common contacts in 
 		// pymol
-		IntPairSet[] contactArray = new IntPairSet[1];
-		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		TreeSet<Integer> columns = new TreeSet<Integer>();
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
 				ali,
-				contactArray );
+				columns );
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
@@ -1922,13 +1917,13 @@ public class View extends JFrame implements ActionListener {
 
 		// show superpositioning based on the common contacts in 
 		// pymol
-		IntPairSet[] contactArray = new IntPairSet[1];
-		contactArray[0] = cmPane.getCommonContacts(1, 2); 
+		TreeSet<Integer> columns = new TreeSet<Integer>();
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
 				ali,
-				contactArray );
+				columns );
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -1960,13 +1955,13 @@ public class View extends JFrame implements ActionListener {
 
 				// show superpositioning according to the common contacts in 
 				// pymol
-				IntPairSet[] contactArray = new IntPairSet[1];
-				contactArray[0] = cmPane.getCommonContacts(1, 2); 
+				TreeSet<Integer> columns = new TreeSet<Integer>();
+				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 				doSuperposition(alignedMod1, alignedMod2, 
 						mod.getPDBCode()+mod.getChainCode(),
 						mod2.getPDBCode()+mod2.getChainCode(),
 						ali,
-						contactArray );
+						columns );
 				
 				// adapt GUI behavior
 				setGUIStatusCompareMode();
@@ -2028,7 +2023,7 @@ public class View extends JFrame implements ActionListener {
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
 				ali,
-				cmPane.getSelectedContacts() );
+				cmPane.getAlignmentColumnsFromSelectedContacts() );
 	}
 
 	/**
@@ -2044,60 +2039,37 @@ public class View extends JFrame implements ActionListener {
 	 * @param name2  sequence identifier of <code>mod2</code> in the alignment
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
 	 *  <code>mod2</code>
-	 * @param selection  set of contacts to be considered
+	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, IntPairSet[] selection) {
+	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, TreeSet<Integer> columns) {
+		TreeSet<String> projectionTags = new TreeSet<String>();
 
-		try { 
-			TreeSet<Integer> positions = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
+		// get consecutive sequence chunks in mod1 from positions
+		projectionTags.add(name2);
+		IntervalSet chunks1 = ali.getMatchingBlocks(name1, projectionTags, columns, 1);
 
-			if( positions.isEmpty() ) {
-				showNo3DCoordFromComparedSelection();
-				return;
-			}
-
-			TreeSet<String> projectionTags = new TreeSet<String>();
-
-			// get consecutive sequence chunks in mod1 from positions
-			projectionTags.add(name2);
-			IntervalSet chunks1 = ali.getMatchingBlocks(name1, projectionTags, positions, 1);
-			//System.out.println("chunks1:"+chunks1);
-
-			if( chunks1.isEmpty() ) {
-				showNo3DCoordFromComparedSelection();
-				return;
-			}
-
-			// get consecutive sequence chunks in mod2 from positions
-			projectionTags.clear();
-			projectionTags.add(name1);
-			IntervalSet chunks2 = ali.getMatchingBlocks(name2, projectionTags, positions, 1);
-			//System.out.println("chunks2:"+chunks2);
-
-			if( chunks2.isEmpty() ) {
-				// this one should catch at the same time as the one above.
-				// this is only to make sure
-				showNo3DCoordFromComparedSelection();
-				return;
-			}
-
-			// we let pymol compute the pairwise fitting
-			Start.getPyMolAdaptor().pairFitSuperposition(
-					mod1.getPDBCode(), mod1.getChainCode(),/*to identity first model*/
-					mod2.getPDBCode(), mod2.getChainCode(),/*to identify second model*/
-					chunks1, chunks2);                     /*intervals of corresponding residues*/
-
-		} catch (EmptyContactSelectionError e) {
-			showNo3DCoordFromComparedSelection();	    
-		} catch (CoordinatesNotFoundError e) {
-			if( e.getModel() == mod ) {
-				showNo3DCoordsWarning();
-			} else if( e.getModel() == mod2 ) {
-				showNo3DCoordsSecondModelWarning();
-			} else {
-				System.err.println("Error: Unrecognized model in function doSuperposition(Model, Model, ContactMapPane, Alignment)");
-			}
+		if( chunks1.isEmpty() ) {
+			showNo3DCoordFromComparedSelection();
+			return;
 		}
+
+		// get consecutive sequence chunks in mod2 from positions
+		projectionTags.clear();
+		projectionTags.add(name1);
+		IntervalSet chunks2 = ali.getMatchingBlocks(name2, projectionTags, columns, 1);
+
+		if( chunks2.isEmpty() ) {
+			// this one should catch at the same time as the one above.
+			// this is only to make sure
+			showNo3DCoordFromComparedSelection();
+			return;
+		}
+
+		// we let pymol compute the pairwise fitting
+		Start.getPyMolAdaptor().pairFitSuperposition(
+				mod1.getPDBCode(), mod1.getChainCode(),/*identities first model*/
+				mod2.getPDBCode(), mod2.getChainCode(),/*identifies second model*/
+				chunks1, chunks2);                     /*intervals of corresponding residues*/
 	}
 
 	/**
@@ -2109,140 +2081,37 @@ public class View extends JFrame implements ActionListener {
 	 * @param name2  sequence identifier of <code>mod2</code> in the alignment
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
 	 *  <code>mod2</code>
-	 * @param selection  selection of contacts to be considered
+	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, IntPairSet[] selection) {
-		try {
-			// get all addressed alignment columns, do not consider column 
-			// which contain unobserved residues (indicated by the 'true') 
-			TreeSet<Integer> columns = getAlignmentPositionsFromSelection(mod1, mod2, selection, ali, true);
+	public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, TreeSet<Integer> columns) {
+		// extract the residue indices from the 'columns', do not only 
+		// consider (mis)matches
+		IntPairSet residuePairs = new IntPairSet();
+		int pos1,pos2;
+		for(int col : columns) {
+			pos1 = ali.al2seq(name1,col);
+			pos2 = ali.al2seq(name2,col);
 
-			if( columns.isEmpty() ) {
-				showNo3DCoordFromComparedSelection();
-				return;
+			if( pos1 != -1 && pos2 != -1 ) {
+				residuePairs.add(new Pair<Integer>(pos1,pos2));
 			}
+		}
 
-			// extract the residue indices from the 'columns', do not only 
-			// consider (mis)matches
-			IntPairSet residuePairs = new IntPairSet();
-			int pos1,pos2;
-			for(int col : columns) {
-				pos1 = ali.al2seq(name1,col);
-				pos2 = ali.al2seq(name2,col);
+		if( residuePairs.isEmpty() ) {
+			showNo3DCoordFromComparedSelection();
+			return;
+		}	    
 
-				if( pos1 != -1 && pos2 != -1 ) {
-					residuePairs.add(new Pair<Integer>(pos1,pos2));
-				}
-			}
-
-			if( residuePairs.isEmpty() ) {
-				showNo3DCoordFromComparedSelection();
-				return;
-			}	    
-
-			// send selection of (mis)matching residues to PyMOL
-			Start.getPyMolAdaptor().sendTwoChainsEdgeSelection(
-					mod1.getPDBCode(), mod1.getChainCode(), 
-					mod2.getPDBCode(), mod2.getChainCode(), 
-					"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
-					"yellow",
-					pymolSelSerial,
-					residuePairs,
-					false, true); // do not dash the line, do center selection
-
-		} catch (EmptyContactSelectionError e) {
-			showNo3DCoordFromComparedSelection();	    
-		} catch (CoordinatesNotFoundError e) {
-			if( e.getModel() == mod ) {
-				showNo3DCoordsWarning();
-			} else if( e.getModel() == mod2 ) {
-				showNo3DCoordsSecondModelWarning();
-			} else {
-				System.err.println("Error: Unrecognized model in function doSuperposition(Model, Model, EdgeSet[] , Alignment)!");
-			}
-		} 
+		// send selection of (mis)matching residues to PyMOL
+		Start.getPyMolAdaptor().sendTwoChainsEdgeSelection(
+				mod1.getPDBCode(), mod1.getChainCode(), 
+				mod2.getPDBCode(), mod2.getChainCode(), 
+				"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
+				"yellow",
+				pymolSelSerial,
+				residuePairs,
+				false, true); // do not dash the line, do center selection
 	}
-
-
-	/**
-	 * Extracts the indices of all alignment columns which are obtained by the 
-	 * set of currently selected contacts.
-	 * 
-	 * @param mod1  first model
-	 * @param mod2  second model
-	 * @param selection  contact selection
-	 * @param ali  sequence alignment between <code>mod1</code> and 
-	 *  <code>mod2</code>
-	 * @param observedOnly  enable this flag to neglect columns which contain 
-	 *  unobserved residues
-	 *  
-	 * @return the alignment position. this set may be empty if the contacts 
-	 *  in the given selection do only point to unobserved residues.
-	 *  
-	 * @throws CoordinatesNotFoundError
-	 * @throws EmptyContactSelectionError
-	 */    
-	public TreeSet<Integer> getAlignmentPositionsFromSelection(Model mod1, Model mod2, IntPairSet[] selection, Alignment ali, boolean observedOnly) 
-	throws CoordinatesNotFoundError, EmptyContactSelectionError  {
-
-		// TODO: in future versions we should put this function to the contact map pane. 
-
-		// 3D-coordinates are required for both models in the observedOnly
-		if( observedOnly && !mod1.has3DCoordinates() ) {
-			throw new CoordinatesNotFoundError(mod1);
-		}
-		if( observedOnly && !mod2.has3DCoordinates() ) {
-			throw new CoordinatesNotFoundError(mod2);
-		}
-
-		// create list of positions to be combined to consecutive chunks 
-		// further below from the set of selected contacts
-		//  [Please alway keep in mind, that the anchors of the selected 
-		//   contacts correspond to the aligned models. Further below we access 
-		//   the pdb-coordinates of the original graph. We can do that via 
-		//   mapping from the alignment space (which assignes to the node 
-		//   indexing in the aligned models) to the sequence space (which in 
-		//   turn addresses the indexing in the orignal ones)]
-		TreeSet<Integer> positions = new TreeSet<Integer>();
-		for( int i=0; i<selection.length; ++i ) {
-			// we have again to take account for the sequence <-> alignment 
-			// indexing problem, which essentially means that we have to 
-			// substract 1 to map from sequence space to the alignment space 
-			// as 'positions' is supposed to hold alignment positions
-			for( int n : selection[i].getIncidentNodes() ) {
-				positions.add(n-1);		
-			}
-		}
-
-		// this is only to be able to distinguish between 'positions' being 
-		// empty due to non-existing coordinates or due to an empty contact 
-		// selection
-		if( positions.isEmpty() ) {
-			throw new EmptyContactSelectionError();
-		}
-
-		// make tags to retrieve the correct sequences from the alignment
-		String name1 = mod1.getPDBCode() + mod1.getChainCode();
-		String name2 = mod2.getPDBCode() + mod2.getChainCode();
-
-		// delete all position that do not have valid 3D-coordinates
-		if( observedOnly ) {
-			Pdb coordsMod1 = mod1.get3DCoordinates();
-			Pdb coordsMod2 = mod2.get3DCoordinates();
-			int p;
-			for( Iterator<Integer> it = positions.iterator();  it.hasNext(); ) {
-				p = it.next();
-				// TODO: what we actually should do here is to check whether the current 'p' has coordinates for the CA atoms as the superposition is performed on CA backbone
-				if( !(coordsMod1.hasCoordinates(ali.al2seq(name1,p)) 
-						&& coordsMod2.hasCoordinates(ali.al2seq(name2,p)) ) ) {
-					it.remove();
-				}
-			}
-		}
-
-		return positions;
-	}
-
 
 	/**
 	 * Load second model onto the contact map pane.
@@ -2389,11 +2258,15 @@ public class View extends JFrame implements ActionListener {
 				seq = mod2.getSequence();
 				s2  = seq.length() <= 10?(seq.length()==0?"Unknown":seq):seq.substring(0,10) + "...";
 
-				IntPairSet[] selectedContacts = cmPane.getSelectedContacts();
+				TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSelectedContacts(false);
 				IntPairSet union = new IntPairSet();
-				for(int i = 0; i < selectedContacts.length; ++i ) {
-					union.addAll(selectedContacts[i]);
-				}
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST]);
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.SECOND]);
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST]);
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND]);
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND]);
+				union.addAll(selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST]);
+				
 				numSelectedContacts = union.size();
 			}
 
@@ -2700,6 +2573,10 @@ public class View extends JFrame implements ActionListener {
 	 * 
 	 */
 	private void handleShowSelContacts3D() {
+		
+		// pymol adapter
+		PyMolAdaptor pymol = Start.getPyMolAdaptor();
+		
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if(!mod.has3DCoordinates()) {
@@ -2709,255 +2586,209 @@ public class View extends JFrame implements ActionListener {
 		} else if(cmPane.getSelContacts().size() == 0) {
 			showNoContactsSelectedWarning();
 		} else if (cmPane.hasSecondModel()){
+			
+			// pointer to the models
+			Model firstMod  = cmPane.getFirstModel();
+			Model secondMod = cmPane.getSecondModel();
+			
+			// chain selection names. The names are only used the access the 
+			// right chain. We do not create this selection explicitely!!!
+			String firstChainSel  = pymol.getChainObjectName(firstMod.getPDBCode(),  firstMod.getChainCode());
+			String secondChainSel = pymol.getChainObjectName(secondMod.getPDBCode(), secondMod.getChainCode());
 
+			
+			// COMMON:
+			//   FIRST -> common contacts in first model -> draw solid red lines
+			//   SECOND -> "" second ""                  -> draw solid green lines
+			// ONLY_FIRST:
+			//   FIRST -> contacts only pres. in first model -> draw solid red lines
+			//   SECOND -> -> draw dashed green lines
+			// ONLY_SECOND:
+			//   SECOND -> contacts only pres. in sec. model -> draw solid green lines
+			//   FIRST -> -> draw dashed red lines
+			
+			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSelectedContacts(true);
 
-			String firstModelContactColor = "magenta";
-			String secondModelContactColor = "green";
-
-			common = this.getSelCommonContactsInComparedMode();
-			firstS = this.getSelFirstStrucInComparedMode();
-			secondS = this.getSelSecondStrucInComparedMode();
-
-
-			// only second structure contacts
-			if (common == false && firstS == false && secondS == true){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueGreen = array[0];	// red contacts
-				String selectionType = cmPane.getSecondModel().getChainCode();
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-
-				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont" + selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, true);
-
-				String memberNameA1 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode()+ "Sel"+ pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(),  pymolSelSerial, memberNameA1, "");
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial, memberNameB1, "");
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-
-				this.pymolSelSerial++;
+			// flag indicating that at least anything has been send to PyMol
+			boolean incrPyMolSelSerial = false;
+			
+			// disable all previously made objects and selections only once! 
+			if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ||
+				selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ||
+				selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].size() != 0 ) {
+				
+				Start.getPyMolAdaptor().setView(firstMod.getPDBCode(),  firstMod.getChainCode(),
+												secondMod.getPDBCode(), secondMod.getChainCode());
+				
+				incrPyMolSelSerial = true;
+			} else {
+				// nothing to do!
+				return;
 			}
+			
+			// groups and edge selection names, this nameing convention yields 
+			// the following grouping tree in PyMol:
+			// topLevelGroup
+			//   |--firstModGroup
+			//   |    |--presFirstEdgeSel
+			//   |    |--presFirstNodeSel
+			//   |    |--absFirstEdgeSel
+			//   |     `-absFirstNodeSel
+			//    `-secondModGroup
+			//        |--...
+			//        ...
+			String topLevelGroup     = "Sel" + pymolSelSerial;
+			String firstModGroup     = topLevelGroup + "_" + firstChainSel;			
+			String secondModGroup    = topLevelGroup + "_" + secondChainSel;
+			
+			String presFirstEdgeSel  = firstModGroup + "_PresCont";
+			String presFirstNodeSel  = firstModGroup + "_PresCont_Nodes";
+			String absFirstEdgeSel   = firstModGroup + "_AbsCont";
+			String absFirstNodeSel   = firstModGroup + "_AbsCont_Nodes";
+			String commonFirstEdgeSel = firstModGroup + "_Common";
+			String commonFirstNodeSel = firstModGroup + "_Common_Nodes";
+			
+			String presSecondEdgeSel = secondModGroup + "_PresCont";
+			String presSecondNodeSel = secondModGroup + "_PresCont_Nodes";
+			String absSecondEdgeSel  = secondModGroup + "_AbsCont";
+			String absSecondNodeSel  = secondModGroup + "_AbsCont_Nodes";
+			String commonSecondEdgeSel = secondModGroup + "_Common";
+			String commonSecondNodeSel = secondModGroup + "_Common_Nodes";
+			
+//			// make groups
+//			pymol.group(firstModGroup,  null, null);
+//			pymol.group(secondModGroup, null, null);
+//			pymol.group(bothGroup,      null, null);
+//			pymol.group(topLevelGroup,  firstModGroup+" "+secondModGroup+" "+bothGroup, null);
+			
+			// for coloring the edges
+			String firstColor  = "magenta";
+			String secondColor = "green";
+			String commonColor = "yellow";
+			
+			// send common contacts in the first and second model. It suffices 
+			// to check size only for one set as both are supposed to be of 
+			// same size.			
+			if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ) {				
+				// send common contacts to the object corresponding to the first model
+				pymol.edgeSelection(firstChainSel, firstChainSel, commonFirstEdgeSel, commonFirstNodeSel, 
+									commonColor, 
+									selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST], 
+									false);
 
-			// only first structure contacts
-			else if (common == false && firstS == true && secondS == false){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];	// red contacts
-				String selectionType = mod.getChainCode();
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);
-				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont" + selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
-
-
-				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode()+ "Sel" + pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, memberNameA1, "");
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, "");
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" "+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-				this.pymolSelSerial++;
+				// send common contacts to the object corresponding to the second model
+				pymol.edgeSelection(secondChainSel, secondChainSel, commonSecondEdgeSel, commonSecondNodeSel,
+									commonColor, 
+									selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.SECOND], 
+									false);
+				
+				// TODO: create node selections from selMap and add them to the	group!!!
+				
+				// group first and second structure selection
+				pymol.group(firstModGroup,  commonFirstEdgeSel,  null);
+				pymol.group(firstModGroup,  commonFirstNodeSel,  null);
+				pymol.group(secondModGroup, commonSecondEdgeSel, null);
+				pymol.group(secondModGroup, commonSecondNodeSel, null);
+				
+				// and group everything in the topLevelGroup representing the 
+				// whole selection
+				pymol.group(topLevelGroup, firstModGroup,  null);
+				pymol.group(topLevelGroup, secondModGroup, null);
 			}
+			
+			// send contacts present in the first and absent in the second model
+			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ) {
+				
+				// draw true contacts being present in the first model between 
+				// the residues of the first model
+				pymol.edgeSelection(firstChainSel, firstChainSel, presFirstEdgeSel, presFirstNodeSel,
+									firstColor,
+									selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST], 
+									false);
 
-			// only first and second structure contacts
-			else if (common == false && firstS == true && secondS == true){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];		// red contacts
-				IntPairSet trueGreen = array[1];	// green contacts
-				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
-
-				// all contacts are either red or green. 
-				// red contacts are n PyMol: red and not dashed in main structure && green and dashed in second structure
-				// green contacts: analogous w.r.t. second structure and main structure
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				//present and unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont"+selectionType, firstModelContactColor, pymolSelSerial,trueGreen, true, false);	
-
-				// present and unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
-
-
-				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
-				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1, memberNameA2);
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-				this.pymolSelSerial++;
+				// group selection of present contact in the first structure
+				pymol.group(firstModGroup, presFirstEdgeSel, null);
+				pymol.group(firstModGroup, presFirstNodeSel, null);
+				pymol.group(topLevelGroup, firstModGroup,    null);
+				
+				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND].size() != 0 ) {
+					// draw "contact" being absent in the second model but 
+					// NOT in the first one between the residues of the second 
+					// model
+					pymol.edgeSelection(secondChainSel, secondChainSel, absSecondEdgeSel, absSecondNodeSel,
+										secondColor,
+										selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND], 
+										true);
+					
+					// group selection of absent contact in the second 
+					// structure
+					pymol.group(secondModGroup, absSecondEdgeSel, null);
+					pymol.group(secondModGroup, absSecondNodeSel, null);
+					pymol.group(topLevelGroup,  secondModGroup,   null);
+				} 
 			}
+			
+			// send contacts present in the first and absent in the second model
+			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].size() != 0 ) {
+				
+				// draw true contacts being present in the second model between 
+				// the residues of the between model
+				pymol.edgeSelection(secondChainSel, secondChainSel, presSecondEdgeSel, presSecondNodeSel,
+									secondColor,
+									selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND],
+									false);
 
-			// only common toggle mode			
-			else if (common == true && firstS == false && secondS == false){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];		// red contacts
-				IntPairSet trueGreen = array[1];	// green contacts
-				String selectionType = mod.getChainCode() + cmPane.getSecondModel().getChainCode();
-
-				// no unpresent contacts
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				// present contacts in main and second structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, true);	
-
-				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1,"");
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1,"");
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-				this.pymolSelSerial++;
+				// group selection of present contact
+				pymol.group(secondModGroup, presSecondEdgeSel, null);
+				pymol.group(secondModGroup, presSecondNodeSel, null);
+				pymol.group(topLevelGroup,  secondModGroup,    null);
+				
+				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ) {
+					// draw true contact being present in the second model but 
+					// NOT in the first one between the residues of the first 
+					// model
+					pymol.edgeSelection(firstChainSel, firstChainSel, absFirstEdgeSel, absFirstNodeSel, 
+										firstColor,
+										selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST], 
+										true);
+					
+					// group selection of absent contact
+					pymol.group(firstModGroup, absFirstEdgeSel, null);
+					pymol.group(firstModGroup, absFirstNodeSel, null);
+					pymol.group(topLevelGroup, firstModGroup,   null);
+				} 
 			}
-
-			// common and first structure mode == complete first structure
-			else if (common == true && firstS == true && secondS == false){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];		// red contacts
-				IntPairSet trueGreen = array[1];	// green contacts
-				String selectionType = mod.getChainCode();
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				//present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
-
-				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
-				// unpresent contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont"+ selectionType, secondModelContactColor, pymolSelSerial, trueGreen, true, false);
-
-				String memberNameA1 = "PresCont" + selectionType+ mod.getPDBCode() + mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel"+ pymolSelSerial;
-				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel"+ pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, memberNameA1,"");
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-				this.pymolSelSerial++;
+						
+			// and finally increment the selection counter if anything has 
+			// been send to PyMol
+			if( incrPyMolSelSerial ) {
+				++pymolSelSerial;
 			}
-
-			// common and second structure mode == complete second structure
-			else if (common == true && firstS == false && secondS == true){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];		// red cTrueontacts
-				IntPairSet trueGreen = array[1];	// green contacts
-				String selectionType =  cmPane.getSecondModel().getChainCode();
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				// present contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueGreen, false, false);	
-				// unpresent contacts in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont" + selectionType, firstModelContactColor, pymolSelSerial, trueRed, true, false);	
-
-				// present contacts in second structure
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueRed, false, true);
-
-
-				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() + "Sel"+ pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(),pymolSelSerial, memberNameA1, memberNameA2);
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(),pymolSelSerial, memberNameB1, "");
-				// grouping complete selection
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" "+ cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-				this.pymolSelSerial++;
-			}
-			else if (common == true && firstS == true && secondS == true){
-				IntPairSet[] array = cmPane.getSelectedContacts();
-				IntPairSet trueRed = array[0];		// red contacts
-				IntPairSet trueGreen = array[1];	// green contacts
-				IntPairSet trueCommon = array[2]; 	// common contacts
-				String selectionType =  mod.getChainCode()+cmPane.getSecondModel().getChainCode();
-
-				//disable all old objects and selections and enable the two actual objects 
-				Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
-
-				// present contacts in both structures
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueCommon, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueCommon, false, false);
-
-				// present and unpresent contacts only in main structure
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "PresCont"+selectionType, firstModelContactColor, pymolSelSerial, trueRed, false, false);	
-				Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), "AbsCont"+ selectionType, firstModelContactColor, pymolSelSerial, trueGreen, true, false);	
-
-				// present and unpresent contacts only in second struture
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "PresCont"+selectionType, secondModelContactColor, pymolSelSerial, trueGreen, false, false);
-				Start.getPyMolAdaptor().edgeSelection(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), "AbsCont" +selectionType, secondModelContactColor, pymolSelSerial, trueRed, true, true);
-
-
-				String memberNameA1 = "PresCont" + selectionType + mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameA2 = "AbsCont" + selectionType+ mod.getPDBCode()+ mod.getChainCode()+ "Sel"+ pymolSelSerial;
-				String memberNameB1 = "PresCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
-				String memberNameB2 = "AbsCont" + selectionType+ cmPane.getSecondModel().getPDBCode()+ cmPane.getSecondModel().getChainCode() +  "Sel" + pymolSelSerial;
-
-				// grouping main structure selection
-				Start.getPyMolAdaptor().groupSelections(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial,memberNameA1, memberNameA2);
-				// grouping second structure selection
-				Start.getPyMolAdaptor().groupSelections(cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode(), pymolSelSerial,memberNameB1, memberNameB2);
-				// grouping complete structure
-				Start.getPyMolAdaptor().sendCommand("cmd.group(name = 'Selection"+ pymolSelSerial +"', members= '"+ mod.getPDBCode()+mod.getChainCode() + "Sel"+ pymolSelSerial+" " + cmPane.getSecondModel().getPDBCode()+cmPane.getSecondModel().getChainCode()+"Sel"+ pymolSelSerial+"' ), ");
-
-
-				this.pymolSelSerial++;
-			}
-		}
-		else {
-			IntPairSet[] array = cmPane.getSelectedContacts();
-			IntPairSet contacts = array[0];
-			String selectionType = mod.getChainCode();
-
+		} else {
+			// note that firstChainSel and firstChainObj are more or less the 
+			// same apart from the latter being a real selection in PyMol and 
+			// the former being a more general PyMol selection string 
+			IntPairSet contacts   = cmPane.getSelectedContacts(false).get(ContactMapPane.ContactSelSet.SINGLE)[ContactMapPane.FIRST];
+			Model  mod            = cmPane.getFirstModel();
+			String chainObj       = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
+			String topLevelGroup  = "Sel" + pymolSelSerial;
+			String singleModGroup =  chainObj + "_" + topLevelGroup;
+			String edgeSel        = "Cont_"  + singleModGroup;
+			String nodeSel        = "Nodes_" + singleModGroup;
+			
 			//disable all old objects and selections
-			Start.getPyMolAdaptor().sendCommand("disable all");
-			Start.getPyMolAdaptor().sendCommand("enable " + mod.getPDBCode()+mod.getChainCode());
+			pymol.sendCommand("disable all");
+			pymol.sendCommand("enable " + chainObj);
 
-			Start.getPyMolAdaptor().edgeSelection(mod.getPDBCode(), mod.getChainCode(), selectionType, "color magenta, ", pymolSelSerial, contacts, false, true);
+			// send selection
+			pymol.edgeSelection(chainObj, chainObj, edgeSel, nodeSel, "magenta", contacts, false);
+			
+			// group selections and the model group in the topLevelGroup
+			pymol.group(singleModGroup, edgeSel,        null);
+			pymol.group(singleModGroup, nodeSel,        null);
+			pymol.group(topLevelGroup,  singleModGroup, null);
+			
+			// and finally increment the serial for the PyMol selections
 			this.pymolSelSerial++;
 		}
 	}
@@ -3007,7 +2838,7 @@ public class View extends JFrame implements ActionListener {
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
 				ali,
-				cmPane.getSelectedContacts());
+				cmPane.getAlignmentColumnsFromSelectedContacts());
 	}
 
 	/**

@@ -47,7 +47,7 @@ public class PyMolAdaptor {
 	/**
 	 * Construct a pymol object name from a pdb code and chain code.
 	 */
-	private String getChainObjectName(String pdbCode, String chainCode) {
+	public String getChainObjectName(String pdbCode, String chainCode) {
 		return pdbCode + chainCode;
 	}
 
@@ -57,7 +57,7 @@ public class PyMolAdaptor {
 	 * @param selSerial The serial number of the selection
 	 * @return The selection name
 	 */
-	private String getSelObjectName(String chainObjName, String selectionType, int pymolSelSerial) {
+	public String getSelObjectName(String chainObjName, String selectionType, int pymolSelSerial) {
 
 		return selectionType + chainObjName+ "Sel" + pymolSelSerial;
 	}
@@ -123,7 +123,37 @@ public class PyMolAdaptor {
 		+ chainObjNameSecond + " and chain " + chainCodeSecond + " and resi " + j + " and name ca"; 
 		this.sendCommand(pymolStr);
 	}
+	
+	/**
+	 * Create single edge between the CA atoms of the given residues of the given objects.
+	 * @param distName
+	 * @param firstSelObj  first structure object
+	 * @param secondSelObj  second structure object
+	 * @param i  index of residue in the first structure object 
+	 * @param j  index of residue in the second structure object
+	 */
+	private void setDistance(String distName,String firstSelObj, String secondSelObj, int i, int j) {
+		sendCommand("distance " + distName + ", "
+					+ firstSelObj  + " and resi " + i + " and name ca, " 
+					+ secondSelObj + " and resi " + j + " and name ca"); 
+	}
 
+	private void setDistance(String distName, String firstSelObj, String secondSelObj, 
+							TreeSet<Integer> firstRes, TreeSet<Integer> secondRes) {
+		
+		if(firstRes.first() == 1) {
+			System.out.println();
+		}
+		
+		// prepare residue selection string
+		String firstResString  = Interval.createSelectionString(firstRes); 
+		String secondResString = Interval.createSelectionString(secondRes);
+		
+		// and send it to PyMol
+		sendCommand("distance " + distName + ", " + 
+					firstSelObj  + " and ( resi " + firstResString  + " ) and name ca, " + 
+					secondSelObj + " and ( resi " + secondResString + " ) and name ca");
+	}
 
 	/** 
 	 * Create a selection of the given residues in pymol.
@@ -159,6 +189,35 @@ public class PyMolAdaptor {
 
 		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
 			sendCommand("select "+selObjName+", "+chainObjName+" and chain "+chainCode+" and "+resString);
+		} else {
+			System.err.println("Couldn't create pymol selection. Too many residues.");
+		}
+	}
+	
+	private void createSelectionObject(String selObjName, String chainObjName, TreeSet<Integer> residues) {
+		String resString = "";
+		int start, last;
+		last = residues.first();
+		start = last;
+		for(int i:residues) {
+			if(i > last+1) {
+				resString += "resi " + (last-start == 0?last:(start + "-" + last)) + " or ";
+				start = i;
+				last = i;
+			} else
+				if(i == last) {
+					// skip
+				} else
+					if(i == last+1) {
+						last = i;
+					}
+		}
+		resString += "resi " + (last-start == 0?last:(start + "-" + last));
+		resString = "(" + resString + ")";
+		//System.out.println(resString);
+
+		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
+			sendCommand("select " + selObjName + ", " + chainObjName + " and " + resString);
 		} else {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
@@ -475,9 +534,104 @@ public class PyMolAdaptor {
 			this.sendCommand("zoom " + selObjName);
 		}
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
-		sendCommand("deselect " + selObjName+"Nodes");
+		sendCommand("disable " + selObjName+"Nodes");
 	}
 
+	/**
+	 * Creates an edge selection.
+	 * Edges are implemented as distances drawn between the residues of the 
+	 * first and the second selection. The given set of pairs of integers 
+	 * defines the residues to be connected, whereas <code>getFirst()</code> 
+	 * always yields the residue indices in the first selection and 
+	 * <code>getSecond()</code> those in the second.
+	 * @param firstSelName  name of the first selection
+	 * @param secondSelName  name of the second selection
+	 * @param edgeSelName  name of the edge selection to be created
+	 * @param nodeSelName  name of the node selection consisting of all 
+	 *  residues incident to the contacts 
+	 * @param edgeColor  name of the color of the edges
+	 * @param selContacts  set of pairs of residues to be connected
+	 * @param dash  enable to draw dashed edges
+	 */
+	public void edgeSelection(String firstSelName, String secondSelName, String edgeSelName, String nodeSelName, 
+								String edgeColor, IntPairSet selContacts, boolean dash) {
+
+		// if no contacts in selection do nothing
+		if (selContacts.size()== 0) {
+			return; 
+		}
+
+		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
+		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
+		
+		if( selContacts.size() > 400 ) {
+			// send packed selections to PyMol
+			TreeMap<Integer, TreeSet<Integer>> adjLists = new TreeMap<Integer, TreeSet<Integer>>();
+			int i,j;
+			
+			for(Pair<Integer> cont:selContacts) {
+				i = cont.getFirst();
+				j = cont.getSecond();
+				if( ! adjLists.containsKey(i) ) {
+					adjLists.put(i, new TreeSet<Integer>());
+					adjLists.get(i).add(j);
+					firstResidues.add(i);
+					secondResidues.add(j);
+				} else {
+					adjLists.get(i).add(j);
+					secondResidues.add(j);
+				}
+			}
+			
+			// check size
+			if( adjLists.size() > 500 ) {
+				System.err.println("Selection too big!");
+				return;
+			}
+			
+			// send each adjacency list separately
+			TreeSet<Integer> dummy = new TreeSet<Integer>();
+			for(Integer k : adjLists.keySet()) {
+				dummy.add(k);
+				this.setDistance(edgeSelName, firstSelName, secondSelName, dummy, adjLists.get(k));
+				dummy.remove(k);
+			}			
+		} else {
+			// send each contact as a single command to PyMol
+			int i,j;
+			for (Pair<Integer> cont:selContacts){ 
+				i = cont.getFirst();
+				j = cont.getSecond();
+				// draws an edge between the selected residues
+				this.setDistance(edgeSelName,firstSelName,secondSelName,i,j);
+				firstResidues.add(i);
+				secondResidues.add(j);
+			}
+		}
+
+		// hide distance labels
+		sendCommand("hide labels, " + edgeSelName);
+
+		// color distances
+		this.sendCommand("color " + edgeColor + "," + edgeSelName);
+
+		if (dash ==true){
+			// setting the dashed lines for present and absent distinction
+			setDashes(edgeSelName);
+		} else { 
+			// fixing the side chain problem
+			// side chains only occur in case of common contacts
+			sendCommand("hide lines,  " + edgeSelName);
+			sendCommand("hide sticks, " + edgeSelName);
+		}
+		
+		// create selection of nodes incident to the contacts
+		createSelectionObject(nodeSelName, firstSelName,  firstResidues);
+		createSelectionObject(nodeSelName, secondSelName, secondResidues);
+		sendCommand("disable " + nodeSelName);
+	}
+	
+	
 	/** Show a single contact or non-contact as distance object in pymol */
 	public void sendSingleEdge(String pdbCode, String chainCode, int pymolSelSerial, Pair<Integer> cont) {
 		String chainObjName = getChainObjectName(pdbCode, chainCode);
@@ -545,7 +699,7 @@ public class PyMolAdaptor {
 		// TODO: lars@all: what is the reason for doing this selcting delselecting thing?
 //		createSelectionObject(selObjName+"Nodes", chainObjNames.get(0), chainCodeFirst,  residuesFirst);
 //		add2SelectionObject(selObjName+"Nodes",   chainObjNames.get(1), chainCodeSecond, residuesSecond);
-//		sendCommand("deselect " + selObjName+"Nodes");
+//		sendCommand("disable " + selObjName+"Nodes");
 	}
 
 	/** setting the dashes lines for missed/added contacts */
@@ -556,18 +710,18 @@ public class PyMolAdaptor {
 		this.sendCommand("set dash_gap, 0.5, " + selObjName);
 		this.sendCommand("set dash_length, 0.5, " + selObjName);
 	}
-
+	
 	/**
 	 * Converts the lines of the given selection (e.g. a distance object) 
 	 * into dashed lines. 
-	 * @param selObjName  a selection identifier (please ensure that you 
+	 * @param edgeObjName  a selection identifier (please ensure that you 
 	 *  create your selection identifiers with function 
 	 *  {@link #getChainObjectName(String, String)} or 
 	 *  {@link #getMultiChainSelObjectName(Collection, String, int)} only)
 	 */
-	public void setDashes(String selObjName) {
-		this.sendCommand("set dash_gap, 0.5, "   +selObjName);
-		this.sendCommand("set dash_length, 0.5, "+selObjName);
+	public void setDashes(String edgeSelName) {
+		this.sendCommand("set dash_gap, 0.5, "    + edgeSelName);
+		this.sendCommand("set dash_length, 0.5, " + edgeSelName);
 	}
 
 	/** setting the view in PyMol if new selections were done */
@@ -576,14 +730,43 @@ public class PyMolAdaptor {
 		sendCommand("enable " + pdbCode1 + chainCode1 );
 		sendCommand("enable " + pdbCode2 + chainCode2);
 	}
-
-	public void groupSelections(String pdbCode, String chainCode, int pymolSelSerial, String memberName1, String memberName2){
-
-		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1 +" " + memberName2 + "'),");
-		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1+"Node', action= 'add'),");
-		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName2+"Node', action= 'add'),");
-
+	
+	/**
+	 * Creates or updates a group object.
+  	 * Note, that whenever an argument is null all subsequent arguments are 
+  	 * implicitely disregarded!
+	 * @param groupName  the name of the group
+	 * @param members  string of whitespace-separated list of objects to be 
+	 *  grouped together
+	 * @param action  grouping action (PyMol v1 supports: add, remove, open, 
+	 *  close, toggle, auto, ungroup, empty, purge, excise). See PyMol docu 
+	 *  for further details!
+	 */
+	public void group(String groupName, String members, String action) {
+		
+		// nothing to do if groupName is null!
+		if( groupName == null ) {
+			return;
+		}
+		
+		// send command to PyMol
+		if( members == null ) {
+			sendCommand("group " + groupName);
+		} else if ( action == null ) {
+			sendCommand("group " + groupName + ", " + members);
+		} else {
+			sendCommand("group " + groupName + ", " + members + ", " + action);
+		}
 	}
+	
+	
+//	public void groupSelections(String pdbCode, String chainCode, int pymolSelSerial, String memberName1, String memberName2){
+//
+//		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1 +" " + memberName2 + "'),");
+//		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName1+"Node', action= 'add'),");
+//		sendCommand("cmd.group(name='"+ pdbCode+chainCode+ "Sel"+ pymolSelSerial+ "', members= '" + memberName2+"Node', action= 'add'),");
+//
+//	}
 
 
 	/**

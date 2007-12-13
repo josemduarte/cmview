@@ -12,6 +12,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import java.util.Hashtable;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
@@ -47,6 +48,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	// preloaded in
 	// background
 
+	enum ContactSelSet {COMMON, ONLY_FIRST, ONLY_SECOND, SINGLE}; 
+	static final int FIRST = 0;
+	static final int SECOND = 1;
+	static final int PRESENT = 0;
+	static final int ABSENT = 1;
+	
 	/*--------------------------- member variables --------------------------*/
 
 	// underlying data
@@ -134,9 +141,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private IntPairSet secStrucContacts;	// only second structure contacts
 	private IntPairSet bothStrucContacts;	// IntPairSet used in compared mode to handle different EdgeSets
 	private IntPairSet contacts;			// IntPairSet used in compared mode to handle different EdgeSets
-	private IntPairSet greenPContacts;		// only green present contacts
-	private IntPairSet redPContacts;		// only red present contacts
-	private IntPairSet commonPContacts;	// only commen (present) contacts
+//	private IntPairSet greenPContacts;		// only green present contacts
+//	private IntPairSet redPContacts;		// only red present contacts
+//	private IntPairSet commonPContacts;	// only commen (present) contacts
 
 	private TreeSet<Integer> selHorNodes;			// current horizontal residue
 	// selection
@@ -339,8 +346,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	public void setAlignment(Alignment ali, String tagMod1, String tagMod2) {
 		this.ali = ali;
-		this.aliTags[0] = tagMod1;
-		this.aliTags[1] = tagMod2;
+		this.aliTags[FIRST] = tagMod1;
+		this.aliTags[SECOND] = tagMod2;
 	}
 
 	/**
@@ -717,8 +724,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if( mod2 == null ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,aliTags[0],aliTags[0]+":",true);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,aliTags[1],aliTags[1]+":",true);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,aliTags[FIRST],aliTags[FIRST]+":",true);
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,aliTags[SECOND],aliTags[SECOND]+":",true);
 		}
 	}
 
@@ -2076,46 +2083,133 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/**
 	 * Gets the whole set of selected contacts.
-	 * @return The size of the returned array of edge sets depends on the types of selected contacts. As there are  
+	 * @param seqIdxMode  true if we want sequence indices, false if we want alignment indices
+	 * @return mapping from {@link ContactSelSet} type to an array of contacts. 
+	 *  The array entries are supposed to be adressed by {@link FIRST} and 
+	 *  {@link SECOND} yielding the contacts for the first and second model, 
+	 *  respectively. According to the currently selected contacts these 
+	 *  contact lists might be empty! In case the contact map panel contains 
+	 *  only one model combining {@link ContactSelSet.SINGLE} as the key to the 
+	 *  map and {@link FIRST} as the key to the array yiels the desired set of 
+	 *  contacts. 
 	 */
-	public IntPairSet[] getSelectedContacts(){
-		IntPairSet[] array = new IntPairSet[2];
+	public TreeMap<ContactSelSet,IntPairSet[]> getSelectedContacts(boolean seqIdxMode){
+		TreeMap<ContactSelSet,IntPairSet[]> selMap = new TreeMap<ContactSelSet, IntPairSet[]>();
 		if (this.hasSecondModel()){
-			if (common == false && firstS == false && secondS == true){
-				array = this.getGreenContacts();
-			}
+			
+			// common, firstS and secondS refers to 
+			// View.getSel<...>ContactsInComparedMode() repesenting the states 
+			// of the buttons in the GUI
+			
+			IntPairSet[] common = new IntPairSet[2];
+			common[FIRST]       = new IntPairSet();
+			common[SECOND]      = new IntPairSet();
+			IntPairSet[] firstOnly = new IntPairSet[2];
+			firstOnly[FIRST]       = new IntPairSet();
+			firstOnly[SECOND]      = new IntPairSet();
+			IntPairSet[] secondOnly = new IntPairSet[2];
+			secondOnly[FIRST]       = new IntPairSet();
+			secondOnly[SECOND]      = new IntPairSet();
 
-			else if (common == false && firstS == true && secondS == false){
-				array = this.getRedContacts();
-			}
+			int pos1,pos2;
+			
+			if (seqIdxMode) {
+				for (Pair<Integer> cont : selContacts) {
+					if (commonContacts.contains(cont)) {
+						common[FIRST].add(new Pair<Integer>(ali.al2seq(aliTags[FIRST],cont.getFirst()-1), 
+															ali.al2seq(aliTags[FIRST], cont.getSecond()-1)));
+						common[SECOND].add(new Pair<Integer>(ali.al2seq(aliTags[SECOND],cont.getFirst()-1),
+															ali.al2seq(aliTags[SECOND], cont.getSecond()-1)));
+					}
 
-			if (common == false && firstS == true && secondS == true){
-				array = this.getRedGreenContacts();
-			}
+					else if (mainStrucContacts.contains(cont)) {
+						
+						firstOnly[FIRST].add(new Pair<Integer>(ali.al2seq(aliTags[FIRST],cont.getFirst()-1),
+																ali.al2seq(aliTags[FIRST], cont.getSecond()-1)));
+						
+						pos1 = ali.al2seq(aliTags[SECOND], cont.getFirst()-1);
+						pos2 = ali.al2seq(aliTags[SECOND], cont.getSecond()-1);
+						
+						if( pos1 != -1 && pos2 != -1 ) {
+							firstOnly[SECOND].add(new Pair<Integer>(pos1,pos2));
+						}
+					}
 
-			else if (common == true && firstS == false && secondS == false){
-				array = this.getCommonPContacts();
-			}
+					else if (secStrucContacts.contains(cont)) {
+						secondOnly[SECOND].add(new Pair<Integer>(ali.al2seq(aliTags[SECOND],cont.getFirst()-1),
+																ali.al2seq(aliTags[SECOND], cont.getSecond()-1)));
 
-			else if (common == true && firstS == false && secondS == true){
-				array = this.getGreenCommonContacts();
-			}
+						pos1 = ali.al2seq(aliTags[FIRST], cont.getFirst()-1);
+						pos2 = ali.al2seq(aliTags[FIRST], cont.getSecond()-1);
+								
+						if( pos1 != -1 && pos2 != -1 ) {
+							secondOnly[FIRST].add(new Pair<Integer>(pos1,pos2));
+						}
+					}
+				}
+			} else {
+				for (Pair<Integer> cont : selContacts) {
+					if (commonContacts.contains(cont)) {
+						common[FIRST].add(cont);
+						common[SECOND].add(cont);
+					}
 
-			else if (common == true && firstS == true && secondS == false){
-				array = this.getRedCommonContacts();
-			}
+					else if (mainStrucContacts.contains(cont)) {
+						
+						firstOnly[FIRST].add(cont);
+						
+						pos1 = ali.al2seq(aliTags[SECOND], cont.getFirst());
+						pos2 = ali.al2seq(aliTags[SECOND], cont.getSecond());
+						
+						if( pos1 != -1 && pos2 != -1 ) {
+							firstOnly[SECOND].add(cont);
+						}
+					}
 
-			else if (common == true && firstS == true && secondS == true){
-				array = this.getAllCommonPContacts();
-			}
+					else if (secStrucContacts.contains(cont)) {
+						secondOnly[SECOND].add(cont);
+
+						pos1 = ali.al2seq(aliTags[FIRST], cont.getFirst());
+						pos2 = ali.al2seq(aliTags[FIRST], cont.getSecond());
+								
+						if( pos1 != -1 && pos2 != -1 ) {
+							secondOnly[FIRST].add(cont);
+						}
+					}
+				}
+			}		
+			
+			selMap.put(ContactSelSet.COMMON,     common);
+			selMap.put(ContactSelSet.ONLY_FIRST, firstOnly);
+			selMap.put(ContactSelSet.ONLY_SECOND,secondOnly);
 
 		} else { 
-			IntPairSet edge = this.getSelContacts();
-			array[0] = edge;
+			IntPairSet[] selSet = new IntPairSet[2];
+			selSet[FIRST] = this.getSelContacts();
+			 
+			selMap.put(ContactSelSet.SINGLE, selSet);
 		}
-		return array;
+			
+		return selMap;
 	}
 
+	
+	public TreeSet<Integer> getAlignmentColumnsFromSelectedContacts() { 
+
+		TreeSet<Integer> positions = new TreeSet<Integer>();
+		TreeMap<ContactSelSet,IntPairSet[]> selMap = getSelectedContacts(false);
+		
+		// get positions considering each set of contact selections
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.COMMON)[FIRST],positions);
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.COMMON)[SECOND],positions);
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.ONLY_FIRST)[FIRST],positions);
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.ONLY_FIRST)[SECOND],positions);
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.ONLY_SECOND)[SECOND],positions);
+		getAlignmentColumnsFromContacts(selMap.get(ContactSelSet.ONLY_SECOND)[FIRST],positions);
+		
+		return positions;
+	}
+	
 	/** Returns the set of horizontally selected nodes. */
 	public TreeSet<Integer> getSelHorNodes() {
 		return selHorNodes;
@@ -2126,8 +2220,41 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return selVertNodes;
 	}
 
+	/**
+	 * Gets the alignment columns for the given set of contacts.
+	 * Requires the contacts to be anchored in the indexing space of the aligned 
+	 * models!!!
+	 * @param contacts  set of contacts
+	 * @param positions  contains the alignment columns incident to the 
+	 *  contacts in <code>contacts</code> afterwards
+	 */
+	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions) {
+		for( Pair<Integer> cont : contacts ) {
+			// substract -1 to get the alignment column
+			positions.add(cont.getFirst()  - 1);
+			positions.add(cont.getSecond() - 1);
+		}
+	}
+	
+	/**
+	 * Gets the alignment columns for the given set of contacts
+	 * @param contacts  set of contacts
+	 * @param positions  contains the alignment columns incident to the 
+	 *  contacts in <code>contacts</code> afterwards
+	 * @param tag  name of the model in the alignment the contacts 
+	 *  belong to
+	 */
+	@SuppressWarnings("unused")
+	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions, String tag) {
+		for( Pair<Integer> cont : contacts ) {
+			// substract -1 to get the alignment column
+			positions.add(ali.seq2al(tag, cont.getFirst())  - 1);
+			positions.add(ali.seq2al(tag, cont.getSecond()) - 1);
+		}
+	}
+	
 	/*---------------------------- private methods --------------------------*/
-
+	
 	/**
 	 * Increases or decreases the thread counter and displays some user
 	 * information while threads are running
@@ -2288,187 +2415,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
 		// actually these are the green contacts
-	}
-
-	/**
-	 * Gets edge set of green contacts out of the set of selected contacts. 
-	 * These are all contacts present only in the second structure.
-	 * @return Array of edge sets of size one.
-	 * @see #addSecondModel(Model)
-	 */
-	private IntPairSet[] getGreenContacts(){
-		IntPairSet[] array = new IntPairSet[1];
-		greenPContacts = new IntPairSet();
-
-		for (Pair<Integer> cont:selContacts){
-			if(secStrucContacts.contains(cont)){
-				greenPContacts.add(cont);
-			}
-		}
-
-		array[0] = greenPContacts;
-
-		return array;
-	}
-
-	/**
-	 * Gets edge set of red contacts out of the set of selcted contacts.
-	 * These are all contacts present only in the first structure.
-	 * @return Array of edge sets size one.
-	 * @see #setModel(Model)
-	 * @see #ContactMapPane(Model, View)
-	 */
-	private IntPairSet[] getRedContacts(){
-		IntPairSet[] array = new IntPairSet[1];
-		redPContacts = new IntPairSet();
-
-		for (Pair<Integer> cont:selContacts){
-			if(mainStrucContacts.contains(cont)){
-				redPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-
-		return array;
-	}
-
-	/**
-	 * Gets red and green contacts out of the set of all selected contacts 
-	 * as two edge sets.
-	 * @return Array of edge sets of size 2! First array entry contains the
-	 *  red and the second the green contacts, only. 
-	 */
-	private IntPairSet[] getRedGreenContacts(){
-		IntPairSet[] array = new IntPairSet[2];
-
-		redPContacts = new IntPairSet();
-		greenPContacts = new IntPairSet();
-		for (Pair<Integer> cont:selContacts){
-			if(mainStrucContacts.contains(cont)){
-				redPContacts.add(cont);
-			}
-
-			if(secStrucContacts.contains(cont)){
-				greenPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-		array[1] = greenPContacts;
-		return array;
-	}
-
-	/**
-	 * Gets two separated sets of green and red contacts out of the pool of 
-	 * selected (!) common contacts. 
-	 * @return Array of edge sets of size 2! Both edge set actually contain 
-	 * an identical set of contacts.
-	 * @see #getRedGreenContacts()
-	 */
-	private IntPairSet[] getCommonPContacts(){
-		IntPairSet[] array = new IntPairSet[2];
-
-		redPContacts = new IntPairSet();
-		greenPContacts = new IntPairSet();
-		for (Pair<Integer> cont:selContacts){
-			if(commonContacts.contains(cont)){
-				redPContacts.add(cont);
-				greenPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-		array[1] = greenPContacts;
-		return array;
-	}
-
-	/**
-	 * Gets red, green and common contact out of the set of selected 
-	 * contacts.
-	 * @return Array of edge set of size 3! First entry contains red, the 
-	 * second green and the third common contact only. 
-	 */
-	private IntPairSet[] getAllCommonPContacts(){
-		IntPairSet[] array = new IntPairSet[3];
-
-		commonPContacts = new IntPairSet();
-		redPContacts = new IntPairSet();
-		greenPContacts = new IntPairSet();
-		for (Pair<Integer> cont:selContacts){
-			if(commonContacts.contains(cont)){
-				commonPContacts.add(cont);
-
-			}
-
-			if(mainStrucContacts.contains(cont)){
-				redPContacts.add(cont);
-			}
-
-			if(secStrucContacts.contains(cont)){
-				greenPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-		array[1] = greenPContacts;
-		array[2] = commonPContacts;
-		return array;
-	}
-
-	/**
-	 * Gets red and common contacts out of the set of selected contacts.
-	 * @return Array of edge sets of size 2! First entry holds only common 
-	 * and the second only red contacts.
-	 */
-	private IntPairSet[] getRedCommonContacts(){
-		IntPairSet[] array = new IntPairSet[2];
-
-		redPContacts = new IntPairSet();
-		greenPContacts = new IntPairSet();
-		// these are the black contacts
-		for (Pair<Integer> cont:selContacts){
-			if(commonContacts.contains(cont)){
-				// TODO: lars@all: for what reason do we abuse redPContacts as container for the common contact??
-				redPContacts.add(cont);
-			}
-
-			if(mainStrucContacts.contains(cont)){
-				// TODO: lars@all: same as above. isn't greenPContact supposed to hold "green" (contact present only in the second model) contacts only? 
-				greenPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-		array[1] = greenPContacts;
-		return array;
-	}
-
-	/**
-	 * Gets green and common contacts out of the set of selected contacts.
-	 * @return Array of edge sets of size 2! First entry holds common 
-	 * contacts, the second entry the green ones.
-	 */
-	private IntPairSet[] getGreenCommonContacts(){
-		IntPairSet[] array = new IntPairSet[2];
-
-		redPContacts = new IntPairSet();
-		greenPContacts = new IntPairSet();
-		// these are the black contacts
-		for (Pair<Integer> cont:selContacts){
-			// TODO: lars@all: see TODO tags in getRedCommonContacts()
-			if(commonContacts.contains(cont)){
-				greenPContacts.add(cont);
-			}
-
-			if(secStrucContacts.contains(cont)){
-				redPContacts.add(cont);
-			}
-		}
-
-		array[0] = redPContacts;
-		array[1] = greenPContacts;
-		return array;
 	}
 
 	/**

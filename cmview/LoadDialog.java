@@ -351,6 +351,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	
 	public void showIt() {
 		pack();
+		setLocationRelativeTo(getParent());
 		setVisible(true);		
 	}
 
