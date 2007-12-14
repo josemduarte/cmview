@@ -161,6 +161,10 @@ public class View extends JFrame implements ActionListener {
 	/** Create a new View object */
 	public View(Model mod, String title) {
 		super(title);
+		
+		// count all view instances
+		++Start.VIEW_INSTANCES;
+		
 		this.mod = mod;
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
@@ -184,6 +188,18 @@ public class View extends JFrame implements ActionListener {
 		this.initGUI(); // build gui tree and show window
 		//this.toFront(); // bring window to front
 		this.compareStatus = false;	
+	}
+	
+//	protected void finalize() throws Throwable {
+//		System.out.println("decrease no. view instances from " + Start.VIEW_INSTANCES + " to " + (Start.VIEW_INSTANCES-1));
+//		--Start.VIEW_INSTANCES;
+//		super.finalize();
+//	}
+	
+	public void dispose() {
+		System.out.println("decrease no. view instances from " + Start.VIEW_INSTANCES + " to " + (Start.VIEW_INSTANCES-1));
+		--Start.VIEW_INSTANCES;	
+		super.dispose();
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -1640,7 +1656,10 @@ public class View extends JFrame implements ActionListener {
 		// load stuff onto the contact map pane and the visualizer
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
-
+		
+		// clear the view (disables all previous selections)
+		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+				
 		// show superpositioning based on the common contacts in 
 		// pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
@@ -1735,6 +1754,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		doLoadModelOntoVisualizer(alignedMod2);
 
+		// clear the view (disables all previous selections)
+		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		
 		// show superpositioning based on the common contacts in 
 		// pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
@@ -1915,6 +1937,9 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		doLoadModelOntoVisualizer(alignedMod2);
 
+		// clear the view (disables all previous selections)
+		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		
 		// show superpositioning based on the common contacts in 
 		// pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
@@ -1953,6 +1978,9 @@ public class View extends JFrame implements ActionListener {
 				// works fine by taking the aligned model as pdb source)
 				doLoadModelOntoVisualizer(alignedMod2);
 
+				// clear the view (disables all previous selections)
+				Start.getPyMolAdaptor().setView(alignedMod1.getPDBCode(), alignedMod1.getChainCode(), alignedMod2.getPDBCode(), alignedMod2.getChainCode());
+				
 				// show superpositioning according to the common contacts in 
 				// pymol
 				TreeSet<Integer> columns = new TreeSet<Integer>();
@@ -2015,10 +2043,13 @@ public class View extends JFrame implements ActionListener {
 	private void doLoadModelOntoVisualizer(Model mod) {
 		Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
 		Start.getPyMolAdaptor().sendCommand("orient");
+		Start.getPyMolAdaptor().flush();
 	}	
 
 	private void handleSuperposition() {
-		// TODO: check for coordinates in both models
+		// clear the view (disables all previous selections)
+		Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());	
+		
 		doSuperposition(mod, mod2, 
 				mod.getPDBCode()+mod.getChainCode(),
 				mod2.getPDBCode()+mod2.getChainCode(),
@@ -2102,15 +2133,43 @@ public class View extends JFrame implements ActionListener {
 			return;
 		}	    
 
-		// send selection of (mis)matching residues to PyMOL
-		Start.getPyMolAdaptor().sendTwoChainsEdgeSelection(
-				mod1.getPDBCode(), mod1.getChainCode(), 
-				mod2.getPDBCode(), mod2.getChainCode(), 
-				"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
-				"yellow",
-				pymolSelSerial,
-				residuePairs,
-				false, true); // do not dash the line, do center selection
+		PyMolAdaptor pymol = Start.getPyMolAdaptor();
+		
+		// disable all previously made objects and selections only once! 
+		if( !residuePairs.isEmpty() ) {
+			pymol.setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		} else {
+			// nothing to do!
+			return;
+		}
+
+		// prepare selection names
+		String topLevelGroup = "Sel" + pymolSelSerial;
+		String firstObjSel   = pymol.getChainObjectName(mod1.getPDBCode(), mod1.getChainCode());
+		String secondObjSel  = pymol.getChainObjectName(mod2.getPDBCode(), mod2.getChainCode());
+		String edgeSel       = topLevelGroup + "_" + firstObjSel + "_" + secondObjSel + "_AliEdges";
+		String nodeSel       = edgeSel + "_Nodes";
+		
+		// color for the alignment edges
+		String aliEdgeColor = "blue";
+		
+		// send alignment edges to PyMol
+		pymol.edgeSelection(firstObjSel, secondObjSel, edgeSel, nodeSel, aliEdgeColor, residuePairs, false);
+		
+		// group selection in topLevelGroup
+		pymol.group(topLevelGroup, edgeSel + " " + nodeSel, null);
+		
+//		// send selection of (mis)matching residues to PyMOL
+//		Start.getPyMolAdaptor().sendTwoChainsEdgeSelection(
+//				mod1.getPDBCode(), mod1.getChainCode(), 
+//				mod2.getPDBCode(), mod2.getChainCode(), 
+//				"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
+//				"yellow",
+//				pymolSelSerial,
+//				residuePairs,
+//				false, true); // do not dash the line, do center selection
+		
+		++pymolSelSerial;
 	}
 
 	/**
@@ -2608,19 +2667,14 @@ public class View extends JFrame implements ActionListener {
 			//   FIRST -> -> draw dashed red lines
 			
 			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSelectedContacts(true);
-
-			// flag indicating that at least anything has been send to PyMol
-			boolean incrPyMolSelSerial = false;
 			
 			// disable all previously made objects and selections only once! 
-			if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ||
-				selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ||
-				selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].size() != 0 ) {
+			if( !selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].isEmpty() ||
+				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
+				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
 				Start.getPyMolAdaptor().setView(firstMod.getPDBCode(),  firstMod.getChainCode(),
 												secondMod.getPDBCode(), secondMod.getChainCode());
-				
-				incrPyMolSelSerial = true;
 			} else {
 				// nothing to do!
 				return;
@@ -2645,21 +2699,15 @@ public class View extends JFrame implements ActionListener {
 			String presFirstNodeSel  = firstModGroup + "_PresCont_Nodes";
 			String absFirstEdgeSel   = firstModGroup + "_AbsCont";
 			String absFirstNodeSel   = firstModGroup + "_AbsCont_Nodes";
-			String commonFirstEdgeSel = firstModGroup + "_Common";
-			String commonFirstNodeSel = firstModGroup + "_Common_Nodes";
+			String commonFirstEdgeSel = firstModGroup + "_CommonCont";
+			String commonFirstNodeSel = firstModGroup + "_CommonCont_Nodes";
 			
 			String presSecondEdgeSel = secondModGroup + "_PresCont";
 			String presSecondNodeSel = secondModGroup + "_PresCont_Nodes";
 			String absSecondEdgeSel  = secondModGroup + "_AbsCont";
 			String absSecondNodeSel  = secondModGroup + "_AbsCont_Nodes";
-			String commonSecondEdgeSel = secondModGroup + "_Common";
-			String commonSecondNodeSel = secondModGroup + "_Common_Nodes";
-			
-//			// make groups
-//			pymol.group(firstModGroup,  null, null);
-//			pymol.group(secondModGroup, null, null);
-//			pymol.group(bothGroup,      null, null);
-//			pymol.group(topLevelGroup,  firstModGroup+" "+secondModGroup+" "+bothGroup, null);
+			String commonSecondEdgeSel = secondModGroup + "_CommonCont";
+			String commonSecondNodeSel = secondModGroup + "_CommonCont_Nodes";
 			
 			// for coloring the edges
 			String firstColor  = "magenta";
@@ -2758,23 +2806,19 @@ public class View extends JFrame implements ActionListener {
 					pymol.group(topLevelGroup, firstModGroup,   null);
 				} 
 			}
-						
-			// and finally increment the selection counter if anything has 
-			// been send to PyMol
-			if( incrPyMolSelSerial ) {
-				++pymolSelSerial;
-			}
 		} else {
-			// note that firstChainSel and firstChainObj are more or less the 
-			// same apart from the latter being a real selection in PyMol and 
-			// the former being a more general PyMol selection string 
 			IntPairSet contacts   = cmPane.getSelectedContacts(false).get(ContactMapPane.ContactSelSet.SINGLE)[ContactMapPane.FIRST];
+
 			Model  mod            = cmPane.getFirstModel();
 			String chainObj       = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
+			
+			if( contacts.isEmpty() ) {
+				return; // nothing to do!
+			}
+
 			String topLevelGroup  = "Sel" + pymolSelSerial;
-			String singleModGroup =  chainObj + "_" + topLevelGroup;
-			String edgeSel        = "Cont_"  + singleModGroup;
-			String nodeSel        = "Nodes_" + singleModGroup;
+			String edgeSel        = topLevelGroup + "_" + chainObj + "_Cont";
+			String nodeSel        = topLevelGroup + "_" + chainObj + "_Nodes";
 			
 			//disable all old objects and selections
 			pymol.sendCommand("disable all");
@@ -2783,14 +2827,11 @@ public class View extends JFrame implements ActionListener {
 			// send selection
 			pymol.edgeSelection(chainObj, chainObj, edgeSel, nodeSel, "magenta", contacts, false);
 			
-			// group selections and the model group in the topLevelGroup
-			pymol.group(singleModGroup, edgeSel,        null);
-			pymol.group(singleModGroup, nodeSel,        null);
-			pymol.group(topLevelGroup,  singleModGroup, null);
-			
-			// and finally increment the serial for the PyMol selections
-			this.pymolSelSerial++;
+			pymol.group(topLevelGroup,  edgeSel + " " + nodeSel, null);
 		}
+		
+		// and finally increment the serial for the PyMol selections
+		this.pymolSelSerial++;
 	}
 
 
@@ -2823,8 +2864,27 @@ public class View extends JFrame implements ActionListener {
 		} else if(cmPane.getCommonNbh() == null) {
 			showNoCommonNbhSelectedWarning();
 		} else {
-			Start.getPyMolAdaptor().showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
-			this.pymolNbhSerial++;					
+			PyMolAdaptor pymol = Start.getPyMolAdaptor();
+			
+			String topLevelGroup    = "Sel" + pymolSelSerial;
+			String chainObjName     = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
+			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
+			String nodeSelName      = triangleBaseName + "_Nodes";
+			
+			//pymol.showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
+			Collection<String> triangleSelNames =  pymol.showTriangles(chainObjName, triangleBaseName, nodeSelName, cmPane.getCommonNbh());
+			
+			String groupMembers = "";
+			for( String s : triangleSelNames ) {
+				groupMembers += s + " ";
+			}
+			
+			groupMembers += nodeSelName;
+			
+			pymol.group(topLevelGroup, groupMembers, null);
+			
+			this.pymolNbhSerial++;
+			++this.pymolSelSerial;
 		}
 	}
 

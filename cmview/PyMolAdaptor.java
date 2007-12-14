@@ -1,8 +1,12 @@
 package cmview;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import tools.PymolServerOutputStream;
 import java.util.*;
 
@@ -31,6 +35,9 @@ public class PyMolAdaptor {
 	private String url;
 	private PrintWriter Out;
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
+	private boolean bufferedMode;
+	private File cmdBufferFile;
+	private StringWriter cmdBuffer;
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -40,6 +47,15 @@ public class PyMolAdaptor {
 	public PyMolAdaptor(String pyMolServerUrl){
 		this.url=pyMolServerUrl;
 		this.connected = false;  // run tryConnectingToPymol() to connect
+		this.bufferedMode = false;
+	}
+	
+	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile) {
+		this.url = pyMolServerUrl;
+		this.connected = false;
+		this.bufferedMode = true;
+		this.cmdBufferFile = cmdBufferFile;
+		this.cmdBuffer = new StringWriter(10000);
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -105,10 +121,33 @@ public class PyMolAdaptor {
 
 	/** Send command to pymol and check for errors */
 	public void sendCommand(String cmd) {
-		Out.println(cmd);
-		if(Out.checkError()) {
-			System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
-			this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+		if( bufferedMode ) {
+			cmdBuffer.append(cmd + "\n");
+		} else {
+			Out.println(cmd);
+			if(Out.checkError()) {
+				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
+				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+			}
+		}
+	}
+	
+	public void flush() {
+		if( bufferedMode ) {
+			try {
+				// write data from buffer to file
+				FileWriter fWriter = new FileWriter(cmdBufferFile);
+				fWriter.write(cmdBuffer.toString());
+				fWriter.flush();
+				fWriter.close();
+				
+				// flush command buffer
+				cmdBuffer.flush();
+				
+				Out.println("@" + cmdBufferFile.getCanonicalPath());
+			} catch (IOException e1) {
+				System.err.println("Cannot write to command buffer file.");
+			}
 		}
 	}
 
@@ -189,6 +228,9 @@ public class PyMolAdaptor {
 
 		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
 			sendCommand("select "+selObjName+", "+chainObjName+" and chain "+chainCode+" and "+resString);
+			
+			// flush the buffer and send commands to PyMol via log-file
+			this.flush();
 		} else {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
@@ -218,6 +260,8 @@ public class PyMolAdaptor {
 
 		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
 			sendCommand("select " + selObjName + ", " + chainObjName + " and " + resString);
+			// flush the buffer and send commands to PyMol via log-file
+			this.flush();
 		} else {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
@@ -252,6 +296,9 @@ public class PyMolAdaptor {
 					" or (" + chainObjName +    /* the chain object */
 					" and chain "+chainCode +   /* the chain identifier in the chain object */
 					" and " + resString + ")"); /* the interval sequence of residues to be considered */
+			
+			// flush the buffer and send commands to PyMol via log-file
+			this.flush();
 		} else {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
@@ -259,6 +306,10 @@ public class PyMolAdaptor {
 
 	/*---------------------------- public methods ---------------------------*/
 
+	public void setPyMolServerUrl(String url) {
+		this.url = url; 
+	}
+	
 	/**
 	 * Try connecting to pymol server. Returns true on success, false otherwise.
 	 */
@@ -296,6 +347,9 @@ public class PyMolAdaptor {
 		this.Out = new PrintWriter(s,true);
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/**
@@ -329,6 +383,10 @@ public class PyMolAdaptor {
 		}
 
 		sendCommand("cmd.refresh()");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+		
 		System.out.println("DONE loading structure "+chainObjName);
 	}
 
@@ -356,6 +414,9 @@ public class PyMolAdaptor {
 		sendCommand("hide sticks");
 		sendCommand("zoom");
 		sendCommand("cmd.refresh()");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/**
@@ -425,6 +486,9 @@ public class PyMolAdaptor {
 				sendCommand("zoom");
 				sendCommand("cmd.refresh()");
 
+				// flush the buffer and send commands to PyMol via log-file
+				this.flush();
+				
 				return;    
 			}
 		}
@@ -464,6 +528,9 @@ public class PyMolAdaptor {
 		sendCommand("hide sticks");
 		sendCommand("zoom");
 		sendCommand("cmd.refresh()");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/**
@@ -490,6 +557,41 @@ public class PyMolAdaptor {
 		}
 		sendCommand("zoom");
 		createSelectionObject(nbhObjName + "Nodes", chainObjName, chainCode, residues );
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+	}
+	
+	public Collection<String> showTriangles(String chainObjName, String triangleBaseName, String nodeSelName, RIGCommonNbhood commonNbh){
+		int trinum=1;
+		TreeSet<Integer> residues = new TreeSet<Integer>();
+		int i = commonNbh.getFirstNode().getResidueSerial();
+		int j = commonNbh.getSecondNode().getResidueSerial();
+		residues.add(i);
+		residues.add(j);
+
+		String curTriangleName = "";
+		TreeSet<String>  triangleSelNames = new TreeSet<String>();
+		
+		for (int k:commonNbh.keySet()){
+
+			Random generator = new Random(trinum/2);
+			int random = (Math.abs(generator.nextInt(trinum)) * 23) % trinum;
+
+			curTriangleName = triangleBaseName + trinum;
+			sendCommand("triangle('"+ curTriangleName + "', "+ i+ ", "+j +", "+k +", '" + COLORS[random] +"', " + 0.7+")");
+			trinum++;
+			residues.add(k);
+			triangleSelNames.add(curTriangleName);
+		}
+		
+		sendCommand("zoom");
+		createSelectionObject(nodeSelName, chainObjName, residues );
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+		
+		return triangleSelNames;
 	}
 
 	/** Show the contacts in the given contact list as edges in pymol */
@@ -535,6 +637,9 @@ public class PyMolAdaptor {
 		}
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
 		sendCommand("disable " + selObjName+"Nodes");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/**
@@ -544,8 +649,8 @@ public class PyMolAdaptor {
 	 * defines the residues to be connected, whereas <code>getFirst()</code> 
 	 * always yields the residue indices in the first selection and 
 	 * <code>getSecond()</code> those in the second.
-	 * @param firstSelName  name of the first selection
-	 * @param secondSelName  name of the second selection
+	 * @param firstObjSel  name of the first object selection
+	 * @param secondObjSel  name of the second object selection
 	 * @param edgeSelName  name of the edge selection to be created
 	 * @param nodeSelName  name of the node selection consisting of all 
 	 *  residues incident to the contacts 
@@ -553,7 +658,7 @@ public class PyMolAdaptor {
 	 * @param selContacts  set of pairs of residues to be connected
 	 * @param dash  enable to draw dashed edges
 	 */
-	public void edgeSelection(String firstSelName, String secondSelName, String edgeSelName, String nodeSelName, 
+	public void edgeSelection(String firstObjSel, String secondObjSel, String edgeSelName, String nodeSelName, 
 								String edgeColor, IntPairSet selContacts, boolean dash) {
 
 		// if no contacts in selection do nothing
@@ -593,7 +698,7 @@ public class PyMolAdaptor {
 			TreeSet<Integer> dummy = new TreeSet<Integer>();
 			for(Integer k : adjLists.keySet()) {
 				dummy.add(k);
-				this.setDistance(edgeSelName, firstSelName, secondSelName, dummy, adjLists.get(k));
+				this.setDistance(edgeSelName, firstObjSel, secondObjSel, dummy, adjLists.get(k));
 				dummy.remove(k);
 			}			
 		} else {
@@ -603,7 +708,7 @@ public class PyMolAdaptor {
 				i = cont.getFirst();
 				j = cont.getSecond();
 				// draws an edge between the selected residues
-				this.setDistance(edgeSelName,firstSelName,secondSelName,i,j);
+				this.setDistance(edgeSelName,firstObjSel,secondObjSel,i,j);
 				firstResidues.add(i);
 				secondResidues.add(j);
 			}
@@ -626,9 +731,12 @@ public class PyMolAdaptor {
 		}
 		
 		// create selection of nodes incident to the contacts
-		createSelectionObject(nodeSelName, firstSelName,  firstResidues);
-		createSelectionObject(nodeSelName, secondSelName, secondResidues);
+		createSelectionObject(nodeSelName, firstObjSel,  firstResidues);
+		createSelectionObject(nodeSelName, secondObjSel, secondResidues);
 		sendCommand("disable " + nodeSelName);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 	
 	
@@ -643,15 +751,18 @@ public class PyMolAdaptor {
 		sendCommand("color orange, " + selObjName);
 
 		createSelectionObject(selObjName+"Nodes", chainObjName, chainCode, residues);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	public void sendTwoChainsEdgeSelection(String pdbCodeFirst, String chainCodeFirst, 
-			String pdbCodeSecond, String chainCodeSecond,
-			String selectionType, 
-			String modelContactColor, 
-			int pymolSelSerial, 
-			IntPairSet residuePairs, 
-			boolean dash, boolean centzoom) {
+											String pdbCodeSecond, String chainCodeSecond,
+											String selectionType, 
+											String modelContactColor, 
+											int pymolSelSerial, 
+											IntPairSet residuePairs, 
+											boolean dash, boolean centzoom) {
 
 		Vector<String> chainObjNames = new Vector<String>(2);
 		chainObjNames.add(getChainObjectName(pdbCodeFirst,  chainCodeFirst));
@@ -700,6 +811,9 @@ public class PyMolAdaptor {
 //		createSelectionObject(selObjName+"Nodes", chainObjNames.get(0), chainCodeFirst,  residuesFirst);
 //		add2SelectionObject(selObjName+"Nodes",   chainObjNames.get(1), chainCodeSecond, residuesSecond);
 //		sendCommand("disable " + selObjName+"Nodes");
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/** setting the dashes lines for missed/added contacts */
@@ -722,6 +836,9 @@ public class PyMolAdaptor {
 	public void setDashes(String edgeSelName) {
 		this.sendCommand("set dash_gap, 0.5, "    + edgeSelName);
 		this.sendCommand("set dash_length, 0.5, " + edgeSelName);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 
 	/** setting the view in PyMol if new selections were done */
@@ -729,8 +846,11 @@ public class PyMolAdaptor {
 		sendCommand("disable all");
 		sendCommand("enable " + pdbCode1 + chainCode1 );
 		sendCommand("enable " + pdbCode2 + chainCode2);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
-	
+		
 	/**
 	 * Creates or updates a group object.
   	 * Note, that whenever an argument is null all subsequent arguments are 
@@ -757,6 +877,9 @@ public class PyMolAdaptor {
 		} else {
 			sendCommand("group " + groupName + ", " + members + ", " + action);
 		}
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
 	}
 	
 	

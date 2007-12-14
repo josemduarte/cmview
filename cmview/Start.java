@@ -30,17 +30,15 @@ public class Start {
 
 	static final long serialVersionUID = 1l;
 
-	public static String			PYMOL_PORT =			"9123";				// default port, if port is blocked, pymol will increase automatically
-	
 	// internal constants (not user changeable)
-	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String		VERSION = 				"0.8.5";			// current version of this application (should match manifest)
+	public static final String		APP_NAME = 				"CMView-jung";			// name of this application
+	public static final String		VERSION = 				"0.1";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
-	public static final String		PYMOL_HOST = 			"localhost";		// currently, the XMLRPC server in Pymol only supports localhost
-	public static final String		PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT; // TODO: set this later so that the two above may change
+
+
 		
 	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
@@ -54,7 +52,7 @@ public class Start {
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
 	
 	// user customizations
-	public static int			INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
 	public static boolean                   INCLUDE_GROUP_INTERNALS = true; // this flag shall indicate strongly experimental stuff, use it to disable features in release versions
@@ -73,8 +71,13 @@ public class Start {
 	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
 	
 	// pymol connection
+	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
+	public static String			PYMOL_PORT =			"9123";		 // default port, if port is blocked, pymol will increase automatically
+	public static String			PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically
-	public static String			PYMOL_PARAMETERS =  	"-R -q";				// run xmlrpc server and skip splash screen
+	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMViews_pymol.log";
+	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMViews_pymol.cmd";
+	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
 	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
 	// database connection
@@ -90,6 +93,9 @@ public class Start {
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	
+	// anything directly connected to class View
+	public static int				VIEW_INSTANCES = 0;
 	
 	// internal status variables
 	protected static boolean		database_found = true;
@@ -215,6 +221,8 @@ public class Start {
 		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
 		SHOW_RULERS_ON_STARTUP = Boolean.valueOf(p.getProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString()));
 		
+		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
+		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
 		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
 		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
 		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
@@ -350,6 +358,7 @@ public class Start {
 				matchPortPattern = portPattern.matcher(pymolOut);
 				if( matchPortPattern.matches() ) {
 					PYMOL_PORT = matchPortPattern.group(1);
+					setPyMolServerUrl(PYMOL_HOST, PYMOL_PORT);
 					System.out.println("Found PyMol server running on port " + PYMOL_PORT + ".");
 					break;
 				}
@@ -489,6 +498,9 @@ public class Start {
 		 return pymolAdaptor;
 	 }
 	 
+	 public static void setPyMolServerUrl(String host, String port) {
+		 PYMOL_SERVER_URL = "http://"+PYMOL_HOST+":"+PYMOL_PORT;
+	 }
 	
 	/**
 	 * Main method to start CMView application
@@ -519,7 +531,7 @@ public class Start {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 System.out.println("Shutting down");
-                if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT) {
+                if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT && VIEW_INSTANCES <= 0) {
                 	pymolAdaptor.shutdown(PYMOL_SERVER_URL);
                 }
             }
@@ -538,6 +550,8 @@ public class Start {
 			pymolAdaptor = new PyMolAdaptor(PYMOL_SERVER_URL);
 			if(pymolAdaptor.tryConnectingToPymol(100) == true) { // running pymol server found
 				System.out.println("PyMol server found. Connected.");
+				// do not shutdown View's possessions!!! 
+				SHUTDOWN_PYMOL_ON_EXIT = false;
 				pymol_found = true;
 			} else {
 				if(PRELOAD_PYMOL) {
@@ -547,6 +561,11 @@ public class Start {
 						pymol_found = false;
 					} else {
 						System.out.println("Connecting to PyMol server...");
+						
+						// re-set url in case function runPymol detected that 
+						// PyMOL is running on a different port 
+						pymolAdaptor.setPyMolServerUrl(PYMOL_SERVER_URL);
+						
 						if(pymolAdaptor.tryConnectingToPymol(PYMOL_CONN_TIMEOUT) == false) {
 							System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
 							pymol_found = false;
