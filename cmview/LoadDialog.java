@@ -698,6 +698,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			if( ccGetter != null && determinedAllCc == false) {
 				String[] allCc = null;
 				try {
+					setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 					allCc = (String[]) ccGetter.get();
 
 					if( allCc == null ) {
@@ -728,6 +729,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 					labelAfterCc.setText("check pdb source!");
 					labelAfterCc.setBackground(Color.RED);
 				}
+				setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				
 			} else if( comboCc.getItemCount() == 0 ) {
 				comboCc.setEditable(true);
@@ -742,6 +744,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		if( state.equals("visible") ) {
 			if (modelsGetter != null && determinedAllModels == false ) {
 				try {
+					setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 					Integer[] allModels = (Integer[]) modelsGetter.get();
 					if( allModels == null ) {
 						comboModel.removeAllItems();
@@ -760,6 +763,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 					System.err.println(e.getMessage());
 					labelAfterModel.setText("check pdb source!");
 				}
+				setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				
 			} else if ( determinedAllModels == false ){
 				// set 1 as default model identifier and make the combo box 
@@ -801,6 +805,8 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			int maxss = getSelectedMaxSeqSep();
 			String db = getSelectedDb();
 			int gid = getSelectedGraphId();
+			
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 
 			this.loadAction.doit((Object) parentFrame, f, ac, modelSerial, cc, ct, dist, minss, maxss, db, gid);
 			
@@ -813,7 +819,9 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			
 			this.setVisible(false);
 			dispose();
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 		} catch (LoadDialogInputError e) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Input error", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}

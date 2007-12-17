@@ -1,4 +1,6 @@
 package cmview;
+import gnu.getopt.Getopt;
+
 import java.io.*;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -20,6 +22,8 @@ import tools.MySQLConnection;
 
 import cmview.datasources.Model;
 import cmview.datasources.ModelConstructionError;
+import cmview.datasources.PdbFileModel;
+import cmview.datasources.PdbFtpModel;
 import cmview.datasources.PdbaseModel;
 
 /**
@@ -385,34 +389,50 @@ public class Start {
 	/**
 	 * Preload a model based on the command line parameters.
 	 * Returns the model or null on failure.
-	 * TODO: Do proper command line parsing with switches to preload files or structures from online pdb
 	 */
-	private static Model preloadModel(String[] args) {
+	private static Model preloadModel(String pdbCode, String pdbFile, String pdbChainCode, String contactType, double cutoff) {
 		Model mod = null;
+		if(pdbChainCode==null) {
+			pdbChainCode = NULL_CHAIN_CODE;
+		}
+		if (contactType == null) contactType = DEFAULT_CONTACT_TYPE;
+		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
 		// parameters should be pdb code and chain code
-		if(USE_DATABASE && database_found) {
-			String pdbCode = args[0];
-			String chainCode;
-			if(args.length > 1) {
-				chainCode = args[1];
+		if (pdbCode!=null) {
+			if(USE_DATABASE && database_found) {
+				try {
+					mod = new PdbaseModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
+					mod.load(pdbChainCode, 1);
+				} catch(ModelConstructionError e) {
+					System.err.println("Could not load structure for given command line parameters:");
+					System.err.println(e.getMessage());
+				} catch (PdbCodeNotFoundError e) {
+					System.err.println("Could not load structure for given command line parameters:");
+					System.err.println(e.getMessage());
+				} catch (SQLException e) {
+					System.err.println("Could not load structure for given command line parameters:");
+					System.err.println(e.getMessage());
+				}			
 			} else {
-				chainCode = NULL_CHAIN_CODE;
+				try {
+					mod = new PdbFtpModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
+					mod.load(pdbChainCode, 1);
+				} catch (IOException e) {
+					System.err.println("Could not load structure for given command line parameters:");
+					System.err.println(e.getMessage());
+				} catch (ModelConstructionError e) {
+					System.err.println("Could not load structure for given command line parameters:");
+					System.err.println(e.getMessage());
+				}				
 			}
+		} else if (pdbFile!=null) {
 			try {
-				mod = new PdbaseModel(pdbCode, DEFAULT_CONTACT_TYPE, DEFAULT_DISTANCE_CUTOFF, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
-				mod.load(chainCode, 1);
-			} catch(ModelConstructionError e) {
+				mod = new PdbFileModel(pdbFile,contactType,cutoff,DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
+				mod.load(pdbChainCode, 1);
+			} catch (ModelConstructionError e) {
 				System.err.println("Could not load structure for given command line parameters:");
 				System.err.println(e.getMessage());
-			} catch (PdbCodeNotFoundError e) {
-				System.err.println("Could not load structure for given command line parameters:");
-				System.err.println(e.getMessage());
-			} catch (SQLException e) {
-				System.err.println("Could not load structure for given command line parameters:");
-				System.err.println(e.getMessage());
-			}			
-		} else {
-			System.err.println("No database. Ignoring command line parameters.");
+			}
 		}
 		return mod;
 	}
@@ -508,9 +528,52 @@ public class Start {
 	 */
 	public static void main(String args[]){
 		
-		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
+
+		String help = "Usage: \n" +
+		APP_NAME+" [-p <pdb code>] [-f <pdb file>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] \n" +
+				"The given config file will override settings from system-wide or user's config file\n";
+
+		String pdbCode = null;
+		String pdbFile = null;
+		String pdbChainCode = null;
+		String contactType = null;
+		String cmdLineConfigFile = null;
+		double cutoff = 0.0;
+
+		Getopt g = new Getopt("genGraph", args, "p:f:c:t:d:o:h?");
+		int c;
+		while ((c = g.getopt()) != -1) {
+			switch(c){
+			case 'p':
+				pdbCode = g.getOptarg();
+				break;
+			case 'f':
+				pdbFile = g.getOptarg();
+				break;				
+			case 'c':
+				pdbChainCode = g.getOptarg();
+				break;
+			case 't':
+				contactType = g.getOptarg();
+				break;
+			case 'd':
+				cutoff = Double.parseDouble(g.getOptarg());
+				break;
+			case 'o':
+				cmdLineConfigFile = g.getOptarg();
+				break;
+			case 'h':
+			case '?':
+				System.out.println(help);
+				System.exit(0);
+				break; // getopt() already printed an error
+			}
+		}
+
 		
-		// TODO: check whether config file is passed as command line parameter, otherwise use default one
+		
+		
+		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
 		
 		// load configuration
 		selectedProperties = getSelectedProperties();
@@ -519,13 +582,23 @@ public class Start {
 			System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
 			userProperties = p;
 			applyUserProperties(userProperties);
+			File userConfigFile = new File(System.getProperty("user.home"),CONFIG_FILE_NAME);  
+			if (userConfigFile.exists()) {
+				System.out.println("Loading user configuration file " + userConfigFile.getAbsolutePath());
+				userProperties.putAll(loadUserProperties(userConfigFile.getAbsolutePath()));
+				applyUserProperties(userProperties);
+			}			
+			if (cmdLineConfigFile!=null) {
+				System.out.println("Loading command line configuration file " + cmdLineConfigFile);
+				userProperties.putAll(loadUserProperties(cmdLineConfigFile));
+				applyUserProperties(userProperties);
+			}
 		} catch (FileNotFoundException e) {
 			System.out.println("No configuration file found. Using default settings.");
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ". Using default settings.");
 		}
 				
-		// TODO: apply command line arguments here
 				
 		// add shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -606,13 +679,9 @@ public class Start {
 		
 		// start gui without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
-		Model mod = null;
-		View view = new View(mod, wintitle);
-		if (args.length>=1){
-			mod = preloadModel(args);
-			if(mod != null) {
-				view.spawnNewViewWindow(mod);
-			}
-		}
+		Model mod = preloadModel(pdbCode, pdbFile, pdbChainCode, contactType, cutoff);
+		if (mod!=null) wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
+		new View(mod, wintitle);
+
 	}
 }

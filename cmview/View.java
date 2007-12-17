@@ -1710,10 +1710,14 @@ public class View extends JFrame implements ActionListener {
 	 * @throws AlignmentConstructionError
 	 */
 	public void doPairwiseSequenceAlignment(Model mod1, Model mod2) throws AlignmentConstructionError {
+		
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+		
 		String seq1 = mod1.getSequence();
 		String seq2 = mod2.getSequence();
 
 		if(seq1 == null || seq2 == null || seq1.length() == 0 || seq2.length() == 0) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("No sequence found.");
 		}
 
@@ -1724,6 +1728,7 @@ public class View extends JFrame implements ActionListener {
 		try {
 			jalign = new PairwiseSequenceAlignment(seq1, seq2, name1, name2);
 		} catch (PairwiseSequenceAlignmentException e) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("Error during alignment: " + e.getMessage());
 		}
 		jalign.printAlignment();
@@ -1750,6 +1755,7 @@ public class View extends JFrame implements ActionListener {
 		try {
 			doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
 		} catch (DifferentContactMapSizeError e) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("Sizes of aligned contact maps do not match: " + e.getMessage());
 		}
 		doLoadModelOntoVisualizer(alignedMod2);
@@ -1769,6 +1775,8 @@ public class View extends JFrame implements ActionListener {
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
+		
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}
 
 	/**
