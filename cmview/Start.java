@@ -480,6 +480,16 @@ public class Start {
 	}
 	
 	/**
+	 * Enables/disables use of pymol. 
+	 * e.g.: called after pymol communication is lost
+	 * @param usePymol
+	 */
+	public static void usePymol (boolean usePymol) {
+		USE_PYMOL = usePymol;
+		pymol_found = usePymol;
+	}
+	
+	/**
 	 * Returns true if external dssp application is available.
 	 */
 	public static boolean isDsspAvailable() {
@@ -682,6 +692,10 @@ public class Start {
 		Model mod = preloadModel(pdbCode, pdbFile, pdbChainCode, contactType, cutoff);
 		if (mod!=null) wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
 		new View(mod, wintitle);
+		if (mod!=null && Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
+			// load structure in PyMol
+			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), false);
+		}		
 
 	}
 }

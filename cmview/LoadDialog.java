@@ -527,29 +527,17 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	
 	
 	public void popupMenuCanceled(PopupMenuEvent e) {
-		if( e.getSource() == comboCc ) {
-			System.out.println("popupMenuCanceled(PopupMenuEvent e): from comboCc");			
-		} else {
-			System.out.println("popupMenuCanceled(PopupMenuEvent e): from unrecognized popupmenu event");
-		}
 	}
 
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 		if( e.getSource() == comboCc ) {
-			System.out.println("popupMenuWillBecomeVisible(PopupMenuEvent e): from comboCc");
 			handleComboCcEvent("visible");
 		} else if( e.getSource() == comboModel ) {
-			System.out.println("popupMenuWillBecomeVisible(PopupMenuEvent e): from comboModel");
 			handleComboModelEvents("visible");
-		} else {
-			System.out.println("popupMenuCanceled(PopupMenuEvent e): from unrecognized popupmenu event");
-		}
+		} 
 	}
 
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-		if( e.getSource() == comboCc ) {
-			System.out.println("comboCc WILL BECOME invisible!!!");
-		}
 	}
 	
 	/**
@@ -574,9 +562,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			handleSelectFileNameEvents(e);
 		} else if ( d == selectAc.getDocument() ){
 			handleSelectAcEvents(e);
-		} else {
-			System.out.println("insertUpdate(Event): detected unrecognized DocumentEvent!");
-		}	
+		} 
 	}
 
 	/**
@@ -590,9 +576,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			handleSelectFileNameEvents(e);
 		} else if ( d == selectAc.getDocument() ){
 			handleSelectAcEvents(e);
-		} else {
-			System.out.println("removeUpdate(Event): detected unrecognized DocumentEvent!");
-		}
+		} 
 	}
 	
 	/**
@@ -835,8 +819,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 
 		try {
 			LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction(false) {
-				public void doit (Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
-					System.out.println("You clicked the Ok button");
+				public void doit (Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {					
 					System.out.println("Filename:\t" + f);
 					System.out.println("PDB code:\t" + ac);
 					System.out.println("Model serial:\t" + modelSerial);

@@ -190,14 +190,7 @@ public class View extends JFrame implements ActionListener {
 		this.compareStatus = false;	
 	}
 	
-//	protected void finalize() throws Throwable {
-//		System.out.println("decrease no. view instances from " + Start.VIEW_INSTANCES + " to " + (Start.VIEW_INSTANCES-1));
-//		--Start.VIEW_INSTANCES;
-//		super.finalize();
-//	}
-	
 	public void dispose() {
-		System.out.println("decrease no. view instances from " + Start.VIEW_INSTANCES + " to " + (Start.VIEW_INSTANCES-1));
 		--Start.VIEW_INSTANCES;	
 		super.dispose();
 	}

@@ -38,6 +38,7 @@ public class PyMolAdaptor {
 	private boolean bufferedMode;
 	private File cmdBufferFile;
 	private StringWriter cmdBuffer;
+	private int reconnectTries;
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -48,6 +49,7 @@ public class PyMolAdaptor {
 		this.url=pyMolServerUrl;
 		this.connected = false;  // run tryConnectingToPymol() to connect
 		this.bufferedMode = false;
+		this.reconnectTries = 0;
 	}
 	
 	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile) {
@@ -56,6 +58,7 @@ public class PyMolAdaptor {
 		this.bufferedMode = true;
 		this.cmdBufferFile = cmdBufferFile;
 		this.cmdBuffer = new StringWriter(10000);
+		this.reconnectTries = 0;
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -121,13 +124,22 @@ public class PyMolAdaptor {
 
 	/** Send command to pymol and check for errors */
 	public void sendCommand(String cmd) {
+		if (!Start.isPyMolConnectionAvailable()) {
+			return;
+		}
 		if( bufferedMode ) {
 			cmdBuffer.append(cmd + "\n");
 		} else {
-			Out.println(cmd);
+			Out.println(cmd);			
 			if(Out.checkError()) {
+				if (reconnectTries>4) {
+					System.err.println("Couldn't reset connection, PyMol connection is lost!");
+					Start.usePymol(false);
+					return;
+				}
 				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
 				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+				reconnectTries++;
 			}
 		}
 	}

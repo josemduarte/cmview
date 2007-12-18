@@ -107,7 +107,6 @@ public class SADPDialog extends ToolDialog {
 	 */
 	public void start() {
 		// TODO: starts SADP run in a new thread. shows progress in progress bar. closes window at return of function run or whenever the alignment is done.
-		System.out.println("SADPDialog: START button pressed");
 		getStartButton().setEnabled(false);
 		getPreferencesButton().setEnabled(false);
 
@@ -117,28 +116,16 @@ public class SADPDialog extends ToolDialog {
 
 	public void preferences() {
 		// TODO: shows new dialog with the advanced options to be set.
-		System.out.println("SADPDialog: PREFERENCES button pressed");
 	}
 
 	public void cancel() {
 		// TODO: kills thread running SADP and cleans up everything.
-		System.out.println("SADPDialog: CANCEL button pressed");
-		stopRunner(); // stop runner if it already has been started
 		if( getStatus() == ToolDialog.STARTED ) {
 			notifier.notify(ToolDialog.CANCELED_AT_STARTED);
 		} else {
 			notifier.notify(ToolDialog.CANCELED_AT_IDLE);
 		}
 		dispose();
-	}
-
-	/**
-	 * Tries to stop runner if it is running.
-	 * */
-	public void stopRunner() {
-		if( runnerTask != null && !runnerTask.isDone() ) {
-			System.out.println("cancel runnerTask success:"+runnerTask.cancel(true));
-		}
 	}
 
 	protected Component infoComponent() {
