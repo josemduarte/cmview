@@ -103,7 +103,9 @@ public class View extends JFrame implements ActionListener {
 	TreeMap<String,JMenu> smCompare;
 
 	// Menu items
+	// M -> "menu bar"
 	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
+	// P -> "popup menu"
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
@@ -820,6 +822,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(pmSelModeColor, false);
 		map.put(triangleP, false);
 		map.put(popupSendEdge, false);
+		map.put(delEdgesP, false);
 
 		return map;
 	}
@@ -860,6 +863,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(comNeiM,false);
 		map.put(mmSelModeColor,false);
 		map.put(triangleM,false);
+		map.put(delEdgesM, false);
 		// menu -> Compare
 		map.put(mmSelCommonContactsInComparedMode,true);
 		map.put(mmSelFirstStrucInComparedMode,true);
@@ -884,6 +888,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbShowComNbh, false);
 		map.put(tbSelModeColor, false);
 		map.put(tbShowComNbh3D, false);
+		map.put(tbDelete, false);
 
 		return map;
 	}

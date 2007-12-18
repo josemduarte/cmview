@@ -41,12 +41,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	static final long serialVersionUID = 1l;
 
 	// The following options are for testing only and may not function correctly
-	static final boolean BACKGROUND_LOADING = false; // if true, maps will be
-	// calculated in a
-	// separate thread
-	static final boolean BG_PRELOADING = false;		 // if true, maps will be
-	// preloaded in
-	// background
+	static final boolean BACKGROUND_LOADING = false;// if true, maps will be
+													// calculated in a
+													// separate thread
+	static final boolean BG_PRELOADING = false;		// if true, maps will be
+													// preloaded in
+													// background
 
 	enum ContactSelSet {COMMON, ONLY_FIRST, ONLY_SECOND, SINGLE}; 
 	static final int FIRST = 0;
@@ -59,111 +59,108 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	// underlying data
 	private Model mod;
 	protected Model mod2;					// optional second model for cm (referenced by View)
-	// comparison
-	private Alignment ali; // optional alignment between mod and mod2
+											// comparison
+	private Alignment ali; 					// optional alignment between mod and mod2
 	private String[] aliTags = new String[2]; // holds the tags of the sequences corresponding to mod1 and mod2
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in
-	// the underlying model, set once in
-	// constructor
+											// the underlying model, set once in
+											// constructor
 	private double scaledDistCutoff;		// stores the value between zero and
-	// one which represents the current
-	// distance cutoff in the distance
-	// map
+											// one which represents the current
+											// distance cutoff in the distance
+											// map
 
 	// used for drawing
 	private Point mousePressedPos;   		// position where mouse where last
-	// pressed, used for start of square
-	// selection and for common
-	// neighbours
+											// pressed, used for start of square
+											// selection and for common
+											// neighbours
 	private Point mouseDraggingPos;  		// current position of mouse
-	// dragging, used for end point of
-	// square selection
+											// dragging, used for end point of
+											// square selection
 	private Point mousePos;             	// current position of mouse (being
-	// updated by mouseMoved)
+											// updated by mouseMoved)
 	private int currentRulerCoord;	 		// the residue number shown if
-	// showRulerSer=true
+											// showRulerSer=true
 	private int currentRulerMousePos;		// the current position of the mouse
-	// in the ruler
+											// in the ruler
 	private int currentRulerMouseLocation;	// the location (NORTH, EAST, SOUTH,
-	// WEST) of the ruler where the
-	// mouse is currently in
+											// WEST) of the ruler where the
+											// mouse is currently in
 	private boolean showRulerCoord; 		// while true, current ruler
-	// coordinate are shown instead of
-	// usual coordinates
+											// coordinate are shown instead of
+											// usual coordinates
 	private boolean showRulerCrosshair;		// while true, ruler "crosshair" is
-	// being shown
+											// being shown
 	private Pair<Integer> rightClickCont;	 		// position in contact map where
-	// right mouse button was pressed to
-	// open context menu
+													// right mouse button was pressed to
+													// open context menu
 	private RIGCommonNbhood currCommonNbh;	 		// common nbh that the user selected
-	// last (used to show it in 3D)
+													// last (used to show it in 3D)
 	private int lastMouseButtonPressed;		// mouse button which was pressed
-	// last (being updated by
-	// MousePressed)
+											// last (being updated by
+											// MousePressed)
 
 	private Dimension screenSize;			// current size of this component on
-	// screen
+											// screen
 	private int outputSize;          		// size of the effective square
-	// available for drawing the contact
-	// map (on screen or other output
-	// device)
+											// available for drawing the contact
+											// map (on screen or other output
+											// device)
 	private double ratio;		  			// ratio of screen size and contact
-	// map size = size of each contact
-	// on screen
+											// map size = size of each contact
+											// on screen
 	private int contactSquareSize;			// size of a single contact on
-	// screen depending on the current
-	// ratio
+											// screen depending on the current
+											// ratio
 	private boolean dragging;     			// set to true while the user is
-	// dragging (to display selection
-	// rectangle)
+											// dragging (to display selection
+											// rectangle)
 	protected boolean mouseIn;				// true if the mouse is currently in
-	// the contact map window (otherwise
-	// supress crosshair)
+											// the contact map window (otherwise
+											// supress crosshair)
 	private boolean showCommonNbs; 			// while true, common neighbourhoods
-	// are drawn on screen
+											// are drawn on screen
 	private boolean common;
 	private boolean firstS;
 	private boolean secondS;
 
 	// selections
 	private IntPairSet allContacts; 		// all contacts from the underlying
-	// contact map model
+											// contact map model
 	private IntPairSet selContacts; 		// permanent list of currently selected
-	// contacts
+											// contacts
 	private IntPairSet tmpContacts; 		// transient list of contacts selected
-	// while dragging
-	private IntPairSet allSecondContacts; // all contacts from the second loaded
-	// structure
+											// while dragging
+	private IntPairSet allSecondContacts; 	// all contacts from the second loaded
+											// structure
 
 	private IntPairSet commonContacts;		// only common contacts 
 	private IntPairSet mainStrucContacts;	// only main structure contacts
 	private IntPairSet secStrucContacts;	// only second structure contacts
 	private IntPairSet bothStrucContacts;	// IntPairSet used in compared mode to handle different EdgeSets
 	private IntPairSet contacts;			// IntPairSet used in compared mode to handle different EdgeSets
-//	private IntPairSet greenPContacts;		// only green present contacts
-//	private IntPairSet redPContacts;		// only red present contacts
-//	private IntPairSet commonPContacts;	// only commen (present) contacts
 
 	private TreeSet<Integer> selHorNodes;			// current horizontal residue
-	// selection
+													// selection
 	private TreeSet<Integer> selVertNodes;			// current vertical residue
-	// selection
+													// selection
 
 
 	// other displayable data
-	private Hashtable<Pair<Integer>,Color> userContactColors;  // user defined colors
-	// for individual
-	// contacts
+	private Hashtable<Pair<Integer>,Color> userContactColors;  	// user defined colors
+																// for individual
+																// contacts
 	private double[][] densityMatrix; 					 // matrix of contact
-	// density
-	private HashMap<Pair<Integer>,Integer> comNbhSizes;		 // matrix of common
-	// neighbourhood sizes
+														// density
+	private HashMap<Pair<Integer>,Integer> comNbhSizes;		// matrix of common
+															// neighbourhood sizes
 	private HashMap<Pair<Integer>,Double> diffDistMap;		// difference distance map (in comparison mode)
 
-	// buffers for triple buffering
+															// buffers for triple buffering
 	private ScreenBuffer screenBuffer;		// buffer containing the more of
-	// less static background image
+											// less static background image
 
 	// drawing colors (being set in the constructor)
 	private Color backgroundColor;	  		// background color
@@ -176,31 +173,31 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Color inBoxTriangleColor; 		// color for common nbh triangles
 	private Color outBoxTriangleColor;		// color for common nbh triangles
 	private Color crossOnContactColor;		// color for crosses on common nbh
-	// contacts
+											// contacts
 	private Color corridorColor;	  		// color for contact corridor when
-	// showing common nbh
+											// showing common nbh
 	private Color nbhCorridorColor;	  		// color for nbh contact corridor
-	// when showing common nbh
+											// when showing common nbh
 	protected Color horizontalNodeSelectionColor;	// color for horizontally
-	// selected residues (using
-	// xor mode)
+													// selected residues (using
+													// xor mode)
 	protected Color verticalNodeSelectionColor;		// color for vertically
-	// selected residues (using
-	// xor mode)
+													// selected residues (using
+													// xor mode)
 	private Color commonContactsColor; 		// color for contact map
-	// comparison where both maps
-	// have contacts
+											// comparison where both maps
+											// have contacts
 	private Color contactsMainStrucColor; 		// color for contact map
-	// comparison where the main
-	// structure has contacts
+												// comparison where the main
+												// structure has contacts
 	private Color contactsSecStrucColor;		// color for contact map
-	// comparison where just the
-	// second structure has a
-	// contact
+												// comparison where just the
+												// second structure has a
+												// contact
 
 	// status variables for concurrency
 	private int threadCounter;				// counts how many background
-	// threads are currently active
+											// threads are currently active
 
 	/*----------------------------- constructors ----------------------------*/
 

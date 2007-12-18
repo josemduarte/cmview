@@ -170,7 +170,6 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
 	if(e.getSource() == startButton ) {
 	    start();
 	    setStatus(STARTED);
-	    System.out.println("zurueck von start");
 	} else if(e.getSource() == preferencesButton ) {
 	    preferences();
 	} else if(e.getSource() == cancelButton ) {
