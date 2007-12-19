@@ -73,6 +73,8 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SECOND = "Show/hide contacts unique to second structure";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";	// used in ContactMapPane.showPopup
 
+	private static int pymolSelSerial = 1;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
+	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
 	JLabel statusBar; 			// TODO: Create a class StatusBar
@@ -127,8 +129,6 @@ public class View extends JFrame implements ActionListener {
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
-	private int pymolSelSerial;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
-	private int pymolNbhSerial;			// for incremental numbering // TODO: Move this to PymolAdaptor
 
 	// current gui state
 	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
@@ -172,8 +172,7 @@ public class View extends JFrame implements ActionListener {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		this.currentSelectionMode = SQUARE_SEL;
-		this.pymolSelSerial = 1;
-		this.pymolNbhSerial = 1;
+		//this.pymolSelSerial = 1;
 		this.showPdbSers = false;
 		this.showNbhSizeMap = false;
 		this.showRulers=Start.SHOW_RULERS_ON_STARTUP;
@@ -2150,7 +2149,7 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		// prepare selection names
-		String topLevelGroup = "Sel" + pymolSelSerial;
+		String topLevelGroup = "Sel" + View.pymolSelSerial;
 		String firstObjSel   = pymol.getChainObjectName(mod1.getPDBCode(), mod1.getChainCode());
 		String secondObjSel  = pymol.getChainObjectName(mod2.getPDBCode(), mod2.getChainCode());
 		String edgeSel       = topLevelGroup + "_" + firstObjSel + "_" + secondObjSel + "_AliEdges";
@@ -2171,11 +2170,11 @@ public class View extends JFrame implements ActionListener {
 //				mod2.getPDBCode(), mod2.getChainCode(), 
 //				"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
 //				"yellow",
-//				pymolSelSerial,
+//				View.pymolSelSerial,
 //				residuePairs,
 //				false, true); // do not dash the line, do center selection
 		
-		++pymolSelSerial;
+		++View.pymolSelSerial;
 	}
 
 	/**
@@ -2697,7 +2696,7 @@ public class View extends JFrame implements ActionListener {
 			//    `-secondModGroup
 			//        |--...
 			//        ...
-			String topLevelGroup     = "Sel" + pymolSelSerial;
+			String topLevelGroup     = "Sel" + View.pymolSelSerial;
 			String firstModGroup     = topLevelGroup + "_" + firstChainSel;			
 			String secondModGroup    = topLevelGroup + "_" + secondChainSel;
 			
@@ -2797,7 +2796,7 @@ public class View extends JFrame implements ActionListener {
 				pymol.group(secondModGroup, presSecondNodeSel, null);
 				pymol.group(topLevelGroup,  secondModGroup,    null);
 				
-				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ) {
+				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST].size() != 0 ) {
 					// draw true contact being present in the second model but 
 					// NOT in the first one between the residues of the first 
 					// model
@@ -2822,7 +2821,7 @@ public class View extends JFrame implements ActionListener {
 				return; // nothing to do!
 			}
 
-			String topLevelGroup  = "Sel" + pymolSelSerial;
+			String topLevelGroup  = "Sel" + View.pymolSelSerial;
 			String edgeSel        = topLevelGroup + "_" + chainObj + "_Cont";
 			String nodeSel        = topLevelGroup + "_" + chainObj + "_Nodes";
 			
@@ -2837,7 +2836,7 @@ public class View extends JFrame implements ActionListener {
 		}
 		
 		// and finally increment the serial for the PyMol selections
-		this.pymolSelSerial++;
+		View.pymolSelSerial++;
 	}
 
 
@@ -2852,8 +2851,8 @@ public class View extends JFrame implements ActionListener {
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
 		} else {
-			Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), pymolSelSerial, cmPane.getRightClickCont());
-			this.pymolSelSerial++;
+			Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), View.pymolSelSerial, cmPane.getRightClickCont());
+			View.pymolSelSerial++;
 		}
 	}
 
@@ -2872,7 +2871,7 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
 			
-			String topLevelGroup    = "Sel" + pymolSelSerial;
+			String topLevelGroup    = "Sel" + View.pymolSelSerial;
 			String chainObjName     = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
 			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
 			String nodeSelName      = triangleBaseName + "_Nodes";
@@ -2889,8 +2888,7 @@ public class View extends JFrame implements ActionListener {
 			
 			pymol.group(topLevelGroup, groupMembers, null);
 			
-			this.pymolNbhSerial++;
-			++this.pymolSelSerial;
+			++View.pymolSelSerial;
 		}
 	}
 

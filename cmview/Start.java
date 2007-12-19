@@ -368,6 +368,7 @@ public class Start {
 				}
 			}
 		} catch(IOException e) {
+			System.err.println(e.getMessage());
 			return false;
 		}
 		return true;				

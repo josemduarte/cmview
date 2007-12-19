@@ -743,8 +743,9 @@ public class PyMolAdaptor {
 		}
 		
 		// create selection of nodes incident to the contacts
-		createSelectionObject(nodeSelName, firstObjSel,  firstResidues);
-		createSelectionObject(nodeSelName, secondObjSel, secondResidues);
+		select(nodeSelName, "(" + firstObjSel  + " and resi " + Interval.createSelectionString(firstResidues) + ") or " +
+							"(" + secondObjSel + " and resi " + Interval.createSelectionString(secondResidues)+ ")");
+		
 		sendCommand("disable " + nodeSelName);
 		
 		// flush the buffer and send commands to PyMol via log-file
@@ -892,6 +893,15 @@ public class PyMolAdaptor {
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
+	}
+	
+	public void select(String selName, String selection) {
+		
+		String command = "select " + selName + "," + selection;
+		
+		if( command.length() < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT ) {
+			sendCommand(command);
+		}
 	}
 	
 	
