@@ -57,8 +57,6 @@ cp -R $aglappetag/sadp $cmviewtag
 cp -R $aglappetag/actionTools $cmviewtag
 rm -rf $aglappetag
 
-cp $cmviewtag/Manifest-StruPPi.txt /scratch/local/
-
 # compiling
 echo "Compiling..."
 cd $cmviewtag
