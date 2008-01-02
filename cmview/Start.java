@@ -591,27 +591,52 @@ public class Start {
 		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
 		
 		// load configuration
-		selectedProperties = getSelectedProperties();
+		boolean configFileFound = false;
+		selectedProperties = getSelectedProperties();	// initialize default options
+		
+		// loading from current directory
 		try {
 			Properties p = loadUserProperties(CONFIG_FILE_NAME);
 			System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
 			userProperties = p;
 			applyUserProperties(userProperties);
-			File userConfigFile = new File(System.getProperty("user.home"),CONFIG_FILE_NAME);  
+			configFileFound = true;
+		} catch (FileNotFoundException e) {
+			// file not found, continue
+		} catch (IOException e) {
+			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ": " + e.getMessage());
+		}
+		
+		// loading from user's home directory
+		File userConfigFile = new File(System.getProperty("user.home"),CONFIG_FILE_NAME);  
+		try {
 			if (userConfigFile.exists()) {
 				System.out.println("Loading user configuration file " + userConfigFile.getAbsolutePath());
 				userProperties.putAll(loadUserProperties(userConfigFile.getAbsolutePath()));
 				applyUserProperties(userProperties);
-			}			
+				configFileFound = true;
+			}
+		} catch (FileNotFoundException e) {
+			// file not found, continue
+		} catch (IOException e) {
+			System.err.println("Error while reading from file " + userConfigFile.getAbsolutePath() + ": " + e.getMessage());
+		}
+		
+		// loading from file given as command line parameter
+		try {
 			if (cmdLineConfigFile!=null) {
 				System.out.println("Loading command line configuration file " + cmdLineConfigFile);
 				userProperties.putAll(loadUserProperties(cmdLineConfigFile));
 				applyUserProperties(userProperties);
+				configFileFound = true;
 			}
 		} catch (FileNotFoundException e) {
-			System.out.println("No configuration file found. Using default settings.");
+			// file not found, continue
 		} catch (IOException e) {
-			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ". Using default settings.");
+			System.err.println("Error while reading from file " + cmdLineConfigFile + ": " + e.getMessage());
+		}
+		if(!configFileFound) {
+			System.out.println("No configuration file found. Using default options.");
 		}
 				
 				
