@@ -551,7 +551,7 @@ public class Start {
 		String cmdLineConfigFile = null;
 		double cutoff = 0.0;
 
-		Getopt g = new Getopt("genGraph", args, "p:f:c:t:d:o:h?");
+		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vh?");
 		int c;
 		while ((c = g.getopt()) != -1) {
 			switch(c){
@@ -573,6 +573,10 @@ public class Start {
 			case 'o':
 				cmdLineConfigFile = g.getOptarg();
 				break;
+			case 'v':
+				System.out.println(APP_NAME+" "+VERSION);
+				System.exit(0);
+				break;				
 			case 'h':
 			case '?':
 				System.out.println(help);
