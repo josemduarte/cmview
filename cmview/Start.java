@@ -34,7 +34,7 @@ public class Start {
 	
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String		VERSION = 				"0.8.6";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"0.8.7";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
