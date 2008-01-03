@@ -22,6 +22,7 @@ import javax.swing.border.Border;
 import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
 import proteinstructure.IntPairSet;
+import proteinstructure.Pdb;
 import proteinstructure.RIGCommonNbhood;
 import proteinstructure.Interval;
 import proteinstructure.RIGNbhood;
@@ -296,7 +297,24 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} else {
 			System.out.println("Second model loaded.");
 			view.setComparisonMode(true);
-			view.setTitle("Comparing " + mod.getPDBCode()+mod.getChainCode() + " and " + mod2.getPDBCode() + mod2.getChainCode());
+			String title1 = mod.getPDBCode() + " " + mod.getChainCode();
+			String title2 = mod2.getPDBCode() + " " + mod2.getChainCode();
+			if (mod.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
+				if (mod.getTargetNum()!=0) {
+					title1 = String.format("T%04d", mod.getTargetNum());
+				} else {
+					title1 = "Unknown";
+				}
+			}
+			if (mod2.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
+				if (mod2.getTargetNum()!=0) {
+					title2 = String.format("T%04d", mod2.getTargetNum());
+				} else {
+					title2 = "Unknown";
+				}
+			}
+			String title = title1 +" and "+title2;
+			view.setTitle("Comparing " + title);
 			this.mod2 = mod2;
 			selContacts = new IntPairSet();
 			return true;

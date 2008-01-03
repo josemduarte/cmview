@@ -96,8 +96,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 * @param a  action to perform when user clicks the OK button
 	 * @param showFileName  filename, initialises text of the filename field
 	 * @param showAc  pdb accession code, ... pdb code field
-	 * @param showCc  chain code, sets this chain code to the selected one 
-	 *  (deprecated!)
+	 * @param showCc  chain code 
+	 *  Only allowed values: <code>""</code> or <code>null</code>  
+	 * @param showModel NMR model serial
+	 *  Only allowed values: <code>""</code> or <code>null</code> 
 	 * @param showCt  contact type, sets this contact type to the selected one 
 	 *  (deprecated!)
 	 * @param showDist  contact distance threshold, initialises text of the 
@@ -369,10 +371,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	
 	/**
 	 * Gets the selected model serial.
-	 * @return selected model serial
-	 * @throws LoadDialogInputError 
+	 * @return selected model serial, 1 if input box is empty or -1 if input box is not shown.
+	 * @throws LoadDialogInputError if the input box contains a non-integer value.
 	 */
 	public int getSelectedModel() throws LoadDialogInputError {
+		if (!comboModel.isShowing()) return -1; // this happens when loading from graph/caspRR file
 		int selectedModelSerial = 1;
 		String selectedText = comboModel.getSelectedItem().toString();
 		if(selectedText.length() > 0) {
@@ -385,8 +388,13 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedModelSerial;
 	}
 
-	/** return the currently selected chain code */
+	/**
+	 * Gets the currently selected chaincode
+	 * @return selected chain code, null if inout box is not shown.
+	 * @throws LoadDialogInputError if there's no item currently selected in input box  
+	 */
 	public String getSelectedCc() throws LoadDialogInputError {
+		if (!comboCc.isShowing()) return null; // this happens when loading from graph/caspRR file
 		Object item = comboCc.getSelectedItem();
 		
 		if(item == null) {
@@ -400,8 +408,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedCc;
 	}
 
-	/** return the currently selected contact type 
-	 * @throws LoadDialogInputError */
+	/** 
+	 * Returns the currently selected contact type 
+	 * @throws LoadDialogInputError if the input box contains a non-valid contact type 
+	 */
 	public String getSelectedCt() throws LoadDialogInputError {
 		String selectedCt = comboCt.getSelectedItem().toString();
 		if(!AAinfo.isValidContactType(selectedCt)) {
@@ -411,8 +421,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedCt;
 	}
 	
-	/** return the currently selected distance cutoff 
-	 * @throws LoadDialogInputError */
+	/** 
+	 * Returns the currently selected distance cutoff 
+	 * @throws LoadDialogInputError if the input box doesn't contain a numeric value.
+	 */
 	public double getSelectedDist() throws LoadDialogInputError {
 		double selectedDist = 0.0;
 		String selectedText = selectDist.getText();
@@ -427,8 +439,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedDist;
 	}
 	
-	/** return the currently selected min seq sep 
-	 * @throws LoadDialogInputError */
+	/** 
+	 * Returns the currently selected min seq sep 
+	 * @throws LoadDialogInputError if the input box contains a non-integer value.
+	 */
 	public int getSelectedMinSeqSep() throws LoadDialogInputError {
 		int selectedMinSeqSep = -1;
 		String selectedText = selectMinSeqSep.getText();
@@ -443,8 +457,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedMinSeqSep;
 	}
 	
-	/** return the currently selected max seq sep 
-	 * @throws LoadDialogInputError */
+	/** 
+	 * Returns the currently selected max seq sep 
+	 * @throws LoadDialogInputError if the input box contains a non-integer value.
+	 */
 	public int getSelectedMaxSeqSep() throws LoadDialogInputError {
 		int selectedMaxSeqSep = -1;
 		String selectedText = selectMaxSeqSep.getText();
@@ -459,14 +475,18 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedMaxSeqSep;
 	}
 
-	/** return the currently selected database name */
+	/** 
+	 * Returns the currently selected database name 
+	 */
 	public String getSelectedDb() {
 		String selectedDb = selectDb.getText();
 		return selectedDb;
 	}
 	
-	/** return the currently selected graph id 
-	 * @throws LoadDialogInputError */
+	/** 
+	 * Returns the currently selected graph id 
+	 * @throws LoadDialogInputError if the input box contains a non-integer value.
+	 */
 	public int getSelectedGraphId() throws LoadDialogInputError {
 		int selectedGraphId = -1;
 		String selectedText = selectGraphId.getText();

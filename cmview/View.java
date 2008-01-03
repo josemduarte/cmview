@@ -110,9 +110,9 @@ public class View extends JFrame implements ActionListener {
 	// P -> "popup menu"
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
 	// mm -> "main menu"
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
-	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
-	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng, mmSaveAli;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
+	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
+	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
@@ -442,13 +442,15 @@ public class View extends JFrame implements ActionListener {
 		}		
 		mmLoadFtp = makeMenuItem("Online PDB...", null, submenu);
 		mmLoadPdb = makeMenuItem("PDB file...", null, submenu);
-		mmLoadCm = makeMenuItem("Contact map file...", null, submenu);		
+		mmLoadCm = makeMenuItem("Contact map file...", null, submenu);
+		mmLoadCaspRR = makeMenuItem("CASP RR file...", null, submenu);
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
 		submenu = new JMenu("Save to");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 		mmSaveCmFile = makeMenuItem("Contact map file...", null, submenu);
+		mmSaveCaspRRFile = makeMenuItem("CASP RR file...", null, submenu);
 		mmSavePng = makeMenuItem("PNG file...", null, submenu);
 		if(Start.USE_DATABASE) {
 			mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
@@ -529,7 +531,8 @@ public class View extends JFrame implements ActionListener {
 		}		
 		mmLoadFtp2 = makeMenuItem("Online PDB...", null, submenu);
 		mmLoadPdb2 = makeMenuItem("PDB file...", null, submenu);
-		mmLoadCm2 = makeMenuItem("Contact map file...", null, submenu);		
+		mmLoadCm2 = makeMenuItem("Contact map file...", null, submenu);
+		mmLoadCaspRR2 = makeMenuItem("CASP RR file...", null, submenu);
 		menu.addSeparator();
 		mmSelCommonContactsInComparedMode = makeMenuItem("Toggle show common contacts", icon_selected, menu);
 		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
@@ -840,6 +843,7 @@ public class View extends JFrame implements ActionListener {
 		// menu -> File
 		map.put(mmInfo,true);
 		map.put(mmSaveCmFile,false);
+		map.put(mmSaveCaspRRFile, false);
 		map.put(mmSaveGraphDb, false);
 		map.put(mmSaveAli, true);
 		// menu -> View
@@ -922,6 +926,9 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmLoadCm) {
 			handleLoadFromCmFile(FIRST_MODEL);
 		}
+		if(e.getSource() == mmLoadCaspRR) {
+			handleLoadFromCaspRRFile(FIRST_MODEL);
+		}
 
 		// Save
 		if(e.getSource() == mmSaveGraphDb) {
@@ -929,6 +936,9 @@ public class View extends JFrame implements ActionListener {
 		}		  
 		if(e.getSource() == mmSaveCmFile) {
 			handleSaveToCmFile();
+		}
+		if(e.getSource() == mmSaveCaspRRFile) {
+			handleSaveToCaspRRFile();
 		}
 		if(e.getSource() == mmSavePng) {
 			handleSaveToPng();
@@ -1073,6 +1083,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmLoadCm2) {
 			handleLoadFromCmFile(SECOND_MODEL);
+		}
+		if(e.getSource() == mmLoadCaspRR2) {
+			handleLoadFromCaspRRFile(SECOND_MODEL);
 		}
 
 		if(e.getSource() == mmSelCommonContactsInComparedMode || e.getSource() == tbShowCommon) {
@@ -1421,7 +1434,43 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Loading from contact map file "+f);
 		try {
 			Model mod = new ContactMapFileModel(f);
-			if(secondModel) {
+			if(secondModel == SECOND_MODEL) {
+				//handleLoadSecondModel(mod);
+				mod2 = mod;
+				handlePairwiseAlignment();
+			} else {
+				this.spawnNewViewWindow(mod);
+			}
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
+	}
+
+	private void handleLoadFromCaspRRFile(boolean secondModel) {
+
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			try {
+				LoadDialog dialog = new LoadDialog(this, "Load from CASP RR file", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						View view = (View) o;
+						view.doLoadFromCaspRRFile(f, secondModel);
+					}
+				}, "", null, null, null, null, null, null, null, null, null);
+				actLoadDialog = dialog;
+				dialog.showIt();
+			} catch (LoadDialogConstructionError e) {
+				System.err.println("Failed to load the load-dialog.");
+			}
+		}
+	}
+
+	public void doLoadFromCaspRRFile(String f, boolean secondModel) {
+		System.out.println("Loading from CASP RR file "+f);
+		try {
+			Model mod = new CaspRRFileModel(f);
+			if(secondModel == SECOND_MODEL) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
 				handlePairwiseAlignment();
@@ -2236,6 +2285,25 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	private void handleSaveToCaspRRFile() {
+		if(this.mod == null) {
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapWarning();
+		} else {
+			showWriteToRRFileWarning();
+			int ret = Start.getFileChooser().showSaveDialog(this);
+			if(ret == JFileChooser.APPROVE_OPTION) {
+				File chosenFile = Start.getFileChooser().getSelectedFile();
+				String path = chosenFile.getPath();
+				try {
+					this.mod.writeToCaspRRFile(path);
+				} catch(IOException e) {
+					System.err.println("Error writing to file " + path);
+				}
+			}
+		}
+	}
+
 	private void handleSaveToPng() {
 		if(this.mod == null) {
 			//System.out.println("No contact map loaded yet.");
@@ -2338,7 +2406,7 @@ public class View extends JFrame implements ActionListener {
 			String minSeqSepStr = null, maxSeqSepStr = null, minSeqSepStr2 = null, maxSeqSepStr2 = null;
 			double distCutoff = 0.0, distCutoff2 = 0.0;
 			int model = 0, model2 = 0;
-			
+
 			pdbCode = (mod.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod.getPDBCode());
 			chainCode = (mod.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod.getChainCode());
 			model = mod.getPdbModelNumber();
@@ -2395,7 +2463,7 @@ public class View extends JFrame implements ActionListener {
 				(mod2 == null ? "" : "<td>"             + mod2.getNumberOfContacts()                + "</td>") + "</tr>" +
 				/* print whether graph is directed */
 				(Start.INCLUDE_GROUP_INTERNALS?
-					"<tr><td>Directed:</td><td>"        + (mod.isDirected()?"Yes":"No")             + "</td>" +
+				"<tr><td>Directed:</td><td>"            + (mod.isDirected()?"Yes":"No")             + "</td>" +
 					(mod2 == null ? "" : "<td>"         + (mod2.isDirected()?"Yes":"No")            + "</td>") + "</tr>" 
 				:"") +
 				/* BLANK LINE */
@@ -2412,6 +2480,7 @@ public class View extends JFrame implements ActionListener {
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
 				(mod2 == null ? "" : "<tr><td>Number of common contacts:</td><td>" + cmPane.getCommonContacts(1, 2).size() + "</td>") +
 				"<tr><td>Number of selected contacts:</td><td>" + numSelectedContacts + "</td>";
+
 
 			JOptionPane.showMessageDialog(this,
 					message,
@@ -3149,6 +3218,15 @@ public class View extends JFrame implements ActionListener {
 		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
+	/**
+	 * Warning dialog shown if user tries to write a non-Cb contact map to a Casp RR file (which by convention is Cb)
+	 */
+	private void showWriteToRRFileWarning() {
+		JOptionPane.showMessageDialog(this, "<html>Casp RR files by convention specify contacts between C-beta atoms.<br>" +
+			 	                            "The current contact map has a different contact type. This information<br>" +
+			 	                            "will be lost when writing to the file.</html>", "Warning", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
 	@SuppressWarnings("unused")
 	private void showDifferentSizeContactMapsError() {
 		JOptionPane.showMessageDialog(this, "The two contact maps cannot be compared because they have different size.", "Cannot compare contact maps", JOptionPane.ERROR_MESSAGE);		
@@ -3170,8 +3248,15 @@ public class View extends JFrame implements ActionListener {
 	 * TODO: Currently being abused as a constructor for new windows (something the real constructor should do).
 	 */
 	public void spawnNewViewWindow(Model mod) {
-
-		String wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
+		String title = mod.getPDBCode()+" "+mod.getChainCode();
+		if (mod.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
+			if (mod.getTargetNum()!=0) {
+				title = String.format("T%04d", mod.getTargetNum());
+			} else {
+				title = "Unknown";
+			}
+		} 
+		String wintitle = "Contact Map of " + title;
 		View view = new View(mod, wintitle);
 		if(view == null) {
 			JOptionPane.showMessageDialog(this, "Couldn't initialize contact map window", "Load error", JOptionPane.ERROR_MESSAGE);
@@ -3187,7 +3272,7 @@ public class View extends JFrame implements ActionListener {
 			}
 			view.toFront();
 
-			System.out.println("Contact map " + mod.getPDBCode() + " " + mod.getChainCode() + " loaded.");
+			System.out.println("Contact map " + title + " loaded.");
 
 			if(ContactMapPane.BG_PRELOADING) {
 				view.cmPane.preloadBackgroundMaps();

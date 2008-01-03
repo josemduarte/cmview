@@ -31,7 +31,7 @@ public class ContactMapFileModel extends Model {
 			}
 			
 			// load structure from pdbase if possible
-			if(!pdbCode.equals("") && !pdbChainCode.equals("")) {
+			if(!pdbCode.equals(Pdb.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
 				if (!Start.isDatabaseConnectionAvailable()) {
 					System.err.println("No database connection. Can't load structure.");					
 				} else {

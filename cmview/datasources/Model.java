@@ -252,6 +252,30 @@ public abstract class Model {
 	}
 	
 	/**
+	 * Returns the CASP target number, or 0 if graph is not a CASP graph 
+	 * @return
+	 */
+	public int getTargetNum() {
+		return graph.getTargetNum();
+	}
+	
+	/**
+	 * Returns the CASP group number, or 0 if graph is not a CASP graph
+	 * @return
+	 */
+	public int getGroupNum() {
+		return graph.getGroupNum();
+	}
+	
+	/**
+	 * Returns the CASP model number, or 0 if graph is not a CASP graph
+	 * @return
+	 */
+	public int getCaspModelNum() {
+		return graph.getCaspModelNum();
+	}
+	
+	/**
 	 * Returns the contact type 
 	 */
 	public String getContactType() {
@@ -314,6 +338,15 @@ public abstract class Model {
 			System.err.println("Error when trying to write contact map file");
 			throw e;
 		}
+	}
+	
+	public void writeToCaspRRFile(String fileName) throws IOException {
+		try {
+			this.graph.writeToCaspRRFile(fileName);
+		} catch (IOException e) {
+			System.err.println("Error when trying to write CASP RR file");
+			throw e;
+		}		
 	}
 	
 	/** Write the current contact map to a graph database */
