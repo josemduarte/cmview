@@ -30,11 +30,9 @@ public class ContactMapFileModel extends Model {
 				System.err.println("File contains no sequence information. Many features will be unavailable.");
 			}
 			
-			// load structure from pdbase if possible
+			// load structure from pdbase/online if possible
 			if(!pdbCode.equals(Pdb.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
-				if (!Start.isDatabaseConnectionAvailable()) {
-					System.err.println("No database connection. Can't load structure.");					
-				} else {
+				if (Start.isDatabaseConnectionAvailable()) {
 					try {
 						this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
 						this.pdb.load(pdbChainCode,modelSerial);
@@ -50,6 +48,19 @@ public class ContactMapFileModel extends Model {
 						pdb = null;
 					} 
 					// if pdb creation failed then pdb=null
+				} else { // we try to load from online cif file
+					try {
+						this.pdb = new CiffilePdb(pdbCode);
+						this.pdb.load(pdbChainCode,modelSerial);
+						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
+					} catch (PdbLoadError e) {
+						System.err.println("Failed to load structure:" + e.getMessage());
+						pdb = null;
+					} catch(IOException e) {
+						System.err.println("Failed to load structure because of error while downloading/reading the CIF file: "+e.getMessage());
+						pdb = null;
+					} 
+					// if pdb creation failed then pdb=null					
 				}
 				
 			} else {
