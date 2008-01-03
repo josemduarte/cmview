@@ -109,6 +109,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
 	// P -> "popup menu"
 	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
+	// mm -> "main menu"
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSavePng, mmSaveAli;
@@ -1330,7 +1331,7 @@ public class View extends JFrame implements ActionListener {
 			this.showNoContactMapWarning();
 		} else{
 			try {
-				LoadDialog dialog = new LoadDialog(this, "Load from Pdb file", new LoadAction(secondModel) {
+				LoadDialog dialog = new LoadDialog(this, "Load from PDB file", new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromPdbFile(f, modelSerial, cc, ct, dist, minss, maxss, secondModel);
@@ -1402,7 +1403,7 @@ public class View extends JFrame implements ActionListener {
 			this.showNoContactMapWarning();
 		} else{
 			try {
-				LoadDialog dialog = new LoadDialog(this, "Load from Contact map file", new LoadAction(secondModel) {
+				LoadDialog dialog = new LoadDialog(this, "Load from CM file", new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
@@ -2333,27 +2334,52 @@ public class View extends JFrame implements ActionListener {
 				
 				numSelectedContacts = union.size();
 			}
-
+			String pdbCode = null, pdbCode2 = null, chainCode = null, chainCode2 = null, contactType = null, contactType2 = null;
+			String minSeqSepStr = null, maxSeqSepStr = null, minSeqSepStr2 = null, maxSeqSepStr2 = null;
+			double distCutoff = 0.0, distCutoff2 = 0.0;
+			int model = 0, model2 = 0;
+			
+			pdbCode = (mod.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod.getPDBCode());
+			chainCode = (mod.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod.getChainCode());
+			model = mod.getPdbModelNumber();
+			contactType = mod.getContactType();
+			distCutoff = mod.getDistanceCutoff();
+			minSeqSepStr = (mod.getMinSequenceSeparation()<1?"none":Integer.toString(mod.getMinSequenceSeparation()));
+			maxSeqSepStr = (mod.getMaxSequenceSeparation()<1?"none":Integer.toString(mod.getMaxSequenceSeparation()));
+			
+			if(mod2 != null) {
+				pdbCode2 = mod2.getPDBCode();
+				chainCode2 = mod2.getChainCode();
+				model2 = mod2.getPdbModelNumber();
+				contactType2 = mod2.getContactType();
+				distCutoff2 = mod2.getDistanceCutoff();
+				minSeqSepStr2 = (mod2.getMinSequenceSeparation()<1?"none":Integer.toString(mod2.getMinSequenceSeparation()));
+				maxSeqSepStr2 = (mod2.getMaxSequenceSeparation()<1?"none":Integer.toString(mod2.getMaxSequenceSeparation()));				
+			}
+			
 			String message = 
 				"<html><table>" +
 				/* print pdb code */
-				"<tr><td>Pdb Code:</td><td>"            + mod.getPDBCode()         + "</td>"  + 
-				(mod2 == null ? "" :  "<td>"            + mod2.getPDBCode()        + "</td>") + "</tr>" +
+				"<tr><td>Pdb Code:</td><td>"            + pdbCode         + "</td>"  + 
+				(mod2 == null ? "" :  "<td>"            + pdbCode2        + "</td>") + "</tr>" +
 				/* print chain code */
-				"<tr><td>Chain code:</td><td>"          + mod.getChainCode()       + "</td>" + 
-				(mod2 == null ? "" : "<td>"             + mod2.getChainCode()      + "</td>") + "</tr>" +
+				"<tr><td>Chain code:</td><td>"          + chainCode       + "</td>" + 
+				(mod2 == null ? "" : "<td>"             + chainCode2      + "</td>") + "</tr>" +
+				/* print pdb model numer */
+				"<tr><td>Model:</td><td>"               + model           + "</td>" + 
+				(mod2 == null ? "" : "<td>"             + model2      	  + "</td>") + "</tr>" +				
 				/* print contact type */
-				"<tr><td>Contact type:</td><td>"        + mod.getContactType()     + "</td>" +
-				(mod2 == null ? "" : "<td>"             + mod2.getContactType()    + "</td>") + "</tr>" +
+				"<tr><td>Contact type:</td><td>"        + contactType     + "</td>" +
+				(mod2 == null ? "" : "<td>"             + contactType2    + "</td>") + "</tr>" +
 				/* print distance cutoff */
-				"<tr><td>Distance cutoff:</td><td>"     + mod.getDistanceCutoff()  + "</td>" + 
-				(mod2 == null ? "" : "<td>"             + mod2.getDistanceCutoff() + "</td>") + "</tr>" +
+				"<tr><td>Distance cutoff:</td><td>"     + distCutoff  	+ "</td>" + 
+				(mod2 == null ? "" : "<td>"             + distCutoff2 	+ "</td>") + "</tr>" +
 				/* print minimal sequence separation */
-				"<tr><td>Min Seq Sep:</td><td>" + (mod.getMinSequenceSeparation()<1?"none":mod.getMinSequenceSeparation()) + "</td>" +
-				(mod2 == null ? "" : "<td>"     + (mod2.getMinSequenceSeparation()<1?"none":mod2.getMinSequenceSeparation()) + "</td>") + "</tr>" +
+				"<tr><td>Min Seq Sep:</td><td>" 		+ minSeqSepStr 	+ "</td>" +
+				(mod2 == null ? "" : "<td>"     		+ minSeqSepStr2 + "</td>") + "</tr>" +
 				/* print maximal sequence separation */
-				"<tr><td>Max Seq Sep:</td><td>" + (mod.getMaxSequenceSeparation()<1?"none":mod.getMaxSequenceSeparation()) + "</td>" +
-				(mod2 == null ? "" : "<td>"     + (mod2.getMaxSequenceSeparation()<1?"none":mod2.getMaxSequenceSeparation()) + "</td>") + "</tr>" +
+				"<tr><td>Max Seq Sep:</td><td>" + maxSeqSepStr + "</td>" +
+				(mod2 == null ? "" : "<td>"     + maxSeqSepStr2 + "</td>") + "</tr>" +
 
 				/* BLANK LINE */
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
@@ -2368,9 +2394,10 @@ public class View extends JFrame implements ActionListener {
 				"<tr><td>Number of contacts:</td><td>"  + mod.getNumberOfContacts()                 + "</td>" +
 				(mod2 == null ? "" : "<td>"             + mod2.getNumberOfContacts()                + "</td>") + "</tr>" +
 				/* print whether graph is directed */
-				"<tr><td>Directed:</td><td>"            + (mod.isDirected()?"Yes":"No")             + "</td>" +
-				(mod2 == null ? "" : "<td>"             + (mod2.isDirected()?"Yes":"No")            + "</td>") + "</tr>" +
-
+				(Start.INCLUDE_GROUP_INTERNALS?
+					"<tr><td>Directed:</td><td>"        + (mod.isDirected()?"Yes":"No")             + "</td>" +
+					(mod2 == null ? "" : "<td>"         + (mod2.isDirected()?"Yes":"No")            + "</td>") + "</tr>" 
+				:"") +
 				/* BLANK LINE */
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
 
@@ -2385,7 +2412,6 @@ public class View extends JFrame implements ActionListener {
 				"<tr><th>&#160;</th><th>&#160;</th><th>&#160;</th></tr>" +
 				(mod2 == null ? "" : "<tr><td>Number of common contacts:</td><td>" + cmPane.getCommonContacts(1, 2).size() + "</td>") +
 				"<tr><td>Number of selected contacts:</td><td>" + numSelectedContacts + "</td>";
-
 
 			JOptionPane.showMessageDialog(this,
 					message,

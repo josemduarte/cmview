@@ -244,6 +244,14 @@ public abstract class Model {
 	}
 	
 	/**
+	 * Returns the pdb model number (e.g. for NMR structures) for the underlying graph.
+	 * @return the model number
+	 */
+	public int getPdbModelNumber() {
+		return graph.getModel();
+	}
+	
+	/**
 	 * Returns the contact type 
 	 */
 	public String getContactType() {

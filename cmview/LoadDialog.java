@@ -125,7 +125,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		this.parentFrame = f;
 
 		this.setResizable(false);
-		setLocation(300,200);
+		//setLocation(300,200); // aparrently has no effect
 		
 		loadButton = new JButton("Ok");
 		cancelButton = new JButton("Cancel");
@@ -187,7 +187,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		JLabel labelAfterDist = new JLabel("e.g. 8.0");
 		JLabel labelMinSeqSep = new JLabel("Min. Seq. Sep.:");
 		JLabel labelMaxSeqSep = new JLabel("Max. Seq. Sep.:");		
-		JLabel labelAfterMinSeqSep = new JLabel("e.g. 0");
+		JLabel labelAfterMinSeqSep = new JLabel("e.g. 1");
 		JLabel labelAfterMaxSeqSep = new JLabel("e.g. 50");		
 		JLabel labelDb = new JLabel("Database:");
 		JLabel labelModel = new JLabel("Model:");

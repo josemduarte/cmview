@@ -59,7 +59,8 @@ public class Start {
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static boolean                   INCLUDE_GROUP_INTERNALS = true; // this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+	public static boolean           INCLUDE_GROUP_INTERNALS = true; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+																		// currently: common nbh related things, directed graphs
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
 	
@@ -70,7 +71,7 @@ public class Start {
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
 	// constants not in config file yet
-	public static String			DIST_MAP_CONTACT_TYPE = "Ca";	// contact type to be used for distance map calculation (only single atom allowed)
+	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom allowed)
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
 	
@@ -79,8 +80,8 @@ public class Start {
 	public static String			PYMOL_PORT =			"9123";		 // default port, if port is blocked, pymol will increase automatically
 	public static String			PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically
-	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMViews_pymol.log";
-	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMViews_pymol.cmd";
+	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMView_pymol.log";
+	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMView_pymol.cmd";
 	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
 	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
@@ -224,6 +225,7 @@ public class Start {
 		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL", new Boolean(PRELOAD_PYMOL).toString()));
 		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
 		SHOW_RULERS_ON_STARTUP = Boolean.valueOf(p.getProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString()));
+		INCLUDE_GROUP_INTERNALS = Boolean.valueOf(p.getProperty("INCLUDE_GROUP_INTERNALS", new Boolean(INCLUDE_GROUP_INTERNALS).toString()));
 		
 		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
 		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
