@@ -81,6 +81,8 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return new Object() { public String toString() { return item; } };
 	}
 
+	/*----------------------------- constructors ----------------------------*/
+	
 	/**
 	 * Constructs a new load dialog with the given text values for the input 
 	 * fields. Some value might not be set properly as the values of the 
