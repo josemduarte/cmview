@@ -22,7 +22,6 @@ import javax.swing.border.Border;
 import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
 import proteinstructure.IntPairSet;
-import proteinstructure.Pdb;
 import proteinstructure.RIGCommonNbhood;
 import proteinstructure.Interval;
 import proteinstructure.RIGNbhood;
@@ -59,10 +58,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	// underlying data
 	private Model mod;
-	protected Model mod2;					// optional second model for cm (referenced by View)
+	private Model mod2;						// optional second model for cm
 											// comparison
 	private Alignment ali; 					// optional alignment between mod and mod2
-	private String[] aliTags = new String[2]; // holds the tags of the sequences corresponding to mod1 and mod2
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in
 											// the underlying model, set once in
@@ -293,27 +291,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	throws DifferentContactMapSizeError {
 		// check for number of residues
 		if(mod.getMatrixSize() != mod2.getMatrixSize()) {
-			throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of differnt size.");
+			throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of different size.");
 		} else {
 			System.out.println("Second model loaded.");
 			view.setComparisonMode(true);
-			String title1 = mod.getPDBCode() + " " + mod.getChainCode();
-			String title2 = mod2.getPDBCode() + " " + mod2.getChainCode();
-			if (mod.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
-				if (mod.getTargetNum()!=0) {
-					title1 = String.format("T%04d", mod.getTargetNum());
-				} else {
-					title1 = "Unknown";
-				}
-			}
-			if (mod2.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
-				if (mod2.getTargetNum()!=0) {
-					title2 = String.format("T%04d", mod2.getTargetNum());
-				} else {
-					title2 = "Unknown";
-				}
-			}
-			String title = title1 +" and "+title2;
+			String title = mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
 			view.setTitle("Comparing " + title);
 			this.mod2 = mod2;
 			selContacts = new IntPairSet();
@@ -351,24 +333,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
-	 * Sets the alignment of the first and the second model along with the 
-	 * sequence identifiers (so called tags).
+	 * Sets the alignment of the first and the second model
 	 * @param ali  the alignment
-	 * @param tagMod1  sequence identifier for the aligned sequence 
-	 *  corresponding to the first model 
-	 * @param tagMod2  the one for the second model
 	 * @see #getAlignment()
 	 */
-	public void setAlignment(Alignment ali, String tagMod1, String tagMod2) {
+	public void setAlignment(Alignment ali) {
 		this.ali = ali;
-		this.aliTags[FIRST] = tagMod1;
-		this.aliTags[SECOND] = tagMod2;
 	}
 
 	/**
 	 * Gets the alignment
 	 * @return the alignment, null if no such alignment has been assigned
-	 * @see #setAlignment(Alignment, String, String)
+	 * @see #setAlignment(Alignment)
 	 */
 	public Alignment getAlignment() {
 		return ali;
@@ -739,8 +715,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if( mod2 == null ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,aliTags[FIRST],aliTags[FIRST]+":",true);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,aliTags[SECOND],aliTags[SECOND]+":",true);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",true);
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",true);
 		}
 	}
 
@@ -2131,19 +2107,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if (seqIdxMode) {
 				for (Pair<Integer> cont : selContacts) {
 					if (commonContacts.contains(cont)) {
-						common[FIRST].add(new Pair<Integer>(ali.al2seq(aliTags[FIRST],cont.getFirst()-1), 
-															ali.al2seq(aliTags[FIRST], cont.getSecond()-1)));
-						common[SECOND].add(new Pair<Integer>(ali.al2seq(aliTags[SECOND],cont.getFirst()-1),
-															ali.al2seq(aliTags[SECOND], cont.getSecond()-1)));
+						common[FIRST].add(new Pair<Integer>(ali.al2seq(mod.getLoadedGraphID(),cont.getFirst()-1), 
+															ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1)));
+						common[SECOND].add(new Pair<Integer>(ali.al2seq(mod2.getLoadedGraphID(),cont.getFirst()-1),
+															ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1)));
 					}
 
 					else if (mainStrucContacts.contains(cont)) {
 						
-						firstOnly[FIRST].add(new Pair<Integer>(ali.al2seq(aliTags[FIRST],cont.getFirst()-1),
-																ali.al2seq(aliTags[FIRST], cont.getSecond()-1)));
+						firstOnly[FIRST].add(new Pair<Integer>(ali.al2seq(mod.getLoadedGraphID(),cont.getFirst()-1),
+																ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1)));
 						
-						pos1 = ali.al2seq(aliTags[SECOND], cont.getFirst()-1);
-						pos2 = ali.al2seq(aliTags[SECOND], cont.getSecond()-1);
+						pos1 = ali.al2seq(mod2.getLoadedGraphID(), cont.getFirst()-1);
+						pos2 = ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1);
 						
 						if( pos1 != -1 && pos2 != -1 ) {
 							firstOnly[SECOND].add(new Pair<Integer>(pos1,pos2));
@@ -2151,11 +2127,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 
 					else if (secStrucContacts.contains(cont)) {
-						secondOnly[SECOND].add(new Pair<Integer>(ali.al2seq(aliTags[SECOND],cont.getFirst()-1),
-																ali.al2seq(aliTags[SECOND], cont.getSecond()-1)));
+						secondOnly[SECOND].add(new Pair<Integer>(ali.al2seq(mod2.getLoadedGraphID(),cont.getFirst()-1),
+																ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1)));
 
-						pos1 = ali.al2seq(aliTags[FIRST], cont.getFirst()-1);
-						pos2 = ali.al2seq(aliTags[FIRST], cont.getSecond()-1);
+						pos1 = ali.al2seq(mod.getLoadedGraphID(), cont.getFirst()-1);
+						pos2 = ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1);
 								
 						if( pos1 != -1 && pos2 != -1 ) {
 							secondOnly[FIRST].add(new Pair<Integer>(pos1,pos2));
@@ -2173,8 +2149,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						
 						firstOnly[FIRST].add(cont);
 						
-						pos1 = ali.al2seq(aliTags[SECOND], cont.getFirst());
-						pos2 = ali.al2seq(aliTags[SECOND], cont.getSecond());
+						pos1 = ali.al2seq(mod2.getLoadedGraphID(), cont.getFirst());
+						pos2 = ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond());
 						
 						if( pos1 != -1 && pos2 != -1 ) {
 							firstOnly[SECOND].add(cont);
@@ -2184,8 +2160,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					else if (secStrucContacts.contains(cont)) {
 						secondOnly[SECOND].add(cont);
 
-						pos1 = ali.al2seq(aliTags[FIRST], cont.getFirst());
-						pos2 = ali.al2seq(aliTags[FIRST], cont.getSecond());
+						pos1 = ali.al2seq(mod.getLoadedGraphID(), cont.getFirst());
+						pos2 = ali.al2seq(mod.getLoadedGraphID(), cont.getSecond());
 								
 						if( pos1 != -1 && pos2 != -1 ) {
 							secondOnly[FIRST].add(cont);

@@ -3,6 +3,8 @@ import proteinstructure.*;
 
 import java.io.IOException;
 
+import cmview.Start;
+
 /** 
  * A contact map data model based on a graph loaded from a CASP RR file.
  */
@@ -24,6 +26,11 @@ public class CaspRRFileModel extends Model {
 				System.err.println("File contains no sequence information. Many features will be unavailable.");
 			}
 						
+			String name = String.format("T%04d",this.graph.getTargetNum());
+			if (this.graph.getTargetNum()==0) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts

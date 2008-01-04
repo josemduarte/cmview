@@ -42,7 +42,6 @@ public class Start {
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 
-
 		
 	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
@@ -120,6 +119,28 @@ public class Start {
 	
 	// mapping pdb-code to mmCIF files in the tmp-directory, only to be used for ftp loading
 	private static TreeMap<String, File> pdbCode2file = new TreeMap<String, File>();
+	
+	// map of loadedGraphIDs (see member in Model) to original user-loaded Models (the members of View)
+	private static TreeMap<String, Model> loadedGraphs = new TreeMap<String, Model>();
+	
+	/**
+	 * Sets the loadedGraphID and returns it, also putting it to the loadedGraphs map
+	 * @param name
+	 * @param mod
+	 * @return
+	 */
+	public static String setLoadedGraphID(String name, Model mod) {
+		String id = name;
+		if (loadedGraphs.containsKey(name)) {
+			int idSerial = 1;
+			while (loadedGraphs.containsKey(name+"_"+idSerial)) {
+				idSerial++;
+			}
+			id = name+"_"+idSerial;
+		}
+		loadedGraphs.put(id, mod);
+		return id;
+	}
 	
 	/**
 	 * Gets the filename of the local copy of the structure file corresponding 
@@ -722,7 +743,7 @@ public class Start {
 		// start gui without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
 		Model mod = preloadModel(pdbCode, pdbFile, pdbChainCode, contactType, cutoff);
-		if (mod!=null) wintitle = "Contact Map of " + mod.getPDBCode() + " " + mod.getChainCode();
+		if (mod!=null) wintitle = "Contact Map of " + mod.getLoadedGraphID();
 		new View(mod, wintitle);
 		if (mod!=null && Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in PyMol

@@ -46,11 +46,9 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		inG2 = inMod2.getGraph();
 		result = res;
 		
-		name1 = (inG1.getPdbCode() == null ? "1" : inG1.getPdbCode())+
-		(inG1.getChainCode() == null ? "_" : inG1.getChainCode());
+		name1 = inMod1.getLoadedGraphID();
 
-		name2 = (inG2.getPdbCode() == null ? "2" : inG2.getPdbCode())+
-		(inG2.getChainCode() == null ? "_" : inG2.getChainCode());
+		name2 = inMod2.getLoadedGraphID();
 	}
 
 	public void setFirstInputModel(Model mod1) {

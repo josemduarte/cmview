@@ -50,6 +50,13 @@ public class PdbaseModel extends Model {
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 			
 			super.writeTempPdbFile();
+			
+			String name = this.graph.getPdbCode()+this.graph.getChainCode();
+			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
+
 			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);

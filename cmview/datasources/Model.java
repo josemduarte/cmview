@@ -31,6 +31,8 @@ import edu.uci.ics.jung.graph.util.Pair;
  */
 public abstract class Model {
 	
+	public static final String DEFAULT_LOADEDGRAPHID = "CM";
+	
 	/*--------------------------- member variables --------------------------*/
 		
 	// structure and contact map data
@@ -46,6 +48,10 @@ public abstract class Model {
 	// an interface hasSecondaryStructure and then just specify a secondaryStructureSource variable of that interface type.
 	private SecondaryStructure secondaryStructure;  // pointer to secondary structure object from either pdb or graph object
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
+	
+	protected String loadedGraphID;					// the unique identifier of a user-loaded graph, we assign this whenever the user
+													// loads a graph/structure into the viewer, this is being used to identify the
+													// graph in an alignment object and in pymol
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -70,6 +76,7 @@ public abstract class Model {
 	    this.distMatrix = mod.distMatrix;
 	    this.secondaryStructure = mod.secondaryStructure;
 	    this.tempPdbFile = mod.tempPdbFile;
+	    this.loadedGraphID = mod.loadedGraphID;
 	}
 	
 	/**
@@ -110,7 +117,7 @@ public abstract class Model {
 		else {
 			secondaryStructure = new SecondaryStructure();
 		}
-	 }	
+	 }
 	
 	/** 
 	 * Filter out unwanted contacts and initializes the seqSep variable. 
@@ -228,6 +235,14 @@ public abstract class Model {
 		return graph.isDirected();
 	}
 
+	/**
+	 * Returns the unique identifier for this model
+	 * @return
+	 */
+	public String getLoadedGraphID() {
+		return loadedGraphID;
+	}
+	
 	/** Returns the pdb code of the underlying structure */
 	public String getPDBCode() {
 		return graph.getPdbCode();
@@ -312,7 +327,7 @@ public abstract class Model {
 	 * When called for the first time, this method creates the File object and marks it to be deleted on exit. */
 	protected File getTempPdbFile() {
 		if(tempPdbFile == null) {
-			tempPdbFile = new File(Start.TEMP_DIR, getPDBCode() + getChainCode() + ".pdb"); // TODO: Make sure that getChainCode() never returns " "
+			tempPdbFile = new File(Start.TEMP_DIR, getLoadedGraphID() + ".pdb");
 			tempPdbFile.deleteOnExit(); // will delete the file when the VM is closed
 		}
 		return tempPdbFile;
@@ -475,8 +490,8 @@ public abstract class Model {
 			return null; // can only calculate matrix difference if sizes match TODO: use alignment
 		}
 		
-		String name1 = this.getPDBCode() + this.getChainCode();
-		String name2 = secondModel.getPDBCode() + secondModel.getChainCode();
+		String name1 = this.getLoadedGraphID();
+		String name2 = secondModel.getLoadedGraphID();
 		HashMap<Pair<Integer>,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE,ali,name1,name2);
 		
 		if(diffDistMatrix == null) {

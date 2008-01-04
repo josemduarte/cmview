@@ -67,6 +67,12 @@ public class ContactMapFileModel extends Model {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
 			}
 			
+			String name = this.graph.getPdbCode()+this.graph.getChainCode();
+			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
+			
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			//super.printWarnings(chainCode); // doesn't make sense here

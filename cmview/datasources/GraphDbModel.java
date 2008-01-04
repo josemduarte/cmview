@@ -39,6 +39,12 @@ public class GraphDbModel extends Model {
 			}
 			// if pdb created failed then pdb=null
 
+			String name = this.graph.getPdbCode()+this.graph.getChainCode();
+			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
+			
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			super.printWarnings(pdbChainCode);

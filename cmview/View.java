@@ -1678,8 +1678,8 @@ public class View extends JFrame implements ActionListener {
 
 		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 
 		// 'ali'
-		String name1 = mod1.getPDBCode() + mod1.getChainCode();
-		String name2 = mod2.getPDBCode() + mod2.getChainCode();
+		String name1 = mod1.getLoadedGraphID();
+		String name2 = mod2.getLoadedGraphID();
 
 		// as we cannot guess identifiers we throw an exception if either 
 		// of them is not defined
@@ -1701,7 +1701,7 @@ public class View extends JFrame implements ActionListener {
 		alignedMod2.setGraph(pagc.getSecondGraph());
 
 		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
 		doLoadModelOntoVisualizer(alignedMod2);
 		
 		// clear the view (disables all previous selections)
@@ -1712,8 +1712,8 @@ public class View extends JFrame implements ActionListener {
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getPDBCode()+mod.getChainCode(),
-				mod2.getPDBCode()+mod2.getChainCode(),
+				mod.getLoadedGraphID(),
+				mod2.getLoadedGraphID(),
 				ali,
 				columns );
 		
@@ -1768,8 +1768,8 @@ public class View extends JFrame implements ActionListener {
 			throw new AlignmentConstructionError("No sequence found.");
 		}
 
-		String name1 = mod1.getPDBCode()+mod1.getChainCode();
-		String name2 = mod2.getPDBCode()+mod2.getChainCode();
+		String name1 = mod1.getLoadedGraphID();
+		String name2 = mod2.getLoadedGraphID();
 
 		PairwiseSequenceAlignment jalign = null;
 		try {
@@ -1793,14 +1793,14 @@ public class View extends JFrame implements ActionListener {
 		// use alignment along with the graphs of the original models to 
 		// create the gapped graphs
 		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
-		alignedMod1 = mod1.copy();
+		alignedMod1 = mod1.copy();			// why copying here? is the original still being used?
 		alignedMod1.setGraph(pagc.getFirstGraph());
 		alignedMod2 = mod2.copy();
 		alignedMod2.setGraph(pagc.getSecondGraph());
 
 		// load stuff onto the contact map pane and the visualizer
 		try {
-			doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+			doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
 		} catch (DifferentContactMapSizeError e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("Sizes of aligned contact maps do not match: " + e.getMessage());
@@ -1815,8 +1815,8 @@ public class View extends JFrame implements ActionListener {
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getPDBCode()+mod.getChainCode(),
-				mod2.getPDBCode()+mod2.getChainCode(),
+				mod.getLoadedGraphID(),
+				mod2.getLoadedGraphID(),
 				ali,
 				columns );
 		
@@ -1974,8 +1974,8 @@ public class View extends JFrame implements ActionListener {
 
 		// create alignement
 		TreeMap<String,String> name2seq = new TreeMap<String, String>();
-		String name1 = mod1.getPDBCode()+mod1.getChainCode();
-		String name2 = mod2.getPDBCode()+mod2.getChainCode();
+		String name1 = mod1.getLoadedGraphID();
+		String name2 = mod2.getLoadedGraphID();
 		name2seq.put(name1, alignedSeq1);
 		name2seq.put(name2, alignedSeq2);
 		ali = new Alignment(name2seq);
@@ -1989,7 +1989,7 @@ public class View extends JFrame implements ActionListener {
 		alignedMod2.setGraph(pagc.getSecondGraph());
 
 		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, name1, name2);
+		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
 		doLoadModelOntoVisualizer(alignedMod2);
 
 		// clear the view (disables all previous selections)
@@ -2000,8 +2000,8 @@ public class View extends JFrame implements ActionListener {
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getPDBCode()+mod.getChainCode(),
-				mod2.getPDBCode()+mod2.getChainCode(),
+				mod.getLoadedGraphID(),
+				mod2.getLoadedGraphID(),
 				ali,
 				columns );
 		
@@ -2026,7 +2026,7 @@ public class View extends JFrame implements ActionListener {
 				ali         = result.getAlignment();
 
 				// load aligned models onto contact map pane
-				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali, result.getFirstName(), result.getSecondName());
+				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
 				
 				// load second model onto 3D visualizer (as alignedMod2 holds 
 				// the atom coordinates of the original structure this also 
@@ -2041,8 +2041,8 @@ public class View extends JFrame implements ActionListener {
 				TreeSet<Integer> columns = new TreeSet<Integer>();
 				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 				doSuperposition(alignedMod1, alignedMod2, 
-						mod.getPDBCode()+mod.getChainCode(),
-						mod2.getPDBCode()+mod2.getChainCode(),
+						mod.getLoadedGraphID(),
+						mod2.getLoadedGraphID(),
 						ali,
 						columns );
 				
@@ -2064,18 +2064,15 @@ public class View extends JFrame implements ActionListener {
 	 * @param alignedMod1  the first aligned model
 	 * @param alignedMod2  the second aligned model
 	 * @param ali  alignment of rediues in <code>alignedMod1</code> to residues 
-	 *  in <code>alignedMod2</code>
-	 * @param name1  sequence identifier (tag) of <code>alignedMod1</code> in 
-	 *  <code>ali</code>
-	 * @param name2  sequence identifier (tag) of <code>alignedMod2</code> in 
-	 *  <code>ali</code>
+	 *  in <code>alignedMod2</code>. Tags of the sequences are the 
+	 *  loadedGraphID of each Model
 	 * @throws DifferentContactMapSizeError
 	 */
-	private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali, String name1, String name2) 
+	private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali) 
 	throws DifferentContactMapSizeError {
 
 		// add alignment
-		cmPane.setAlignment(ali, name1, name2);
+		cmPane.setAlignment(ali);
 
 		// add first model and update the image buffer
 		cmPane.setModel(alignedMod1);
@@ -2106,8 +2103,8 @@ public class View extends JFrame implements ActionListener {
 		Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());	
 		
 		doSuperposition(mod, mod2, 
-				mod.getPDBCode()+mod.getChainCode(),
-				mod2.getPDBCode()+mod2.getChainCode(),
+				mod.getLoadedGraphID(),
+				mod2.getLoadedGraphID(),
 				ali,
 				cmPane.getAlignmentColumnsFromSelectedContacts() );
 	}
@@ -2870,8 +2867,8 @@ public class View extends JFrame implements ActionListener {
 	 */
 	private void handleShowAlignedResidues3D() {
 		doShowAlignedResidues3D(mod, mod2,
-				mod.getPDBCode()+mod.getChainCode(),
-				mod2.getPDBCode()+mod2.getChainCode(),
+				mod.getLoadedGraphID(),
+				mod2.getLoadedGraphID(),
 				ali,
 				cmPane.getAlignmentColumnsFromSelectedContacts());
 	}
@@ -2955,7 +2952,7 @@ public class View extends JFrame implements ActionListener {
 			showNo3DCoordsWarning();
 		} else if (!cmPane.hasSecondModel()) {
 			showNoSecondContactMapWarning();
-		} else if (!cmPane.mod2.has3DCoordinates()) {
+		} else if (!mod2.has3DCoordinates()) { // it's ok to use here the original mod2 and not the actual displayed alignMod2 (ContactMapPane.mod2) because both should have (or not) 3D coordinates 
 			showNo3DCoordsSecondModelWarning();
 		} else {
 			showDiffDistMap = !showDiffDistMap;
@@ -3124,16 +3121,8 @@ public class View extends JFrame implements ActionListener {
 	 * TODO: Currently being abused as a constructor for new windows (something the real constructor should do).
 	 */
 	public void spawnNewViewWindow(Model mod) {
-		String title = mod.getPDBCode()+" "+mod.getChainCode();
-		if (mod.getPDBCode().equals(Pdb.NO_PDB_CODE)) {
-			if (mod.getTargetNum()!=0) {
-				title = String.format("T%04d", mod.getTargetNum());
-			} else {
-				title = "Unknown";
-			}
-		} 
-		String wintitle = "Contact Map of " + title;
-		View view = new View(mod, wintitle);
+		String title = mod.getLoadedGraphID();
+		View view = new View(mod, "Contact Map of " + title);
 		if(view == null) {
 			JOptionPane.showMessageDialog(this, "Couldn't initialize contact map window", "Load error", JOptionPane.ERROR_MESSAGE);
 			//System.exit(-1);
