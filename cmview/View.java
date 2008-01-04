@@ -1705,7 +1705,7 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelOntoVisualizer(alignedMod2);
 		
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 				
 		// show superpositioning based on the common contacts in 
 		// pymol
@@ -1808,7 +1808,7 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelOntoVisualizer(alignedMod2);
 
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 		
 		// show superpositioning based on the common contacts in 
 		// pymol
@@ -1993,7 +1993,7 @@ public class View extends JFrame implements ActionListener {
 		doLoadModelOntoVisualizer(alignedMod2);
 
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 		
 		// show superpositioning based on the common contacts in 
 		// pymol
@@ -2034,7 +2034,7 @@ public class View extends JFrame implements ActionListener {
 				doLoadModelOntoVisualizer(alignedMod2);
 
 				// clear the view (disables all previous selections)
-				Start.getPyMolAdaptor().setView(alignedMod1.getPDBCode(), alignedMod1.getChainCode(), alignedMod2.getPDBCode(), alignedMod2.getChainCode());
+				Start.getPyMolAdaptor().setView(alignedMod1.getLoadedGraphID(), alignedMod2.getLoadedGraphID());
 				
 				// show superpositioning according to the common contacts in 
 				// pymol
@@ -2093,14 +2093,14 @@ public class View extends JFrame implements ActionListener {
 	 * @param mod  the model to be loaded
 	 */
 	private void doLoadModelOntoVisualizer(Model mod) {
-		Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), true);
+		Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), true);
 		Start.getPyMolAdaptor().sendCommand("orient");
 		Start.getPyMolAdaptor().flush();
 	}	
 
 	private void handleSuperposition() {
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod.getPDBCode(), mod.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());	
+		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
 		
 		doSuperposition(mod, mod2, 
 				mod.getLoadedGraphID(),
@@ -2150,8 +2150,8 @@ public class View extends JFrame implements ActionListener {
 
 		// we let pymol compute the pairwise fitting
 		Start.getPyMolAdaptor().pairFitSuperposition(
-				mod1.getPDBCode(), mod1.getChainCode(),/*identities first model*/
-				mod2.getPDBCode(), mod2.getChainCode(),/*identifies second model*/
+				mod1.getLoadedGraphID(),/*identities first model*/
+				mod2.getLoadedGraphID(),/*identifies second model*/
 				chunks1, chunks2);                     /*intervals of corresponding residues*/
 	}
 
@@ -2189,7 +2189,7 @@ public class View extends JFrame implements ActionListener {
 		
 		// disable all previously made objects and selections only once! 
 		if( !residuePairs.isEmpty() ) {
-			pymol.setView(mod1.getPDBCode(), mod1.getChainCode(), mod2.getPDBCode(), mod2.getChainCode());
+			pymol.setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 		} else {
 			// nothing to do!
 			return;
@@ -2197,8 +2197,8 @@ public class View extends JFrame implements ActionListener {
 
 		// prepare selection names
 		String topLevelGroup = "Sel" + View.pymolSelSerial;
-		String firstObjSel   = pymol.getChainObjectName(mod1.getPDBCode(), mod1.getChainCode());
-		String secondObjSel  = pymol.getChainObjectName(mod2.getPDBCode(), mod2.getChainCode());
+		String firstObjSel   = mod1.getLoadedGraphID();
+		String secondObjSel  = mod2.getLoadedGraphID();
 		String edgeSel       = topLevelGroup + "_" + firstObjSel + "_" + secondObjSel + "_AliEdges";
 		String nodeSel       = edgeSel + "_Nodes";
 		
@@ -2222,20 +2222,6 @@ public class View extends JFrame implements ActionListener {
 //				false, true); // do not dash the line, do center selection
 		
 		++View.pymolSelSerial;
-	}
-
-	/**
-	 * Load second model onto the contact map pane.
-	 * @deprecated This one is meant to be a fallback routine if the strategy of pairwise alignment failes for any reason.
-	 */
-	@SuppressWarnings("unused")
-	private void handleLoadSecondModel(Model mod) 
-	throws DifferentContactMapSizeError {
-		cmPane.addSecondModel(mod); // throws DifferentContactMapSizeError
-		compareStatus = true;
-		cmPane.toggleCompareMode(compareStatus);
-		doLoadModelOntoVisualizer(mod);
-		Start.getPyMolAdaptor().alignStructure(cmPane.getFirstModel().getPDBCode(), cmPane.getFirstModel().getChainCode(), cmPane.getSecondModel().getPDBCode(), cmPane.getSecondModel().getChainCode());
 	}
 
 	private void handleSaveToGraphDb() {
@@ -2625,8 +2611,8 @@ public class View extends JFrame implements ActionListener {
 			
 			// chain selection names. The names are only used the access the 
 			// right chain. We do not create this selection explicitely!!!
-			String firstChainSel  = pymol.getChainObjectName(firstMod.getPDBCode(),  firstMod.getChainCode());
-			String secondChainSel = pymol.getChainObjectName(secondMod.getPDBCode(), secondMod.getChainCode());
+			String firstChainSel  = firstMod.getLoadedGraphID();
+			String secondChainSel = secondMod.getLoadedGraphID();
 
 			
 			// COMMON:
@@ -2646,8 +2632,8 @@ public class View extends JFrame implements ActionListener {
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
-				Start.getPyMolAdaptor().setView(firstMod.getPDBCode(),  firstMod.getChainCode(),
-												secondMod.getPDBCode(), secondMod.getChainCode());
+				Start.getPyMolAdaptor().setView(firstMod.getLoadedGraphID(),
+												secondMod.getLoadedGraphID());
 			} else {
 				// nothing to do!
 				return;
@@ -2783,7 +2769,7 @@ public class View extends JFrame implements ActionListener {
 			IntPairSet contacts   = cmPane.getSelectedContacts(false).get(ContactMapPane.ContactSelSet.SINGLE)[ContactMapPane.FIRST];
 
 			Model  mod            = cmPane.getFirstModel();
-			String chainObj       = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
+			String chainObj       = mod.getLoadedGraphID();
 			
 			if( contacts.isEmpty() ) {
 				return; // nothing to do!
@@ -2819,7 +2805,7 @@ public class View extends JFrame implements ActionListener {
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
 		} else {
-			Start.getPyMolAdaptor().sendSingleEdge(mod.getPDBCode(), mod.getChainCode(), View.pymolSelSerial, cmPane.getRightClickCont());
+			Start.getPyMolAdaptor().sendSingleEdge(mod.getLoadedGraphID(), View.pymolSelSerial, cmPane.getRightClickCont());
 			View.pymolSelSerial++;
 		}
 	}
@@ -2840,7 +2826,7 @@ public class View extends JFrame implements ActionListener {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
 			
 			String topLevelGroup    = "Sel" + View.pymolSelSerial;
-			String chainObjName     = pymol.getChainObjectName(mod.getPDBCode(), mod.getChainCode());
+			String chainObjName     = mod.getLoadedGraphID();
 			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
 			String nodeSelName      = triangleBaseName + "_Nodes";
 			
@@ -3145,7 +3131,7 @@ public class View extends JFrame implements ActionListener {
 
 			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 				// load structure in PyMol
-				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), false);
+				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
 
 			}		
 			// if previous window was empty (not showing a contact map) dispose it

@@ -747,7 +747,7 @@ public class Start {
 		new View(mod, wintitle);
 		if (mod!=null && Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in PyMol
-			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getPDBCode(), mod.getChainCode(), false);
+			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
 		}		
 
 	}
