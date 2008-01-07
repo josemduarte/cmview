@@ -1676,19 +1676,21 @@ public class View extends JFrame implements ActionListener {
 		// load alignment
 		ali = new Alignment(source.getPath(),"FASTA");
 
-		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 
-		// 'ali'
+		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 'ali'
 		String name1 = mod1.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
+		// we reset tags in alignment objects to ours. File provided must have the 2 correct sequences in the right order!
+		ali.setTag(1, name1);
+		ali.setTag(2, name2);
 
-		// as we cannot guess identifiers we throw an exception if either 
-		// of them is not defined
-		if( !(ali.hasTag(name1) && ali.hasTag(name2)) ) {
-			throw new AlignmentConstructionError(
-					"Cannot assign a sequence to each structure! The expected sequence tags are:\n"+
-					"for the first structure:  " + name1 + "\n" +
-					"for the second structure: " + name2
-			);
+		// if file provided doesn't have the right sequences we throw exception
+		if (!mod1.getSequence().equals(ali.getSequenceNoGaps(name1))) {	
+			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name1)+"\nSequence of contact map "+name1+":\n"+mod1.getSequence());
+			throw new AlignmentConstructionError("First sequence from given alignment and sequence of first loaded contact map differ!");
+		}
+		if (!mod2.getSequence().equals(ali.getSequenceNoGaps(name2))) {
+			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name2)+"\nSequence of contact map "+name2+":\n"+mod2.getSequence());
+			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
 
 		// compute aligned graphs
@@ -1707,8 +1709,7 @@ public class View extends JFrame implements ActionListener {
 		// clear the view (disables all previous selections)
 		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 				
-		// show superpositioning based on the common contacts in 
-		// pymol
+		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
@@ -2639,7 +2640,7 @@ public class View extends JFrame implements ActionListener {
 				return;
 			}
 			
-			// groups and edge selection names, this nameing convention yields 
+			// groups and edge selection names, this naming convention yields 
 			// the following grouping tree in PyMol:
 			// topLevelGroup
 			//   |--firstModGroup
