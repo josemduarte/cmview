@@ -213,6 +213,12 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			selectAc.setText(showAc);
 			fields++;
 		}
+		if(showCc != null) {
+			inputPane.add(labelCc);
+			inputPane.add(comboCc);
+			inputPane.add(labelAfterCc);
+			fields++;
+		}
 		if(showModel != null) {
 			inputPane.add(labelModel);
 			inputPane.add(comboModel);
@@ -228,12 +234,6 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 				comboModel.addItem(showModel);
 			}
 
-			fields++;
-		}
-		if(showCc != null) {
-			inputPane.add(labelCc);
-			inputPane.add(comboCc);
-			inputPane.add(labelAfterCc);
 			fields++;
 		}
 		if(showCt != null) {

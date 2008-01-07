@@ -1587,23 +1587,24 @@ public class View extends JFrame implements ActionListener {
 		String error = null;
 
 		actLoadDialog.dispose();	
-		Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping","compute Needleman-Wunsch sequence alignment"};
+		//Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping","compute Needleman-Wunsch sequence alignment"};
+		Object[] possibilities = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment","load alignment from FASTA file"};		
 		String source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
 
 		if( source != null ) {
 			try {
 				if( source == possibilities[0] ) {
+					// do a greedy residue-residue alignment
+					doPairwiseSequenceAlignment(mod, mod2);
+				} else if( source == possibilities[1] ) {
 					// compute contact map alignment using SADP
 					doPairwiseSadpAlignment(mod, mod2);
-				} else if( source == possibilities[1] ) {
+				} else if( source == possibilities[2] ) {
 					// load a user provided alignment from an external source
 					doLoadPairwiseAlignment(mod,mod2);
-				} else if( source == possibilities[2] ) {
-					// do a greedy residue-residue alignment
-					doGreedyPairwiseAlignment(mod, mod2);
-				} else if( source == possibilities[3] ) {
-					// do a greedy residue-residue alignment
-					doPairwiseSequenceAlignment(mod, mod2);		
+//					} else if( source == possibilities[3] ) {
+//					// do a greedy residue-residue alignment
+//					doGreedyPairwiseAlignment(mod, mod2);	
 				} else {
 					System.err.println("Error: Detected unhandled input option for the alignment retrieval!");
 					return;
@@ -2343,7 +2344,7 @@ public class View extends JFrame implements ActionListener {
 			showNoContactMapWarning();
 		} else {
 			
-			JDialog infoDialog = new ContactMapInfoDialog(this, mod, mod2, cmPane);
+			JDialog infoDialog = new ContactMapInfoDialog(this, mod, mod2, ali, cmPane);
 			infoDialog.setLocationRelativeTo(this);
 			infoDialog.setVisible(true);
 		}

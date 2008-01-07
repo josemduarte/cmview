@@ -2,18 +2,22 @@ package cmview;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import proteinstructure.Alignment;
 import proteinstructure.IntPairSet;
 import proteinstructure.Pdb;
 
@@ -28,19 +32,44 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 	/*------------------------------ constants ------------------------------*/
 	static final long serialVersionUID = 1l;
 	
+	/*--------------------------- member variables --------------------------*/
+	JButton okButton;
+	JButton showSeqButton;
+	JFrame parent;
+	Model mod, mod2;
+	Alignment alignment;
+	
 	/*----------------------------- constructors ----------------------------*/
-	ContactMapInfoDialog(JFrame f, Model mod, Model mod2, ContactMapPane cmPane) {
+	ContactMapInfoDialog(JFrame f, Model mod, Model mod2, Alignment alignment, ContactMapPane cmPane) {
 		
 		// initialize this dialog
 		super(f, true);
 		this.setTitle("Contact map info");
 		this.setResizable(false);
 		
+		// set member variables
+		this.parent = f;
+		this.mod = mod;
+		this.mod2 = mod2;
+		this.alignment = alignment;
+		
 		// button pane
 		JPanel buttonPane = new JPanel();
-		JButton okButton = new JButton("Ok");
+		okButton = new JButton("OK");
+		showSeqButton = new JButton("Show sequence");
+		if(mod2 != null) {
+			showSeqButton.setText("Show alignment");
+		}
 		okButton.addActionListener(this);
-		buttonPane.add(okButton, BorderLayout.CENTER);
+		showSeqButton.addActionListener(this);
+		
+		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
+		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(Box.createHorizontalGlue());
+		buttonPane.add(showSeqButton);
+		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+		buttonPane.add(okButton);
+
 		// sets the default botton of this dialog. hence, whenever the 
 		// enter-key is being pressed and released this button is invoked
 		this.getRootPane().setDefaultButton(okButton);
@@ -103,8 +132,8 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		secStrucSrc = mod.getSecondaryStructure().getComment();
 		selectedContactsStr = Integer.toString(numSelectedContacts);
 		if(mod2 != null) {
-			pdbCode2 = mod2.getPDBCode();
-			chainCode2 = mod2.getChainCode();
+			pdbCode2 = (mod2.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod2.getPDBCode());
+			chainCode2 = (mod2.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod2.getChainCode());
 			model2 = Integer.toString(mod2.getPdbModelNumber());
 			contactType2 = mod2.getContactType();
 			distCutoff2 = Double.toString(mod2.getDistanceCutoff());
@@ -227,11 +256,13 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		// sequence
 		dataPane.add(new JLabel("Sequence:"));
 		JLabel seqLabel1 = new JLabel(s1);
-		seqLabel1.setToolTipText(seq);
+		String toolTipText = formatSequenceForHtml(seq);
+		seqLabel1.setToolTipText(toolTipText);
 		dataPane.add(seqLabel1);
 		if(mod2 != null) {
 			JLabel seqLabel2 = new JLabel(s2);
-			seqLabel2.setToolTipText(seq2);
+			toolTipText = formatSequenceForHtml(seq2);
+			seqLabel2.setToolTipText(toolTipText);
 			dataPane.add(seqLabel2);
 		}
 		rows++;
@@ -285,7 +316,38 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 	/*-------------------------- implemented methods ------------------------*/
 	
 	public void actionPerformed(ActionEvent arg0) {
-		this.setVisible(false);
-		dispose();
+		
+		if(arg0.getSource() == okButton) {
+			this.setVisible(false);
+			dispose();			
+		}
+		
+		if(arg0.getSource() == showSeqButton) {
+			this.setVisible(false);
+			dispose();
+			
+			JDialog seqDialog = null;
+			if(alignment == null) {
+				seqDialog = new SequenceViewDialog(parent, mod.getLoadedGraphID(), mod.getSequence());
+			} else {
+				seqDialog = new SequenceViewDialog(parent, alignment);
+			}
+			seqDialog.setLocationRelativeTo(parent);
+			seqDialog.setVisible(true);			
+		}
+	}
+	
+	/*---------------------------- private methods --------------------------*/
+	
+	private String formatSequenceForHtml(String seq) {
+		int charsPerRow = 100;	// format sequence with this number of characters per row
+		String html = "<html>Full sequence:<br>";
+		int i = 0;
+		while(i + charsPerRow < seq.length()) {
+			html += String.format("%s<br>", seq.substring(i, i+charsPerRow));
+			i += charsPerRow;
+		}
+		html += seq.substring(i, seq.length()) + "<html>";
+		return html;
 	}
 }

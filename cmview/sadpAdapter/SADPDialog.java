@@ -24,7 +24,7 @@ public class SADPDialog extends ToolDialog {
 	static final long serialVersionUID = 1l;
 	static final String INFO_TEXT = 
 		"<html>" +
-		"SADP is a heuristic pairwise structure alignment algorithm.<br>"+
+		"SADP is a heuristic structural alignment algorithm based on the maximum contact map overlap.<br>"+
 		"</html>";
 
 	private SADPRunner runner             = null;
