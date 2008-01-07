@@ -38,6 +38,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 	JFrame parent;
 	Model mod, mod2;
 	Alignment alignment;
+	ContactMapPane cmPane;
 	
 	/*----------------------------- constructors ----------------------------*/
 	ContactMapInfoDialog(JFrame f, Model mod, Model mod2, Alignment alignment, ContactMapPane cmPane) {
@@ -52,6 +53,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		this.mod = mod;
 		this.mod2 = mod2;
 		this.alignment = alignment;
+		this.cmPane = cmPane;
 		
 		// button pane
 		JPanel buttonPane = new JPanel();
@@ -328,9 +330,9 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 			
 			JDialog seqDialog = null;
 			if(alignment == null) {
-				seqDialog = new SequenceViewDialog(parent, mod.getLoadedGraphID(), mod.getSequence());
+				seqDialog = new SequenceViewDialog(parent, mod.getLoadedGraphID(), mod.getSequence(), cmPane);
 			} else {
-				seqDialog = new SequenceViewDialog(parent, alignment);
+				seqDialog = new SequenceViewDialog(parent, alignment, cmPane);
 			}
 			seqDialog.setLocationRelativeTo(parent);
 			seqDialog.setVisible(true);			

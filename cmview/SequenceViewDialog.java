@@ -27,12 +27,17 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	static final long serialVersionUID = 1l;
 	static final int INITIAL_WINDOW_WIDTH = 700;	// TODO: Move this to constants in Start
 	
+	/*--------------------------- member variables --------------------------*/
+	JEditorPane seqField = new JEditorPane();
+	ContactMapPane cmPane;	// only needed for node selections
+	int[] seqOffsets;	// stores the index of the beginning of each sequence in the JEditorPane
+	
 	/*----------------------------- constructors ----------------------------*/
 	
 	/**
 	 * Create a new sequence view dialog from an alignment. Currently only tested for alignments with exactly two sequences.
 	 */
-	SequenceViewDialog(JFrame f, Alignment alignment) {
+	SequenceViewDialog(JFrame f, Alignment alignment, ContactMapPane cmPane) {
 		super(f, true);
 		// pack sequences into array
 		String[] names = new String[alignment.getNumberOfSequences()];
@@ -44,6 +49,7 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 			i++;
 		}
 		init(names, sequences);
+		this.cmPane = cmPane;
 	}
 	
 	/**
@@ -51,12 +57,14 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	 * @param f
 	 * @param strucName
 	 * @param sequence
+	 * TODO: Merge with above, taking an alignment with a single sequence.
 	 */
-	SequenceViewDialog(JFrame f, String strucName, String sequence) {
+	SequenceViewDialog(JFrame f, String strucName, String sequence, ContactMapPane cmPane) {
 		super(f, true);
 		String[] names = {strucName};
 		String[] sequences = {sequence};	
 		init(names, sequences);
+		this.cmPane = cmPane;
 	}	
 	
 	/*---------------------------- private methods --------------------------*/
@@ -66,9 +74,18 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	 */
 	private void init(String[] names, String[] sequences) {
 		this.setTitle("Sequence view");
-
+		
 		// preferences
 		String htmlFont = "Monospaced";
+		
+		// set sequence offsets
+		this.seqOffsets = new int[sequences.length];
+		int idx = 0;
+		for (int j = 0; j < sequences.length; j++) {
+			idx += names[j].length();
+			seqOffsets[j] = idx;
+			idx += sequences[j].length();
+		}
 		
 		// create text to be rendered
 		String header = "<html><table>";
@@ -86,7 +103,6 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 		// now create the real JEditorPane, setting the width of the table to the right values
 		header = String.format("<html><table width=%d>", layoutSize.width);
 		text = header + body + footer;
-		JEditorPane seqField = new JEditorPane();
 		seqField.setContentType("text/html");
 		seqField.setText(text);
 		seqField.setEditable(false);
@@ -114,6 +130,29 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	/*-------------------------- implemented methods ------------------------*/
 	
 	public void actionPerformed(ActionEvent arg0) {
+		// fetch position of selection and send to viewer (experimental)
+		if(Start.INCLUDE_GROUP_INTERNALS) {
+			int start = seqField.getSelectionStart();
+			int end = seqField.getSelectionEnd();
+			int startSeq = 0, endSeq = 0, startPos = 0, endPos = 0;	// all counting from 1..n
+			for (int i = 0; i < seqOffsets.length; i++) {
+				if(start > seqOffsets[i]) {
+					startSeq = i+1;
+					startPos = start - seqOffsets[i] - 1;
+				}
+				if(end > seqOffsets[i]) {
+					endSeq = i+1;
+					endPos = end - seqOffsets[i] - 2;
+				}
+			}
+			if(startSeq == endSeq && startSeq == 1) {
+				System.out.println("Selecting nodes " + startPos + "-" + endPos);
+				for (int i = startPos; i <= endPos; i++) {
+					cmPane.selectNodeNbh(i);
+				}
+				cmPane.repaint();
+			}
+		}
 		this.setVisible(false);
 		dispose();
 	}
