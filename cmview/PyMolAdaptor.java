@@ -350,7 +350,7 @@ public class PyMolAdaptor {
 	 */
 	public void loadStructure(String fileName, String structureID, boolean secondModel) {
 
-		System.out.println("START loading structure "+structureID);
+		//System.out.println("START loading structure "+structureID);
 		sendCommand("load " + fileName + ", " + structureID);
 		sendCommand("hide lines");
 		sendCommand("show cartoon");		
@@ -371,7 +371,7 @@ public class PyMolAdaptor {
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
 		
-		System.out.println("DONE loading structure "+structureID);
+		//System.out.println("DONE loading structure "+structureID);
 	}
 
 	/**

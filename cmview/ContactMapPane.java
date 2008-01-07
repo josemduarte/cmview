@@ -715,8 +715,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if( mod2 == null ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",true);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",true);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",false);
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",false);
 		}
 	}
 
@@ -787,8 +787,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(j_res==null?"?":j_res, x+extraX+40, y+extraTitleY+40);
 		if (mod.hasSecondaryStructure()){
 			SecondaryStructure ss = mod.getSecondaryStructure();
-			g2d.drawString(ss.getSecStrucElement(currentCell.getFirst())==null?"":(new Character(ss.getSecStrucElement(currentCell.getFirst()).getType()).toString()), x,           y+extraTitleY+60);
-			g2d.drawString(ss.getSecStrucElement(currentCell.getSecond())==null?"":(new Character(ss.getSecStrucElement(currentCell.getSecond()).getType()).toString()), x+extraX+40, y+extraTitleY+60);
+			SecStrucElement ssElem1 = ss.getSecStrucElement(currentCell.getFirst());
+			SecStrucElement ssElem2 = ss.getSecStrucElement(currentCell.getSecond());
+			Character ssType1 = ssElem1==null?' ':ssElem1.getType();
+			Character ssType2 = ssElem2==null?' ':ssElem2.getType();
+			switch(ssType1) {
+			case 'H': ssType1 = '\u03b1'; break;	// alpha
+			case 'S': ssType1 = '\u03b2'; break;	// beta
+			default: ssType1 = ' ';
+			}
+			switch(ssType2) {
+			case 'H': ssType2 = '\u03b1'; break;
+			case 'S': ssType2 = '\u03b2'; break;
+			default: ssType2 = ' ';
+			}
+			g2d.drawString(Character.toString(ssType1), x,           y+extraTitleY+60);
+			g2d.drawString(Character.toString(ssType2), x+extraX+40, y+extraTitleY+60);
 		}
 
 		if(modContacts.contains(currentCell) ) {
@@ -819,7 +833,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(res==null?"?":res, 20, outputSize-50);
 		if (mod.hasSecondaryStructure()){
 			SecondaryStructure ss = mod.getSecondaryStructure();
-			g2d.drawString(ss.getSecStrucElement(currentRulerCoord)==null?"":(new Character(ss.getSecStrucElement(currentRulerCoord).getType()).toString()), 20, outputSize-30);
+			SecStrucElement ssElem = ss.getSecStrucElement(currentRulerCoord);
+			Character ssType = ssElem==null?' ':ssElem.getType();
+			switch(ssType) {
+			case 'H': ssType = '\u03b1'; break;	// alpha
+			case 'S': ssType = '\u03b2'; break;	// beta
+			default: ssType = ' ';
+			}			
+			g2d.drawString(Character.toString(ssType), 20, outputSize-30);
 		}
 		if (view.getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
