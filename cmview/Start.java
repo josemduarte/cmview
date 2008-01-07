@@ -58,7 +58,7 @@ public class Start {
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static boolean           INCLUDE_GROUP_INTERNALS = true; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 																		// currently: common nbh related things, directed graphs
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
