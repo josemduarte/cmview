@@ -31,6 +31,7 @@ public class SADPDialog extends ToolDialog {
 	@SuppressWarnings("unused")
 	private SADPResult result             = null; // set in runner via "actionWhenDone"
 	private Retriever  progressBarUpdater = null;
+	@SuppressWarnings("unchecked")
 	private Future     runnerTask         = null;
 	private SADPDialogDoneNotifier notifier = null;
 
@@ -144,6 +145,7 @@ public class SADPDialog extends ToolDialog {
 		return notifier;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Future getRunnerTask() {
 		return runnerTask;
 	}

@@ -1661,7 +1661,7 @@ public class View extends JFrame implements ActionListener {
 	 * @param mod2  the second model
 	 */
 	public void doLoadPairwiseAlignment(Model mod1, Model mod2)
-	throws FileNotFoundException, IOException, PirFileFormatError, FastaFileFormatError, 
+	throws IOException, PirFileFormatError, FastaFileFormatError, 
 	AlignmentConstructionError, DifferentContactMapSizeError {
 
 		// open global file-chooser and get the name the alignment file
@@ -1681,8 +1681,8 @@ public class View extends JFrame implements ActionListener {
 		String name1 = mod1.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
 		// we reset tags in alignment objects to ours. File provided must have the 2 correct sequences in the right order!
-		ali.setTag(1, name1);
-		ali.setTag(2, name2);
+		String[] names = {name1, name2};
+		ali.resetTags(names);
 
 		// if file provided doesn't have the right sequences we throw exception
 		if (!mod1.getSequence().equals(ali.getSequenceNoGaps(name1))) {	
@@ -1786,10 +1786,9 @@ public class View extends JFrame implements ActionListener {
 		String alignedSeq2 = alignedSeqs[1];
 
 		// create alignement
-		TreeMap<String,String> name2seq = new TreeMap<String, String>();
-		name2seq.put(name1, alignedSeq1);
-		name2seq.put(name2, alignedSeq2);
-		ali = new Alignment(name2seq);
+		String[] names = {name1, name2};
+		String[] seqs = {alignedSeq1, alignedSeq2};
+		ali = new Alignment(names, seqs);
 		//ali.printSimple();
 
 		// use alignment along with the graphs of the original models to 
@@ -1974,13 +1973,12 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 
-		// create alignement
-		TreeMap<String,String> name2seq = new TreeMap<String, String>();
+		// create alignment
 		String name1 = mod1.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
-		name2seq.put(name1, alignedSeq1);
-		name2seq.put(name2, alignedSeq2);
-		ali = new Alignment(name2seq);
+		String[] names = {name1, name2};
+		String[] seqs = {alignedSeq1, alignedSeq2};
+		ali = new Alignment(names, seqs);
 
 		// use alignment along with the graphs of the original models to 
 		// create the gapped graphs
