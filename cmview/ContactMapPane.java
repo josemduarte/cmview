@@ -136,6 +136,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private IntPairSet uniqueToFirstContacts;	// contacts unique to first structure
 	private IntPairSet uniqueToSecondContacts;	// contacts unique to second structure
 
+	private IntPairSet bothStrucContacts;		// i.e. uniqueToFirst+uniqueToSecond+common
+	private IntPairSet allButCommonContacts;	// i.e. uniqueToFirst+uniqueToSecond
+	
 	private TreeSet<Integer> selHorNodes;			// current horizontal residue
 													// selection
 	private TreeSet<Integer> selVertNodes;			// current vertical residue
@@ -152,8 +155,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 															// neighbourhood sizes
 	private HashMap<Pair<Integer>,Double> diffDistMap;		// difference distance map (in comparison mode)
 
-															// buffers for triple buffering
-	private ScreenBuffer screenBuffer;		// buffer containing the more of
+	// buffers for triple buffering
+	private ScreenBuffer screenBuffer;		// buffer containing the more or
 											// less static background image
 
 	// drawing colors (being set in the constructor)
@@ -277,22 +280,63 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** 
 	 * Add the given new model for contact map comparison. 
 	 * @param mod2  the second model
-	 * @return false if the model is not the same size as the existing first
-	 * model.
+	 * @param ali	the alignment of first and second model
+	 * @throws DifferentContactMapSizeError
 	 */
-	public boolean addSecondModel(Model mod2) 
-	throws DifferentContactMapSizeError {
+	public void setSecondModel(Model mod2, Alignment ali) throws DifferentContactMapSizeError {
 		// check for number of residues
 		if(mod.getMatrixSize() != mod2.getMatrixSize()) {
+			// this shouldn't happen since we are aligning before adding the second model, but is a good sanity check
 			throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of different size.");
 		} else {
 			System.out.println("Second model loaded.");
 			view.changeVisibilityCompareButtons(true);
 			String title = mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
 			view.setTitle("Comparing " + title);
+			
 			this.mod2 = mod2;
-			selContacts = new IntPairSet();
-			return true;
+			
+			this.ali = ali;
+			
+			// getting all contacts of the second structure
+			this.allSecondContacts = mod2.getContacts();
+			
+			// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
+
+			for (Pair<Integer> cont2:allSecondContacts){
+				// contacts in second and also in first are common
+				if (allContacts.contains(cont2)) {
+					commonContacts.add(cont2);
+				}
+				// contacts in second and not in first are uniqueToSecond
+				else if(!allContacts.contains(cont2)){
+					uniqueToSecondContacts.add(cont2);
+				}
+			}
+
+			// contacts in first and not in second are uniqueToFirst
+			for (Pair<Integer> cont:allContacts){
+				if (!allSecondContacts.contains(cont)){
+					uniqueToFirstContacts.add(cont);
+				}
+			}
+
+			// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
+			bothStrucContacts = new IntPairSet();
+			bothStrucContacts.addAll(uniqueToFirstContacts);
+			bothStrucContacts.addAll(uniqueToSecondContacts);
+			bothStrucContacts.addAll(commonContacts);
+			
+			// allButCommon = uniqueToFirst+uniqueToSecond
+			allButCommonContacts = new IntPairSet();
+			allButCommonContacts.addAll(uniqueToFirstContacts);
+			allButCommonContacts.addAll(uniqueToSecondContacts);
+
+			// finally resetting selections to make sure we start the comparison from clean
+			this.selContacts = new IntPairSet();
+			this.tmpContacts = new IntPairSet();
+			this.selHorNodes = new TreeSet<Integer>();
+			this.selVertNodes = new TreeSet<Integer>();
 		}
 	}
 
@@ -325,23 +369,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return mod2 != null;
 	}
 
-	/**
-	 * Sets the alignment of the first and the second model
-	 * @param ali  the alignment
-	 * @see #getAlignment()
-	 */
-	public void setAlignment(Alignment ali) {
-		this.ali = ali;
-	}
-
-	/**
-	 * Gets the alignment
-	 * @return the alignment, null if no such alignment has been assigned
-	 * @see #setAlignment(Alignment)
-	 */
-	public Alignment getAlignment() {
-		return ali;
-	}
 
 	/*-------------------------- overridden methods -------------------------*/
 
@@ -466,17 +493,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
 		Point upperLeft = getCellUpperLeft(new Pair<Integer>(residues.beg,1));
 		Point lowerRight = getCellLowerRight(new Pair<Integer>(residues.end, contactMapSize));
-		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO:
-		// Check
-		// this
+		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
 	}
 
 	private void drawVerticalNodeSelection(Graphics2D g2d, Interval residues) {
 		Point upperLeft = getCellUpperLeft(new Pair<Integer>(1,residues.beg));
 		Point lowerRight = getCellLowerRight(new Pair<Integer>(contactMapSize, residues.end));
-		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO:
-		// Check
-		// this
+		g2d.fillRect(upperLeft.x, upperLeft.y, lowerRight.x-upperLeft.x + 1, lowerRight.y - upperLeft.y + 1);	// TODO: Check this
 	}
 
 	/**
@@ -515,145 +538,117 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
+	 * Draws the contact map (or the 2 contact maps in compare mode)
 	 * @param g2d
 	 */
 	private void drawContactMap(Graphics2D g2d) {
-
-		// drawing the contact map
-		for (Pair<Integer> cont:allContacts){ 
-			if(userContactColors.containsKey(cont)) {
-				g2d.setColor(userContactColors.get(cont)); 
-			} else {
-				g2d.setColor(contactColor);
+		if (!view.getCompareStatus()) { // single contact map mode
+			for (Pair<Integer> cont:allContacts){
+				// in single contact map mode we can also have contacst colored by user
+				if(userContactColors.containsKey(cont)) {
+					g2d.setColor(userContactColors.get(cont)); 
+				} else {
+					g2d.setColor(contactColor);
+				}
+				drawContact(g2d, cont);
 			}
-			drawContact(g2d, cont);
-		}
-
-	}
-
-
-	/** draws the compared contact map if a second structure is loaded */
-	private void drawComparedMap(Graphics2D g2d){
-
-		// getting all contacts of the second structure
-		this.allSecondContacts = mod2.getContacts();
-		
-		// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
-
-		for (Pair<Integer> cont2:allSecondContacts){
-			// contacts in second and also in first are common
-			if (allContacts.contains(cont2)) {
-				commonContacts.add(cont2);
+		} else { // compare mode
+			// 1) common=0, first=0, second=0
+			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == false){
+				// paint background
+				int bgSizeX = Math.max(outputSize, getWidth());		// fill background
+																	// even if window is not square
+				int bgSizeY = Math.max(outputSize, getHeight());	// fill background
+																	// even of window is not square
+				g2d.setColor(backgroundColor);
+				if (isOpaque()) {
+					g2d.fillRect(0, 0, bgSizeX, bgSizeY);
+				}
 			}
-			// contacts in second and not in first are uniqueToSecond
-			else if(!allContacts.contains(cont2)){
-				uniqueToSecondContacts.add(cont2);
+			// 2) common=0, first=0, second=1
+			else if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+
+				for(Pair<Integer> secCont:uniqueToSecondContacts){
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, secCont);
+				}	
 			}
-		}
+			// 3) common=0, first=1, second=0 
+			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
 
-		// contacts in first and not in second are uniqueToFirst
-		for (Pair<Integer> cont:allContacts){
-			if (!allSecondContacts.contains(cont)){
-				uniqueToFirstContacts.add(cont);
+				for(Pair<Integer> mainCont:uniqueToFirstContacts){
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, mainCont);
+				}
 			}
-		}
+			// 4) common=0, first=1, second=1
+			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
 
+				for(Pair<Integer> mainCont:uniqueToFirstContacts){
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, mainCont);
+				}
 
-		// 1) common=0, first=0, second=0
-		if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == false){
-			// paint background
-			int bgSizeX = Math.max(outputSize, getWidth());		// fill background
-			// even if window is not square
-			int bgSizeY = Math.max(outputSize, getHeight());	// fill background
-			// even of window is not square
-			g2d.setColor(backgroundColor);
-			if (isOpaque()) {
-				g2d.fillRect(0, 0, bgSizeX, bgSizeY);
+				for(Pair<Integer> secCont:uniqueToSecondContacts){
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, secCont);
+				}
+
 			}
-		}
-		// 2) common=0, first=0, second=1
-		else if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+			// 5) common=1, first=0, second=0
+			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
 
-			for(Pair<Integer> secCont:uniqueToSecondContacts){
-				g2d.setColor(contactsSecStrucColor);
-				drawContact(g2d, secCont);
-			}	
-		}
-		// 3) common=0, first=1, second=0 
-		else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
+				for(Pair<Integer> comCont:commonContacts){
+					g2d.setColor(commonContactsColor);
+					drawContact(g2d, comCont);
+				}
 
-			for(Pair<Integer> mainCont:uniqueToFirstContacts){
-				g2d.setColor(contactsMainStrucColor);
-				drawContact(g2d, mainCont);
 			}
-		}
-		// 4) common=0, first=1, second=1
-		else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
+			// 6) common=1, first=0, second=1
+			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
 
-			for(Pair<Integer> mainCont:uniqueToFirstContacts){
-				g2d.setColor(contactsMainStrucColor);
-				drawContact(g2d, mainCont);
+				for(Pair<Integer> comCont:commonContacts){
+					g2d.setColor(commonContactsColor);
+					drawContact(g2d, comCont);
+				}
+
+				for(Pair<Integer> secCont:uniqueToSecondContacts){
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, secCont);
+				}
 			}
+			// 7) common=1, first=1, second=0
+			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
 
-			for(Pair<Integer> secCont:uniqueToSecondContacts){
-				g2d.setColor(contactsSecStrucColor);
-				drawContact(g2d, secCont);
+				for(Pair<Integer> comCont:commonContacts){
+					g2d.setColor(commonContactsColor);
+					drawContact(g2d, comCont);
+				}
+
+				for(Pair<Integer> mainCont:uniqueToFirstContacts){
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, mainCont);
+				}
+
 			}
+			// 8) common=1, first=1, second=1
+			else {
+				for(Pair<Integer> comCont:commonContacts){
+					g2d.setColor(commonContactsColor);
+					drawContact(g2d, comCont);
+				}
 
-		}
-		// 5) common=1, first=0, second=0
-		else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
+				for(Pair<Integer> mainCont:uniqueToFirstContacts){
+					g2d.setColor(contactsMainStrucColor);
+					drawContact(g2d, mainCont);
+				}
 
-			for(Pair<Integer> comCont:commonContacts){
-				g2d.setColor(commonContactsColor);
-				drawContact(g2d, comCont);
+				for(Pair<Integer> secCont:uniqueToSecondContacts){
+					g2d.setColor(contactsSecStrucColor);
+					drawContact(g2d, secCont);
+				}
+
 			}
-
-		}
-		// 6) common=1, first=0, second=1
-		else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-
-			for(Pair<Integer> comCont:commonContacts){
-				g2d.setColor(commonContactsColor);
-				drawContact(g2d, comCont);
-			}
-
-			for(Pair<Integer> secCont:uniqueToSecondContacts){
-				g2d.setColor(contactsSecStrucColor);
-				drawContact(g2d, secCont);
-			}
-		}
-		// 7) common=1, first=1, second=0
-		else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-
-			for(Pair<Integer> comCont:commonContacts){
-				g2d.setColor(commonContactsColor);
-				drawContact(g2d, comCont);
-			}
-
-			for(Pair<Integer> mainCont:uniqueToFirstContacts){
-				g2d.setColor(contactsMainStrucColor);
-				drawContact(g2d, mainCont);
-			}
-
-		}
-		// 8) common=1, first=1, second=1
-		else {
-			for(Pair<Integer> comCont:commonContacts){
-				g2d.setColor(commonContactsColor);
-				drawContact(g2d, comCont);
-			}
-
-			for(Pair<Integer> mainCont:uniqueToFirstContacts){
-				g2d.setColor(contactsMainStrucColor);
-				drawContact(g2d, mainCont);
-			}
-
-			for(Pair<Integer> secCont:uniqueToSecondContacts){
-				g2d.setColor(contactsSecStrucColor);
-				drawContact(g2d, secCont);
-			}
-
 		}
 	}
 
@@ -701,7 +696,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param g2d  the graphic onto which the coordinate are supposed to be printed
 	 */
 	protected void drawCoordinates(Graphics2D g2d){
-		if( mod2 == null ) {
+		if( !this.hasSecondModel() ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
 		} else {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",false);
@@ -1014,9 +1009,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	public void mouseReleased(MouseEvent evt) {
-		// TODO: Move much of this to MouseClicked and pull up Contact cont =
-		// screen2cm...
 		// Called whenever the user releases the mouse button.
+		// TODO: Move much of this to MouseClicked and pull up Contact cont = screen2cm...
 		if (evt.isPopupTrigger()) {
 			showPopup(evt);
 			dragging = false;
@@ -1066,8 +1060,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 				if(!dragging) {					
 					Pair<Integer> clicked = screen2cm(mousePressedPos);
-					if(allContacts.contains(clicked)) { // if clicked position
-						// is a contact
+					if(getCurrentContactSet().contains(clicked)) {  // if clicked position
+																	// is a contact
 						if(selContacts.contains(clicked)) {
 							// if clicked position is a selected contact,
 							// deselect it
@@ -1110,45 +1104,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					resetSelections();
 				}
 
-				if (this.hasSecondModel()){
-					if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
-						fillSelect(uniqueToSecondContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
-						fillSelect(uniqueToFirstContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet contacts = new IntPairSet();
-						contacts.addAll(uniqueToFirstContacts);
-						contacts.addAll(uniqueToSecondContacts);
-						fillSelect(contacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
-						fillSelect(commonContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-						fillSelect(allSecondContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-						fillSelect(allContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet bothStrucContacts = new IntPairSet();
-						bothStrucContacts.addAll(commonContacts);
-						bothStrucContacts.addAll(uniqueToSecondContacts);
-						bothStrucContacts.addAll(uniqueToFirstContacts);
-						fillSelect(bothStrucContacts, screen2cm(new Point(evt.getX(),evt.getY())));
-					}
-				}
-				else {fillSelect(allContacts, screen2cm(new Point(evt.getX(), evt.getY())));
-				}
-
+				fillSelect(getCurrentContactSet(), screen2cm(new Point(evt.getX(),evt.getY())));
 
 				this.repaint();
 				return;
@@ -1208,82 +1164,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			mouseDraggingPos = evt.getPoint();
 			switch (view.getCurrentSelectionMode()) {
 			case View.SQUARE_SEL:
-				if (this.hasSecondModel()){
-					if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
-						squareSelect(uniqueToSecondContacts);
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
-						squareSelect(uniqueToFirstContacts);
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet contacts = new IntPairSet();
-						contacts.addAll(uniqueToFirstContacts);
-						contacts.addAll(uniqueToSecondContacts);
-						squareSelect(contacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
-						squareSelect(commonContacts);
-					}
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-						squareSelect(allSecondContacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-						squareSelect(allContacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet bothStrucContacts = new IntPairSet();
-						bothStrucContacts.addAll(commonContacts);
-						bothStrucContacts.addAll(uniqueToSecondContacts);
-						bothStrucContacts.addAll(uniqueToFirstContacts);
-						squareSelect(bothStrucContacts);
-					}
-
-				} else {
-					squareSelect(allContacts);
-				}
+				squareSelect(getCurrentContactSet());
 				break;
 			case View.DIAG_SEL:
-				if (this.hasSecondModel()){
-					if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
-						rangeSelect(uniqueToSecondContacts);
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
-						rangeSelect(uniqueToFirstContacts);
-					}
-
-					else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet contacts = new IntPairSet();
-						contacts.addAll(uniqueToFirstContacts);
-						contacts.addAll(uniqueToSecondContacts);
-						rangeSelect(contacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
-						rangeSelect(commonContacts);
-					}
-					else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-						rangeSelect(allSecondContacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-						rangeSelect(allContacts);
-					}
-
-					else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
-						IntPairSet bothStrucContacts = new IntPairSet();
-						bothStrucContacts.addAll(commonContacts);
-						bothStrucContacts.addAll(uniqueToSecondContacts);
-						bothStrucContacts.addAll(uniqueToFirstContacts);
-						rangeSelect(bothStrucContacts);
-					}
-				}
-				else {rangeSelect(allContacts);}
+				rangeSelect(getCurrentContactSet());
 				break;
 			}	
 		}
@@ -1352,11 +1236,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		// paint background
 		int bgSizeX = Math.max(outputSize, getWidth());		// fill background
-		// even if window is
-		// not square
+															// even if window is
+															// not square
 		int bgSizeY = Math.max(outputSize, getHeight());	// fill background
-		// even of window is
-		// not square
+															// even of window is
+															// not square
 		g2d.setColor(backgroundColor);
 		if (isOpaque()) {
 			g2d.fillRect(0, 0, bgSizeX, bgSizeY);
@@ -1377,21 +1261,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawNbhSizeMap(g2d);
 		}
 
-		// draw contact map if necessary
-		if(!view.getShowNbhSizeMap() && !view.getShowDistMap() && !view.getCompareStatus()) {
+		// draw difference distance map (in comparison mode)
+		if(view.getCompareStatus() && view.getShowDiffDistMap()) {
+			drawDiffDistMap(g2d);
+		}
+		
+		// draw contact map if necessary (single or comparison)
+		if(!view.getShowNbhSizeMap() && !view.getShowDistMap()) {
 			drawContactMap(g2d);			
 		}
 
-		// draw comparison contact map
-		if(view.getCompareStatus()){
-
-			// draw difference distance map (in comparison mode)
-			if(view.getShowDiffDistMap()) {
-				drawDiffDistMap(g2d);
-			} else {
-				drawComparedMap(g2d);
-			}
-		}
 		repaint();
 	}
 
@@ -1505,7 +1384,45 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	public void reloadContacts() {
 		boolean doResetCursor = false;
+		
+		// reloading contacts of 1st structure (or single)
 		this.allContacts = mod.getContacts();
+		
+		// reloading contacts of 2nd structure if it's present
+		// this is not used at the moment, since delete contacts is not 
+		// allowed in compare mode, but it's good to keep it here in case 
+		// we allow any modification of the second model in the future
+		if (this.hasSecondModel()) {
+			this.allSecondContacts = mod2.getContacts();		
+			// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
+			for (Pair<Integer> cont2:allSecondContacts){
+				// contacts in second and also in first are common
+				if (allContacts.contains(cont2)) {
+					commonContacts.add(cont2);
+				}
+				// contacts in second and not in first are uniqueToSecond
+				else if(!allContacts.contains(cont2)){
+					uniqueToSecondContacts.add(cont2);
+				}
+			}
+			// contacts in first and not in second are uniqueToFirst
+			for (Pair<Integer> cont:allContacts){
+				if (!allSecondContacts.contains(cont)){
+					uniqueToFirstContacts.add(cont);
+				}
+			}
+			// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
+			bothStrucContacts = new IntPairSet();
+			bothStrucContacts.addAll(uniqueToFirstContacts);
+			bothStrucContacts.addAll(uniqueToSecondContacts);
+			bothStrucContacts.addAll(commonContacts);
+			// allButCommon = uniqueToFirst+uniqueToSecond
+			allButCommonContacts = new IntPairSet();
+			allButCommonContacts.addAll(uniqueToFirstContacts);
+			allButCommonContacts.addAll(uniqueToSecondContacts);
+		}
+		
+		// updating maps
 		if(view.getShowNbhSizeMap()) {
 			if(BACKGROUND_LOADING) {
 				updateNbhSizeMapBg();	// will repaint when done
@@ -1616,41 +1533,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void selectAllContacts() {
 		selContacts = new IntPairSet();
 
-		if (this.hasSecondModel()){
-			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
-				selContacts.addAll(uniqueToSecondContacts);
-			}
-
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
-				selContacts.addAll(uniqueToFirstContacts);
-			}
-
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
-				selContacts.addAll(uniqueToFirstContacts);
-				selContacts.addAll(uniqueToSecondContacts);
-			}
-
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
-				selContacts.addAll(commonContacts);
-			}
-
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-				selContacts.addAll(allSecondContacts);
-			}
-
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-				selContacts.addAll(allContacts);
-			}
-
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
-				selContacts.addAll(commonContacts);
-				selContacts.addAll(uniqueToSecondContacts);
-				selContacts.addAll(uniqueToFirstContacts);
-			}
-
-		} else { 
-			selContacts.addAll(allContacts);
-		}
+		selContacts.addAll(getCurrentContactSet());
 
 		this.repaint();
 	}
@@ -1725,18 +1608,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();
 		return selContacts.size();
-	}
-
-	/**
-	 * Add to the current selection all contacts along the diagonal that
-	 * contains cont
-	 */
-	protected void selectDiagonal(int range) {
-		for(Pair<Integer> c: allContacts) {
-			if(getRange(c) == range) {
-				selContacts.add(c);
-			}
-		}
 	}
 
 	/**
@@ -1918,7 +1789,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContact with the contacts contained in the rectangle given by
 	 * the upperLeft and lowerRight.
 	 */
-	public void squareSelect(IntPairSet contacts){
+	private void squareSelect(IntPairSet contacts){
 		Pair<Integer> upperLeft = screen2cm(mousePressedPos);
 		Pair<Integer> lowerRight = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts
@@ -1944,7 +1815,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Update tmpContacts with the contacts contained in the range selection
 	 * (selection by diagonals)
 	 */
-	public void rangeSelect(IntPairSet contacts){
+	private void rangeSelect(IntPairSet contacts){
 		Pair<Integer> startContact = screen2cm(mousePressedPos);
 		Pair<Integer> endContact = screen2cm(mouseDraggingPos);
 		// we reset the tmpContacts list so every new mouse selection starts
@@ -2005,11 +1876,68 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
+	/**
+	 * Add to the current selection all contacts along the diagonal that
+	 * contains cont
+	 */
+	private void selectDiagonal(int range) {
+		for(Pair<Integer> c: getCurrentContactSet()) {
+			if(getRange(c) == range) {
+				selContacts.add(c);
+			}
+		}
+	}
+
+	/**
+	 * Gets the current set of contacts depending on the state of the GUI:
+	 * - single/comparison mode
+	 * - within comparison mode: 8 states for the combinations of the 3 buttons 
+	 *   showCommon, showFirst, showSecond
+	 * @return
+	 */
+	private IntPairSet getCurrentContactSet() {
+		// pairwise comparison mode
+		if (this.hasSecondModel()){
+			// 1) common=0, first=0, second=1
+			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+				return uniqueToSecondContacts;
+			}
+			// 2) common=0, first=1, second=0
+			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
+				return uniqueToFirstContacts;
+			}
+			// 3) common=0, first=1, second=1
+			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
+				return allButCommonContacts;
+			}
+			// 4) common=1, first=0, second=0
+			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
+				return commonContacts;
+			}
+			// 5) common=1, first=0, second=1
+			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
+				return allSecondContacts;
+			}
+			// 6) common=1, first=1, second=0
+			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
+				return allContacts;
+			}
+			// 7) common=1, first=1, second=1
+			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
+				return bothStrucContacts;
+			}
+			return new IntPairSet(); // in case common=0, first=0, second=0, we return an empty set
+		// single contact map mode
+		} else {
+			return allContacts;
+		}
+	}
+	
 	protected void selectNodeNbh(int i) {
 		RIGNbhood nbh = mod.getNbhood(i);
-		System.out.println("Selecting node neighbourhood of node: "+i);
-		System.out.println("Motif: "+nbh);
-		System.out.print("Neighbours: ");
+		System.out.println("Selecting node neighborhood of node: "+i);
+		System.out.println("Neighborhood string: "+nbh);
+		System.out.print("Neighbors: ");
 		for (int j:nbh.keySet()){
 			System.out.print(j+" ");
 			selContacts.add(new Pair<Integer>(Math.min(i, j),Math.max(i, j)));
@@ -2393,23 +2321,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			return commonContacts;
 		} else {
 			return null;
-		}
-	}
-
-	/**
-	 * Gets the contacts of the model corresponding to the given index.
-	 * @param whichOne  index indicating a certain model in the map
-	 * @return  edge set of common contact, null if whichOne is not a valid 
-	 *  model index
-	 */
-	public IntPairSet getModelContacts(int whichOne) {
-		switch (whichOne) {
-		case 1:
-			return uniqueToFirstContacts;
-		case 2:
-			return uniqueToSecondContacts;
-		default:
-			return null;	
 		}
 	}
 

@@ -139,7 +139,7 @@ public class View extends JFrame implements ActionListener {
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
 	private boolean showDensityMap;		// whether showing the density map is switched on
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
-	private boolean compareStatus;		// tells ContactMapPane to draw compared contact map if 2. structure is loaded
+	private boolean compareStatus;		// whether we are in pairwise comparison mode (i.e. a second structure has been loaded)
 	private Color currentPaintingColor;	// current color for coloring contacts selected by the user
 	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)
 	private boolean showFirst; 			// when true, contacts unique to first structure displayed in compare mode (and selections are only for first)
@@ -2069,15 +2069,12 @@ public class View extends JFrame implements ActionListener {
 	private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali) 
 	throws DifferentContactMapSizeError {
 
-		// add alignment
-		cmPane.setAlignment(ali);
-
 		// add first model and update the image buffer
 		cmPane.setModel(alignedMod1);
-		cmPane.updateScreenBuffer();
+		//cmPane.updateScreenBuffer();
 
 		// add the second model and update the image buffer
-		cmPane.addSecondModel(alignedMod2); // throws DifferentContactMapSizeError
+		cmPane.setSecondModel(alignedMod2, ali); // throws DifferentContactMapSizeError
 		compareStatus = true;
 		cmPane.updateScreenBuffer();
 
