@@ -770,18 +770,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		g2d.drawString("i", x,           y+extraTitleY);
 		g2d.drawString("j", x+extraX+40, y+extraTitleY);
-		g2d.drawString(currentCell.getFirst()+"", x,           y+extraTitleY+20);
-		g2d.drawString(currentCell.getSecond()+"", x+extraX+40, y+extraTitleY+20);
-		if( showAliAndSeqPos ) {
-			// substract 1 from the cell's coordinates to map from alignment 
-			// to sequence space
-			try {
-				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.getFirst()-1)+")", x+extraX,      y+extraTitleY+20);
-				g2d.drawString(ali==null ? "(n.a.)" : "("+ali.al2seq(aliTag,currentCell.getSecond()-1)+")", x+2*extraX+40, y+extraTitleY+20);
-			} catch( NullPointerException e ) {
-				System.err.println(currentCell);
-			}
+		if(hasSecondModel()) {
+			g2d.drawString(ali.al2seq(aliTag,currentCell.getFirst()-1)<0?"":ali.al2seq(aliTag,currentCell.getFirst()-1)+"", x,           y+extraTitleY+20);
+			g2d.drawString(ali.al2seq(aliTag,currentCell.getSecond()-1)<0?"":ali.al2seq(aliTag,currentCell.getSecond()-1)+"", x+extraX+40, y+extraTitleY+20);
+			if( showAliAndSeqPos ) {
+				// substract 1 from the cell's coordinates to map from alignment 
+				// to sequence space
+				g2d.drawString("(" + currentCell.getFirst() + ")", x+extraX,      y+extraTitleY+20);
+				g2d.drawString("(" + currentCell.getSecond() + ")", x+2*extraX+40, y+extraTitleY+20);
+			}		
+		} else {
+			g2d.drawString(currentCell.getFirst()+"", x,           y+extraTitleY+20);
+			g2d.drawString(currentCell.getSecond()+"", x+extraX+40, y+extraTitleY+20);			
 		}
+
 
 		g2d.drawString(i_res==null?"?":i_res, x,           y+extraTitleY+40);
 		g2d.drawString(j_res==null?"?":j_res, x+extraX+40, y+extraTitleY+40);
@@ -2125,7 +2127,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			int pos1,pos2;
 			
-			if (seqIdxMode) {
+			if (seqIdxMode) {	// for pymol
 				for (Pair<Integer> cont : selContacts) {
 					if (commonContacts.contains(cont)) {
 						common[FIRST].add(new Pair<Integer>(ali.al2seq(mod.getLoadedGraphID(),cont.getFirst()-1), 
@@ -2170,8 +2172,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						
 						firstOnly[FIRST].add(cont);
 						
-						pos1 = ali.al2seq(mod2.getLoadedGraphID(), cont.getFirst());
-						pos2 = ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond());
+						pos1 = ali.al2seq(mod2.getLoadedGraphID(), cont.getFirst() - 1);
+						pos2 = ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond() - 1);
 						
 						if( pos1 != -1 && pos2 != -1 ) {
 							firstOnly[SECOND].add(cont);
@@ -2181,8 +2183,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					else if (secStrucContacts.contains(cont)) {
 						secondOnly[SECOND].add(cont);
 
-						pos1 = ali.al2seq(mod.getLoadedGraphID(), cont.getFirst());
-						pos2 = ali.al2seq(mod.getLoadedGraphID(), cont.getSecond());
+						pos1 = ali.al2seq(mod.getLoadedGraphID(), cont.getFirst() - 1);
+						pos2 = ali.al2seq(mod.getLoadedGraphID(), cont.getSecond() - 1);
 								
 						if( pos1 != -1 && pos2 != -1 ) {
 							secondOnly[FIRST].add(cont);
