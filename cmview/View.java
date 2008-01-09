@@ -89,7 +89,7 @@ public class View extends JFrame implements ActionListener {
 	// Tool bar buttons
 	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
-	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirstStructure, tbShowSecondStructure;
+	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -116,7 +116,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
-	JMenuItem mmSelCommonContactsInComparedMode,  mmSelFirstStrucInComparedMode,  mmSelSecondStrucInComparedMode;
+	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
 	JMenuItem mmSuposition, mmShowAlignedResidues;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
@@ -141,11 +141,10 @@ public class View extends JFrame implements ActionListener {
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
 	private boolean compareStatus;		// tells ContactMapPane to draw compared contact map if 2. structure is loaded
 	private Color currentPaintingColor;	// current color for coloring contacts selected by the user
-	private boolean selCommonContactsInComparedMode;	// when true, selection on compared contact map in both structures possible
-	private boolean selFirstStrucInComparedMode; // when true selection on compared contact map in first structure possible
-	private boolean selSecondStrucInComparedMode; // when true selection on compared contact map in second structure possible
+	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)
+	private boolean showFirst; 			// when true, contacts unique to first structure displayed in compare mode (and selections are only for first)
+	private boolean showSecond; 		// when true, contacts unique to second structure displayed in compare mode (and selections are only for second)
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
-	private boolean comparisonMode;		// whether comparison functions are enabled
 
 	// global icons TODO: replace these by tickboxes?
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
@@ -181,11 +180,10 @@ public class View extends JFrame implements ActionListener {
 		this.showDensityMap=false;
 		this.showDistanceMap=false;
 		this.currentPaintingColor = Color.blue;
-		this.selCommonContactsInComparedMode= true;
-		this.selFirstStrucInComparedMode= true;
-		this.selSecondStrucInComparedMode= true;
+		this.showCommon= true;
+		this.showFirst= true;
+		this.showSecond= true;
 		this.showDiffDistMap = false;
-		this.comparisonMode = false;
 
 		this.initGUI(); // build gui tree and show window
 		//this.toFront(); // bring window to front
@@ -372,9 +370,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		toolBar.addSeparator(new Dimension(100, 10));
-		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, selCommonContactsInComparedMode, true, false);
-		tbShowFirstStructure = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, selFirstStrucInComparedMode, true, false);
-		tbShowSecondStructure = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, selSecondStrucInComparedMode, true, false);
+		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, showCommon, true, false);
+		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, showFirst, true, false);
+		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, showSecond, true, false);
 
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -534,9 +532,9 @@ public class View extends JFrame implements ActionListener {
 		mmLoadCm2 = makeMenuItem("Contact map file...", null, submenu);
 		mmLoadCaspRR2 = makeMenuItem("CASP RR file...", null, submenu);
 		menu.addSeparator();
-		mmSelCommonContactsInComparedMode = makeMenuItem("Toggle show common contacts", icon_selected, menu);
-		mmSelFirstStrucInComparedMode = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
-		mmSelSecondStrucInComparedMode = makeMenuItem("Toggle show contacts unique in second structure ", icon_selected, menu);		
+		mmShowCommon = makeMenuItem("Toggle show common contacts", icon_selected, menu);
+		mmShowFirst = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
+		mmShowSecond = makeMenuItem("Toggle show contacts unique in second structure ", icon_selected, menu);		
 		menu.addSeparator();
 		mmToggleDiffDistMap = makeMenuItem("Toggle show difference map", icon_deselected, menu);
 		menu.addSeparator();
@@ -801,9 +799,9 @@ public class View extends JFrame implements ActionListener {
 		map.put(delEdgesM, hasMod);
 		// menu -> Compare
 		map.put(smCompare.get("Load"), hasMod);
-		map.put(mmSelCommonContactsInComparedMode,false);
-		map.put(mmSelFirstStrucInComparedMode,false);
-		map.put(mmSelSecondStrucInComparedMode,false);
+		map.put(mmShowCommon,false);
+		map.put(mmShowFirst,false);
+		map.put(mmShowSecond,false);
 		map.put(mmToggleDiffDistMap,false);
 		//map.put(this.getJMenuBar().getMenu(menu2idx.get("Compare")), hasMod);
 
@@ -869,9 +867,9 @@ public class View extends JFrame implements ActionListener {
 		map.put(triangleM,false);
 		map.put(delEdgesM, false);
 		// menu -> Compare
-		map.put(mmSelCommonContactsInComparedMode,true);
-		map.put(mmSelFirstStrucInComparedMode,true);
-		map.put(mmSelSecondStrucInComparedMode,true);
+		map.put(mmShowCommon,true);
+		map.put(mmShowFirst,true);
+		map.put(mmShowSecond,true);
 		map.put(mmToggleDiffDistMap,true);
 		map.put(smCompare.get("Load"),false);
 
@@ -1088,16 +1086,16 @@ public class View extends JFrame implements ActionListener {
 			handleLoadFromCaspRRFile(SECOND_MODEL);
 		}
 
-		if(e.getSource() == mmSelCommonContactsInComparedMode || e.getSource() == tbShowCommon) {
-			handleSelContactsInComparedMode();
+		if(e.getSource() == mmShowCommon || e.getSource() == tbShowCommon) {
+			handleShowCommon();
 		}
 
-		if(e.getSource() == mmSelFirstStrucInComparedMode || e.getSource() == tbShowFirstStructure) {
-			handleSelFirstStrucInComparedMode();
+		if(e.getSource() == mmShowFirst || e.getSource() == tbShowFirst) {
+			handleShowFirst();
 		}
 
-		if(e.getSource() == mmSelSecondStrucInComparedMode || e.getSource() == tbShowSecondStructure) {
-			handleSelSecondStrucInComparedMode();
+		if(e.getSource() == mmShowSecond || e.getSource() == tbShowSecond) {
+			handleShowSecond();
 		}
 
 		if(e.getSource() == mmToggleDiffDistMap) {
@@ -2081,7 +2079,6 @@ public class View extends JFrame implements ActionListener {
 		// add the second model and update the image buffer
 		cmPane.addSecondModel(alignedMod2); // throws DifferentContactMapSizeError
 		compareStatus = true;
-		cmPane.toggleCompareMode(compareStatus);
 		cmPane.updateScreenBuffer();
 
 		// finally repaint the whole thing to display the whole set of contacts
@@ -2616,8 +2613,8 @@ public class View extends JFrame implements ActionListener {
 
 			
 			// COMMON:
-			//   FIRST -> common contacts in first model -> draw solid red lines
-			//   SECOND -> "" second ""                  -> draw solid green lines
+			//   FIRST -> common contacts in first model -> draw solid yellow lines
+			//   SECOND -> "" second ""                  -> draw solid yellow lines
 			// ONLY_FIRST:
 			//   FIRST -> contacts only pres. in first model -> draw solid red lines
 			//   SECOND -> -> draw dashed green lines
@@ -2625,7 +2622,7 @@ public class View extends JFrame implements ActionListener {
 			//   SECOND -> contacts only pres. in sec. model -> draw solid green lines
 			//   FIRST -> -> draw dashed red lines
 			
-			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSelectedContacts(true);
+			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSetsOfSelectedContactsFor3D();
 			
 			// disable all previously made objects and selections only once! 
 			if( !selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].isEmpty() ||
@@ -2766,7 +2763,7 @@ public class View extends JFrame implements ActionListener {
 				} 
 			}
 		} else {
-			IntPairSet contacts   = cmPane.getSelectedContacts(false).get(ContactMapPane.ContactSelSet.SINGLE)[ContactMapPane.FIRST];
+			IntPairSet contacts   = cmPane.getSelContacts();
 
 			Model  mod            = cmPane.getFirstModel();
 			String chainObj       = mod.getLoadedGraphID();
@@ -2876,59 +2873,59 @@ public class View extends JFrame implements ActionListener {
 	/* -------------------- Compare menu -------------------- */
 
 
-	private void handleSelContactsInComparedMode(){		
+	private void handleShowCommon(){		
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				selCommonContactsInComparedMode = !selCommonContactsInComparedMode;
-				cmPane.toggleCompareMode(selCommonContactsInComparedMode);
-				if(selCommonContactsInComparedMode) {
-					mmSelCommonContactsInComparedMode.setIcon(icon_selected);
+				showCommon = !showCommon;
+				cmPane.updateScreenBuffer();
+				if(showCommon) {
+					mmShowCommon.setIcon(icon_selected);
 				} else {
-					mmSelCommonContactsInComparedMode.setIcon(icon_deselected);
+					mmShowCommon.setIcon(icon_deselected);
 				}
 			}
-		tbShowCommon.setSelected(selCommonContactsInComparedMode);
+		tbShowCommon.setSelected(showCommon);
 	}
 
-	private void handleSelFirstStrucInComparedMode(){
+	private void handleShowFirst(){
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				selFirstStrucInComparedMode = !selFirstStrucInComparedMode;
-				cmPane.toggleCompareMode(selFirstStrucInComparedMode);
-				tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
-				if(selFirstStrucInComparedMode) {
-					mmSelFirstStrucInComparedMode.setIcon(icon_selected);
+				showFirst = !showFirst;
+				cmPane.updateScreenBuffer();
+				tbShowFirst.setSelected(showFirst);
+				if(showFirst) {
+					mmShowFirst.setIcon(icon_selected);
 				} else {
-					mmSelFirstStrucInComparedMode.setIcon(icon_deselected);
+					mmShowFirst.setIcon(icon_deselected);
 				}
 			}
-		tbShowFirstStructure.setSelected(selFirstStrucInComparedMode);
+		tbShowFirst.setSelected(showFirst);
 	}
 
-	private void handleSelSecondStrucInComparedMode(){
+	private void handleShowSecond(){
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				selSecondStrucInComparedMode = !selSecondStrucInComparedMode;
-				cmPane.toggleCompareMode(selSecondStrucInComparedMode);
-				if(selSecondStrucInComparedMode) {
-					mmSelSecondStrucInComparedMode.setIcon(icon_selected);
+				showSecond = !showSecond;
+				cmPane.updateScreenBuffer();
+				if(showSecond) {
+					mmShowSecond.setIcon(icon_selected);
 				} else {
-					mmSelSecondStrucInComparedMode.setIcon(icon_deselected);
+					mmShowSecond.setIcon(icon_deselected);
 				}
 			}
-		tbShowSecondStructure.setSelected(selSecondStrucInComparedMode);
+		tbShowSecond.setSelected(showSecond);
 	}
 
 	private void handleToggleDiffDistMap() {
@@ -3143,21 +3140,14 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Sets the comparison mode to the given state. If comparison mode is enabled, buttons
-	 * for comparing structures become active otherwise they become inactive.
+	 * If state=true makes visible the compare buttons (showCommon, showFirst, showSecond), 
+	 * for state=false makes invisible the buttons
 	 * @param state
 	 */
-	public void setComparisonMode(boolean state) {
-		comparisonMode = !comparisonMode;
-		if(comparisonMode) {
-			tbShowCommon.setVisible(true);
-			tbShowFirstStructure.setVisible(true);
-			tbShowSecondStructure.setVisible(true);
-		} else {
-			tbShowCommon.setEnabled(false);
-			tbShowFirstStructure.setVisible(false);
-			tbShowSecondStructure.setVisible(false);			
-		}
+	public void changeVisibilityCompareButtons(boolean state) {
+		tbShowCommon.setVisible(state);
+		tbShowFirst.setVisible(state);
+		tbShowSecond.setVisible(state);
 	}
 
 	/* -------------------- getter methods -------------------- */
@@ -3203,24 +3193,24 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/** 
-	 * Returns whether selection of contacts of both structures on compared contact map is switched on 
+	 * Returns true when show common contacts button is pressed
 	 */
-	public boolean getSelCommonContactsInComparedMode() {
-		return this.selCommonContactsInComparedMode;
+	public boolean getShowCommon() {
+		return this.showCommon;
 	}
 
 	/** 
-	 * Returns whether selection of contacts of the first structure on compared contact map is switched on
+	 * Returns true when show contacts unique to first structure is pressed
 	 */
-	public boolean getSelFirstStrucInComparedMode() {
-		return this.selFirstStrucInComparedMode;
+	public boolean getShowFirst() {
+		return this.showFirst;
 	}
 
 	/** 
-	 * Returns whether selection of contacts of the second structure on compared contact map is switched on
+	 * Returns true when show contacts unique to second structure is pressed
 	 */
-	public boolean getSelSecondStrucInComparedMode() {
-		return this.selSecondStrucInComparedMode;
+	public boolean getShowSecond() {
+		return this.showSecond;
 	}
 
 	/** 
