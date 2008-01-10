@@ -36,7 +36,7 @@ public class Start {
 
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";		// name of this application
-	public static final String		VERSION = 				"0.9";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"0.9.1";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
@@ -70,7 +70,7 @@ public class Start {
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
 	// constants not in config file yet
-	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom allowed)
+	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
 	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
@@ -86,9 +86,9 @@ public class Start {
 	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
 	// database connection
-	public static String			DB_HOST = "white";								// TODO: change to dummy name
+	public static String			DB_HOST = "localhost";							// TODO: change to dummy name
 	public static String			DB_USER = getUserName();						// guess user name
-	public static String			DB_PWD = "nieve";								// TODO: change to tiger
+	public static String			DB_PWD = "tiger";								// TODO: change to tiger
 	
 	// default values for loading contact maps
 	public static String			DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
@@ -100,10 +100,10 @@ public class Start {
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
 	// anything directly connected to class View
-	public static int				VIEW_INSTANCES = 0;
+	public static int				VIEW_INSTANCES = 0;			// TODO: not a constant
 	
 	// internal status variables
-	protected static boolean		database_found = true;
+	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
 	protected static boolean		pymol_found = true;
 	protected static boolean		dssp_found = true;			// check later whether dssp can be used
 	protected static Properties		userProperties;				// properties read from the user's config file
