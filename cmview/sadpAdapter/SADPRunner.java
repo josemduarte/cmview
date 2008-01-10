@@ -169,16 +169,17 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	}
 
 	private Model getFirstOutputModel() {
-		return getXoutputModel(getFirstInputModel(),getFirstAlignedGraph());
+		return getXoutputModel(getFirstInputModel(),getFirstAlignedGraph(),name1);
 	}
 
 	private Model getSecondOutputModel() {
-		return getXoutputModel(getSecondInputModel(),getSecondAlignedGraph());
+		return getXoutputModel(getSecondInputModel(),getSecondAlignedGraph(),name2);
 	}
 
-	private Model getXoutputModel(Model inMod, RIGraph g) {
+	private Model getXoutputModel(Model inMod, RIGraph g, String tag) {
 		Model outMod = inMod.copy();
 		outMod.setGraph(g);
+		outMod.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali, inMod.getSecondaryStructure(), tag) );
 		return outMod;
 	}
 

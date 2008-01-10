@@ -133,7 +133,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 			numContacts2 = Integer.toString(mod2.getNumberOfContacts());
 			directed2 = (mod2.isDirected()?"Yes":"No");
 			secStrucSrc2 = mod2.getSecondaryStructure().getComment();
-			int commonContacts = cmPane.getCommonContacts(1, 2).size();
+			int commonContacts = cmPane.getCommonContacts().size();
 			commonContactsStr = Integer.toString(commonContacts);
 			uniqueContactsStr1 = Integer.toString(mod.getNumberOfContacts() - commonContacts);
 			uniqueContactsStr2 = Integer.toString(mod2.getNumberOfContacts() - commonContacts);

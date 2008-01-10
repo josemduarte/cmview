@@ -1698,8 +1698,10 @@ public class View extends JFrame implements ActionListener {
 		// create the aligned models from the original once
 		alignedMod1 = mod1.copy();
 		alignedMod1.setGraph(pagc.getFirstGraph());
+		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
 		alignedMod2 = mod2.copy();
 		alignedMod2.setGraph(pagc.getSecondGraph());
+		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
 
 		// load stuff onto the contact map pane and the visualizer
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
@@ -1710,7 +1712,7 @@ public class View extends JFrame implements ActionListener {
 				
 		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getLoadedGraphID(),
 				mod2.getLoadedGraphID(),
@@ -1792,10 +1794,12 @@ public class View extends JFrame implements ActionListener {
 		// use alignment along with the graphs of the original models to 
 		// create the gapped graphs
 		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
-		alignedMod1 = mod1.copy();			// why copying here? is the original still being used?
+		alignedMod1 = mod1.copy();			
 		alignedMod1.setGraph(pagc.getFirstGraph());
+		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
 		alignedMod2 = mod2.copy();
 		alignedMod2.setGraph(pagc.getSecondGraph());
+		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
 
 		// load stuff onto the contact map pane and the visualizer
 		try {
@@ -1812,7 +1816,7 @@ public class View extends JFrame implements ActionListener {
 		// show superpositioning based on the common contacts in 
 		// pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getLoadedGraphID(),
 				mod2.getLoadedGraphID(),
@@ -1983,8 +1987,10 @@ public class View extends JFrame implements ActionListener {
 		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
 		alignedMod1 = mod1.copy();
 		alignedMod1.setGraph(pagc.getFirstGraph());
+		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
 		alignedMod2 = mod2.copy();
 		alignedMod2.setGraph(pagc.getSecondGraph());
+		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
 
 		// load stuff onto the contact map pane and the visualizer
 		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
@@ -1993,10 +1999,9 @@ public class View extends JFrame implements ActionListener {
 		// clear the view (disables all previous selections)
 		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 		
-		// show superpositioning based on the common contacts in 
-		// pymol
+		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
+		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
 		doSuperposition(alignedMod1, alignedMod2, 
 				mod.getLoadedGraphID(),
 				mod2.getLoadedGraphID(),
@@ -2037,7 +2042,7 @@ public class View extends JFrame implements ActionListener {
 				// show superpositioning according to the common contacts in 
 				// pymol
 				TreeSet<Integer> columns = new TreeSet<Integer>();
-				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(1, 2),columns); 
+				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
 				doSuperposition(alignedMod1, alignedMod2, 
 						mod.getLoadedGraphID(),
 						mod2.getLoadedGraphID(),
@@ -2077,7 +2082,7 @@ public class View extends JFrame implements ActionListener {
 		cmPane.setSecondModel(alignedMod2, ali); // throws DifferentContactMapSizeError
 		compareStatus = true;
 		cmPane.updateScreenBuffer();
-
+		setSelectionMode(SQUARE_SEL);	// we reset to SQUARE_SEL in case another one was switched on
 		// finally repaint the whole thing to display the whole set of contacts
 		cmPane.repaint();
 	}
@@ -2878,7 +2883,7 @@ public class View extends JFrame implements ActionListener {
 				showNoSecondContactMapWarning();
 			} else {
 				showCommon = !showCommon;
-				cmPane.updateScreenBuffer();
+				cmPane.toggleShownContacts(showCommon);
 				if(showCommon) {
 					mmShowCommon.setIcon(icon_selected);
 				} else {
@@ -2896,7 +2901,7 @@ public class View extends JFrame implements ActionListener {
 				showNoSecondContactMapWarning();
 			} else {
 				showFirst = !showFirst;
-				cmPane.updateScreenBuffer();
+				cmPane.toggleShownContacts(showFirst);
 				tbShowFirst.setSelected(showFirst);
 				if(showFirst) {
 					mmShowFirst.setIcon(icon_selected);
@@ -2915,7 +2920,7 @@ public class View extends JFrame implements ActionListener {
 				showNoSecondContactMapWarning();
 			} else {
 				showSecond = !showSecond;
-				cmPane.updateScreenBuffer();
+				cmPane.toggleShownContacts(showSecond);
 				if(showSecond) {
 					mmShowSecond.setIcon(icon_selected);
 				} else {

@@ -181,16 +181,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected Color verticalNodeSelectionColor;		// color for vertically
 													// selected residues (using
 													// xor mode)
-	private Color commonContactsColor; 		// color for contact map
-											// comparison where both maps
-											// have contacts
-	private Color contactsMainStrucColor; 		// color for contact map
-												// comparison where the main
-												// structure has contacts
-	private Color contactsSecStrucColor;		// color for contact map
-												// comparison where just the
-												// second structure has a
-												// contact
+	private Color commonContactsColor; 		// color for common contacts
+											// in compare mode
+	private Color uniqueToFirstContactsColor; 	// color for contacts unique to 
+												// first structure in compare mode
+	private Color uniqueToSecondContactsColor;	// color for contacts unique to 
+												// second structure in compare mode
 
 	// status variables for concurrency
 	private int threadCounter;				// counts how many background
@@ -237,8 +233,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.horizontalNodeSelectionColor = new Color(200,200,255);
 		this.verticalNodeSelectionColor = new Color(255,200,255);
 		this.commonContactsColor = Color.black;
-		this.contactsMainStrucColor = Color.magenta;
-		this.contactsSecStrucColor = Color.green;
+		this.uniqueToFirstContactsColor = Color.magenta;
+		this.uniqueToSecondContactsColor = Color.green;
 
 		setBackground(backgroundColor);
 	}
@@ -544,7 +540,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawContactMap(Graphics2D g2d) {
 		if (!view.getCompareStatus()) { // single contact map mode
 			for (Pair<Integer> cont:allContacts){
-				// in single contact map mode we can also have contacst colored by user
+				// in single contact map mode we can also have contacts colored by user
 				if(userContactColors.containsKey(cont)) {
 					g2d.setColor(userContactColors.get(cont)); 
 				} else {
@@ -567,91 +563,53 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 			// 2) common=0, first=0, second=1
 			else if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
-
-				for(Pair<Integer> secCont:uniqueToSecondContacts){
-					g2d.setColor(contactsSecStrucColor);
-					drawContact(g2d, secCont);
-				}	
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 3) common=0, first=1, second=0 
 			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
-
-				for(Pair<Integer> mainCont:uniqueToFirstContacts){
-					g2d.setColor(contactsMainStrucColor);
-					drawContact(g2d, mainCont);
-				}
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
 			// 4) common=0, first=1, second=1
 			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
-
-				for(Pair<Integer> mainCont:uniqueToFirstContacts){
-					g2d.setColor(contactsMainStrucColor);
-					drawContact(g2d, mainCont);
-				}
-
-				for(Pair<Integer> secCont:uniqueToSecondContacts){
-					g2d.setColor(contactsSecStrucColor);
-					drawContact(g2d, secCont);
-				}
-
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 5) common=1, first=0, second=0
 			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
-
-				for(Pair<Integer> comCont:commonContacts){
-					g2d.setColor(commonContactsColor);
-					drawContact(g2d, comCont);
-				}
-
+				drawContacts(g2d,commonContacts,commonContactsColor);
 			}
 			// 6) common=1, first=0, second=1
 			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
-
-				for(Pair<Integer> comCont:commonContacts){
-					g2d.setColor(commonContactsColor);
-					drawContact(g2d, comCont);
-				}
-
-				for(Pair<Integer> secCont:uniqueToSecondContacts){
-					g2d.setColor(contactsSecStrucColor);
-					drawContact(g2d, secCont);
-				}
+				drawContacts(g2d,commonContacts,commonContactsColor);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 7) common=1, first=1, second=0
 			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
-
-				for(Pair<Integer> comCont:commonContacts){
-					g2d.setColor(commonContactsColor);
-					drawContact(g2d, comCont);
-				}
-
-				for(Pair<Integer> mainCont:uniqueToFirstContacts){
-					g2d.setColor(contactsMainStrucColor);
-					drawContact(g2d, mainCont);
-				}
-
+				drawContacts(g2d,commonContacts,commonContactsColor);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
 			// 8) common=1, first=1, second=1
 			else {
-				for(Pair<Integer> comCont:commonContacts){
-					g2d.setColor(commonContactsColor);
-					drawContact(g2d, comCont);
-				}
-
-				for(Pair<Integer> mainCont:uniqueToFirstContacts){
-					g2d.setColor(contactsMainStrucColor);
-					drawContact(g2d, mainCont);
-				}
-
-				for(Pair<Integer> secCont:uniqueToSecondContacts){
-					g2d.setColor(contactsSecStrucColor);
-					drawContact(g2d, secCont);
-				}
-
+				drawContacts(g2d,commonContacts,commonContactsColor);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 		}
 	}
-
+	
+	/**
+	 * Draws contacts for the given contact set in the given color
+	 * @param g2d
+	 * @param contactSet
+	 * @param color
+	 */
+	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color) {
+		for(Pair<Integer> cont:contactSet){
+			g2d.setColor(color);
+			drawContact(g2d, cont);
+		}	
+	}
+	
 	/**
 	 * Draws the given contact cont to the given graphics object g2d using the
 	 * global contactSquareSize and g2d current painting color.
@@ -699,8 +657,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if( !this.hasSecondModel() ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",false);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",false);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",Start.SHOW_ALIGNMENT_COORDS);
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",Start.SHOW_ALIGNMENT_COORDS);
 		}
 	}
 
@@ -1665,6 +1623,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
+	 * To be called when one of the 3 showing contacts button (common, first, 
+	 * second) is clicked
+	 * @param state true if we switch to show, false if we switch to hids
+	 */
+	protected void toggleShownContacts(boolean state) {
+		if (state == false) { //we are hiding a set of contacts: we reset selection 
+			this.resetSelections();
+		}
+		this.updateScreenBuffer(); // takes care of redrawing contact map
+	}
+	
+	/**
 	 * Show/hide common neighbourhood size map
 	 */	
 	protected void toggleNbhSizeMap(boolean state) {
@@ -1777,10 +1747,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 //	}
 
+	/**
+	 * Deletes currently select contacts. Currently it only delets from the first
+	 *  model.
+	 * If we allow deleting in compare mode then deleting from second model 
+	 * must be added here
+	 */
 	public void deleteSelectedContacts() {
 		for (Pair<Integer> cont:selContacts){
 			mod.removeEdge(cont);
 		}
+		//TODO add deletion of second model contacts if we allow deletion in compare mode
 		resetSelections();
 		reloadContacts();	// will update screen buffer and repaint
 	}
@@ -2302,22 +2279,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point getCellLowerRight(Pair<Integer> cont){
 		Point point = getCellUpperLeft(cont);
 		return new Point (point.x+(int)Math.ceil(ratio),point.y+(int)Math.ceil(ratio));
-		// actually these are the green contacts
 	}
 
 	/**
-	 * Gets the common contacts for the given pair of input models. <p>
-	 * NOTE: At the moment, 1 corresponds to the first model and 2 to the 
-	 * second model. Any other combination of indices yields null as return 
-	 * value.
-	 * @param idxFirst  index indicating a certain model
-	 * @param idxSecond  index indicating another model, supposed to be 
-	 *  different from idxFirst
-	 * @return the edge set of common contacts corresponding to the given model
-	 *  identifiers
+	 * Gets the common contacts for the 2 loaded models
+	 * @return the set of common contacts corresponding, null if there's no 
+	 * second model 
 	 */
-	public IntPairSet getCommonContacts(int idxFirst, int idxSecond) {
-		if(idxFirst == 1 && idxSecond == 2 || idxFirst == 2 && idxSecond == 1) {
+	public IntPairSet getCommonContacts() {
+		if(this.hasSecondModel()) {
 			return commonContacts;
 		} else {
 			return null;

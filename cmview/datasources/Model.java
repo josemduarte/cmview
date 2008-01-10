@@ -557,6 +557,14 @@ public abstract class Model {
 		return this.secondaryStructure;
 	}
 
+	/**
+	 * Sets the secondary structure member
+	 * @param secStruct
+	 */
+	public void setSecSctruct(SecondaryStructure secStruct)	{
+		this.secondaryStructure = secStruct;
+	}
+	
 	// end of secondary structure related methods
 	
 	/**

@@ -73,6 +73,7 @@ public class Start {
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom allowed)
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
+	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
 	
 	// pymol connection
 	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
