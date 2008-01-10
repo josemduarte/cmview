@@ -65,7 +65,7 @@ public class Start {
 	
 	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
 	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
-	public static String			DSSP_EXECUTABLE = "/project/StruPPi/Software/dssp/dsspcmbi";
+	public static String			DSSP_EXECUTABLE = ""; 				
 	public static String			DSSP_PARAMETERS = "--";
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
@@ -79,7 +79,7 @@ public class Start {
 	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
 	public static String			PYMOL_PORT =			"9123";		 // default port, if port is blocked, pymol will increase automatically
 	public static String			PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT;
-	public static String			PYMOL_EXECUTABLE = 		"/project/StruPPi/bin/pymol-1.0"; // to start pymol automatically
+	public static String			PYMOL_EXECUTABLE = 		""; 		// to start pymol automatically
 	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMView_pymol.log";
 	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMView_pymol.cmd";
 	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
@@ -91,9 +91,9 @@ public class Start {
 	public static String			DB_PWD = "tiger";								// TODO: change to tiger
 	
 	// default values for loading contact maps
-	public static String			DEFAULT_GRAPH_DB =			"pdb_reps_graph"; 	// shown in load from graph db dialog
-	public static String     		DEFAULT_PDB_DB = 			"pdbase";			// for loading from command line
-	public static String			DEFAULT_MSDSD_DB =			"msdsd_00_07_a";	// used when loading structures for cm file graphs
+	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
+	public static String     		DEFAULT_PDB_DB = 			"";					// for loading from command line
+	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
@@ -617,16 +617,18 @@ public class Start {
 		// load configuration
 		boolean configFileFound = false;
 		selectedProperties = getSelectedProperties();	// initialize default options
+		userProperties = new Properties();
 		
 		// loading from current directory
+		File currentDirConfigFile = new File(CONFIG_FILE_NAME);
 		try {
-			Properties p = loadUserProperties(CONFIG_FILE_NAME);
-			System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
-			userProperties = p;
-			applyUserProperties(userProperties);
-			configFileFound = true;
-		} catch (FileNotFoundException e) {
-			// file not found, continue
+			if(currentDirConfigFile.exists()) {
+				Properties p = loadUserProperties(CONFIG_FILE_NAME);
+				System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
+				userProperties.putAll(p);
+				applyUserProperties(userProperties);
+				configFileFound = true;
+			}
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + CONFIG_FILE_NAME + ": " + e.getMessage());
 		}
@@ -640,8 +642,6 @@ public class Start {
 				applyUserProperties(userProperties);
 				configFileFound = true;
 			}
-		} catch (FileNotFoundException e) {
-			// file not found, continue
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + userConfigFile.getAbsolutePath() + ": " + e.getMessage());
 		}
@@ -649,13 +649,13 @@ public class Start {
 		// loading from file given as command line parameter
 		try {
 			if (cmdLineConfigFile!=null) {
-				System.out.println("Loading command line configuration file " + cmdLineConfigFile);
-				userProperties.putAll(loadUserProperties(cmdLineConfigFile));
-				applyUserProperties(userProperties);
-				configFileFound = true;
+				if(new File(cmdLineConfigFile).exists()) {
+					System.out.println("Loading command line configuration file " + cmdLineConfigFile);
+					userProperties.putAll(loadUserProperties(cmdLineConfigFile));
+					applyUserProperties(userProperties);
+					configFileFound = true;
+				}
 			}
-		} catch (FileNotFoundException e) {
-			// file not found, continue
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + cmdLineConfigFile + ": " + e.getMessage());
 		}
