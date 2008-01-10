@@ -479,7 +479,7 @@ public class PyMolAdaptor {
 
 		System.err.println(
 				"Warning: The alignment of "+pdbCodeFirst+chainCodeFirst+" and "+
-				pdbCodeSecond+chainCodeSecond+" lacks of corresponding residues! "+
+				pdbCodeSecond+chainCodeSecond+" lacks corresponding residues! "+
 				"No superposition of the structures can be displayed!"
 		);	        
 	}
