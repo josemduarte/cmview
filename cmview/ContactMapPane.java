@@ -284,56 +284,64 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(mod.getMatrixSize() != mod2.getMatrixSize()) {
 			// this shouldn't happen since we are aligning before adding the second model, but is a good sanity check
 			throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of different size.");
-		} else {
-			System.out.println("Second model loaded.");
-			view.changeVisibilityCompareButtons(true);
-			String title = mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
-			view.setTitle("Comparing " + title);
-			
-			this.mod2 = mod2;
-			
-			this.ali = ali;
-			
-			// getting all contacts of the second structure
-			this.allSecondContacts = mod2.getContacts();
-			
-			// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
+		} 
 
-			for (Pair<Integer> cont2:allSecondContacts){
-				// contacts in second and also in first are common
-				if (allContacts.contains(cont2)) {
-					commonContacts.add(cont2);
-				}
-				// contacts in second and not in first are uniqueToSecond
-				else if(!allContacts.contains(cont2)){
-					uniqueToSecondContacts.add(cont2);
-				}
+		this.mod2 = mod2;
+		this.ali = ali;
+
+		// getting all contacts of the second structure
+		this.allSecondContacts = mod2.getContacts();
+
+		// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
+
+		for (Pair<Integer> cont2:allSecondContacts){
+			// contacts in second and also in first are common
+			if (allContacts.contains(cont2)) {
+				commonContacts.add(cont2);
 			}
-
-			// contacts in first and not in second are uniqueToFirst
-			for (Pair<Integer> cont:allContacts){
-				if (!allSecondContacts.contains(cont)){
-					uniqueToFirstContacts.add(cont);
-				}
+			// contacts in second and not in first are uniqueToSecond
+			else if(!allContacts.contains(cont2)){
+				uniqueToSecondContacts.add(cont2);
 			}
-
-			// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
-			bothStrucContacts = new IntPairSet();
-			bothStrucContacts.addAll(uniqueToFirstContacts);
-			bothStrucContacts.addAll(uniqueToSecondContacts);
-			bothStrucContacts.addAll(commonContacts);
-			
-			// allButCommon = uniqueToFirst+uniqueToSecond
-			allButCommonContacts = new IntPairSet();
-			allButCommonContacts.addAll(uniqueToFirstContacts);
-			allButCommonContacts.addAll(uniqueToSecondContacts);
-
-			// finally resetting selections to make sure we start the comparison from clean
-			this.selContacts = new IntPairSet();
-			this.tmpContacts = new IntPairSet();
-			this.selHorNodes = new TreeSet<Integer>();
-			this.selVertNodes = new TreeSet<Integer>();
 		}
+
+		// contacts in first and not in second are uniqueToFirst
+		for (Pair<Integer> cont:allContacts){
+			if (!allSecondContacts.contains(cont)){
+				uniqueToFirstContacts.add(cont);
+			}
+		}
+
+		// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
+		bothStrucContacts = new IntPairSet();
+		bothStrucContacts.addAll(uniqueToFirstContacts);
+		bothStrucContacts.addAll(uniqueToSecondContacts);
+		bothStrucContacts.addAll(commonContacts);
+
+		// allButCommon = uniqueToFirst+uniqueToSecond
+		allButCommonContacts = new IntPairSet();
+		allButCommonContacts.addAll(uniqueToFirstContacts);
+		allButCommonContacts.addAll(uniqueToSecondContacts);
+
+		//TODO: at the moment when loading a second model we always also reload the first, so resetting here is commented out. If we change that behaviour we must make sure we do this resetting
+		// finally resetting things  
+//		this.contactMapSize = mod.getMatrixSize();
+//		this.mousePos = new Point();
+//		this.mousePressedPos = new Point();
+//		this.mouseDraggingPos = new Point();
+//		this.currCommonNbh = null; // no common nbh selected
+//
+//		this.dragging = false;
+//		this.showCommonNbs = false;
+//		this.showRulerCoord = false;
+//		this.userContactColors = new Hashtable<Pair<Integer>, Color>();
+//		this.densityMatrix = null;
+//		this.comNbhSizes = null;
+//		this.diffDistMap = null;
+//
+//		// initializes outputSize, ratio and contactSquareSize
+//		setOutputSize(Math.min(screenSize.height, screenSize.width)); 
+
 	}
 
 	/**

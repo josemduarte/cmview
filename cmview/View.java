@@ -370,9 +370,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		toolBar.addSeparator(new Dimension(100, 10));
-		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, showCommon, true, false);
-		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, showFirst, true, false);
-		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, showSecond, true, false);
+		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, showCommon, false, false);
+		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, showFirst, false, false);
+		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, showSecond, false, false);
 
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -892,6 +892,16 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbShowComNbh3D, false);
 		map.put(tbDelete, false);
 
+		map.put(tbShowCommon, true);
+		map.put(tbShowFirst, true);
+		map.put(tbShowSecond, true);
+
+		// the show common/first/second buttons are a special case: 
+		// they've ben inatialised invisible, we need also to make them visible
+		tbShowCommon.setVisible(true);
+		tbShowFirst.setVisible(true);
+		tbShowSecond.setVisible(true);
+		
 		return map;
 	}
 
@@ -2074,9 +2084,13 @@ public class View extends JFrame implements ActionListener {
 	private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali) 
 	throws DifferentContactMapSizeError {
 
-		// add first model and update the image buffer
+		// add first model
 		cmPane.setModel(alignedMod1);
-		//cmPane.updateScreenBuffer();
+
+		// re-setting window title
+		System.out.println("Second model loaded.");
+		String title = alignedMod1.getLoadedGraphID() +" and "+alignedMod2.getLoadedGraphID();
+		this.setTitle("Comparing " + title);
 
 		// add the second model and update the image buffer
 		cmPane.setSecondModel(alignedMod2, ali); // throws DifferentContactMapSizeError
@@ -3139,17 +3153,6 @@ public class View extends JFrame implements ActionListener {
 				this.dispose();
 			}
 		}
-	}
-
-	/**
-	 * If state=true makes visible the compare buttons (showCommon, showFirst, showSecond), 
-	 * for state=false makes invisible the buttons
-	 * @param state
-	 */
-	public void changeVisibilityCompareButtons(boolean state) {
-		tbShowCommon.setVisible(state);
-		tbShowFirst.setVisible(state);
-		tbShowSecond.setVisible(state);
 	}
 
 	/* -------------------- getter methods -------------------- */
