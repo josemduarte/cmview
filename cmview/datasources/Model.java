@@ -388,7 +388,16 @@ public abstract class Model {
 	 */	
 	public String getResType1Letter(int resser){
 		return AAinfo.threeletter2oneletter(this.getResType(resser));
-	}	
+	}
+	
+	/**
+	 * Returns the RIGNode for the given residue serial
+	 * @param resser
+	 * @return
+	 */
+	public RIGNode getNodeFromSerial(int resser) {
+		return this.graph.getNodeFromSerial(resser);
+	}
 	
 	public RIGNbhood getNbhood(int i_resser){
 		return graph.getNbhood(graph.getNodeFromSerial(i_resser));
@@ -484,10 +493,6 @@ public abstract class Model {
 		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
 			System.err.println("Failed to compute difference distance map. No 3D coordinates.");
 			return null; // distance doesn't make sense without 3D data	
-		}
-		if(this.getMatrixSize() != secondModel.getMatrixSize()) {
-			System.err.println("Failed to compute difference distance map. Matrix sizes do not match.");
-			return null; // can only calculate matrix difference if sizes match TODO: use alignment
 		}
 		
 		String name1 = this.getLoadedGraphID();

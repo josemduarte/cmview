@@ -39,7 +39,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	private static final Color UNEXPECTED_SS_COLOR = Color.gray;
 	
 	private ContactMapPane cmPane;
-	private Model mod; 
+	private Model mod;
  	private View view;
 	private int rulerWidth;
 	private int rulerLength;
@@ -62,7 +62,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		this.cmPane = cmPane;
 		this.mod = mod;
 		this.view = view;
-		this.contactMapSize = mod.getMatrixSize();
+		this.contactMapSize = cmPane.getAlignment().getAlignmentLength();
 		this.offSet = 0;
 		//this.mouseIn = false;
 		//this.pos = new Point();
@@ -110,8 +110,8 @@ public class ResidueRuler extends JPanel implements MouseListener,
 				} else {
 					g2d.setColor(UNEXPECTED_SS_COLOR);
 				}
-				Point startPoint = getOuterBorderCentrePoint(ssElem.getInterval().beg);
-				Point endPoint = getInnerBorderCentrePoint(ssElem.getInterval().end);
+				Point startPoint = getOuterBorderCentrePoint(cmPane.mapSeq2Al(mod.getLoadedGraphID(),ssElem.getInterval().beg));
+				Point endPoint = getInnerBorderCentrePoint(cmPane.mapSeq2Al(mod.getLoadedGraphID(),ssElem.getInterval().end));
 				g2d.fillRect(startPoint.x,startPoint.y,endPoint.x-startPoint.x,endPoint.y-startPoint.y);
 			}
 		}
@@ -257,7 +257,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					cmPane.repaint();
 
 				} else {
-					SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(clickedRes);
+					SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(cmPane.mapAl2Seq(mod.getLoadedGraphID(),clickedRes));
 					if(ssElem==null) {
 						// clicking outside of secondary structure
 						if(!evt.isControlDown()) { // default behaviour: control-click on whitespace does nothing
@@ -270,24 +270,25 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					} else {
 						// clicking on secondary structure element
 						Interval ssint = ssElem.getInterval();
+						Interval ssintAliIdx = new Interval(cmPane.mapSeq2Al(mod.getLoadedGraphID(), ssint.beg),cmPane.mapSeq2Al(mod.getLoadedGraphID(), ssint.end));
 						if(evt.isControlDown()) {
 							// adding to current selection
-							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end);
+							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end); // for the user we want to show sequence indices
 							if(location==TOP || location==BOTTOM) {
 								if(cmPane.getSelVertNodes().contains(clickedRes)) {
 									// selected already: deselect
-									cmPane.deselectNodesVertically(ssint);
+									cmPane.deselectNodesVertically(ssintAliIdx);
 								} else {
 									// otherwise: select
-									cmPane.selectNodesVertically(ssint);
+									cmPane.selectNodesVertically(ssintAliIdx);
 								}
 							} else {
 								if(cmPane.getSelHorNodes().contains(clickedRes)) {
 									// selected already: deselect
-									cmPane.deselectNodesHorizontally(ssint);
+									cmPane.deselectNodesHorizontally(ssintAliIdx);
 								} else {
 									// otherwise: select
-									cmPane.selectNodesHorizontally(ssint);
+									cmPane.selectNodesHorizontally(ssintAliIdx);
 								}
 							}
 						} else {
@@ -295,10 +296,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end);
 							if(location==TOP || location==BOTTOM) {
 								cmPane.resetVerticalNodeSelection();
-								cmPane.selectNodesVertically(ssint);
+								cmPane.selectNodesVertically(ssintAliIdx);
 							} else {
 								cmPane.resetHorizontalNodeSelection();
-								cmPane.selectNodesHorizontally(ssint);
+								cmPane.selectNodesHorizontally(ssintAliIdx);
 							}	
 						}
 					}
@@ -311,13 +312,13 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseEntered(MouseEvent evt) {
-		//cmPane.showRulerCrosshair();	// doesn't work properly
+		//cmPane.showRulerCrosshair();	// doesn't work properly TODO why??
 		cmPane.showRulerCoordinate();
 		mouseMoved(evt);
 	}
 
 	public void mouseExited(MouseEvent evt) {
-		//cmPane.hideRulerCrosshair();	// doesn't work properly
+		//cmPane.hideRulerCrosshair();	// doesn't work properly TODO why??
 		cmPane.hideRulerCoordinate();
 		cmPane.repaint();
 	}

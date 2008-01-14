@@ -14,7 +14,6 @@ import proteinstructure.Alignment;
 import proteinstructure.AlignmentConstructionError;
 import proteinstructure.RIGraph;
 import proteinstructure.PairwiseAlignmentConverter;
-import proteinstructure.PairwiseAlignmentGraphConverter;
 
 import sadp.ContactMap;
 import sadp.ContactMapConstructorError;
@@ -26,8 +25,6 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	Model     inMod2;
 	RIGraph     inG1;
 	RIGraph     inG2;
-	RIGraph     outG1;
-	RIGraph     outG2;
 	TreeSet<Pair<Integer>>  matching;
 	Alignment ali;
 	String    name1;
@@ -106,7 +103,6 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 			System.err.println("Error: Construction of alignment from mapping failed: " + e.getMessage());
 			return null;
 		}
-		makeAlignedGraphs(ali);
 
 		// fill results object
 		result.setScore(sadp.getScore());
@@ -115,8 +111,6 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		result.setAlignment(getAlignment());
 		result.setFirstName(getFirstName());
 		result.setSecondName(getSecondName());
-		result.setFirstOutputModel(getFirstOutputModel());
-		result.setSecondOutputModel(getSecondOutputModel());
 				
 		if( getActionWhenDone() != null ) {
 			Start.threadPool.submit(
@@ -142,45 +136,6 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	 * */
 	private Alignment getAlignment() {
 		return ali;
-	}
-
-	/**
-	 * Gets first aligned graph, i.e., the graph corresponding to the first
-	 * input model resulting from the alignment of the two input models. The 
-	 * sequence information in that graph is the same as the sequence in the
-	 * alignment.
-	 * @see getAlignment()
-	 * @see getFirstName();
-	 */
-	private RIGraph getFirstAlignedGraph() {
-		return outG1; 
-	}
-
-	/**
-	 * Gets second aligned graph, i.e., the graph corresponding to the second
-	 * input model resulting from the alignment of the two input model. The 
-	 * sequence information in that graph is the same as the sequence in the
-	 * alignment.
-	 * @see getAlignment()
-	 * @see getSecondName();
-	 */
-	private RIGraph getSecondAlignedGraph() {
-		return outG2;
-	}
-
-	private Model getFirstOutputModel() {
-		return getXoutputModel(getFirstInputModel(),getFirstAlignedGraph(),name1);
-	}
-
-	private Model getSecondOutputModel() {
-		return getXoutputModel(getSecondInputModel(),getSecondAlignedGraph(),name2);
-	}
-
-	private Model getXoutputModel(Model inMod, RIGraph g, String tag) {
-		Model outMod = inMod.copy();
-		outMod.setGraph(g);
-		outMod.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali, inMod.getSecondaryStructure(), tag) );
-		return outMod;
 	}
 
 	/**
@@ -228,24 +183,5 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		return ali;
 	}
 
-	/**
-	 * Makes the two aligned output graph based on an alignment. 
-	 */
-	private void makeAlignedGraphs( Alignment ali ) {
-		// sequence information for the gapped graphs is deduced from the alignment
-		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,inG1,inG2);
-		outG1 = pagc.getFirstGraph();
-		outG2 = pagc.getSecondGraph();
-	}
-
-
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
 
 }

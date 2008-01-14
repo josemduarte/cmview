@@ -27,7 +27,6 @@ import proteinstructure.Interval;
 import proteinstructure.RIGNbhood;
 import proteinstructure.RIGNode;
 import proteinstructure.SecStrucElement;
-import proteinstructure.SecondaryStructure;
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -201,7 +200,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param mod
 	 * @param view
 	 */
-	public ContactMapPane(Model mod, View view){
+	public ContactMapPane(Model mod, Alignment ali, View view){
 		//this.mod = mod;  // outsourced the setting of the model to function setModel which is invoked further below
 		this.mod2 = null;
 		this.view = view;
@@ -212,12 +211,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		this.screenSize = new Dimension(Start.INITIAL_SCREEN_SIZE, Start.INITIAL_SCREEN_SIZE);
 
-		// HINT: initialisation of some data member stuff has been moved to function setModel
+		this.mousePos = new Point();
+		this.mousePressedPos = new Point();
+		this.mouseDraggingPos = new Point();
 
-		// sets the model, initialises all data members directly 
-		// connected to the effective model
-		setModel(mod);
-
+		// sets the model, initialises all data members
+		setModel(mod, ali);
+		
 		// set default colors
 		this.contactColor = Color.black;
 		this.selContactsColor = Color.red;
@@ -245,9 +245,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * 
 	 * @param mod  the model to be set
 	 */
-	public void setModel(Model mod) {
+	public void setModel(Model mod, Alignment ali) {
 		this.mod = mod;
-		this.allContacts = mod.getContacts();
+		this.ali = ali;
+		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts()); //TODO beware at the moment this introduces a +1
 		this.selContacts = new IntPairSet();
 		this.tmpContacts = new IntPairSet();
 		this.selHorNodes = new TreeSet<Integer>();
@@ -256,13 +257,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.uniqueToFirstContacts = new IntPairSet();
 		this.uniqueToSecondContacts = new IntPairSet();
 
-		this.contactMapSize = mod.getMatrixSize();
-		this.mousePos = new Point();
-		this.mousePressedPos = new Point();
-		this.mouseDraggingPos = new Point();
-		this.currCommonNbh = null; // no common nbh selected
-
+		this.contactMapSize = mod.getMatrixSize(); //TODO get it from alignment instead? ali.getAlignmentLength()
+		// initializes outputSize, ratio and contactSquareSize
+		setOutputSize(Math.min(screenSize.height, screenSize.width)); 		
+		
 		this.dragging = false;
+		this.currCommonNbh = null; // no common nbh selected
 		this.showCommonNbs = false;
 		this.showRulerCoord = false;
 		this.userContactColors = new Hashtable<Pair<Integer>, Color>();
@@ -270,28 +270,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.comNbhSizes = null;
 		this.diffDistMap = null;
 
-		// initializes outputSize, ratio and contactSquareSize
-		setOutputSize(Math.min(screenSize.height, screenSize.width)); 
 	}
 
 	/** 
 	 * Add the given new model for contact map comparison. 
 	 * @param mod2  the second model
 	 * @param ali	the alignment of first and second model
-	 * @throws DifferentContactMapSizeError
 	 */
-	public void setSecondModel(Model mod2, Alignment ali) throws DifferentContactMapSizeError {
-		// check for number of residues
-		if(mod.getMatrixSize() != mod2.getMatrixSize()) {
-			// this shouldn't happen since we are aligning before adding the second model, but is a good sanity check
-			throw new DifferentContactMapSizeError("ContactMapPane may not contain two models of different size.");
-		} 
+	public void setSecondModel(Model mod2, Alignment ali) {
 
 		this.mod2 = mod2;
 		this.ali = ali;
 
-		// getting all contacts of the second structure
-		this.allSecondContacts = mod2.getContacts();
+		// re-mapping new structure through alignment
+		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts());
+		// getting all contacts of the second structure, mapping through alignment
+		this.allSecondContacts = mapContactSetToAlignment(mod2.getLoadedGraphID(),mod2.getContacts());
 
 		// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
 
@@ -324,47 +318,86 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		allButCommonContacts.addAll(uniqueToFirstContacts);
 		allButCommonContacts.addAll(uniqueToSecondContacts);
 
-		//TODO: at the moment when loading a second model we always also reload the first, so resetting here is commented out. If we change that behaviour we must make sure we do this resetting
 		// finally resetting things  
-//		this.contactMapSize = mod.getMatrixSize();
-//		this.mousePos = new Point();
-//		this.mousePressedPos = new Point();
-//		this.mouseDraggingPos = new Point();
-//		this.currCommonNbh = null; // no common nbh selected
-//
-//		this.dragging = false;
-//		this.showCommonNbs = false;
-//		this.showRulerCoord = false;
-//		this.userContactColors = new Hashtable<Pair<Integer>, Color>();
-//		this.densityMatrix = null;
-//		this.comNbhSizes = null;
-//		this.diffDistMap = null;
-//
-//		// initializes outputSize, ratio and contactSquareSize
-//		setOutputSize(Math.min(screenSize.height, screenSize.width)); 
+		this.contactMapSize = ali.getAlignmentLength();
+		// initializes outputSize, ratio and contactSquareSize
+		setOutputSize(Math.min(screenSize.height, screenSize.width)); 
+
+		this.selContacts = new IntPairSet();
+		this.tmpContacts = new IntPairSet();
+		this.selHorNodes = new TreeSet<Integer>();
+		this.selVertNodes = new TreeSet<Integer>();
+
+		this.dragging = false;
+		this.currCommonNbh = null; // no common nbh selected
+		this.showCommonNbs = false;
+		this.showRulerCoord = false;
+		this.userContactColors = new Hashtable<Pair<Integer>, Color>();
+		this.densityMatrix = null;
+		this.comNbhSizes = null;
+		this.diffDistMap = null;
 
 	}
 
 	/**
-	 * Gets the second model.
-	 * @return second model, null if no second model has been assigned
-	 * @see #hasSecondModel()
-	 * @see #getFirstModel()
+	 * Given a set of contacts with sequence indexing returns a new set of 
+	 * contacts with alignment indexing
+	 * IMPORTANT NOTE: returned contacts are in alignment coordinates starting from 1 (not 0)
+	 * @param contacts
+	 * @param tag 
 	 */
-	public Model getSecondModel(){
-		return mod2;
+	private IntPairSet mapContactSetToAlignment(String tag, IntPairSet contacts) {
+		IntPairSet aliContacts = new IntPairSet();
+		for (Pair<Integer> cont:contacts) {
+			aliContacts.add(new Pair<Integer>(mapSeq2Al(tag,cont.getFirst()),mapSeq2Al(tag,cont.getSecond())));
+		}
+		return aliContacts;
 	}
-
+	
 	/**
-	 * Gets the first model.
-	 * @return first model, null if no first model has been assigned (which 
-	 *  usually should not be the case)
-	 * @see #getSecondModel()
+	 * Maps from sequence index to alignment index
+	 * Method is protected to be called from ResidueRuler
+	 * IMPORTANT NOTE: returned contacts are in alignment coordinates starting from 1 (not 0)
+	 * @param tag
+	 * @param alignIdx
+	 * @return
 	 */
-	public Model getFirstModel(){
-		return mod;
+	protected int mapSeq2Al (String tag, int seqIdx) {
+		//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to add 1 here
+		return ali.seq2al(tag, seqIdx) + 1;
 	}
-
+	
+	/**
+	 * Maps from alignment index to sequence index.
+	 * Method is protected to be called from ResidueRuler
+	 * IMPORTANT NOTE: we have to correct with -1 the alignment index because in Alignment object alignment indices start from 0 (not 1)
+	 * @param tag
+	 * @param aliIdx
+	 * @return
+	 */
+	protected int mapAl2Seq (String tag, int aliIdx) {
+		//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to subtract 1 here
+		return ali.al2seq(tag, aliIdx - 1);
+	}
+	
+	/**
+	 * Maps given contact from alignment indices to sequence indices
+	 * @param tag
+	 * @param cont
+	 * @return
+	 */
+	private Pair<Integer> mapContactAl2Seq (String tag, Pair<Integer> cont) {
+		return new Pair<Integer>(mapAl2Seq(tag,cont.getFirst()),mapAl2Seq(tag,cont.getSecond()));
+	}
+	
+	/**
+	 * Returns the alignment. Used to get the alignment from ResidueRuler
+	 * @return
+	 */
+	protected Alignment getAlignment() {
+		return ali;
+	}
+	
 	/**
 	 * Checks if a second model has been assigned.
 	 * @return true if so, else false
@@ -426,10 +459,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 
-			g2d.setColor(selContactsColor);
-			for (Pair<Integer> cont:tmpContacts){ 
-				drawContact(g2d, cont);
-			}
+			drawContacts(g2d,tmpContacts,selContactsColor);
 		} 
 
 		// drawing temp selection in red while dragging in range selection mode
@@ -438,17 +468,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
 
-			g2d.setColor(selContactsColor);
-			for (Pair<Integer> cont:tmpContacts){ 
-				drawContact(g2d, cont);
-			}
+			drawContacts(g2d,tmpContacts,selContactsColor);
 		}
 
 		// draw permanent selection in red
-		g2d.setColor(selContactsColor);
-		for (Pair<Integer> cont:selContacts){
-			drawContact(g2d, cont);
-		}
+		drawContacts(g2d,selContacts,selContactsColor);
 
 		// draw node selections
 		if(selHorNodes.size() > 0 || selVertNodes.size() > 0)
@@ -511,8 +535,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param g2d
 	 */
 	private void drawDistanceMap(Graphics2D g2d) {
-		// this actually contains all possible contacts in matrix so is doing a
+		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
+		//TODO indices here refer to sequence, while on screen we have alignment indices. This is fine for single mode, but needs to be changed if we allow distance map in compare mode
 		HashMap<Pair<Integer>,Double> distMatrix = mod.getDistMatrix();
 		for (Pair<Integer> cont:distMatrix.keySet()){
 			Color c = colorMapScaledHeatmap(distMatrix.get(cont), scaledDistCutoff);
@@ -558,51 +583,43 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				drawContact(g2d, cont);
 			}
 		} else { // compare mode
-			// 1) common=0, first=0, second=0
-			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == false){
-				// paint background
-				int bgSizeX = Math.max(outputSize, getWidth());		// fill background
-																	// even if window is not square
-				int bgSizeY = Math.max(outputSize, getHeight());	// fill background
-																	// even of window is not square
-				g2d.setColor(backgroundColor);
-				if (isOpaque()) {
-					g2d.fillRect(0, 0, bgSizeX, bgSizeY);
-				}
-			}
-			// 2) common=0, first=0, second=1
-			else if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+			// 1) common=0, first=0, second=1
+			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
-			// 3) common=0, first=1, second=0 
+			// 2) common=0, first=1, second=0 
 			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
-			// 4) common=0, first=1, second=1
+			// 3) common=0, first=1, second=1
 			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
-			// 5) common=1, first=0, second=0
+			// 4) common=1, first=0, second=0
 			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 			}
-			// 6) common=1, first=0, second=1
+			// 5) common=1, first=0, second=1
 			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
-			// 7) common=1, first=1, second=0
+			// 6) common=1, first=1, second=0
 			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
-			// 8) common=1, first=1, second=1
-			else {
+			// 7) common=1, first=1, second=1
+			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true) {
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
+			// 8) common=0, first=0, second=0
+			} else { 
+				// do nothing
 			}
+			
 		}
 	}
 	
@@ -613,8 +630,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param color
 	 */
 	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color) {
+		g2d.setColor(color);
 		for(Pair<Integer> cont:contactSet){
-			g2d.setColor(color);
 			drawContact(g2d, cont);
 		}	
 	}
@@ -649,7 +666,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	private void drawDiffDistMap(Graphics2D g2d) {
-		// this actually contains all possible contacts in matrix so is doing a
+		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
 		for (Pair<Integer> cont:diffDistMap.keySet()){
 			Color c = colorMapHeatmap(1-diffDistMap.get(cont));
@@ -664,10 +681,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void drawCoordinates(Graphics2D g2d){
 		if( !this.hasSecondModel() ) {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,null,null,false);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,mod.getLoadedGraphID(),mod.getLoadedGraphID()+":",Start.SHOW_ALIGNMENT_COORDS);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,mod2.getLoadedGraphID(),mod2.getLoadedGraphID()+":",Start.SHOW_ALIGNMENT_COORDS);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
 		}
 	}
 
@@ -677,85 +694,100 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * graphic equals zero the coordinates will not be printed. 
 	 * @param g2d  the graphic
 	 * @param mod  the model
-	 * @param modContacts  all contacts off mod
+	 * @param modContacts  all contacts of mod
 	 * @param x  offset position in the x dimension of the upper left corner
 	 * @param y  offset position in the y dimension of the upper left corner
-	 * @param aliTag  tag of mod in the alignment
-	 * @param title  optional title to be printed
 	 * @param showALiAndSeqPos  toggles between to different position modes: 
 	 *  true -> show alignment as well as sequence positions, false -> show 
 	 *  sequence position only
 	 */
-	protected void drawCoordinates(Graphics2D g2d, Model mod, IntPairSet modContacts, int x, int y, String aliTag, String title, boolean showAliAndSeqPos) {
+	protected void drawCoordinates(Graphics2D g2d, Model mod, IntPairSet modContacts, int x, int y, boolean showAliAndSeqPos) {
 		Pair<Integer> currentCell = screen2cm(mousePos);
-
+		// alignment indices
+		int iAliIdx = currentCell.getFirst();
+		int jAliIdx = currentCell.getSecond();
+		
 		// return if any position equals zero
 		if( currentCell.getFirst() == 0 || currentCell.getSecond() == 0 ) {
 			return;
 		}
 
-		String i_res = mod.getResType(currentCell.getFirst());
-		String j_res = mod.getResType(currentCell.getSecond());
-
-		if( i_res == AAinfo.getGapCharacterThreeLetter() ) {
-			i_res = AAinfo.getGapCharacterOneLetter()+"";
+		String title = mod.getLoadedGraphID()+":";
+		String aliTag = mod.getLoadedGraphID();
+		
+		// converting to sequence indices
+		int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
+		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+		
+		RIGNode iNode = null;
+		RIGNode jNode = null;
+		String i_res = "";
+		String j_res = "";
+		
+		// handling gaps
+		if (iSeqIdx < 0) {
+			i_res=AAinfo.getGapCharacterOneLetter()+"";
+		} else {
+			iNode = mod.getNodeFromSerial(iSeqIdx);
+			// handling unobserves
+			i_res = iNode==null?"?":iNode.getResidueType();
 		}
-
-		if( j_res == AAinfo.getGapCharacterThreeLetter() ) {
-			j_res = AAinfo.getGapCharacterOneLetter()+"";
+		if (jSeqIdx < 0) {
+			j_res=AAinfo.getGapCharacterOneLetter()+"";
+		} else {
+			jNode = mod.getNodeFromSerial(jSeqIdx);
+			// handling unobserves
+			j_res = jNode==null?"?":jNode.getResidueType();
 		}
-
+		
+		
 		int extraX = 0;
 		if( showAliAndSeqPos ) {
 			extraX = 30;
 		}
 
-		// writing the coordinates at lower left corner
 		g2d.setColor(coordinatesColor);
 
 		int extraTitleY = 0;
-		if( title != null ) {
+		if(hasSecondModel()) {
 			extraTitleY = 20;	
 			g2d.drawString(title, x, y);
 		}
-
+		
+		// writing i and j
 		g2d.drawString("i", x,           y+extraTitleY);
 		g2d.drawString("j", x+extraX+40, y+extraTitleY);
-		if(hasSecondModel()) {
-			g2d.drawString(ali.al2seq(aliTag,currentCell.getFirst()-1)<0?"":ali.al2seq(aliTag,currentCell.getFirst()-1)+"", x,           y+extraTitleY+20);
-			g2d.drawString(ali.al2seq(aliTag,currentCell.getSecond()-1)<0?"":ali.al2seq(aliTag,currentCell.getSecond()-1)+"", x+extraX+40, y+extraTitleY+20);
-			if( showAliAndSeqPos ) {
-				// substract 1 from the cell's coordinates to map from alignment 
-				// to sequence space
-				g2d.drawString("(" + currentCell.getFirst() + ")", x+extraX,      y+extraTitleY+20);
-				g2d.drawString("(" + currentCell.getSecond() + ")", x+2*extraX+40, y+extraTitleY+20);
-			}		
-		} else {
-			g2d.drawString(currentCell.getFirst()+"", x,           y+extraTitleY+20);
-			g2d.drawString(currentCell.getSecond()+"", x+extraX+40, y+extraTitleY+20);			
-		}
 
+		// writing coordinates and optionally alignment coordinates
+		g2d.drawString(iSeqIdx<0?"":iSeqIdx+"", x,           y+extraTitleY+20);
+		g2d.drawString(jSeqIdx<0?"":jSeqIdx+"", x+extraX+40, y+extraTitleY+20);
+		if( hasSecondModel() && showAliAndSeqPos ) {
+			g2d.drawString("(" + iAliIdx + ")", x+extraX,      y+extraTitleY+20);
+			g2d.drawString("(" + jAliIdx + ")", x+2*extraX+40, y+extraTitleY+20);
+		}		 
 
-		g2d.drawString(i_res==null?"?":i_res, x,           y+extraTitleY+40);
-		g2d.drawString(j_res==null?"?":j_res, x+extraX+40, y+extraTitleY+40);
+		// writing residue types
+		g2d.drawString(i_res, x,           y+extraTitleY+40);
+		g2d.drawString(j_res, x+extraX+40, y+extraTitleY+40);
+		
+		// writing secondart structure
 		if (mod.hasSecondaryStructure()){
-			SecondaryStructure ss = mod.getSecondaryStructure();
-			SecStrucElement ssElem1 = ss.getSecStrucElement(currentCell.getFirst());
-			SecStrucElement ssElem2 = ss.getSecStrucElement(currentCell.getSecond());
-			Character ssType1 = ssElem1==null?' ':ssElem1.getType();
-			Character ssType2 = ssElem2==null?' ':ssElem2.getType();
-			switch(ssType1) {
-			case 'H': ssType1 = '\u03b1'; break;	// alpha
-			case 'S': ssType1 = '\u03b2'; break;	// beta
-			default: ssType1 = ' ';
+			SecStrucElement iSSElem = iNode==null?null:iNode.getSecStrucElement();
+			SecStrucElement jSSElem = jNode==null?null:jNode.getSecStrucElement();
+			Character iSSType = iSSElem==null?' ':iSSElem.getType();
+			Character jSSType = jSSElem==null?' ':jSSElem.getType();
+			switch(iSSType) {
+			case 'H': iSSType = '\u03b1'; break;	// alpha
+			case 'S': iSSType = '\u03b2'; break;	// beta
+			default: iSSType = ' ';
 			}
-			switch(ssType2) {
-			case 'H': ssType2 = '\u03b1'; break;
-			case 'S': ssType2 = '\u03b2'; break;
-			default: ssType2 = ' ';
+			switch(jSSType) {
+			case 'H': jSSType = '\u03b1'; break;
+			case 'S': jSSType = '\u03b2'; break;
+			default: jSSType = ' ';
 			}
-			g2d.drawString(Character.toString(ssType1), x,           y+extraTitleY+60);
-			g2d.drawString(Character.toString(ssType2), x+extraX+40, y+extraTitleY+60);
+			g2d.drawString(Character.toString(iSSType), x,           y+extraTitleY+60);
+			g2d.drawString(Character.toString(jSSType), x+extraX+40, y+extraTitleY+60);
 		}
 
 		if(modContacts.contains(currentCell) ) {
@@ -770,8 +802,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 
 		if (view.getShowPdbSers()){
-			String i_pdbresser = mod.getPdbResSerial(currentCell.getFirst());
-			String j_pdbresser = mod.getPdbResSerial(currentCell.getSecond());
+			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
+			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
 			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+80);
 			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, x+extraX+40, y+extraTitleY+80);
 		}
@@ -779,14 +811,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	// TODO: Merge this with above function?
 	private void drawRulerCoord(Graphics2D g2d) {
-		String res = mod.getResType(currentRulerCoord);
+		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
+		RIGNode node = null;
+		String res = "";
+		if (seqIdx<0) { // handling gaps
+			res = AAinfo.getGapCharacterOneLetter()+"";
+		} else {
+			node = mod.getNodeFromSerial(seqIdx);
+			// handling unobserves
+			res = node==null?"?":node.getResidueType();
+		}
 		g2d.setColor(coordinatesColor);
 		g2d.drawString("i", 20, outputSize-90);
-		g2d.drawString(currentRulerCoord+"", 20, outputSize-70);
-		g2d.drawString(res==null?"?":res, 20, outputSize-50);
+		g2d.drawString(seqIdx+"", 20, outputSize-70);
+		if( hasSecondModel() && Start.SHOW_ALIGNMENT_COORDS ) {
+			// TODO find out what's the offset for this and finish writing next line
+			//g2d.drawString("(" + currentRulerCoord + ")", x+extraX,      y+extraTitleY+20);
+		}		 
+		g2d.drawString(res, 20, outputSize-50);
 		if (mod.hasSecondaryStructure()){
-			SecondaryStructure ss = mod.getSecondaryStructure();
-			SecStrucElement ssElem = ss.getSecStrucElement(currentRulerCoord);
+			SecStrucElement ssElem = node==null?null:node.getSecStrucElement();
 			Character ssType = ssElem==null?' ':ssElem.getType();
 			switch(ssType) {
 			case 'H': ssType = '\u03b1'; break;	// alpha
@@ -796,7 +840,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawString(Character.toString(ssType), 20, outputSize-30);
 		}
 		if (view.getShowPdbSers()){
-			String pdbresser = mod.getPdbResSerial(currentRulerCoord);
+			String pdbresser = mod.getPdbResSerial(seqIdx);
 			g2d.drawString(pdbresser==null?"?":pdbresser, 20, outputSize-10);
 		}
 	}
@@ -851,7 +895,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		RIGCommonNbhood comNbh = this.currCommonNbh;
 
 		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
-		System.out.println("Motif: "+comNbh);
+		System.out.println("Common neighbourhood string: "+comNbh);
 		// drawing corridor
 		drawCorridor(cont, g2d);
 
@@ -987,7 +1031,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			switch (view.getCurrentSelectionMode()) {
 			case View.SHOW_COMMON_NBH:
 				Pair<Integer> c = screen2cm(mousePressedPos); 
-				this.currCommonNbh = mod.getCommonNbhood (c.getFirst(),c.getSecond());
+				this.currCommonNbh = mod.getCommonNbhood (mapAl2Seq(mod.getLoadedGraphID(),c.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),c.getSecond()));
 				dragging = false;
 				showCommonNbs = true;
 				this.repaint();
@@ -1246,6 +1290,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		new Thread() {
 			public void run() {
 				registerThread(true);
+				//TODO indices in comNbhSizes matrix refer to sequence, while on screen we have alignment indices. This is fine for single mode, but needs to be changed if we allow com nbh sizes in compare mode				
 				comNbhSizes = mod.getAllCommonNbhSizes();
 				// updateScreenBuffer();
 				registerThread(false);
@@ -1260,6 +1305,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		new Thread() {
 			public void run() {
 				registerThread(true);
+				//TODO indices in density matrix refer to sequence, while on screen we have alignment indices. This is fine for single mode, but needs to be changed if we allow density map in compare mode
 				densityMatrix = mod.getDensityMatrix();
 				// updateScreenBuffer();
 				registerThread(false);
@@ -1351,14 +1397,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		boolean doResetCursor = false;
 		
 		// reloading contacts of 1st structure (or single)
-		this.allContacts = mod.getContacts();
+		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts());
 		
 		// reloading contacts of 2nd structure if it's present
 		// this is not used at the moment, since delete contacts is not 
 		// allowed in compare mode, but it's good to keep it here in case 
 		// we allow any modification of the second model in the future
 		if (this.hasSecondModel()) {
-			this.allSecondContacts = mod2.getContacts();		
+			this.allSecondContacts = mapContactSetToAlignment(mod2.getLoadedGraphID(),mod2.getContacts());
 			// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
 			for (Pair<Integer> cont2:allSecondContacts){
 				// contacts in second and also in first are common
@@ -1507,8 +1553,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void selectHelixHelix() {
 		selContacts = new IntPairSet();
 		for(Pair<Integer> e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getFirst()));
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getSecond()));
 			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.getType() == SecStrucElement.HELIX && ss2.getType() == SecStrucElement.HELIX) {
 				selContacts.add(e);
 			}
@@ -1520,8 +1566,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void selectBetaBeta() {
 		selContacts = new IntPairSet();
 		for(Pair<Integer> e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getFirst()));
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getSecond()));
 			if(ss1 != null && ss2 != null && ss1 != ss2 && ss1.isStrand() && ss2.isStrand()) {
 				selContacts.add(e);
 			}
@@ -1533,8 +1579,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void selectInterSsContacts() {
 		selContacts = new IntPairSet();
 		for(Pair<Integer> e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getFirst()));
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getSecond()));
 			if(ss1 != null && ss2 != null && (ss1 != ss2 && !ss1.inSameSheet(ss2)) && !ss1.isOther() && !ss2.isOther()) {
 				selContacts.add(e);
 			}
@@ -1546,8 +1592,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void selectIntraSsContacts() {
 		selContacts = new IntPairSet();
 		for(Pair<Integer> e:allContacts) {
-			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(e.getFirst());
-			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(e.getSecond());
+			SecStrucElement ss1 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getFirst()));
+			SecStrucElement ss2 = mod.getSecondaryStructure().getSecStrucElement(mapAl2Seq(mod.getLoadedGraphID(),e.getSecond()));
 			if(ss1 != null && ss2 != null && (ss1 == ss2 || ss1.inSameSheet(ss2)) && !ss1.isOther()) {
 				selContacts.add(e);
 			}
@@ -1557,18 +1603,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/**
 	 * Select contacts by residue numbers using a selection string. Example selection string: "1-3,7,8-9".
-	 * All contacts between residues from the set will be selected.
 	 * @param selStr selection string
 	 * @return number of selected contacts or -1 on error
 	 */
 	public int selectByResNum(String selStr) {
+		//TODO at the moment this doesn't work for compare mode, but there's no reason why it wouldn't. What we'd need to do:
+		// 		- take 2 selections one for structure 1 and the other for 2, alternative force user to use alignment indices
+		//		- use getCurrentContactSet instead of allContacts
 		if(selStr.length() == 0) return 0;	// nothing to select
 		if(!Interval.isValidSelectionString(selStr)) return -1;
 		TreeSet<Integer> nodeSet1 = Interval.parseSelectionString(selStr);
 		TreeSet<Integer> nodeSet2 = Interval.parseSelectionString(selStr);
 		selContacts = new IntPairSet();
-		for(Pair<Integer> e:allContacts) {
-			if(nodeSet1.contains(e.getFirst()) && nodeSet2.contains(e.getSecond())) {
+		for(Pair<Integer> e:allContacts) { 
+			if(nodeSet1.contains(mapAl2Seq(mod.getLoadedGraphID(),e.getFirst())) && nodeSet2.contains(mapAl2Seq(mod.getLoadedGraphID(),e.getSecond()))) {
 				selContacts.add(e);
 			}
 		}
@@ -1631,9 +1679,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
+	 * Resets selections if sets of contacts are being hidden
+	 * Later we might want to put more stuff in this method, that's the reason
+	 * for the name (instead of being called resetSelectionsWhenToggling)
 	 * To be called when one of the 3 showing contacts button (common, first, 
 	 * second) is clicked
-	 * @param state true if we switch to show, false if we switch to hids
+	 * @param state true if we switch to show, false if we switch to hide
 	 */
 	protected void toggleShownContacts(boolean state) {
 		if (state == false) { //we are hiding a set of contacts: we reset selection 
@@ -1756,16 +1807,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	}
 
 	/**
-	 * Deletes currently select contacts. Currently it only delets from the first
-	 *  model.
-	 * If we allow deleting in compare mode then deleting from second model 
-	 * must be added here
+	 * Deletes currently selected contacts from first and from second model if present
 	 */
 	public void deleteSelectedContacts() {
 		for (Pair<Integer> cont:selContacts){
-			mod.removeEdge(cont);
+			mod.removeEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+			if (hasSecondModel()) {
+				mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
+			}
 		}
-		//TODO add deletion of second model contacts if we allow deletion in compare mode
 		resetSelections();
 		reloadContacts();	// will update screen buffer and repaint
 	}
@@ -1919,12 +1969,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	protected void selectNodeNbh(int i) {
-		RIGNbhood nbh = mod.getNbhood(i);
-		System.out.println("Selecting neighbourhood of residue: "+i);
+		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),i);
+		RIGNbhood nbh = mod.getNbhood(seqIdx);
+		System.out.println("Selecting neighbourhood of residue: "+seqIdx);
 		System.out.println("Neighbourhood string: "+nbh);
 		System.out.println("Neighbours: " + nbh.getCommaSeparatedResSerials());
 		for (RIGNode j:nbh.getNeighbors()){
-			selContacts.add(new Pair<Integer>(Math.min(i, j.getResidueSerial()),Math.max(i, j.getResidueSerial())));
+			selContacts.add(new Pair<Integer>(Math.min(seqIdx, j.getResidueSerial()),Math.max(seqIdx, j.getResidueSerial())));
 		}
 	}
 
@@ -2023,19 +2074,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		for (Pair<Integer> cont : selContacts) {
 			if (commonContacts.contains(cont)) {
-				common[FIRST].add(new Pair<Integer>(ali.al2seq(mod.getLoadedGraphID(),cont.getFirst()-1), 
-						ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1)));
-				common[SECOND].add(new Pair<Integer>(ali.al2seq(mod2.getLoadedGraphID(),cont.getFirst()-1),
-						ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1)));
+				common[FIRST].add(new Pair<Integer>(mapAl2Seq(mod.getLoadedGraphID(),cont.getFirst()), 
+						mapAl2Seq(mod.getLoadedGraphID(), cont.getSecond())));
+				common[SECOND].add(new Pair<Integer>(mapAl2Seq(mod2.getLoadedGraphID(),cont.getFirst()),
+						mapAl2Seq(mod2.getLoadedGraphID(), cont.getSecond())));
 			}
 
 			else if (uniqueToFirstContacts.contains(cont)) {
 
-				firstOnly[FIRST].add(new Pair<Integer>(ali.al2seq(mod.getLoadedGraphID(),cont.getFirst()-1),
-						ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1)));
+				firstOnly[FIRST].add(new Pair<Integer>(mapAl2Seq(mod.getLoadedGraphID(),cont.getFirst()),
+						mapAl2Seq(mod.getLoadedGraphID(), cont.getSecond())));
 
-				pos1 = ali.al2seq(mod2.getLoadedGraphID(), cont.getFirst()-1);
-				pos2 = ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1);
+				pos1 = mapAl2Seq(mod2.getLoadedGraphID(), cont.getFirst());
+				pos2 = mapAl2Seq(mod2.getLoadedGraphID(), cont.getSecond());
 
 				if( pos1 != -1 && pos2 != -1 ) {
 					firstOnly[SECOND].add(new Pair<Integer>(pos1,pos2));
@@ -2043,11 +2094,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 
 			else if (uniqueToSecondContacts.contains(cont)) {
-				secondOnly[SECOND].add(new Pair<Integer>(ali.al2seq(mod2.getLoadedGraphID(),cont.getFirst()-1),
-						ali.al2seq(mod2.getLoadedGraphID(), cont.getSecond()-1)));
+				secondOnly[SECOND].add(new Pair<Integer>(mapAl2Seq(mod2.getLoadedGraphID(),cont.getFirst()),
+						mapAl2Seq(mod2.getLoadedGraphID(), cont.getSecond())));
 
-				pos1 = ali.al2seq(mod.getLoadedGraphID(), cont.getFirst()-1);
-				pos2 = ali.al2seq(mod.getLoadedGraphID(), cont.getSecond()-1);
+				pos1 = mapAl2Seq(mod.getLoadedGraphID(), cont.getFirst());
+				pos2 = mapAl2Seq(mod.getLoadedGraphID(), cont.getSecond());
 
 				if( pos1 != -1 && pos2 != -1 ) {
 					secondOnly[FIRST].add(new Pair<Integer>(pos1,pos2));
@@ -2067,18 +2118,36 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Returns a set of end points of the currently selected contact 
 	 * in alignment indexing counting from 0.
 	 * NOTE: remember the contacts are using alignment indexing starting 
-	 * from 1! (in pairwise case)
+	 * from 1! 
 	 * @return
 	 */
 	public TreeSet<Integer> getAlignmentColumnsFromSelectedContacts() { 
 
 		TreeSet<Integer> positions = new TreeSet<Integer>();
 		
-		getAlignmentColumnsFromContacts(getSelContacts(),positions);
+		getAlignmentColumnsFromContacts(selContacts,positions);
 		
 		return positions;
 	}
 	
+	/**
+	 * Given a set of contacts puts into <code>positions</code> their 
+	 * end points in alignment indexing starting from 1
+	 * This is necessary because in ContactMapPane contacts are using 
+	 * alignmnet indexing starting from 1 (but in Alignment class indexing 
+	 * for alignment starts from 0)
+	 * @param contacts  set of contacts
+	 * @param positions  contains the alignment columns incident to the 
+	 *  contacts in <code>contacts</code> afterwards
+	 */
+	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions) {
+		for( Pair<Integer> cont : contacts ) {
+			//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to subtract 1 here
+			positions.add(cont.getFirst()  - 1);
+			positions.add(cont.getSecond() - 1);
+		}
+	}
+
 	/** Returns the set of horizontally selected nodes. */
 	public TreeSet<Integer> getSelHorNodes() {
 		return selHorNodes;
@@ -2089,40 +2158,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		return selVertNodes;
 	}
 
-	/**
-	 * Adds to positions the end points of contacts, subtracting 1.
-	 * This is necessary because contacts in the pairwise case are using 
-	 * alignmnet indexing starting from 1
-	 * We call this function when we want to have alignment indexing counting from 0.
-	 * @param contacts  set of contacts
-	 * @param positions  contains the alignment columns incident to the 
-	 *  contacts in <code>contacts</code> afterwards
-	 */
-	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions) {
-		for( Pair<Integer> cont : contacts ) {
-			// substract 1 to get the alignment column
-			positions.add(cont.getFirst()  - 1);
-			positions.add(cont.getSecond() - 1);
-		}
-	}
-	
-	/**
-	 * Gets the alignment columns for the given set of contacts
-	 * @param contacts  set of contacts
-	 * @param positions  contains the alignment columns incident to the 
-	 *  contacts in <code>contacts</code> afterwards
-	 * @param tag  name of the model in the alignment the contacts 
-	 *  belong to
-	 */
-	@SuppressWarnings("unused")
-	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions, String tag) {
-		for( Pair<Integer> cont : contacts ) {
-			// substract -1 to get the alignment column
-			positions.add(ali.seq2al(tag, cont.getFirst())  - 1);
-			positions.add(ali.seq2al(tag, cont.getSecond()) - 1);
-		}
-	}
-	
 	/*---------------------------- private methods --------------------------*/
 	
 	/**
@@ -2230,7 +2265,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	private void showPopup(MouseEvent e) {
 		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));
-		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,rightClickCont.getFirst(),rightClickCont.getSecond()));
+		// we want to show sequence indices to the user, that's why we map here TODO at the moment will not work for compare mode because we use mod1 for the al2seq mapping
+		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getSecond())));
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 

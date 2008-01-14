@@ -124,8 +124,6 @@ public class View extends JFrame implements ActionListener {
 	// Data and status variables
 	private Model mod;
 	private Model mod2;
-	private Model alignedMod1;
-	private Model alignedMod2;
 	private Alignment ali;
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
@@ -583,8 +581,17 @@ public class View extends JFrame implements ActionListener {
 //			cmp2.add(cmPaneInt, new Integer(2));
 //			cmp2.add(cmPaneBg, new Integer(1));
 			//add cmp2 to contentPane
-
-			cmPane = new ContactMapPane(mod, this);
+			
+			String[] tags = {mod.getLoadedGraphID()};
+			String[] seqs = {mod.getSequence()};
+			Alignment al = null;
+			try {
+				al = new Alignment(tags,seqs);
+			} catch(AlignmentConstructionError e) {
+				//should be safe to ignore the error because it shouldn't happen, if it does we print anyway an error
+				System.err.println("Unexpected error, something wrong in alignment construction: "+e.getMessage());
+			}
+			cmPane = new ContactMapPane(mod, al , this);
 			cmp.add(cmPane, BorderLayout.CENTER);
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
@@ -1588,8 +1595,6 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * Handles the computation of the pairwise contact map alignment of the
 	 * two passed models in a new thread.
-	 * @param mod1 first model
-	 * @param mod2 second model
 	 */
 	private void handlePairwiseAlignment() {
 		String error = null;
@@ -1603,16 +1608,16 @@ public class View extends JFrame implements ActionListener {
 			try {
 				if( source == possibilities[0] ) {
 					// do a greedy residue-residue alignment
-					doPairwiseSequenceAlignment(mod, mod2);
+					doPairwiseSequenceAlignment();
 				} else if( source == possibilities[1] ) {
 					// compute contact map alignment using SADP
-					doPairwiseSadpAlignment(mod, mod2);
+					doPairwiseSadpAlignment();
 				} else if( source == possibilities[2] ) {
 					// load a user provided alignment from an external source
-					doLoadPairwiseAlignment(mod,mod2);
+					doLoadPairwiseAlignment();
 //					} else if( source == possibilities[3] ) {
 //					// do a greedy residue-residue alignment
-//					doGreedyPairwiseAlignment(mod, mod2);	
+//					doGreedyPairwiseAlignment();	
 				} else {
 					System.err.println("Error: Detected unhandled input option for the alignment retrieval!");
 					return;
@@ -1633,7 +1638,7 @@ public class View extends JFrame implements ActionListener {
 			finally{
 				if(error != null) {
 					// reset all fields connected to the compare mode and clean up the scene
-					mod2 = null; alignedMod1 = null; alignedMod2 = null; ali = null;
+					mod2 = null; ali = null;
 					JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);		    	
 
 				}
@@ -1665,10 +1670,8 @@ public class View extends JFrame implements ActionListener {
 
 	/**
 	 * Loads the pairwise alignment for the given model from a external source.
-	 * @param mod1  the first model
-	 * @param mod2  the second model
 	 */
-	public void doLoadPairwiseAlignment(Model mod1, Model mod2)
+	public void doLoadPairwiseAlignment()
 	throws IOException, PirFileFormatError, FastaFileFormatError, 
 	AlignmentConstructionError, DifferentContactMapSizeError {
 
@@ -1686,15 +1689,15 @@ public class View extends JFrame implements ActionListener {
 		ali = new Alignment(source.getPath(),"FASTA");
 
 		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 'ali'
-		String name1 = mod1.getLoadedGraphID();
+		String name1 = mod.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
 		// we reset tags in alignment objects to ours. File provided must have the 2 correct sequences in the right order!
 		String[] names = {name1, name2};
 		ali.resetTags(names);
 
 		// if file provided doesn't have the right sequences we throw exception
-		if (!mod1.getSequence().equals(ali.getSequenceNoGaps(name1))) {	
-			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name1)+"\nSequence of contact map "+name1+":\n"+mod1.getSequence());
+		if (!mod.getSequence().equals(ali.getSequenceNoGaps(name1))) {	
+			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name1)+"\nSequence of contact map "+name1+":\n"+mod.getSequence());
 			throw new AlignmentConstructionError("First sequence from given alignment and sequence of first loaded contact map differ!");
 		}
 		if (!mod2.getSequence().equals(ali.getSequenceNoGaps(name2))) {
@@ -1702,32 +1705,17 @@ public class View extends JFrame implements ActionListener {
 			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
 
-		// compute aligned graphs
-		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
-
-		// create the aligned models from the original once
-		alignedMod1 = mod1.copy();
-		alignedMod1.setGraph(pagc.getFirstGraph());
-		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
-		alignedMod2 = mod2.copy();
-		alignedMod2.setGraph(pagc.getSecondGraph());
-		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
-
 		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
-		doLoadModelOntoVisualizer(alignedMod2);
+		doLoadModelsOntoContactMapPane(mod2, ali);
+		doLoadModelOntoVisualizer(mod2);
 		
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
+		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
 				
 		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getLoadedGraphID(),
-				mod2.getLoadedGraphID(),
-				ali,
-				columns );
+		doSuperposition(mod, mod2, ali, columns);
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -1736,12 +1724,10 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * Computes the pairwise contact map alignment of the two passed models in 
 	 * a new thread.
-	 * @param mod1 first model
-	 * @param mod2 second model
 	 */
-	public void doPairwiseSadpAlignment(Model mod1, Model mod2) {
+	public void doPairwiseSadpAlignment() {
 		SADPResult result   = new SADPResult();
-		SADPRunner runner   = new SADPRunner(mod1,mod2,result);
+		SADPRunner runner   = new SADPRunner(mod,mod2,result);
 		// version 1.0 used to be as simple as possible -> no preferences 
 		// settings available
 		SADPDialog sadpDiag = new SADPDialog(
@@ -1764,15 +1750,13 @@ public class View extends JFrame implements ActionListener {
 
 	/**
 	 * Constructs a pairwise sequence alignment using the Needleman-Wunsch algorithm with default parameters.
-	 * @param mod1 the first model
-	 * @param mod2 the second model
 	 * @throws AlignmentConstructionError
 	 */
-	public void doPairwiseSequenceAlignment(Model mod1, Model mod2) throws AlignmentConstructionError {
+	public void doPairwiseSequenceAlignment() throws AlignmentConstructionError {
 		
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
-		String seq1 = mod1.getSequence();
+		String seq1 = mod.getSequence();
 		String seq2 = mod2.getSequence();
 
 		if(seq1 == null || seq2 == null || seq1.length() == 0 || seq2.length() == 0) {
@@ -1780,7 +1764,7 @@ public class View extends JFrame implements ActionListener {
 			throw new AlignmentConstructionError("No sequence found.");
 		}
 
-		String name1 = mod1.getLoadedGraphID();
+		String name1 = mod.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
 
 		PairwiseSequenceAlignment jalign = null;
@@ -1801,37 +1785,20 @@ public class View extends JFrame implements ActionListener {
 		ali = new Alignment(names, seqs);
 		//ali.printSimple();
 
-		// use alignment along with the graphs of the original models to 
-		// create the gapped graphs
-		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
-		alignedMod1 = mod1.copy();			
-		alignedMod1.setGraph(pagc.getFirstGraph());
-		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
-		alignedMod2 = mod2.copy();
-		alignedMod2.setGraph(pagc.getSecondGraph());
-		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
 
 		// load stuff onto the contact map pane and the visualizer
-		try {
-			doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
-		} catch (DifferentContactMapSizeError e) {
-			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			throw new AlignmentConstructionError("Sizes of aligned contact maps do not match: " + e.getMessage());
-		}
-		doLoadModelOntoVisualizer(alignedMod2);
+
+		doLoadModelsOntoContactMapPane(mod2, ali);
+
+		doLoadModelOntoVisualizer(mod2);
 
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
+		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
 		
-		// show superpositioning based on the common contacts in 
-		// pymol
+		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getLoadedGraphID(),
-				mod2.getLoadedGraphID(),
-				ali,
-				columns );
+		doSuperposition(mod, mod2, ali, columns);
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
@@ -1848,14 +1815,12 @@ public class View extends JFrame implements ActionListener {
 	 * not provide sequence information the sequence length is being estimated 
 	 * by size of the underlying graph structure (i.e. the maximum node index). 
 	 * In that case, the sequences do only consist of X's.  
-	 * @param mod1  the first model
-	 * @param mod2  the second model
 	 * @throws AlignmentConstructionError
 	 */
-	public void doGreedyPairwiseAlignment(Model mod1, Model mod2) 
+	public void doGreedyPairwiseAlignment() 
 	throws AlignmentConstructionError, DifferentContactMapSizeError {
 
-		String alignedSeq1 = mod1.getSequence();
+		String alignedSeq1 = mod.getSequence();
 		String alignedSeq2 = mod2.getSequence();
 		int len1,len2,cap;
 		StringBuffer s = null;
@@ -1863,7 +1828,7 @@ public class View extends JFrame implements ActionListener {
 
 		if( alignedSeq1 == null || alignedSeq1.length() == 0 ) {		// changed by HS, hope this is safer
 
-			len1 = mod1.getGraph().getFullLength();
+			len1 = mod.getGraph().getFullLength();
 
 			if( alignedSeq2 == null || alignedSeq2.length() == 0) {
 				// alignedSeq1 -> NOT present, alignedSeq2 -> NOT present
@@ -1986,37 +1951,23 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		// create alignment
-		String name1 = mod1.getLoadedGraphID();
+		String name1 = mod.getLoadedGraphID();
 		String name2 = mod2.getLoadedGraphID();
 		String[] names = {name1, name2};
 		String[] seqs = {alignedSeq1, alignedSeq2};
 		ali = new Alignment(names, seqs);
 
-		// use alignment along with the graphs of the original models to 
-		// create the gapped graphs
-		PairwiseAlignmentGraphConverter pagc = new PairwiseAlignmentGraphConverter(ali,name1,name2,mod1.getGraph(),mod2.getGraph());
-		alignedMod1 = mod1.copy();
-		alignedMod1.setGraph(pagc.getFirstGraph());
-		alignedMod1.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod1.getSecondaryStructure(),name1));
-		alignedMod2 = mod2.copy();
-		alignedMod2.setGraph(pagc.getSecondGraph());
-		alignedMod2.setSecSctruct(PairwiseAlignmentGraphConverter.convertSecondaryStruct(ali,mod2.getSecondaryStructure(),name2));
-
 		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
-		doLoadModelOntoVisualizer(alignedMod2);
+		doLoadModelsOntoContactMapPane(mod2, ali);
+		doLoadModelOntoVisualizer(mod2);
 
 		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
+		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
 		
 		// show superpositioning based on the common contacts in pymol
 		TreeSet<Integer> columns = new TreeSet<Integer>();
 		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(alignedMod1, alignedMod2, 
-				mod.getLoadedGraphID(),
-				mod2.getLoadedGraphID(),
-				ali,
-				columns );
+		doSuperposition(mod, mod2, ali, columns);
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -2034,30 +1985,24 @@ public class View extends JFrame implements ActionListener {
 			if( exitStatus == ToolDialog.DONE ) {
 				//SADPRunner runner = notifier.getRunner();
 				SADPResult result = notifier.getResult();
-				alignedMod1 = result.getFirstOutputModel();
-				alignedMod2 = result.getSecondOutputModel();
 				ali         = result.getAlignment();
 
 				// load aligned models onto contact map pane
-				doLoadModelsOntoContactMapPane(alignedMod1, alignedMod2, ali);
+				doLoadModelsOntoContactMapPane(mod2, ali);
 				
 				// load second model onto 3D visualizer (as alignedMod2 holds 
 				// the atom coordinates of the original structure this also 
 				// works fine by taking the aligned model as pdb source)
-				doLoadModelOntoVisualizer(alignedMod2);
+				doLoadModelOntoVisualizer(mod2);
 
 				// clear the view (disables all previous selections)
-				Start.getPyMolAdaptor().setView(alignedMod1.getLoadedGraphID(), alignedMod2.getLoadedGraphID());
+				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
 				
 				// show superpositioning according to the common contacts in 
 				// pymol
 				TreeSet<Integer> columns = new TreeSet<Integer>();
 				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-				doSuperposition(alignedMod1, alignedMod2, 
-						mod.getLoadedGraphID(),
-						mod2.getLoadedGraphID(),
-						ali,
-						columns );
+				doSuperposition(mod, mod2, ali, columns);
 				
 				// adapt GUI behavior
 				setGUIStatusCompareMode();
@@ -2065,35 +2010,27 @@ public class View extends JFrame implements ActionListener {
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 			mod2 = null;
-			alignedMod1 = null;
-			alignedMod2 = null;
 			ali = null;
 			System.gc();
 		}
 	}
 
 	/**
-	 * Loads the given aligned models onto the contact map panel. 
-	 * @param alignedMod1  the first aligned model
-	 * @param alignedMod2  the second aligned model
-	 * @param ali  alignment of rediues in <code>alignedMod1</code> to residues 
-	 *  in <code>alignedMod2</code>. Tags of the sequences are the 
+	 * Loads the second model and its alignment to the first onto the contact map panel. 
+	 * @param mod2  the second model
+	 * @param ali  alignment of residues in <code>mod</code> to residues 
+	 *  in <code>mod2</code>. Tags of the sequences are the 
 	 *  loadedGraphID of each Model
-	 * @throws DifferentContactMapSizeError
 	 */
-	private void doLoadModelsOntoContactMapPane(Model alignedMod1, Model alignedMod2, Alignment ali) 
-	throws DifferentContactMapSizeError {
-
-		// add first model
-		cmPane.setModel(alignedMod1);
+	private void doLoadModelsOntoContactMapPane(Model mod2, Alignment ali) {
 
 		// re-setting window title
 		System.out.println("Second model loaded.");
-		String title = alignedMod1.getLoadedGraphID() +" and "+alignedMod2.getLoadedGraphID();
+		String title = mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
 		this.setTitle("Comparing " + title);
 
 		// add the second model and update the image buffer
-		cmPane.setSecondModel(alignedMod2, ali); // throws DifferentContactMapSizeError
+		cmPane.setSecondModel(mod2, ali); // throws DifferentContactMapSizeError
 		compareStatus = true;
 		cmPane.updateScreenBuffer();
 		setSelectionMode(SQUARE_SEL);	// we reset to SQUARE_SEL in case another one was switched on
@@ -2115,11 +2052,7 @@ public class View extends JFrame implements ActionListener {
 		// clear the view (disables all previous selections)
 		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
 		
-		doSuperposition(mod, mod2, 
-				mod.getLoadedGraphID(),
-				mod2.getLoadedGraphID(),
-				ali,
-				cmPane.getAlignmentColumnsFromSelectedContacts() );
+		doSuperposition(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
 	}
 
 	/**
@@ -2131,18 +2064,16 @@ public class View extends JFrame implements ActionListener {
 	 * consulted for the superpositioning.
 	 * @param mod1  the first model
 	 * @param mod2  the second model
-	 * @param name1  sequence identifier of <code>mod1</code> in the alignment
-	 * @param name2  sequence identifier of <code>mod2</code> in the alignment
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doSuperposition(Model mod1, Model mod2, String name1, String name2, Alignment ali, TreeSet<Integer> columns) {
+	public void doSuperposition(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
 		TreeSet<String> projectionTags = new TreeSet<String>();
 
 		// get consecutive sequence chunks in mod1 from positions
-		projectionTags.add(name2);
-		IntervalSet chunks1 = ali.getMatchingBlocks(name1, projectionTags, columns, 1);
+		projectionTags.add(mod2.getLoadedGraphID());
+		IntervalSet chunks1 = ali.getMatchingBlocks(mod1.getLoadedGraphID(), projectionTags, columns, 1);
 
 		if( chunks1.isEmpty() ) {
 			showNo3DCoordFromComparedSelection();
@@ -2151,8 +2082,8 @@ public class View extends JFrame implements ActionListener {
 
 		// get consecutive sequence chunks in mod2 from positions
 		projectionTags.clear();
-		projectionTags.add(name1);
-		IntervalSet chunks2 = ali.getMatchingBlocks(name2, projectionTags, columns, 1);
+		projectionTags.add(mod1.getLoadedGraphID());
+		IntervalSet chunks2 = ali.getMatchingBlocks(mod2.getLoadedGraphID(), projectionTags, columns, 1);
 
 		if( chunks2.isEmpty() ) {
 			// this one should catch at the same time as the one above.
@@ -2618,14 +2549,10 @@ public class View extends JFrame implements ActionListener {
 			showNoContactsSelectedWarning();
 		} else if (cmPane.hasSecondModel()){
 			
-			// pointer to the models
-			Model firstMod  = cmPane.getFirstModel();
-			Model secondMod = cmPane.getSecondModel();
-			
 			// chain selection names. The names are only used the access the 
 			// right chain. We do not create this selection explicitely!!!
-			String firstChainSel  = firstMod.getLoadedGraphID();
-			String secondChainSel = secondMod.getLoadedGraphID();
+			String firstChainSel  = mod.getLoadedGraphID();
+			String secondChainSel = mod2.getLoadedGraphID();
 
 			
 			// COMMON:
@@ -2645,8 +2572,8 @@ public class View extends JFrame implements ActionListener {
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
-				Start.getPyMolAdaptor().setView(firstMod.getLoadedGraphID(),
-												secondMod.getLoadedGraphID());
+				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(),
+												mod2.getLoadedGraphID());
 			} else {
 				// nothing to do!
 				return;
@@ -2781,7 +2708,6 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			IntPairSet contacts   = cmPane.getSelContacts();
 
-			Model  mod            = cmPane.getFirstModel();
 			String chainObj       = mod.getLoadedGraphID();
 			
 			if( contacts.isEmpty() ) {
