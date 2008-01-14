@@ -25,6 +25,7 @@ import proteinstructure.IntPairSet;
 import proteinstructure.RIGCommonNbhood;
 import proteinstructure.Interval;
 import proteinstructure.RIGNbhood;
+import proteinstructure.RIGNode;
 import proteinstructure.SecStrucElement;
 import proteinstructure.SecondaryStructure;
 import cmview.datasources.Model;
@@ -489,7 +490,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// draw common neighbours
 		if(this.showCommonNbs) {
 			Pair<Integer> cont = screen2cm(mousePressedPos);
-			drawCommonNeighbours(g2d, cont);
+			drawCommonNeighbors(g2d, cont);
 			this.showCommonNbs = false;
 		}
 	}
@@ -846,7 +847,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	g2d.draw(arc);
 //	}
 
-	private void drawCommonNeighbours(Graphics2D g2d, Pair<Integer> cont){
+	private void drawCommonNeighbors(Graphics2D g2d, Pair<Integer> cont){
 		RIGCommonNbhood comNbh = this.currCommonNbh;
 
 		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
@@ -856,11 +857,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		// marking the selected point with a cross
 		drawCrossOnContact(cont, g2d, crossOnContactColor);
-		System.out.print("Common neighbours: ");
+		System.out.println("Common neighbours: " + comNbh.getCommaSeparatedResSerials());
 		// drawing triangles
 		for (int k:comNbh.keySet()){ // k is each common neighbour (residue
 			// serial)
-			System.out.print(k+" ");
 			if (k>cont.getFirst() && k<cont.getSecond()) {
 				// draw cyan triangles for neighbours within the box
 				drawTriangle(k, cont, g2d, inBoxTriangleColor);
@@ -870,7 +870,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				drawTriangle(k, cont, g2d, outBoxTriangleColor);
 			}
 		}
-		System.out.println();
 	}
 
 	private void drawCrossOnContact(Pair<Integer> cont, Graphics2D g2d,Color color){
@@ -1558,6 +1557,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/**
 	 * Select contacts by residue numbers using a selection string. Example selection string: "1-3,7,8-9".
+	 * All contacts between residues from the set will be selected.
 	 * @param selStr selection string
 	 * @return number of selected contacts or -1 on error
 	 */
@@ -1920,15 +1920,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	
 	protected void selectNodeNbh(int i) {
 		RIGNbhood nbh = mod.getNbhood(i);
-		System.out.println("Selecting node neighborhood of node: "+i);
-		System.out.println("Neighborhood string: "+nbh);
-		System.out.print("Neighbors: ");
-		for (int j:nbh.keySet()){
-			System.out.print(j+" ");
-			selContacts.add(new Pair<Integer>(Math.min(i, j),Math.max(i, j)));
+		System.out.println("Selecting neighbourhood of residue: "+i);
+		System.out.println("Neighbourhood string: "+nbh);
+		System.out.println("Neighbours: " + nbh.getCommaSeparatedResSerials());
+		for (RIGNode j:nbh.getNeighbors()){
+			selContacts.add(new Pair<Integer>(Math.min(i, j.getResidueSerial()),Math.max(i, j.getResidueSerial())));
 		}
-		System.out.println();
-
 	}
 
 	/** Resets the current contact- and residue selections to the empty set */

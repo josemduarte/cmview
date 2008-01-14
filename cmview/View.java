@@ -62,7 +62,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";
 	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
-	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Node Neighbourhood Selection Mode";
+	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
 	private static final String LABEL_FILL_SELECTION_MODE = "Fill Selection Mode";
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
@@ -2888,7 +2888,9 @@ public class View extends JFrame implements ActionListener {
 
 	/* -------------------- Compare menu -------------------- */
 
-
+	/**
+	 * Handler for the show/hide common contacts button in compare mode
+	 */
 	private void handleShowCommon(){		
 		if(mod==null) {
 			showNoContactMapWarning();
@@ -2907,6 +2909,9 @@ public class View extends JFrame implements ActionListener {
 		tbShowCommon.setSelected(showCommon);
 	}
 
+	/**
+	 * Handler for the show/hide unique first structure contacts button in compare mode
+	 */	
 	private void handleShowFirst(){
 		if(mod==null) {
 			showNoContactMapWarning();
@@ -2926,6 +2931,9 @@ public class View extends JFrame implements ActionListener {
 		tbShowFirst.setSelected(showFirst);
 	}
 
+	/**
+	 * Handler for the show/hide unique second structure contacts button in compare mode
+	 */		
 	private void handleShowSecond(){
 		if(mod==null) {
 			showNoContactMapWarning();
@@ -2944,10 +2952,13 @@ public class View extends JFrame implements ActionListener {
 		tbShowSecond.setSelected(showSecond);
 	}
 
+	/**
+	 * Handler for the show/hide difference map overlay in compare mode
+	 */	
 	private void handleToggleDiffDistMap() {
 		if(mod==null) {
 			showNoContactMapWarning();
-		} else if (!mod.has3DCoordinates()){
+		} else if (!mod.has3DCoordinates()) {
 			showNo3DCoordsWarning();
 		} else if (!cmPane.hasSecondModel()) {
 			showNoSecondContactMapWarning();
@@ -2967,12 +2978,20 @@ public class View extends JFrame implements ActionListener {
 	/* -------------------- Help menu -------------------- */
 
 	private void handleHelpWriteConfig() {
+		File localConfigFile = new File(Start.CONFIG_FILE_NAME);
+		if(!localConfigFile.exists()) {
+			String message = "File " + localConfigFile.getAbsolutePath() + " already exists. Overwrite?";
+			int ret = JOptionPane.showConfirmDialog(this,message, "Confirm overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if(ret != JOptionPane.YES_OPTION) {
+				return;
+			}
+		} 
 		try {
 			Start.writeExampleConfigFile(Start.CONFIG_FILE_NAME);
 			System.out.println("Writing example configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
 		} catch(IOException e) {
-			System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
-		}
+			System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath() + ": " + e.getMessage());
+		}		
 	}
 
 	private void handleHelpAbout() {
