@@ -474,6 +474,17 @@ public class View extends JFrame implements ActionListener {
 		// Select menu
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
+		submenu = new JMenu("Selection Mode");
+		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
+		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, submenu);
+		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, submenu);
+		if(Start.INCLUDE_GROUP_INTERNALS) {
+			nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, submenu);
+			comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, submenu);
+		}
+		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, submenu);
+		menu.add(submenu);
+		menu.addSeparator();
 		mmSelectAll = makeMenuItem("All contacts", null, menu);
 		mmSelectByResNum = makeMenuItem("By residue number...", null, menu);
 		menu.addSeparator();
@@ -491,25 +502,16 @@ public class View extends JFrame implements ActionListener {
 		mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
 		addToJMenuBar(menu);
 
-		// Action menu, TODO: split into 'Mode' and 'Action'
+		// Action menu
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
-		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, menu);
-		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, menu);
-		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, menu);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
-			nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, menu);
-			comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, menu);
-		}
-		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, menu);
 		if (Start.USE_PYMOL) {
-			menu.addSeparator();
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
 			if(Start.INCLUDE_GROUP_INTERNALS) {
 				triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
 			}
-		}
-		menu.addSeparator();		
+			menu.addSeparator();
+		}		
 		delEdgesM = makeMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, menu);
 		addToJMenuBar(menu);
 
@@ -531,8 +533,8 @@ public class View extends JFrame implements ActionListener {
 		mmLoadCaspRR2 = makeMenuItem("CASP RR file...", null, submenu);
 		menu.addSeparator();
 		mmShowCommon = makeMenuItem("Toggle show common contacts", icon_selected, menu);
-		mmShowFirst = makeMenuItem("Toggle show contacts unique in first structure", icon_selected, menu);
-		mmShowSecond = makeMenuItem("Toggle show contacts unique in second structure ", icon_selected, menu);		
+		mmShowFirst = makeMenuItem("Toggle show contacts unique to first structure", icon_selected, menu);
+		mmShowSecond = makeMenuItem("Toggle show contacts unique to second structure ", icon_selected, menu);		
 		menu.addSeparator();
 		mmToggleDiffDistMap = makeMenuItem("Toggle show difference map", icon_deselected, menu);
 		menu.addSeparator();
@@ -878,7 +880,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmShowFirst,true);
 		map.put(mmShowSecond,true);
 		map.put(mmToggleDiffDistMap,true);
-		map.put(smCompare.get("Load"),false);
+		//map.put(smCompare.get("Load"),false); // now allowing loading of a new second contact map
 
 		return map;
 	}
@@ -1553,7 +1555,6 @@ public class View extends JFrame implements ActionListener {
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
