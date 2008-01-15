@@ -42,7 +42,8 @@ import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentExcep
  */
 public class View extends JFrame implements ActionListener {
 
-	// constants
+	/*------------------------------ constants ------------------------------*/
+	
 	static final long serialVersionUID = 1l;
 	protected static final int SQUARE_SEL = 1;
 	protected static final int FILL_SEL = 2;
@@ -54,24 +55,37 @@ public class View extends JFrame implements ActionListener {
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
 
-	// menu item labels
+	// menu item labels (used in main menu, popup menu and icon bar)
+	// File
 	private static final String LABEL_FILE_INFO = "Info";
 	private static final String LABEL_FILE_PRINT = "Print...";	
-	private static final String LABEL_FILE_QUIT = "Quit";	
-	private static final String LABEL_DELETE_CONTACTS = "Delete selected contacts";
-	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
-	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";
-	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
+	private static final String LABEL_FILE_QUIT = "Quit";
+	private static final String LABEL_ALIGNMENT_FILE = "Alignment File...";
+	private static final String LABEL_PNG_FILE = "PNG File...";
+	private static final String LABEL_CASP_RR_FILE = "CASP RR File...";
+	private static final String LABEL_CONTACT_MAP_FILE = "Contact Map File...";
+	private static final String LABEL_PDB_FILE = "PDB File...";
+	private static final String LABEL_ONLINE_PDB = "Online PDB...";
+	private static final String LABEL_MSD = "MSD...";
+	private static final String LABEL_PDBASE = "Pdbase...";
+	private static final String LABEL_GRAPH_DB = "Graph Database...";
+	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
 	private static final String LABEL_FILL_SELECTION_MODE = "Fill Selection Mode";
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
-	private static final String LABEL_SEL_MODE_COLOR = "Select by color mode";
-	private static final String LABEL_COMPARE_CM = "Load second structure from"; 
-	private static final String LABEL_SHOW_COMMON = "Show/hide common contacts";
-	private static final String LABEL_SHOW_FIRST = "Show/hide contacts unique to first structure";
-	private static final String LABEL_SHOW_SECOND = "Show/hide contacts unique to second structure";
-	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show residue pair (%s,%s) as edge in 3D";	// used in ContactMapPane.showPopup
+	private static final String LABEL_SEL_MODE_COLOR = "Select By Color Mode";
+	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";	
+	// Action
+	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
+	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
+	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
+	// Compare
+	private static final String LABEL_COMPARE_CM = "Load Second Structure From"; 
+	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
+	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
+	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
+	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
 
 	private static int pymolSelSerial = 1;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
 	
@@ -432,26 +446,26 @@ public class View extends JFrame implements ActionListener {
 		submenu = new JMenu("Load from");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 		if(Start.USE_DATABASE) {
-			mmLoadGraph = makeMenuItem("Graph database...",null,submenu);
-			mmLoadPdbase = makeMenuItem("Pdbase...",null,submenu);
-			mmLoadMsd = makeMenuItem("MSD...",null, submenu);
+			mmLoadGraph = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
+			mmLoadPdbase = makeMenuItem(LABEL_PDBASE,null,submenu);
+			mmLoadMsd = makeMenuItem(LABEL_MSD,null, submenu);
 		}		
-		mmLoadFtp = makeMenuItem("Online PDB...", null, submenu);
-		mmLoadPdb = makeMenuItem("PDB file...", null, submenu);
-		mmLoadCm = makeMenuItem("Contact map file...", null, submenu);
-		mmLoadCaspRR = makeMenuItem("CASP RR file...", null, submenu);
+		mmLoadFtp = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
+		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, submenu);
+		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
+		mmLoadCaspRR = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
 		submenu = new JMenu("Save to");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
-		mmSaveCmFile = makeMenuItem("Contact map file...", null, submenu);
-		mmSaveCaspRRFile = makeMenuItem("CASP RR file...", null, submenu);
-		mmSavePng = makeMenuItem("PNG file...", null, submenu);
+		mmSaveCmFile = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
+		mmSaveCaspRRFile = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
+		mmSavePng = makeMenuItem(LABEL_PNG_FILE, null, submenu);
 		if(Start.USE_DATABASE) {
-			mmSaveGraphDb = makeMenuItem("Graph database...", null, submenu);
+			mmSaveGraphDb = makeMenuItem(LABEL_GRAPH_DB, null, submenu);
 		}
-		mmSaveAli = makeMenuItem("Alignment...", null, submenu);
+		mmSaveAli = makeMenuItem(LABEL_ALIGNMENT_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Save", submenu);
 		// Print, Quit
@@ -462,13 +476,13 @@ public class View extends JFrame implements ActionListener {
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);		
-		mmViewShowPdbResSers = makeMenuItem("Toggle show PDB residue numbers", icon_deselected, menu);
-		mmViewRulers = makeMenuItem("Toggle rulers", icon_deselected, menu);
-		mmViewIconBar = makeMenuItem("Toggle icon bar", icon_deselected, menu);	// doesn't work properly if icon bar is floatable
+		mmViewShowPdbResSers = makeMenuItem("Show PDB Residue Numbers", icon_deselected, menu);
+		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, menu);
+		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, menu);	// doesn't work properly if icon bar is floatable
 		menu.addSeparator();		
-		mmViewHighlightComNbh = makeMenuItem("Toggle highlight of cells by common neighbourhood size", icon_deselected, menu);
-		mmViewShowDensity = makeMenuItem("Toggle show contact density", icon_deselected, menu);
-		mmViewShowDistMatrix = makeMenuItem("Toggle show distance matrix", icon_deselected, menu);
+		mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
+		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
+		mmViewShowDistMatrix = makeMenuItem("Show Distance Map", icon_deselected, menu);
 		addToJMenuBar(menu);
 
 		// Select menu
@@ -485,21 +499,21 @@ public class View extends JFrame implements ActionListener {
 		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, submenu);
 		menu.add(submenu);
 		menu.addSeparator();
-		mmSelectAll = makeMenuItem("All contacts", null, menu);
-		mmSelectByResNum = makeMenuItem("By residue number...", null, menu);
+		mmSelectAll = makeMenuItem("All Contacts", null, menu);
+		mmSelectByResNum = makeMenuItem("By Residue Number...", null, menu);
 		menu.addSeparator();
-		mmSelectHelixHelix = makeMenuItem("Helix-Helix contacts", null, menu);
-		mmSelectBetaBeta = makeMenuItem("Strand-Strand contacts", null, menu);
-		mmSelectInterSsContacts = makeMenuItem("Contacts between SS elements", null, menu);
-		mmSelectIntraSsContacts = makeMenuItem("Contacts within SS elements", null, menu);		
+		mmSelectHelixHelix = makeMenuItem("Helix-Helix Contacts", null, menu);
+		mmSelectBetaBeta = makeMenuItem("Strand-Strand Contacts", null, menu);
+		mmSelectInterSsContacts = makeMenuItem("Contacts Between SS Elements", null, menu);
+		mmSelectIntraSsContacts = makeMenuItem("Contacts Within SS Elements", null, menu);		
 		addToJMenuBar(menu);
 
 		// Color menu
 		menu = new JMenu("Color");
 		menu.setMnemonic(KeyEvent.VK_C);
-		mmColorChoose = makeMenuItem("Choose painting color...", icon_colorwheel, menu);
-		mmColorPaint = makeMenuItem("Color selected contacts", icon_color, menu);
-		mmColorReset= makeMenuItem("Reset contact colors to black", icon_black, menu);
+		mmColorChoose = makeMenuItem("Choose Color...", icon_colorwheel, menu);
+		mmColorPaint = makeMenuItem("Color Selected Contacts", icon_color, menu);
+		mmColorReset= makeMenuItem("Reset Contact Colors to Black", icon_black, menu);
 		addToJMenuBar(menu);
 
 		// Action menu
@@ -523,24 +537,24 @@ public class View extends JFrame implements ActionListener {
 		menu.add(submenu);
 		smCompare.put("Load", submenu);
 		if(Start.USE_DATABASE) {
-			mmLoadGraph2 = makeMenuItem("Graph database...",null,submenu);
-			mmLoadPdbase2 = makeMenuItem("Pdbase...",null,submenu);
-			mmLoadMsd2 = makeMenuItem("MSD...",null, submenu);
+			mmLoadGraph2 = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
+			mmLoadPdbase2 = makeMenuItem(LABEL_PDBASE,null,submenu);
+			mmLoadMsd2 = makeMenuItem(LABEL_MSD,null, submenu);
 		}		
-		mmLoadFtp2 = makeMenuItem("Online PDB...", null, submenu);
-		mmLoadPdb2 = makeMenuItem("PDB file...", null, submenu);
-		mmLoadCm2 = makeMenuItem("Contact map file...", null, submenu);
-		mmLoadCaspRR2 = makeMenuItem("CASP RR file...", null, submenu);
+		mmLoadFtp2 = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
+		mmLoadPdb2 = makeMenuItem(LABEL_PDB_FILE, null, submenu);
+		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
+		mmLoadCaspRR2 = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		menu.addSeparator();
-		mmShowCommon = makeMenuItem("Toggle show common contacts", icon_selected, menu);
-		mmShowFirst = makeMenuItem("Toggle show contacts unique to first structure", icon_selected, menu);
-		mmShowSecond = makeMenuItem("Toggle show contacts unique to second structure ", icon_selected, menu);		
+		mmShowCommon = makeMenuItem(LABEL_SHOW_COMMON, icon_selected, menu);
+		mmShowFirst = makeMenuItem(LABEL_SHOW_FIRST, icon_selected, menu);
+		mmShowSecond = makeMenuItem(LABEL_SHOW_SECOND, icon_selected, menu);		
 		menu.addSeparator();
-		mmToggleDiffDistMap = makeMenuItem("Toggle show difference map", icon_deselected, menu);
+		mmToggleDiffDistMap = makeMenuItem("Show Difference Map", icon_deselected, menu);
 		menu.addSeparator();
-		mmSuposition = makeMenuItem("Superimpose from selection",null,menu);
+		mmSuposition = makeMenuItem("Superimpose From Selection",null,menu);
 		mmSuposition.setEnabled(false);
-		mmShowAlignedResidues = makeMenuItem("Show corresponding residues from selection",null,menu);
+		mmShowAlignedResidues = makeMenuItem("Show Corresponding Residues From Selection",null,menu);
 		mmShowAlignedResidues.setEnabled(false);
 		addToJMenuBar(menu);
 
@@ -548,7 +562,7 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpHelp = makeMenuItem("Help", null, menu);
-		mmHelpWriteConfig = makeMenuItem("Write example configuration file", null, menu);
+		mmHelpWriteConfig = makeMenuItem("Write Example Configuration File", null, menu);
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		addToJMenuBar(menu);
 
