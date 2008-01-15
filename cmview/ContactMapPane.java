@@ -1137,9 +1137,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if(!evt.isControlDown()) {
 						resetSelections();
 					}
-
-					selectDiagonal(getRange(clicked));
-
+					// in undirected case only selectDiagonal if we are above diagonal
+					if (!mod.isDirected() && clicked.getFirst()<clicked.getSecond()) { 
+						selectDiagonal(getRange(clicked));
+					}
 
 					this.repaint();
 				} else { // dragging
@@ -2323,7 +2324,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	private int getRange(Pair<Integer> cont) {
-		return Math.abs(cont.getFirst()-cont.getSecond());
+		if (mod.isDirected()) {
+			return Math.abs(cont.getFirst()-cont.getSecond());
+		} else {
+			return (cont.getSecond()-cont.getFirst());
+		}
 	}
 	
 //	/** Returns the size in pixels of a single contact on screen
