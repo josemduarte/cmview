@@ -2056,12 +2056,11 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Superimposes the given models with respect to the given alignment. Instead 
-	 * of considering the alignment as a whole it is reduced to the induced 
-	 * alignment columns defined by a set of contacts. The residues incident to 
-	 * the contact in the selection can be mapped to alignment columns which 
-	 * construct the set of paired residues (matches and/or mismatches) to be 
-	 * consulted for the superpositioning.
+	 * Superimposes the given models with respect to the given alignment, based on
+	 * the given alignment columns, defined by a set of selected contacts.  
+	 * The residues incident to the contacts in the selection are mapped to alignment 
+	 * columns which construct the set of paired residues (matches and/or mismatches) 
+	 * to be passed for the superpositioning.
 	 * @param mod1  the first model
 	 * @param mod2  the second model
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
@@ -2110,14 +2109,14 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doShowAlignedResidues3D(Model mod1, Model mod2, String name1, String name2, Alignment ali, TreeSet<Integer> columns) {
-		// extract the residue indices from the 'columns', do not only 
+	public void doShowAlignedResidues3D(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
+		// extract the residue sequence indices from the 'columns', do not only 
 		// consider (mis)matches
 		IntPairSet residuePairs = new IntPairSet();
 		int pos1,pos2;
 		for(int col : columns) {
-			pos1 = ali.al2seq(name1,col);
-			pos2 = ali.al2seq(name2,col);
+			pos1 = ali.al2seq(mod1.getLoadedGraphID(),col);
+			pos2 = ali.al2seq(mod2.getLoadedGraphID(),col);
 
 			if( pos1 != -1 && pos2 != -1 ) {
 				residuePairs.add(new Pair<Integer>(pos1,pos2));
@@ -2787,15 +2786,11 @@ public class View extends JFrame implements ActionListener {
 
 	/**
 	 * Sends set aligned residues to the visualizer. Calls function 
-	 * {@link #doShowAlignedResidues3D(Model, Model, String, String, Alignment, EdgeSet[])} 
+	 * {@link #doShowAlignedResidues3D(Model, Model, Alignment, TreeSet<Integer>)} 
 	 * with the currently selected contacts being set to the selected contacts.
 	 */
 	private void handleShowAlignedResidues3D() {
-		doShowAlignedResidues3D(mod, mod2,
-				mod.getLoadedGraphID(),
-				mod2.getLoadedGraphID(),
-				ali,
-				cmPane.getAlignmentColumnsFromSelectedContacts());
+		doShowAlignedResidues3D(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
 	}
 
 	/**

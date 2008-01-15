@@ -245,7 +245,10 @@ public class ResidueRuler extends JPanel implements MouseListener,
 			if(evt.getButton()==MouseEvent.BUTTON1) {
 				Point pos=evt.getPoint();
 				int clickedRes = screen2cm(pos);
-
+				// if we clicked on the corner, then the residue is <=0, which is nonsense so we just return 
+				// (if we continue with the <=0 value then it crashes when it trying to map to sequence)
+				if (clickedRes<=0) return;
+				
 				// node nbh selection mode
 				if (view.getCurrentSelectionMode()==View.NODE_NBH_SEL){				
 					if (evt.isControlDown()){

@@ -248,7 +248,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void setModel(Model mod, Alignment ali) {
 		this.mod = mod;
 		this.ali = ali;
-		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts()); //TODO beware at the moment this introduces a +1
+		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts());
 		this.selContacts = new IntPairSet();
 		this.tmpContacts = new IntPairSet();
 		this.selHorNodes = new TreeSet<Integer>();
@@ -257,7 +257,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.uniqueToFirstContacts = new IntPairSet();
 		this.uniqueToSecondContacts = new IntPairSet();
 
-		this.contactMapSize = mod.getMatrixSize(); //TODO get it from alignment instead? ali.getAlignmentLength()
+		this.contactMapSize = ali.getAlignmentLength(); // Note: this used to be mod.getMatrixSize() before we introduced the alignment also for 1 model 
 		// initializes outputSize, ratio and contactSquareSize
 		setOutputSize(Math.min(screenSize.height, screenSize.width)); 		
 		
@@ -342,7 +342,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Given a set of contacts with sequence indexing returns a new set of 
 	 * contacts with alignment indexing
-	 * IMPORTANT NOTE: returned contacts are in alignment coordinates starting from 1 (not 0)
 	 * @param contacts
 	 * @param tag 
 	 */
@@ -357,27 +356,23 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Maps from sequence index to alignment index
 	 * Method is protected to be called from ResidueRuler
-	 * IMPORTANT NOTE: returned contacts are in alignment coordinates starting from 1 (not 0)
 	 * @param tag
 	 * @param alignIdx
 	 * @return
 	 */
 	protected int mapSeq2Al (String tag, int seqIdx) {
-		//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to add 1 here
-		return ali.seq2al(tag, seqIdx) + 1;
+		return ali.seq2al(tag, seqIdx);
 	}
 	
 	/**
 	 * Maps from alignment index to sequence index.
 	 * Method is protected to be called from ResidueRuler
-	 * IMPORTANT NOTE: we have to correct with -1 the alignment index because in Alignment object alignment indices start from 0 (not 1)
 	 * @param tag
 	 * @param aliIdx
 	 * @return
 	 */
 	protected int mapAl2Seq (String tag, int aliIdx) {
-		//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to subtract 1 here
-		return ali.al2seq(tag, aliIdx - 1);
+		return ali.al2seq(tag, aliIdx);
 	}
 	
 	/**
@@ -770,7 +765,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawString(i_res, x,           y+extraTitleY+40);
 		g2d.drawString(j_res, x+extraX+40, y+extraTitleY+40);
 		
-		// writing secondart structure
+		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
 			SecStrucElement iSSElem = iNode==null?null:iNode.getSecStrucElement();
 			SecStrucElement jSSElem = jNode==null?null:jNode.getSecStrucElement();
@@ -809,7 +804,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
-	// TODO: Merge this with above function?
+	// TODO: a) Merge this with above function? b) missing second model display, if we allow ruler in compare mode, we must fix this
 	private void drawRulerCoord(Graphics2D g2d) {
 		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
 		RIGNode node = null;
@@ -824,10 +819,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.setColor(coordinatesColor);
 		g2d.drawString("i", 20, outputSize-90);
 		g2d.drawString(seqIdx+"", 20, outputSize-70);
-		if( hasSecondModel() && Start.SHOW_ALIGNMENT_COORDS ) {
-			// TODO find out what's the offset for this and finish writing next line
-			//g2d.drawString("(" + currentRulerCoord + ")", x+extraX,      y+extraTitleY+20);
-		}		 
+
 		g2d.drawString(res, 20, outputSize-50);
 		if (mod.hasSecondaryStructure()){
 			SecStrucElement ssElem = node==null?null:node.getSecStrucElement();
@@ -892,26 +884,27 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	}
 
 	private void drawCommonNeighbors(Graphics2D g2d, Pair<Integer> cont){
-		RIGCommonNbhood comNbh = this.currCommonNbh;
+		RIGCommonNbhood comNbh = this.currCommonNbh; // currCommonNbh is in sequence indexing
 
 		System.out.println("Selecting common neighbours for " + (allContacts.contains(cont)?"contact ":"") + cont);
 		System.out.println("Common neighbourhood string: "+comNbh);
+		System.out.println("Common neighbours: " + comNbh.getCommaSeparatedResSerials());
 		// drawing corridor
 		drawCorridor(cont, g2d);
 
 		// marking the selected point with a cross
 		drawCrossOnContact(cont, g2d, crossOnContactColor);
-		System.out.println("Common neighbours: " + comNbh.getCommaSeparatedResSerials());
+
 		// drawing triangles
-		for (int k:comNbh.keySet()){ // k is each common neighbour (residue
-			// serial)
-			if (k>cont.getFirst() && k<cont.getSecond()) {
+		for (int k:comNbh.keySet()){ // k is each common neighbour (residue serial in sequence indexing)
+			int kAlIdx = mapSeq2Al(mod.getLoadedGraphID(), k); //TODO if we allow common neighbors in compare mode, then mod here must refer to the correct model
+			if (kAlIdx>cont.getFirst() && kAlIdx<cont.getSecond()) {
 				// draw cyan triangles for neighbours within the box
-				drawTriangle(k, cont, g2d, inBoxTriangleColor);
+				drawTriangle(kAlIdx, cont, g2d, inBoxTriangleColor);
 			}
 			else { // i.e. k<cont.getFirst() || k>cont.getSecond()
 				// draw red triangles for neighbours out of the box
-				drawTriangle(k, cont, g2d, outBoxTriangleColor);
+				drawTriangle(kAlIdx, cont, g2d, outBoxTriangleColor);
 			}
 		}
 	}
@@ -976,26 +969,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		g2d.drawLine(ikPoint.x, ikPoint.y, jkPoint.x, jkPoint.y);
 
 		// drawing light gray common neighbour corridor markers
-		Pair<Integer> kkCont = new Pair<Integer>(k,k); // k node point in the diagonal: the
-		// start point of the light gray
-		// corridor
+		Pair<Integer> kkCont = new Pair<Integer>(k,k); 	// k node point in the diagonal: the
+														// start point of the light gray
+														// corridor
 		Point kkPoint = getCellCenter(kkCont);
 		Point endPoint = new Point();
-		if (k<(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(j,k)); // if k below
-		// center of
-		// segment i->j,
-		// the endpoint
-		// is j,k i.e.
-		// we draw a
-		// vertical line
-		if (k>(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(k,i)); // if k above
-		// center of
-		// segment i->j,
-		// the endpoint
-		// is k,i i.e.
-		// we draw a
-		// horizontal
-		// line
+		if (k<(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(j,k));// if k below
+																		// center of
+																		// segment i->j,
+																		// the endpoint
+																		// is j,k i.e.
+																		// we draw a
+																		// vertical line
+		if (k>(j+i)/2) endPoint = getCellCenter(new Pair<Integer>(k,i));// if k above
+																		// center of
+																		// segment i->j,
+																		// the endpoint
+																		// is k,i i.e.
+																		// we draw a
+																		// horizontal
+																		// line
 		g2d.setColor(nbhCorridorColor);
 		g2d.drawLine(kkPoint.x, kkPoint.y, endPoint.x, endPoint.y);
 	}	
@@ -1204,11 +1197,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/*--------------------------- component events --------------------------*/
 
 	public void componentHidden(ComponentEvent evt) {
-		// TODO Auto-generated method stub
+
 	}
 
 	public void componentMoved(ComponentEvent evt) {
-		// TODO Auto-generated method stub
+
 	}
 
 	public void componentResized(ComponentEvent evt) {
@@ -1305,7 +1298,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		new Thread() {
 			public void run() {
 				registerThread(true);
-				//TODO indices in density matrix refer to sequence, while on screen we have alignment indices. This is fine for single mode, but needs to be changed if we allow density map in compare mode
+				//TODO indices in density matrix refer to sequence, while on screen we have alignment indices. This is fine for single model, but needs to be changed if we allow density map in compare mode
 				densityMatrix = mod.getDensityMatrix();
 				// updateScreenBuffer();
 				registerThread(false);
@@ -1608,7 +1601,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	public int selectByResNum(String selStr) {
 		//TODO at the moment this doesn't work for compare mode, but there's no reason why it wouldn't. What we'd need to do:
-		// 		- take 2 selections one for structure 1 and the other for 2, alternative force user to use alignment indices
+		// 		- take 2 selections one for structure 1 and the other for 2, alternatively force user to use alignment indices
 		//		- use getCurrentContactSet instead of allContacts
 		if(selStr.length() == 0) return 0;	// nothing to select
 		if(!Interval.isValidSelectionString(selStr)) return -1;
@@ -2115,10 +2108,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	
 	/**
-	 * Returns a set of end points of the currently selected contact 
-	 * in alignment indexing counting from 0.
-	 * NOTE: remember the contacts are using alignment indexing starting 
-	 * from 1! 
+	 * Returns a set of end points of the currently selected contacts 
+	 * in alignment indexing starting from 1.
 	 * @return
 	 */
 	public TreeSet<Integer> getAlignmentColumnsFromSelectedContacts() { 
@@ -2133,18 +2124,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * Given a set of contacts puts into <code>positions</code> their 
 	 * end points in alignment indexing starting from 1
-	 * This is necessary because in ContactMapPane contacts are using 
-	 * alignmnet indexing starting from 1 (but in Alignment class indexing 
-	 * for alignment starts from 0)
 	 * @param contacts  set of contacts
 	 * @param positions  contains the alignment columns incident to the 
-	 *  contacts in <code>contacts</code> afterwards
+	 *  contacts in <code>contacts</code>
 	 */
 	public void getAlignmentColumnsFromContacts(IntPairSet contacts, TreeSet<Integer> positions) {
 		for( Pair<Integer> cont : contacts ) {
-			//TODO change Alignment class so alignment indexing starts at 1, not 0. So we don't need to subtract 1 here
-			positions.add(cont.getFirst()  - 1);
-			positions.add(cont.getSecond() - 1);
+			positions.add(cont.getFirst());
+			positions.add(cont.getSecond());
 		}
 	}
 

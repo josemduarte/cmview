@@ -453,40 +453,10 @@ public abstract class Model {
 	/**
 	 * Returns the difference of the distance maps of this model and the given second model. All distances are
 	 * based on C-alpha atoms. 
+	 * @param ali an alignment between this model's sequence and secondModel's sequence
 	 * @param secondModel the second model to compare agains
 	 * @return A map assigning to each edge the corresponding value in the difference distance matrix or null on error.
 	 */
-	public HashMap<Pair<Integer>,Double> getDiffDistMatrix(Model secondModel) {
-		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
-		double diff, min, max;
-		if(!this.has3DCoordinates() || !secondModel.has3DCoordinates()) {
-			System.err.println("Failed to compute difference distance map. No 3D coordinates.");
-			return null; // distance doesn't make sense without 3D data	
-		}
-		if(this.getMatrixSize() != secondModel.getMatrixSize()) {
-			System.err.println("Failed to compute difference distance map. Matrix sizes do not match.");
-			return null; // can only calculate matrix difference if sizes match TODO: use alignment
-		}
-		
-		HashMap<Pair<Integer>,Double> diffDistMatrix = this.pdb.getDiffDistMap(Start.DIST_MAP_CONTACT_TYPE, secondModel.pdb, Start.DIST_MAP_CONTACT_TYPE);
-		
-		if(diffDistMatrix == null) {
-			System.err.println("Failed to compute difference distance map.");
-		} else {
-			max = Collections.max(diffDistMatrix.values());
-			min = Collections.min(diffDistMatrix.values());
-			if(max == min) System.err.println("Failed to scale difference distance matrix. Matrix is empty or all matrix entries are the same.");
-			else {
-				// scale matrix to [0;1]
-				for(Pair<Integer> e:diffDistMatrix.keySet()) {
-					diff = diffDistMatrix.get(e); 
-					diffDistMatrix.put(e, (diff-min)/(max-min));
-				}
-			}
-		}
-		return diffDistMatrix;
-	}
-	
 	public HashMap<Pair<Integer>,Double> getDiffDistMatrix(Alignment ali, Model secondModel) {
 		/* TODO: Also force c-alpha for simple distance maps? Throw proper exceptions instead of returning null? Use real matrix? */
 		double diff, min, max;
