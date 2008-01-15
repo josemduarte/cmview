@@ -602,12 +602,12 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	}
 	
 	/**
-	 * Deletes the chain codes of the chain code combo box and back-ups them in 
+	 * Deletes the chain codes of the chain code combo box and backs-up them in 
 	 * {@link #prevComboCcItems}.
 	 */
 	private void clearComboCc() {
 		// disables the flag to indicate that the set of all present chain 
-		// codes for the next pdb code/filename have to be taken from taken 
+		// codes for the next pdb code/filename have to be taken  
 		// from the source when the user presses the arrow of comboCc next time
 		determinedAllCc = false;
 		
@@ -622,7 +622,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	}
 	
 	/**
-	 * Resets the chain codes of the chain code combo box with the back-uped 
+	 * Resets the chain codes of the chain code combo box with the backed-up 
 	 * values.
 	 */
 	private void resetComboCc() {
@@ -662,7 +662,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		if( prevComboModelItems != null ) {
 			// enables the flag to indicate that one has not to retrieve the model
 			// identifiers again as the previous pdb code/ filename has been reset
-			determinedAllCc = true;
+			determinedAllModels = true;
 
 			// reset the item of the combo box for the chain codes
 			for( int i = 0; i < prevComboModelItems.length; ++i ) {
@@ -679,12 +679,14 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			if (prevPdbName != null	&& (prevPdbName.equals(getSelectedFileName()) || prevPdbName.equals(getSelectedAc()))) {
 				resetComboCc();
 				resetComboModel();
-			} else if (determinedAllCc == true) {
-				// NOTE: a simple 'else' "could" be sufficent but yields 
-				// additional removal costs
-				clearComboCc();
-				clearComboModel();
 			} else {
+				if (determinedAllCc == true) {
+					clearComboCc();
+				}
+				if (determinedAllModels == true) {
+					clearComboModel();
+				}
+			
 				labelAfterCc.setText(LABEL_AFTER_COMBO_BOX);
 				labelAfterModel.setText(LABEL_AFTER_COMBO_BOX);
 			}
@@ -709,7 +711,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 
 					if( allCc == null ) {
 						if( !"".equals(getSelectedAc()) || !"".equals(getSelectedFileName()) ) {
-							// source either contains no chain or whatsoever. we are 
+							// source either contains no chain or whatever. we are 
 							// catching that fact by putting a message in the chain 
 							// combo box field
 							comboCc.setEditable(true);
