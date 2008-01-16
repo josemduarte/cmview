@@ -41,7 +41,8 @@ public class Start {
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
-
+	public static final boolean		ABBOT_FIX = 			false;				// to use abbot GUI testing, changes the way resources are loaded (fix for getResourceAsStrem bug) This must be false for release!!!
+	public static final String		RESOURCES_TEST_DIR =	"/project/StruPPi/cmview/resources";
 		
 	// The following config file name may be overwritten by a command line switch
 	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
@@ -297,7 +298,13 @@ public class Start {
 				throw e;
 			}
 
-			InputStream inp = Runtime.getRuntime().getClass().getResourceAsStream(source);
+			InputStream inp = null;
+			if (ABBOT_FIX) {
+				System.out.println("WARNING: DEBUG MODE FOR ABBOT IS TURNED ON");
+				inp = new FileInputStream(new File(RESOURCES_TEST_DIR,resource));
+			} else {
+				inp = Runtime.getRuntime().getClass().getResourceAsStream(source);
+			}
 			BufferedInputStream in = new BufferedInputStream(inp);
 			FileOutputStream out = new FileOutputStream(target);
 
