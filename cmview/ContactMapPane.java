@@ -287,8 +287,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// getting all contacts of the second structure, mapping through alignment
 		this.allSecondContacts = mapContactSetToAlignment(mod2.getLoadedGraphID(),mod2.getContacts());
 
+		// resetting all other sets
+		commonContacts = new IntPairSet();
+		uniqueToFirstContacts = new IntPairSet();
+		uniqueToSecondContacts = new IntPairSet();
+		bothStrucContacts = new IntPairSet();
+		allButCommonContacts = new IntPairSet();
+		
 		// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
-
+		
 		for (Pair<Integer> cont2:allSecondContacts){
 			// contacts in second and also in first are common
 			if (allContacts.contains(cont2)) {
@@ -308,13 +315,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 
 		// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
-		bothStrucContacts = new IntPairSet();
 		bothStrucContacts.addAll(uniqueToFirstContacts);
 		bothStrucContacts.addAll(uniqueToSecondContacts);
 		bothStrucContacts.addAll(commonContacts);
 
 		// allButCommon = uniqueToFirst+uniqueToSecond
-		allButCommonContacts = new IntPairSet();
 		allButCommonContacts.addAll(uniqueToFirstContacts);
 		allButCommonContacts.addAll(uniqueToSecondContacts);
 
@@ -1399,6 +1404,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// we allow any modification of the second model in the future
 		if (this.hasSecondModel()) {
 			this.allSecondContacts = mapContactSetToAlignment(mod2.getLoadedGraphID(),mod2.getContacts());
+			// resetting all other sets
+			commonContacts = new IntPairSet();
+			uniqueToFirstContacts = new IntPairSet();
+			uniqueToSecondContacts = new IntPairSet();
+			bothStrucContacts = new IntPairSet();
+			allButCommonContacts = new IntPairSet();
+
 			// now getting the 3 sets: common, uniqueToFirst, uniqueToSecond
 			for (Pair<Integer> cont2:allSecondContacts){
 				// contacts in second and also in first are common
@@ -1417,12 +1429,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				}
 			}
 			// bothStrucContacts = uniqueToFirst+uniqueToSecond+common
-			bothStrucContacts = new IntPairSet();
 			bothStrucContacts.addAll(uniqueToFirstContacts);
 			bothStrucContacts.addAll(uniqueToSecondContacts);
 			bothStrucContacts.addAll(commonContacts);
 			// allButCommon = uniqueToFirst+uniqueToSecond
-			allButCommonContacts = new IntPairSet();
 			allButCommonContacts.addAll(uniqueToFirstContacts);
 			allButCommonContacts.addAll(uniqueToSecondContacts);
 		}

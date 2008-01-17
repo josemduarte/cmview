@@ -1639,8 +1639,6 @@ public class View extends JFrame implements ActionListener {
 				}
 			} catch (AlignmentConstructionError e) {
 				error = e.getMessage();
-			} catch (DifferentContactMapSizeError e) {
-				error = e.getMessage();
 			} catch (FileNotFoundException e) {
 				error = e.getMessage();
 			} catch (PirFileFormatError e) {
@@ -1688,7 +1686,7 @@ public class View extends JFrame implements ActionListener {
 	 */
 	public void doLoadPairwiseAlignment()
 	throws IOException, PirFileFormatError, FastaFileFormatError, 
-	AlignmentConstructionError, DifferentContactMapSizeError {
+	AlignmentConstructionError {
 
 		// open global file-chooser and get the name the alignment file
 		JFileChooser fileChooser = Start.getFileChooser();
