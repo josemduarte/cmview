@@ -366,6 +366,8 @@ public class PyMolAdaptor {
 			sendCommand("color " + ModelColors[0] + ", " + structureID);
 		}
 
+		sendCommand("orient");
+		
 		sendCommand("cmd.refresh()");
 		
 		// flush the buffer and send commands to PyMol via log-file

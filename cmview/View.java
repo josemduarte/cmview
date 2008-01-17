@@ -132,7 +132,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
-	JMenuItem mmSuposition, mmShowAlignedResidues;
+	JMenuItem mmSuperposition, mmShowAlignedResidues;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -552,8 +552,8 @@ public class View extends JFrame implements ActionListener {
 		menu.addSeparator();
 		mmToggleDiffDistMap = makeMenuItem("Show Difference Map", icon_deselected, menu);
 		menu.addSeparator();
-		mmSuposition = makeMenuItem("Superimpose From Selection",null,menu);
-		mmSuposition.setEnabled(false);
+		mmSuperposition = makeMenuItem("Superimpose From Selection",null,menu);
+		mmSuperposition.setEnabled(false);
 		mmShowAlignedResidues = makeMenuItem("Show Corresponding Residues From Selection",null,menu);
 		mmShowAlignedResidues.setEnabled(false);
 		addToJMenuBar(menu);
@@ -1135,8 +1135,8 @@ public class View extends JFrame implements ActionListener {
 			handleToggleDiffDistMap();
 		}
 
-		if( e.getSource() == mmSuposition ) {
-			handleSuperposition(); 
+		if( e.getSource() == mmSuperposition ) {
+			handleSuperposition3D(); 
 		}
 
 		if( e.getSource() == mmShowAlignedResidues ) {
@@ -1668,7 +1668,7 @@ public class View extends JFrame implements ActionListener {
 	private void setGUIStatusCompareMode() {
 		// enable computation of the superposition and the showing of 
 		// corresponding residues for both structures
-		mmSuposition.setEnabled(true);	
+		mmSuperposition.setEnabled(true);	
 		mmShowAlignedResidues.setEnabled(true);
 
 		// disable/enable some menu-bar items, popup-menu items and buttons
@@ -1720,17 +1720,8 @@ public class View extends JFrame implements ActionListener {
 			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
 
-		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(mod2, ali);
-		doLoadModelOntoVisualizer(mod2);
-		
-		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
-				
-		// show superpositioning based on the common contacts in pymol
-		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(mod, mod2, ali, columns);
+		// load stuff onto the contact map pane and the 3D visualizer
+		doLoadSecondModel(mod2, ali);
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
@@ -1801,20 +1792,9 @@ public class View extends JFrame implements ActionListener {
 		//ali.printSimple();
 
 
-		// load stuff onto the contact map pane and the visualizer
+		// load stuff onto the contact map pane and the 3D visualizer
+		doLoadSecondModel(mod2, ali);
 
-		doLoadModelsOntoContactMapPane(mod2, ali);
-
-		doLoadModelOntoVisualizer(mod2);
-
-		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
-		
-		// show superpositioning based on the common contacts in pymol
-		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(mod, mod2, ali, columns);
-		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();	
 		
@@ -1972,18 +1952,9 @@ public class View extends JFrame implements ActionListener {
 		String[] seqs = {alignedSeq1, alignedSeq2};
 		ali = new Alignment(names, seqs);
 
-		// load stuff onto the contact map pane and the visualizer
-		doLoadModelsOntoContactMapPane(mod2, ali);
-		doLoadModelOntoVisualizer(mod2);
+		// load stuff onto the contact map pane and the 3D visualizer
+		doLoadSecondModel(mod2, ali);
 
-		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
-		
-		// show superpositioning based on the common contacts in pymol
-		TreeSet<Integer> columns = new TreeSet<Integer>();
-		cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-		doSuperposition(mod, mod2, ali, columns);
-		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
 	}
@@ -2002,23 +1973,9 @@ public class View extends JFrame implements ActionListener {
 				SADPResult result = notifier.getResult();
 				ali         = result.getAlignment();
 
-				// load aligned models onto contact map pane
-				doLoadModelsOntoContactMapPane(mod2, ali);
-				
-				// load second model onto 3D visualizer (as alignedMod2 holds 
-				// the atom coordinates of the original structure this also 
-				// works fine by taking the aligned model as pdb source)
-				doLoadModelOntoVisualizer(mod2);
+				// load aligned models onto contact map pane and 3D visualizer
+				doLoadSecondModel(mod2, ali);
 
-				// clear the view (disables all previous selections)
-				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
-				
-				// show superpositioning according to the common contacts in 
-				// pymol
-				TreeSet<Integer> columns = new TreeSet<Integer>();
-				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-				doSuperposition(mod, mod2, ali, columns);
-				
 				// adapt GUI behavior
 				setGUIStatusCompareMode();
 			}
@@ -2037,7 +1994,7 @@ public class View extends JFrame implements ActionListener {
 	 *  in <code>mod2</code>. Tags of the sequences are the 
 	 *  loadedGraphID of each Model
 	 */
-	private void doLoadModelsOntoContactMapPane(Model mod2, Alignment ali) {
+	private void doLoadSecondModel(Model mod2, Alignment ali) {
 
 		// re-setting window title
 		System.out.println("Second model loaded.");
@@ -2045,29 +2002,43 @@ public class View extends JFrame implements ActionListener {
 		this.setTitle("Comparing " + title);
 
 		// add the second model and update the image buffer
-		cmPane.setSecondModel(mod2, ali); // throws DifferentContactMapSizeError
+		cmPane.setSecondModel(mod2, ali);
 		compareStatus = true;
 		cmPane.updateScreenBuffer();
-		setSelectionMode(SQUARE_SEL);	// we reset to SQUARE_SEL in case another one was switched on
+		setSelectionMode(SQUARE_SEL);	// we reset to SQUARE_SEL in case another one (possibly not allowed in compare mode) was switched on
 		// finally repaint the whole thing to display the whole set of contacts
 		cmPane.repaint();
+		
+		if (Start.isPyMolConnectionAvailable() && mod2.has3DCoordinates()) {
+			// load structure in the 3D visualizer
+			Start.getPyMolAdaptor().loadStructure(mod2.getTempPdbFileName(), mod2.getLoadedGraphID(), true);
+
+			if (mod.has3DCoordinates()) {
+				// clear the view (disables all previous selections)
+				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
+
+				// show superpositioning according to the common contacts in pymol
+				TreeSet<Integer> columns = new TreeSet<Integer>();
+				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
+				doSuperposition3D(mod, mod2, ali, columns);
+			}
+		}
+		
 	}
 
-	/**
-	 * Loads the given model onto the visualizer.
-	 * @param mod  the model to be loaded
-	 */
-	private void doLoadModelOntoVisualizer(Model mod) {
-		Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), true);
-		Start.getPyMolAdaptor().sendCommand("orient");
-		Start.getPyMolAdaptor().flush();
-	}	
-
-	private void handleSuperposition() {
-		// clear the view (disables all previous selections)
-		Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
+	private void handleSuperposition3D() {
+		if (!Start.isPyMolConnectionAvailable()){
+			showNoPyMolConnectionWarning();
+		} else if (!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
+		} else if (!mod2.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod2);
+		} else {
+			// clear the view (disables all previous selections)
+			Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
+			doSuperposition3D(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
+		}
 		
-		doSuperposition(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
 	}
 
 	/**
@@ -2076,13 +2047,14 @@ public class View extends JFrame implements ActionListener {
 	 * The residues incident to the contacts in the selection are mapped to alignment 
 	 * columns which construct the set of paired residues (matches and/or mismatches) 
 	 * to be passed for the superpositioning.
+	 * Can only be called if pymol connection is available, must be checked before!
 	 * @param mod1  the first model
 	 * @param mod2  the second model
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doSuperposition(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
+	public void doSuperposition3D(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
 		TreeSet<String> projectionTags = new TreeSet<String>();
 
 		// get consecutive sequence chunks in mod1 from positions
@@ -2108,18 +2080,17 @@ public class View extends JFrame implements ActionListener {
 
 		// we let pymol compute the pairwise fitting
 		Start.getPyMolAdaptor().pairFitSuperposition(
-				mod1.getLoadedGraphID(),/*identities first model*/
-				mod2.getLoadedGraphID(),/*identifies second model*/
-				chunks1, chunks2);                     /*intervals of corresponding residues*/
+				mod1.getLoadedGraphID(), /*identities first model*/
+				mod2.getLoadedGraphID(), /*identifies second model*/
+				chunks1, chunks2);       /*intervals of corresponding residues*/
 	}
 
 	/**
 	 * Sends the induced residue-residue alignment of the given contact 
 	 * selection to the visualizer. 
+	 * Can only be called if a pymol connection is available. 
 	 * @param mod1  the first model
 	 * @param mod2  the second model
-	 * @param name1  sequence identifier of <code>mod1</code> in the alignment
-	 * @param name2  sequence identifier of <code>mod2</code> in the alignment
 	 * @param ali  alignment of residues in <code>mod1</code> to residues in 
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
@@ -2153,6 +2124,7 @@ public class View extends JFrame implements ActionListener {
 			return;
 		}
 
+		//TODO move this code to a method in PyMolAdaptor
 		// prepare selection names
 		String topLevelGroup = "Sel" + View.pymolSelSerial;
 		String firstObjSel   = mod1.getLoadedGraphID();
@@ -2168,16 +2140,6 @@ public class View extends JFrame implements ActionListener {
 		
 		// group selection in topLevelGroup
 		pymol.group(topLevelGroup, edgeSel + " " + nodeSel, null);
-		
-//		// send selection of (mis)matching residues to PyMOL
-//		Start.getPyMolAdaptor().sendTwoChainsEdgeSelection(
-//				mod1.getPDBCode(), mod1.getChainCode(), 
-//				mod2.getPDBCode(), mod2.getChainCode(), 
-//				"AlignedResi"+mod1.getChainCode()+mod2.getChainCode(),
-//				"yellow",
-//				View.pymolSelSerial,
-//				residuePairs,
-//				false, true); // do not dash the line, do center selection
 		
 		++View.pymolSelSerial;
 	}
@@ -2328,7 +2290,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
-			showNo3DCoordsWarning();
+			showNo3DCoordsWarning(mod);
 		} else {
 			showPdbSers = !showPdbSers;						// TODO: Move this to CMPane?
 			cmPane.updateScreenBuffer();
@@ -2418,7 +2380,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
-			showNo3DCoordsWarning();
+			showNo3DCoordsWarning(mod);
 		} else {
 			showDistanceMap = !showDistanceMap;
 			cmPane.toggleDistanceMap(showDistanceMap);
@@ -2555,14 +2517,18 @@ public class View extends JFrame implements ActionListener {
 		
 		if(mod==null) {
 			showNoContactMapWarning();
-		} else if(!mod.has3DCoordinates()) {
-			showNo3DCoordsWarning();
 		} else if(!Start.isPyMolConnectionAvailable()) {
 			showNoPyMolConnectionWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
 		} else if(cmPane.getSelContacts().size() == 0) {
 			showNoContactsSelectedWarning();
 		} else if (cmPane.hasSecondModel()){
 			
+			if(!mod2.has3DCoordinates()) {
+				showNo3DCoordsWarning(mod2);
+				return;
+			}
 			// chain selection names. The names are only used the access the 
 			// right chain. We do not create this selection explicitely!!!
 			String firstChainSel  = mod.getLoadedGraphID();
@@ -2754,7 +2720,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if(!mod.has3DCoordinates()) {
-			showNo3DCoordsWarning();
+			showNo3DCoordsWarning(mod);
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
 		} else {
@@ -2770,20 +2736,20 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if(!mod.has3DCoordinates()) {
-			showNo3DCoordsWarning();
+			showNo3DCoordsWarning(mod);
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
 		} else if(cmPane.getCommonNbh() == null) {
 			showNoCommonNbhSelectedWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			
+			// TODO move this code to PyMolAdaptor
 			String topLevelGroup    = "Sel" + View.pymolSelSerial;
 			String chainObjName     = mod.getLoadedGraphID();
 			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
 			String nodeSelName      = triangleBaseName + "_Nodes";
 			
-			//pymol.showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); // TODO: get rid of NbhSerial
+			//pymol.showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); 
 			Collection<String> triangleSelNames =  pymol.showTriangles(chainObjName, triangleBaseName, nodeSelName, cmPane.getCommonNbh());
 			
 			String groupMembers = "";
@@ -2805,7 +2771,15 @@ public class View extends JFrame implements ActionListener {
 	 * with the currently selected contacts being set to the selected contacts.
 	 */
 	private void handleShowAlignedResidues3D() {
-		doShowAlignedResidues3D(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
+		if (!Start.isPyMolConnectionAvailable()) {
+			showNoPyMolConnectionWarning();
+		} else  if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning(mod);
+		} else if (!mod2.has3DCoordinates()) {
+			 showNo3DCoordsWarning(mod2);
+		} else {
+			doShowAlignedResidues3D(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
+		}
 	}
 
 	/**
@@ -2895,11 +2869,11 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()) {
-			showNo3DCoordsWarning();
+			showNo3DCoordsWarning(mod);
 		} else if (!cmPane.hasSecondModel()) {
 			showNoSecondContactMapWarning();
 		} else if (!mod2.has3DCoordinates()) { // it's ok to use here the original mod2 and not the actual displayed alignMod2 (ContactMapPane.mod2) because both should have (or not) 3D coordinates 
-			showNo3DCoordsSecondModelWarning();
+			showNo3DCoordsWarning(mod2);
 		} else {
 			showDiffDistMap = !showDiffDistMap;
 			cmPane.toggleDiffDistMap(showDiffDistMap);
@@ -3002,18 +2976,8 @@ public class View extends JFrame implements ActionListener {
 	}	
 
 	/** Warning dialog to be shown if a function is being called which requires 3D coordinates and they are missing */
-	private void showNo3DCoordsWarning(){
-		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Warning", JOptionPane.INFORMATION_MESSAGE);
-	}
-
-	/** Warning dialog to be shown if a comparison function is being called which requires 3D coordinates and they are missing */
-	private void showNo3DCoordsSecondModelWarning(){
-		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with this contact map", "Warning", JOptionPane.INFORMATION_MESSAGE);
-	}
-
-	@SuppressWarnings("unused")
-	private void showNo3DCoordFromSelection() {
-		JOptionPane.showMessageDialog(this, "Cannot assign any 3D-coordinates to the given selection.", "3D Coordinates Error.", JOptionPane.ERROR_MESSAGE);
+	private void showNo3DCoordsWarning(Model mod){
+		JOptionPane.showMessageDialog(this, "No 3D coordinates are associated with contact map "+mod.getLoadedGraphID(), "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void showNo3DCoordFromComparedSelection() {
