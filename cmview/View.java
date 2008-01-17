@@ -2178,11 +2178,13 @@ public class View extends JFrame implements ActionListener {
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
-				String path = chosenFile.getPath();
-				try {
-					this.mod.writeToContactMapFile(path);
-				} catch(IOException e) {
-					System.err.println("Error writing to file " + path);
+				if (confirmOverwrite(chosenFile)) {
+					String path = chosenFile.getPath();
+					try {
+						this.mod.writeToContactMapFile(path);
+					} catch(IOException e) {
+						System.err.println("Error writing to file " + path);
+					}
 				}
 			}
 		}
@@ -2197,11 +2199,13 @@ public class View extends JFrame implements ActionListener {
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
-				String path = chosenFile.getPath();
-				try {
-					this.mod.writeToCaspRRFile(path);
-				} catch(IOException e) {
-					System.err.println("Error writing to file " + path);
+				if (confirmOverwrite(chosenFile)) {
+					String path = chosenFile.getPath();
+					try {
+						this.mod.writeToCaspRRFile(path);
+					} catch(IOException e) {
+						System.err.println("Error writing to file " + path);
+					}
 				}
 			}
 		}
@@ -2215,21 +2219,22 @@ public class View extends JFrame implements ActionListener {
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
+				if (confirmOverwrite(chosenFile)) {
+					// Create a buffered image in which to draw
+					BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-				// Create a buffered image in which to draw
-				BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
+					// Create a graphics contents on the buffered image
+					Graphics2D g2d = bufferedImage.createGraphics();
 
-				// Create a graphics contents on the buffered image
-				Graphics2D g2d = bufferedImage.createGraphics();
+					// Draw the current contact map window to Image
+					cmPane.paintComponent(g2d);
 
-				// Draw the current contact map window to Image
-				cmPane.paintComponent(g2d);
-
-				try {
-					ImageIO.write(bufferedImage, "png", chosenFile);
-					System.out.println("File " + chosenFile.getPath() + " saved.");
-				} catch (IOException e) {
-					System.err.println("Error while trying to write to PNG file " + chosenFile.getPath());
+					try {
+						ImageIO.write(bufferedImage, "png", chosenFile);
+						System.out.println("File " + chosenFile.getPath() + " saved.");
+					} catch (IOException e) {
+						System.err.println("Error while trying to write to PNG file " + chosenFile.getPath());
+					}
 				}
 			}
 		}
@@ -2247,10 +2252,12 @@ public class View extends JFrame implements ActionListener {
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
-				try {
-					ali.writeFasta(new FileOutputStream(chosenFile), 80, true);
-				} catch (IOException e) {
-					System.err.println("Error while trying to write to FASTA file " + chosenFile.getPath());
+				if (confirmOverwrite(chosenFile)) {
+					try {
+						ali.writeFasta(new FileOutputStream(chosenFile), 80, true);
+					} catch (IOException e) {
+						System.err.println("Error while trying to write to FASTA file " + chosenFile.getPath());
+					}
 				}
 			}
 		}	
@@ -2889,19 +2896,14 @@ public class View extends JFrame implements ActionListener {
 
 	private void handleHelpWriteConfig() {
 		File localConfigFile = new File(Start.CONFIG_FILE_NAME);
-		if(!localConfigFile.exists()) {
-			String message = "File " + localConfigFile.getAbsolutePath() + " already exists. Overwrite?";
-			int ret = JOptionPane.showConfirmDialog(this,message, "Confirm overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-			if(ret != JOptionPane.YES_OPTION) {
-				return;
+		if (confirmOverwrite(localConfigFile)) {
+			try {
+				Start.writeExampleConfigFile(Start.CONFIG_FILE_NAME);
+				System.out.println("Writing example configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
+			} catch(IOException e) {
+				System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath() + ": " + e.getMessage());
 			}
-		} 
-		try {
-			Start.writeExampleConfigFile(Start.CONFIG_FILE_NAME);
-			System.out.println("Writing example configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath());
-		} catch(IOException e) {
-			System.err.println("Could not write configuration file " + new File(Start.CONFIG_FILE_NAME).getAbsolutePath() + ": " + e.getMessage());
-		}		
+		}
 	}
 
 	private void handleHelpAbout() {
@@ -2958,6 +2960,25 @@ public class View extends JFrame implements ActionListener {
 				JOptionPane.PLAIN_MESSAGE);
 	}	
 
+	/**
+	 * Checks for existence of given file and displays a confirm dialog
+	 * @param file
+	 * @return true if file does not exist or user clicks on Yes, false if file
+	 *  exists and user clicks on No
+	 */
+	private boolean confirmOverwrite(File file) {
+		if(file.exists()) {
+			String message = "File " + file.getAbsolutePath() + " already exists. Overwrite?";
+			int ret = JOptionPane.showConfirmDialog(this,message, "Confirm overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if(ret != JOptionPane.YES_OPTION) {
+				return false;
+			} else {
+				return true;
+			}
+		} 
+		return true;
+	}
+	
 	/* -------------------- Warnings -------------------- */
 
 	/** Shows a window with a warning message that no contact map is loaded yet */
@@ -3018,11 +3039,6 @@ public class View extends JFrame implements ActionListener {
 			 	                            "will be lost when writing to the file.</html>", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
-	@SuppressWarnings("unused")
-	private void showDifferentSizeContactMapsError() {
-		JOptionPane.showMessageDialog(this, "The two contact maps cannot be compared because they have different size.", "Cannot compare contact maps", JOptionPane.ERROR_MESSAGE);		
-	}
-
 	private void showInvalidSelectionStringWarning() {
 		JOptionPane.showMessageDialog(this, "Invalid selection string", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
