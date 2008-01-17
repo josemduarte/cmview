@@ -715,11 +715,9 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 							// catching that fact by putting a message in the chain 
 							// combo box field
 							comboCc.setEditable(true);
-							comboCc.addItem(makeObj("UNKNOWN!!!"));
+							comboCc.addItem(makeObj("ERROR"));
 
 							labelAfterCc.setText("check pdb source!");
-							labelAfterCc.setBackground(Color.RED);
-							
 							determinedAllCc = true;
 							backupPdbName();
 						}
@@ -735,13 +733,12 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 				} catch (GetterError e) {
 					System.err.println(e.getMessage());
 					labelAfterCc.setText("check pdb source!");
-					labelAfterCc.setBackground(Color.RED);
 				}
 				setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				
 			} else if( comboCc.getItemCount() == 0 ) {
 				comboCc.setEditable(true);
-				comboCc.addItem(makeObj("UNKNOWN!!!"));
+				comboCc.addItem(makeObj("ERROR"));
 				determinedAllCc = true;
 				backupPdbName();
 			}

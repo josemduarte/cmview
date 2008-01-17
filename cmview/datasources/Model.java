@@ -96,7 +96,7 @@ public abstract class Model {
 		try {
 			pdb.dump2pdbfile(getTempPdbFileName());
 		} catch (IOException e) {
-			System.err.println("Error writing temporary PDB file");
+			System.err.println("Error writing temporary PDB file " + getTempPdbFileName());
 		}
 	}
 

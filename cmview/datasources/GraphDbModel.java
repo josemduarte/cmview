@@ -26,6 +26,13 @@ public class GraphDbModel extends Model {
 			String pdbChainCode = graph.getPdbChainCode();
 			int modelSerial = graph.getModel();
 			
+			// assign a loadedGraphId to this model
+			String name = this.graph.getPdbCode()+this.graph.getChainCode();
+			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
+			
 			// load structure from MSD (to display in Pymol)
 			try {
 				//TODO eventually we should read from pdbase, new graphs in db are now based on pdbase
@@ -38,12 +45,6 @@ public class GraphDbModel extends Model {
 				pdb = null;
 			}
 			// if pdb created failed then pdb=null
-
-			String name = this.graph.getPdbCode()+this.graph.getChainCode();
-			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
-				name = DEFAULT_LOADEDGRAPHID;
-			} 
-			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts

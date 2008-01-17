@@ -30,6 +30,13 @@ public class ContactMapFileModel extends Model {
 				System.err.println("File contains no sequence information. Many features will be unavailable.");
 			}
 			
+			// assign a loadedGraphId to this model
+			String name = this.graph.getPdbCode()+this.graph.getChainCode();
+			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = DEFAULT_LOADEDGRAPHID;
+			} 
+			this.loadedGraphID = Start.setLoadedGraphID(name, this);
+			
 			// load structure from pdbase/online if possible
 			if(!pdbCode.equals(Pdb.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
 				if (Start.isDatabaseConnectionAvailable()) {
@@ -66,12 +73,6 @@ public class ContactMapFileModel extends Model {
 			} else {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
 			}
-			
-			String name = this.graph.getPdbCode()+this.graph.getChainCode();
-			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
-				name = DEFAULT_LOADEDGRAPHID;
-			} 
-			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts

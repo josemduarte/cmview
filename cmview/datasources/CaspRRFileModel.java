@@ -25,7 +25,8 @@ public class CaspRRFileModel extends Model {
 			if(graph.getSequence().equals("")) {
 				System.err.println("File contains no sequence information. Many features will be unavailable.");
 			}
-						
+			
+			// assign a loadedGraphId to this model
 			String name = String.format("T%04d",this.graph.getTargetNum());
 			if (this.graph.getTargetNum()==0) {
 				name = DEFAULT_LOADEDGRAPHID;

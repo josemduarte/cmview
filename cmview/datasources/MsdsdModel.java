@@ -48,13 +48,14 @@ public class MsdsdModel extends Model {
 			// get graph from structure
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 			
-			super.writeTempPdbFile();
+			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();
 			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
 				name = DEFAULT_LOADEDGRAPHID;
 			} 
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
-
+			
+			super.writeTempPdbFile();
 			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
