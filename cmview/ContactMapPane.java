@@ -450,7 +450,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
-		if (dragging && view.getCurrentSelectionMode()==View.SQUARE_SEL) {
+		if (dragging && view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT) {
 
 			g2d.setColor(squareSelColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
@@ -463,7 +463,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		} 
 
 		// drawing temp selection in red while dragging in range selection mode
-		if (dragging && view.getCurrentSelectionMode()==View.DIAG_SEL) {
+		if (dragging && view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
 
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
@@ -572,7 +572,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param g2d
 	 */
 	private void drawContactMap(Graphics2D g2d) {
-		if (!view.getCompareStatus()) { // single contact map mode
+		if (!view.getGUIState().getCompareMode()) { // single contact map mode
 			for (Pair<Integer> cont:allContacts){
 				// in single contact map mode we can also have contacts colored by user
 				if(userContactColors.containsKey(cont)) {
@@ -584,34 +584,34 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		} else { // compare mode
 			// 1) common=0, first=0, second=1
-			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+			if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 2) common=0, first=1, second=0 
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
 			// 3) common=0, first=1, second=1
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
+			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 4) common=1, first=0, second=0
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 			}
 			// 5) common=1, first=0, second=1
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
 			}
 			// 6) common=1, first=1, second=0
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 			}
 			// 7) common=1, first=1, second=1
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true) {
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true) {
 				drawContacts(g2d,commonContacts,commonContactsColor);
 				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
 				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
@@ -794,14 +794,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawLine(x+28, y+extraTitleY+35, x+extraX+35, y+extraTitleY+35);		
 		}
 
-		if(view.getCurrentSelectionMode()==View.DIAG_SEL) {
+		if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
 			if( !showAliAndSeqPos) {
 				g2d.drawString("SeqSep", x+80, y+extraTitleY+20);
 				g2d.drawString(getRange(currentCell)+"", x+extraX+80, y+extraTitleY+40);		
 			}
 		}
 
-		if (view.getShowPdbSers()){
+		if (view.getGUIState().getShowPdbSers()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
 			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+80);
@@ -836,7 +836,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}			
 			g2d.drawString(Character.toString(ssType), 20, outputSize-30);
 		}
-		if (view.getShowPdbSers()){
+		if (view.getGUIState().getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(seqIdx);
 			g2d.drawString(pdbresser==null?"?":pdbresser, 20, outputSize-10);
 		}
@@ -844,7 +844,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
-		if (view.getCurrentSelectionMode()==View.DIAG_SEL){
+		if (view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG){
 			g2d.setColor(diagCrosshairColor);			
 			g2d.drawLine(mousePos.x-mousePos.y, 0, getOutputSize(), getOutputSize()-(mousePos.x-mousePos.y));
 			// all other cases cursor is a cross-hair
@@ -1026,8 +1026,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 
-			switch (view.getCurrentSelectionMode()) {
-			case View.SHOW_COMMON_NBH:
+			switch (view.getGUIState().getSelectionMode()) {
+			case COMNBH:
 				Pair<Integer> c = screen2cm(mousePressedPos); 
 				this.currCommonNbh = mod.getCommonNbhood (mapAl2Seq(mod.getLoadedGraphID(),c.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),c.getSecond()));
 				dragging = false;
@@ -1035,7 +1035,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;
 
-			case View.SEL_MODE_COLOR:
+			case COLOR:
 				dragging=false;		// TODO: can we pull this up?
 				Pair<Integer> clickedPos = screen2cm(mousePressedPos); // TODO: this as well?
 				if(!evt.isControlDown()) {
@@ -1062,7 +1062,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;	
 
-			case View.SQUARE_SEL:
+			case RECT:
 
 
 				if(!dragging) {					
@@ -1104,7 +1104,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				return;
 
 
-			case View.FILL_SEL:
+			case FILL:
 				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!evt.isControlDown()){
@@ -1116,7 +1116,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;
 
-			case View.NODE_NBH_SEL:
+			case NBH:
 				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!evt.isControlDown()){
@@ -1135,7 +1135,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				this.repaint();
 				return;
 
-			case View.DIAG_SEL:
+			case DIAG:
 				if (!dragging){
 					Pair<Integer> clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
@@ -1170,11 +1170,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(lastMouseButtonPressed == MouseEvent.BUTTON1) {
 			dragging = true;
 			mouseDraggingPos = evt.getPoint();
-			switch (view.getCurrentSelectionMode()) {
-			case View.SQUARE_SEL:
+			switch (view.getGUIState().getSelectionMode()) {
+			case RECT:
 				squareSelect(getCurrentContactSet());
 				break;
-			case View.DIAG_SEL:
+			case DIAG:
 				rangeSelect(getCurrentContactSet());
 				break;
 			}	
@@ -1255,27 +1255,27 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 
 		// distance map
-		if (view.getShowDistMap()){
+		if (view.getGUIState().getShowDistanceMap()){
 			drawDistanceMap(g2d);
 		}
 
 		// density map
-		if(view.getShowDensityMap()) {
+		if(view.getGUIState().getShowDensityMap()) {
 			drawDensityMap(g2d);
 		}
 
 		// common nbh sizes or contact map
-		if (view.getShowNbhSizeMap()){
+		if (view.getGUIState().getShowNbhSizeMap()){
 			drawNbhSizeMap(g2d);
 		}
 
 		// draw difference distance map (in comparison mode)
-		if(view.getCompareStatus() && view.getShowDiffDistMap()) {
+		if(view.getGUIState().getCompareMode() && view.getGUIState().getShowDiffDistMap()) {
 			drawDiffDistMap(g2d);
 		}
 		
 		// draw contact map if necessary (single or comparison)
-		if(!view.getShowNbhSizeMap() && !view.getShowDistMap()) {
+		if(!view.getGUIState().getShowNbhSizeMap() && !view.getGUIState().getShowDistanceMap()) {
 			drawContactMap(g2d);			
 		}
 
@@ -1438,7 +1438,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// updating maps
-		if(view.getShowNbhSizeMap()) {
+		if(view.getGUIState().getShowNbhSizeMap()) {
 			if(BACKGROUND_LOADING) {
 				updateNbhSizeMapBg();	// will repaint when done
 			} else {
@@ -1453,7 +1453,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				markComNbhSizeMapAsDirty();
 			}
 		}
-		if(view.getShowDensityMap()) {
+		if(view.getGUIState().getShowDensityMap()) {
 			if(BACKGROUND_LOADING) {
 				updateDensityMapBg();	// will repaint when done
 			} else {
@@ -1938,31 +1938,31 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// pairwise comparison mode
 		if (this.hasSecondModel()){
 			// 1) common=0, first=0, second=1
-			if (view.getShowCommon() == false && view.getShowFirst() == false && view.getShowSecond() == true){
+			if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
 				return uniqueToSecondContacts;
 			}
 			// 2) common=0, first=1, second=0
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
 				return uniqueToFirstContacts;
 			}
 			// 3) common=0, first=1, second=1
-			else if (view.getShowCommon() == false && view.getShowFirst() == true && view.getShowSecond() == true){
+			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
 				return allButCommonContacts;
 			}
 			// 4) common=1, first=0, second=0
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
 				return commonContacts;
 			}
 			// 5) common=1, first=0, second=1
-			else if (view.getShowCommon() == true && view.getShowFirst() == false && view.getShowSecond() == true){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
 				return allSecondContacts;
 			}
 			// 6) common=1, first=1, second=0
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == false){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
 				return allContacts;
 			}
 			// 7) common=1, first=1, second=1
-			else if (view.getShowCommon() == true && view.getShowFirst() == true && view.getShowSecond() == true){
+			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
 				return bothStrucContacts;
 			}
 			return new IntPairSet(); // in case common=0, first=0, second=0, we return an empty set
@@ -2264,7 +2264,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void showPopup(MouseEvent e) {
 		this.rightClickCont = screen2cm(new Point(e.getX(), e.getY()));
 		// we want to show sequence indices to the user, that's why we map here TODO at the moment will not work for compare mode because we use mod1 for the al2seq mapping
-		view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getSecond())));
+		if(view.popupSendEdge != null) {
+			view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getSecond())));
+		}
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}
 

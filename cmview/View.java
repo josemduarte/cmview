@@ -45,13 +45,6 @@ public class View extends JFrame implements ActionListener {
 	/*------------------------------ constants ------------------------------*/
 	
 	static final long serialVersionUID = 1l;
-	protected static final int SQUARE_SEL = 1;
-	protected static final int FILL_SEL = 2;
-	protected static final int NODE_NBH_SEL = 3;
-	protected static final int SHOW_COMMON_NBH = 4;
-	protected static final int DIAG_SEL = 5;
-	protected static final int SEL_MODE_COLOR = 6;
-
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
 
@@ -136,27 +129,13 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
+	private GUIState guiState;
 	private Model mod;
 	private Model mod2;
 	private Alignment ali;
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
-
-	// current gui state
-	private int currentSelectionMode;	// current selection mode (see constants above), modify using setSelectionMode
-	private boolean showPdbSers;		// whether showing pdb serials is switched on
-	private boolean showRulers;			// whether showing residue rulers is switched on
-	private boolean showIconBar;		// whether showing the icon bar is switched on
-	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
-	private boolean showDensityMap;		// whether showing the density map is switched on
-	private boolean showDistanceMap;	// whether showing the distance map is switched on
-	private boolean compareStatus;		// whether we are in pairwise comparison mode (i.e. a second structure has been loaded)
-	private Color currentPaintingColor;	// current color for coloring contacts selected by the user
-	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)
-	private boolean showFirst; 			// when true, contacts unique to first structure displayed in compare mode (and selections are only for first)
-	private boolean showSecond; 		// when true, contacts unique to second structure displayed in compare mode (and selections are only for second)
-	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
 
 	// global icons TODO: replace these by tickboxes?
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
@@ -183,23 +162,9 @@ public class View extends JFrame implements ActionListener {
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
-		this.currentSelectionMode = SQUARE_SEL;
-		//this.pymolSelSerial = 1;
-		this.showPdbSers = false;
-		this.showNbhSizeMap = false;
-		this.showRulers=Start.SHOW_RULERS_ON_STARTUP;
-		this.showIconBar=Start.SHOW_ICON_BAR;
-		this.showDensityMap=false;
-		this.showDistanceMap=false;
-		this.currentPaintingColor = Color.blue;
-		this.showCommon= true;
-		this.showFirst= true;
-		this.showSecond= true;
-		this.showDiffDistMap = false;
-
+		this.guiState = new GUIState(this);
 		this.initGUI(); // build gui tree and show window
 		//this.toFront(); // bring window to front
-		this.compareStatus = false;	
 	}
 	
 	public void dispose() {
@@ -208,23 +173,6 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/*---------------------------- private methods --------------------------*/
-
-	/**
-	 * Sets the current selection mode. This sets the internal state variable and changes some gui components.
-	 * Use getSelectionMode to retrieve the current state.
-	 */
-	private void setSelectionMode(int mode) {
-		switch(mode) {
-		case(SQUARE_SEL): tbSquareSel.setSelected(true); break;
-		case(FILL_SEL): tbFillSel.setSelected(true); break;
-		case(NODE_NBH_SEL): tbNbhSel.setSelected(true); break;
-		case(SHOW_COMMON_NBH): tbShowComNbh.setSelected(true); break;
-		case(DIAG_SEL): tbDiagSel.setSelected(true); break;
-		case(SEL_MODE_COLOR) : tbSelModeColor.setSelected(true); break;
-		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
-		}
-		this.currentSelectionMode = mode;
-	}
 
 	/**
 	 * Sets up and returns a new menu item with the given icon and label, adds it to the given JMenu and
@@ -283,7 +231,7 @@ public class View extends JFrame implements ActionListener {
 		return new Icon() {
 			public void paintIcon(Component c, Graphics g, int x, int y) {
 				Color oldColor = c.getForeground();
-				g.setColor(currentPaintingColor);
+				g.setColor(guiState.getPaintingColor());
 				g.translate(x, y);
 				g.fillRect(2,2,12,12);
 				g.translate(-x, -y);  // Restore Graphics object
@@ -382,9 +330,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		toolBar.addSeparator(new Dimension(100, 10));
-		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, showCommon, false, false);
-		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, showFirst, false, false);
-		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, showSecond, false, false);
+		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
+		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, guiState.getShowFirst(), false, false);
+		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, guiState.getShowSecond(), false, false);
 
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -619,7 +567,7 @@ public class View extends JFrame implements ActionListener {
 		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
 		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
-		if(showRulers) {
+		if(guiState.getShowRulers()) {
 			cmp.add(topRul, BorderLayout.NORTH);
 			cmp.add(leftRul, BorderLayout.WEST);
 		}
@@ -1049,27 +997,27 @@ public class View extends JFrame implements ActionListener {
 
 		// square button clicked
 		if (e.getSource() == squareM || e.getSource() == squareP || e.getSource() == tbSquareSel ) {
-			setSelectionMode(SQUARE_SEL);
+			guiState.setSelectionMode(GUIState.SelMode.RECT);
 		}
 		// fill button clicked
 		if (e.getSource() == fillM || e.getSource() == fillP || e.getSource() == tbFillSel) {
-			setSelectionMode(FILL_SEL);
+			guiState.setSelectionMode(GUIState.SelMode.FILL);
 		}			
 		// diagonal selection clicked
 		if (e.getSource() == rangeM || e.getSource() == rangeP || e.getSource() == tbDiagSel) {
-			setSelectionMode(DIAG_SEL);
+			guiState.setSelectionMode(GUIState.SelMode.DIAG);
 		}
 		// node neihbourhood selection button clicked 
 		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP || e.getSource() == tbNbhSel) {
-			setSelectionMode(NODE_NBH_SEL);
+			guiState.setSelectionMode(GUIState.SelMode.NBH);
 		}		
 		// showing com. Nei. button clicked
 		if (e.getSource() == comNeiM || e.getSource() == comNeiP || e.getSource() == tbShowComNbh) {
-			setSelectionMode(SHOW_COMMON_NBH);
+			guiState.setSelectionMode(GUIState.SelMode.COMNBH);
 		}
 		// color selection mode button clicked
 		if (e.getSource() == mmSelModeColor || e.getSource() == pmSelModeColor || e.getSource() == tbSelModeColor) {
-			setSelectionMode(SEL_MODE_COLOR);
+			guiState.setSelectionMode(GUIState.SelMode.COLOR);
 		}		
 
 		// Actions
@@ -1675,7 +1623,7 @@ public class View extends JFrame implements ActionListener {
 		setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
 
 		// disable rulers
-		if(showRulers) {
+		if(guiState.getShowRulers()) {
 			handleShowRulers();
 		}
 
@@ -2001,9 +1949,9 @@ public class View extends JFrame implements ActionListener {
 
 		// add the second model and update the image buffer
 		cmPane.setSecondModel(mod2, ali);
-		compareStatus = true;
+		guiState.setCompareMode(true);
 		cmPane.updateScreenBuffer();
-		setSelectionMode(SQUARE_SEL);	// we reset to SQUARE_SEL in case another one (possibly not allowed in compare mode) was switched on
+		guiState.setSelectionMode(GUIState.INITIAL_SEL_MODE);	// we reset to SQUARE_SEL in case another one (possibly not allowed in compare mode) was switched on
 		// finally repaint the whole thing to display the whole set of contacts
 		cmPane.repaint();
 		
@@ -2297,9 +2245,9 @@ public class View extends JFrame implements ActionListener {
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning(mod);
 		} else {
-			showPdbSers = !showPdbSers;						// TODO: Move this to CMPane?
+			guiState.setShowPdbSers(!guiState.getShowPdbSers());
 			cmPane.updateScreenBuffer();
-			if(showPdbSers) {
+			if(guiState.getShowPdbSers()) {
 				mmViewShowPdbResSers.setIcon(icon_selected);
 			} else {
 				mmViewShowPdbResSers.setIcon(icon_deselected);
@@ -2314,8 +2262,8 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			showRulers = !showRulers;
-			if(showRulers) {
+			guiState.setShowRulers(!guiState.getShowRulers());
+			if(guiState.getShowRulers()) {
 				cmp.add(topRul, BorderLayout.NORTH);
 				cmp.add(leftRul, BorderLayout.WEST);
 				mmViewRulers.setIcon(icon_selected);
@@ -2333,8 +2281,8 @@ public class View extends JFrame implements ActionListener {
 	 * 
 	 */
 	private void handleShowIconBar() {
-		showIconBar = !showIconBar;
-		if(showIconBar) {
+		guiState.setShowIconBar(!guiState.getShowIconBar());
+		if(guiState.getShowIconBar()) {
 			toolBar.setVisible(true);
 			mmViewIconBar.setIcon(icon_selected);
 		} else {
@@ -2351,9 +2299,9 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			showNbhSizeMap = !showNbhSizeMap;
-			cmPane.toggleNbhSizeMap(showNbhSizeMap);
-			if (showNbhSizeMap) {
+			guiState.setShowNbhSizeMap(!guiState.getShowNbhSizeMap());
+			cmPane.toggleNbhSizeMap(guiState.getShowNbhSizeMap());
+			if (guiState.getShowNbhSizeMap()) {
 				mmViewHighlightComNbh.setIcon(icon_selected);
 			} else {
 				mmViewHighlightComNbh.setIcon(icon_deselected);
@@ -2368,9 +2316,9 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			showDensityMap = !showDensityMap;
-			cmPane.toggleDensityMap(showDensityMap);
-			if(showDensityMap) {
+			guiState.setShowDensityMap(!guiState.getShowDensityMap());
+			cmPane.toggleDensityMap(guiState.getShowDensityMap());
+			if(guiState.getShowDensityMap()) {
 				mmViewShowDensity.setIcon(icon_selected);
 			} else {
 				mmViewShowDensity.setIcon(icon_deselected);
@@ -2387,9 +2335,9 @@ public class View extends JFrame implements ActionListener {
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning(mod);
 		} else {
-			showDistanceMap = !showDistanceMap;
-			cmPane.toggleDistanceMap(showDistanceMap);
-			if(showDistanceMap) {
+			guiState.setShowDistanceMap(!guiState.getShowDistanceMap());
+			cmPane.toggleDistanceMap(guiState.getShowDistanceMap());
+			if(guiState.getShowDistanceMap()) {
 				mmViewShowDistMatrix.setIcon(icon_selected);
 			} else {
 				mmViewShowDistMatrix.setIcon(icon_deselected);
@@ -2483,7 +2431,7 @@ public class View extends JFrame implements ActionListener {
 				new ActionListener() {
 			public void actionPerformed(ActionEvent e){
 				Color c = Start.getColorChooser().getColor();
-				currentPaintingColor = c;
+				guiState.setPaintingColor(c);
 				System.out.println("Color changed to " + c);
 			}
 		} , null); // no handler for cancel button
@@ -2496,7 +2444,7 @@ public class View extends JFrame implements ActionListener {
 		} else if(cmPane.getSelContacts().size() == 0) {
 			showNoContactsSelectedWarning();
 		} else {
-			cmPane.paintCurrentSelection(currentPaintingColor);
+			cmPane.paintCurrentSelection(guiState.getPaintingColor());
 			cmPane.resetSelections();
 			cmPane.repaint();
 		}
@@ -2813,15 +2761,15 @@ public class View extends JFrame implements ActionListener {
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				showCommon = !showCommon;
-				cmPane.toggleShownContacts(showCommon);
-				if(showCommon) {
+				guiState.setShowCommon(!guiState.getShowCommon());
+				cmPane.toggleShownContacts(guiState.getShowCommon());
+				if(guiState.getShowCommon()) {
 					mmShowCommon.setIcon(icon_selected);
 				} else {
 					mmShowCommon.setIcon(icon_deselected);
 				}
 			}
-		tbShowCommon.setSelected(showCommon);
+		tbShowCommon.setSelected(guiState.getShowCommon());
 	}
 
 	/**
@@ -2834,16 +2782,16 @@ public class View extends JFrame implements ActionListener {
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				showFirst = !showFirst;
-				cmPane.toggleShownContacts(showFirst);
-				tbShowFirst.setSelected(showFirst);
-				if(showFirst) {
+				guiState.setShowFirst(!guiState.getShowFirst());
+				cmPane.toggleShownContacts(guiState.getShowFirst());
+				tbShowFirst.setSelected(guiState.getShowFirst());
+				if(guiState.getShowFirst()) {
 					mmShowFirst.setIcon(icon_selected);
 				} else {
 					mmShowFirst.setIcon(icon_deselected);
 				}
 			}
-		tbShowFirst.setSelected(showFirst);
+		tbShowFirst.setSelected(guiState.getShowFirst());
 	}
 
 	/**
@@ -2856,15 +2804,15 @@ public class View extends JFrame implements ActionListener {
 			if(!cmPane.hasSecondModel()) {
 				showNoSecondContactMapWarning();
 			} else {
-				showSecond = !showSecond;
-				cmPane.toggleShownContacts(showSecond);
-				if(showSecond) {
+				guiState.setShowSecond(!guiState.getShowSecond());
+				cmPane.toggleShownContacts(guiState.getShowSecond());
+				if(guiState.getShowSecond()) {
 					mmShowSecond.setIcon(icon_selected);
 				} else {
 					mmShowSecond.setIcon(icon_deselected);
 				}
 			}
-		tbShowSecond.setSelected(showSecond);
+		tbShowSecond.setSelected(guiState.getShowSecond());
 	}
 
 	/**
@@ -2880,9 +2828,9 @@ public class View extends JFrame implements ActionListener {
 		} else if (!mod2.has3DCoordinates()) { // it's ok to use here the original mod2 and not the actual displayed alignMod2 (ContactMapPane.mod2) because both should have (or not) 3D coordinates 
 			showNo3DCoordsWarning(mod2);
 		} else {
-			showDiffDistMap = !showDiffDistMap;
-			cmPane.toggleDiffDistMap(showDiffDistMap);
-			if(showDiffDistMap) {
+			guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
+			cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
+			if(guiState.getShowDiffDistMap()) {
 				mmToggleDiffDistMap.setIcon(icon_selected);
 			} else {
 				mmToggleDiffDistMap.setIcon(icon_deselected);
@@ -3089,73 +3037,14 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/* -------------------- getter methods -------------------- */
-	// TODO: Make all these parameters of calls to CMPane
+	
 	/**
-	 * Returns the current selection mode. The selection mode defines the meaning of user mouse actions.
-	 * @return The current selection mode
+	 * Returns the gui state object associated with this View.
+	 * @return the gui state object associated with this View
 	 */
-	public int getCurrentSelectionMode(){
-		return currentSelectionMode;
+	protected GUIState getGUIState() {
+		return this.guiState;
 	}
-
-	public boolean getCompareStatus(){
-		return compareStatus;
-	}
-
-	/** 
-	 * Returns whether showing the pdb residue serials is switched on 
-	 */
-	public boolean getShowPdbSers() {
-		return showPdbSers;
-	}
-
-	/**  
-	 * Returns whether showing the common neighbourhood size map is switched on
-	 */
-	public boolean getShowNbhSizeMap() {
-		return showNbhSizeMap;
-	}
-
-	/** 
-	 * Returns whether showing the density map is switched on
-	 */
-	public boolean getShowDensityMap() {
-		return this.showDensityMap;
-	}
-
-	/** 
-	 * Returns whether showing the distance map is switched on 
-	 */
-	public boolean getShowDistMap() {
-		return this.showDistanceMap;
-	}
-
-	/** 
-	 * Returns true when show common contacts button is pressed
-	 */
-	public boolean getShowCommon() {
-		return this.showCommon;
-	}
-
-	/** 
-	 * Returns true when show contacts unique to first structure is pressed
-	 */
-	public boolean getShowFirst() {
-		return this.showFirst;
-	}
-
-	/** 
-	 * Returns true when show contacts unique to second structure is pressed
-	 */
-	public boolean getShowSecond() {
-		return this.showSecond;
-	}
-
-	/** 
-	 * Returns whether showing the difference distance map (in comparison mode) is switched on 
-	 */
-	public boolean getShowDiffDistMap() {
-		return this.showDiffDistMap;
-	}	
+	
 }
 
