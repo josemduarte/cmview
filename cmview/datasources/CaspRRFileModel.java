@@ -23,7 +23,7 @@ public class CaspRRFileModel extends Model {
 			
 			// check whether sequence info exists
 			if(graph.getSequence().equals("")) {
-				System.err.println("File contains no sequence information. Many features will be unavailable.");
+				throw new ModelConstructionError("File contains no sequence information.");
 			}
 			
 			// assign a loadedGraphId to this model

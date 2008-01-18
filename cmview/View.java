@@ -2955,7 +2955,7 @@ public class View extends JFrame implements ActionListener {
 
 	/** Error dialog to be shown if loading a model failed. */
 	private void showLoadError(String message) {
-		JOptionPane.showMessageDialog(this, "<html>Failed to load structure:<br>" + message + "</html>", "Load Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(this, "<html>Failed to load contact map:<br>" + message + "</html>", "Load Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/** Error dialog to be shown when trying to do a db operation without a db connection */
