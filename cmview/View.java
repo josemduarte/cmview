@@ -94,7 +94,7 @@ public class View extends JFrame implements ActionListener {
 	//JLayeredPane cmp2; 		// added for testing
 
 	// Tool bar buttons
-	JButton tbFileInfo, tbFilePrint, tbFileQuit, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 
@@ -297,9 +297,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
 		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
-		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/icons/information.png"));
-		ImageIcon icon_file_print = new ImageIcon(this.getClass().getResource("/icons/printer.png"));		
-		ImageIcon icon_file_quit = new ImageIcon(this.getClass().getResource("/icons/door_open.png"));				
+		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/icons/information.png"));						
 		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/icons/page_copy.png"));
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/icons/page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/icons/page_add.png"));
@@ -312,8 +310,6 @@ public class View extends JFrame implements ActionListener {
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
 
 		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
-		tbFilePrint = makeToolBarButton(icon_file_print, LABEL_FILE_PRINT);
-		tbFileQuit = makeToolBarButton(icon_file_quit, LABEL_FILE_QUIT);
 		toolBar.addSeparator();
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
@@ -816,7 +812,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSaveGraphDb, false);
 		map.put(mmSaveAli, true);
 		// menu -> View
-		map.put(mmViewShowPdbResSers,false);
+		map.put(mmViewShowPdbResSers,true);
 		map.put(mmViewRulers,false);
 		map.put(mmViewHighlightComNbh,false);
 		map.put(mmViewShowDensity,false);
@@ -842,7 +838,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmShowFirst,true);
 		map.put(mmShowSecond,true);
 		map.put(mmToggleDiffDistMap,true);
-		//map.put(smCompare.get("Load"),false); // now allowing loading of a new second contact map
+		map.put(smCompare.get("Load"),true); // now allowing loading of a new second contact map
 
 		return map;
 	}
@@ -930,10 +926,10 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmInfo || e.getSource() == tbFileInfo) {
 			handleInfo();
 		}		  		  
-		if(e.getSource() == mmPrint || e.getSource() == tbFilePrint) {
+		if(e.getSource() == mmPrint) {
 			handlePrint();
 		}		  
-		if(e.getSource() == mmQuit || e.getSource() == tbFileQuit) {
+		if(e.getSource() == mmQuit) {
 			handleQuit();
 		}
 

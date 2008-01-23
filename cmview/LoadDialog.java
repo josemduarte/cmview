@@ -602,7 +602,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	}
 	
 	/**
-	 * Deletes the chain codes of the chain code combo box and backs-up them in 
+	 * Deletes the chain codes of the chain code combo box and backs them up in 
 	 * {@link #prevComboCcItems}.
 	 */
 	private void clearComboCc() {

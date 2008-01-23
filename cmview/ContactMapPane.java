@@ -681,7 +681,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void drawCoordinates(Graphics2D g2d){
 		if( !this.hasSecondModel() ) {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,false);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-70,false);
 		} else {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
 			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
@@ -755,20 +755,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// writing i and j
-		g2d.drawString("i", x,           y+extraTitleY);
-		g2d.drawString("j", x+extraX+40, y+extraTitleY);
+		//g2d.drawString("i", x,           y+extraTitleY);
+		//g2d.drawString("j", x+extraX+40, y+extraTitleY);
 
 		// writing coordinates and optionally alignment coordinates
-		g2d.drawString(iSeqIdx<0?"":iSeqIdx+"", x,           y+extraTitleY+20);
-		g2d.drawString(jSeqIdx<0?"":jSeqIdx+"", x+extraX+40, y+extraTitleY+20);
+		g2d.drawString(iSeqIdx<0?"":iSeqIdx+"", x,           y+extraTitleY);
+		g2d.drawString(jSeqIdx<0?"":jSeqIdx+"", x+extraX+40, y+extraTitleY);
 		if( hasSecondModel() && showAliAndSeqPos ) {
-			g2d.drawString("(" + iAliIdx + ")", x+extraX,      y+extraTitleY+20);
-			g2d.drawString("(" + jAliIdx + ")", x+2*extraX+40, y+extraTitleY+20);
+			g2d.drawString("(" + iAliIdx + ")", x+extraX,      y+extraTitleY);
+			g2d.drawString("(" + jAliIdx + ")", x+2*extraX+40, y+extraTitleY);
 		}		 
 
 		// writing residue types
-		g2d.drawString(i_res, x,           y+extraTitleY+40);
-		g2d.drawString(j_res, x+extraX+40, y+extraTitleY+40);
+		g2d.drawString(i_res, x,           y+extraTitleY+20);
+		g2d.drawString(j_res, x+extraX+40, y+extraTitleY+20);
 		
 		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
@@ -786,31 +786,35 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case 'S': jSSType = '\u03b2'; break;
 			default: jSSType = ' ';
 			}
-			g2d.drawString(Character.toString(iSSType), x,           y+extraTitleY+60);
-			g2d.drawString(Character.toString(jSSType), x+extraX+40, y+extraTitleY+60);
+			g2d.drawString(Character.toString(iSSType), x,           y+extraTitleY+40);
+			g2d.drawString(Character.toString(jSSType), x+extraX+40, y+extraTitleY+40);
 		}
 
 		if(modContacts.contains(currentCell) ) {
-			g2d.drawLine(x+28, y+extraTitleY+35, x+extraX+35, y+extraTitleY+35);		
+			g2d.drawLine(x+28, y+extraTitleY+15, x+extraX+35, y+extraTitleY+15);		
 		}
 
 		if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
-			if( !showAliAndSeqPos) {
-				g2d.drawString("SeqSep", x+80, y+extraTitleY+20);
-				g2d.drawString(getRange(currentCell)+"", x+extraX+80, y+extraTitleY+40);		
+			if(!hasSecondModel()) { // we don't show seq separation in compare mode
+				g2d.drawString("SeqSep", x+80, y+extraTitleY);
+				g2d.drawString(getRange(currentCell)+"", x+extraX+80, y+extraTitleY+20);		
 			}
 		}
 
 		if (view.getGUIState().getShowPdbSers()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
-			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+80);
-			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, x+extraX+40, y+extraTitleY+80);
+			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+60);
+			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, x+extraX+40, y+extraTitleY+60);
 		}
 	}
 
 	// TODO: a) Merge this with above function? b) missing second model display, if we allow ruler in compare mode, we must fix this
 	private void drawRulerCoord(Graphics2D g2d) {
+		int xOffset = 20;
+		if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
+			xOffset = xOffset + 40;
+		}
 		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
 		RIGNode node = null;
 		String res = "";
@@ -822,10 +826,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			res = node==null?"?":node.getResidueType();
 		}
 		g2d.setColor(coordinatesColor);
-		g2d.drawString("i", 20, outputSize-90);
-		g2d.drawString(seqIdx+"", 20, outputSize-70);
+		//g2d.drawString("i", xOffset, outputSize-90);
+		g2d.drawString(seqIdx+"", xOffset, outputSize-70);
 
-		g2d.drawString(res, 20, outputSize-50);
+		g2d.drawString(res, xOffset, outputSize-50);
 		if (mod.hasSecondaryStructure()){
 			SecStrucElement ssElem = node==null?null:node.getSecStrucElement();
 			Character ssType = ssElem==null?' ':ssElem.getType();
@@ -834,11 +838,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case 'S': ssType = '\u03b2'; break;	// beta
 			default: ssType = ' ';
 			}			
-			g2d.drawString(Character.toString(ssType), 20, outputSize-30);
+			g2d.drawString(Character.toString(ssType), xOffset, outputSize-30);
 		}
 		if (view.getGUIState().getShowPdbSers()){
 			String pdbresser = mod.getPdbResSerial(seqIdx);
-			g2d.drawString(pdbresser==null?"?":pdbresser, 20, outputSize-10);
+			g2d.drawString(pdbresser==null?"?":pdbresser, xOffset, outputSize-10);
 		}
 	}
 
