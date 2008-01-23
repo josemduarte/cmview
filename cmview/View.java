@@ -308,9 +308,9 @@ public class View extends JFrame implements ActionListener {
 		// Tool bar
 		toolBar = new JToolBar();
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
-
+		Dimension separatorDim = new Dimension(30,toolBar.getHeight());
 		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
-		toolBar.addSeparator();
+		toolBar.addSeparator(separatorDim);
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
@@ -319,13 +319,13 @@ public class View extends JFrame implements ActionListener {
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
 		}
 		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
-		toolBar.addSeparator();		
+		toolBar.addSeparator(separatorDim);		
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
 		if(Start.INCLUDE_GROUP_INTERNALS) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
-		toolBar.addSeparator(new Dimension(100, 10));
+		toolBar.addSeparator(separatorDim);
 		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
 		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, guiState.getShowFirst(), false, false);
 		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, guiState.getShowSecond(), false, false);
@@ -576,6 +576,7 @@ public class View extends JFrame implements ActionListener {
 
 		// toggle the visibility of menu-items 
 		setAccessibility(initMenuBarAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
+		setAccessibility(initButtonAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
 
 		// Show GUI
 		pack();
@@ -772,6 +773,25 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmToggleDiffDistMap,false);
 		//map.put(this.getJMenuBar().getMenu(menu2idx.get("Compare")), hasMod);
 
+		return map;
+	}
+	
+	/**
+	 * Gets a map containing accessibility rules for the initialization of the 
+	 * tool-bar. Use this map as an input to function    
+	 * {@link #setAccessibility(Map, boolean, Component, Collection)}.
+	 * @param hasMod  set this to true if the View holds a first model 
+	 * @return a map containing accessibility rules for tool bar at startup 
+	 */    
+	private Map<Component,Boolean> initButtonAccessibility(boolean hasMod) {
+		HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
+
+		map.put(tbShowSel3D, hasMod);
+		map.put(tbFileInfo, hasMod);
+		map.put(tbDelete, hasMod);
+		map.put(tbShowComNbh, hasMod);
+		map.put(tbShowComNbh3D, hasMod);
+		
 		return map;
 	}
 
