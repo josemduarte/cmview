@@ -1959,9 +1959,9 @@ public class View extends JFrame implements ActionListener {
 	private void doLoadSecondModel(Model mod2, Alignment ali) {
 
 		// re-setting window title
-		System.out.println("Second model loaded.");
-		String title = mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
-		this.setTitle("Comparing " + title);
+		System.out.println("Second contact map loaded.");
+		String title = "Comparing " + mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
+		this.setTitle(title);
 
 		// add the second model and update the image buffer
 		cmPane.setSecondModel(mod2, ali);
