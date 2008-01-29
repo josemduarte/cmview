@@ -26,7 +26,7 @@ public class ContactMapFileModel extends Model {
 			int modelSerial = graph.getModel();
 			
 			// check whether sequence info exists
-			if(graph.getSequence().equals("")) {
+			if(graph.getSequence().equals("")) { //TODO this shouldn't happen since we don't allow blank sequences in CM files, but we keep as another check doesn't harm
 				throw new ModelConstructionError("File contains no sequence information.");
 			}
 			
@@ -74,7 +74,6 @@ public class ContactMapFileModel extends Model {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
 			}
 			
-			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			//super.printWarnings(chainCode); // doesn't make sense here
 			super.checkAndAssignSecondaryStructure();

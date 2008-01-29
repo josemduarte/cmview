@@ -48,7 +48,6 @@ public class GraphDbModel extends Model {
 			}
 			// if pdb created failed then pdb=null
 			
-			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			super.printWarnings(pdbChainCode);
 			

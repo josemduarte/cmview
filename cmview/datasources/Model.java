@@ -38,15 +38,10 @@ public abstract class Model {
 	// structure and contact map data
 	protected Pdb pdb;								// this can be null if there are no 3D coordinates available
 	protected RIGraph graph;						// currently every model must have a valid graph object
-	protected int matrixSize;						// number of residues (in known sequence)
-	protected int unobservedResidues;				// number of unobserved or non-standard AAs
 	protected int minSeqSep = -1; 				  	// -1 meaning not set
 	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
 	protected HashMap<Pair<Integer>,Double> distMatrix; 		// the scaled [0-1] distance matrix
-	// The following two variables are pointers to the respective objects in pdb or graph. The only purpose of having them here is to allow
-	// us to take the seondary structure either from the graph or from the pdb object. A cleaner way would be to have both of them implement
-	// an interface hasSecondaryStructure and then just specify a secondaryStructureSource variable of that interface type.
-	private SecondaryStructure secondaryStructure;  // pointer to secondary structure object from either pdb or graph object
+
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
 	protected String loadedGraphID;					// the unique identifier of a user-loaded graph, we assign this whenever the user
@@ -69,12 +64,9 @@ public abstract class Model {
 	public Model(Model mod) {
 	    this.pdb = mod.pdb;
 	    this.graph = mod.graph;
-	    this.matrixSize = mod.matrixSize;
-	    this.unobservedResidues = mod.unobservedResidues;
 	    this.minSeqSep = mod.minSeqSep; 				  
 	    this.maxSeqSep = mod.maxSeqSep;
 	    this.distMatrix = mod.distMatrix;
-	    this.secondaryStructure = mod.secondaryStructure;
 	    this.tempPdbFile = mod.tempPdbFile;
 	    this.loadedGraphID = mod.loadedGraphID;
 	}
@@ -100,25 +92,6 @@ public abstract class Model {
 		}
 	}
 
-	/**
-	 * Initalizes the member variables matrixSize, unobservedResidues and secondaryStructure
-	 * Variable graph has to be initialized previously. Otherwise a null pointer
-	 * exception will occur.
-	 */
-	protected void initializeContactMap() {
-		matrixSize = graph.getFullLength();
-		unobservedResidues = (graph.getFullLength() - graph.getObsLength());
-		if(pdb != null && pdb.hasSecondaryStructure()) {
-			secondaryStructure = pdb.getSecondaryStructure();
-		}
-		else if(graph != null && graph.hasSecondaryStructure()) {
-			secondaryStructure = graph.getSecondaryStructure();
-		}
-		else {
-			secondaryStructure = new SecondaryStructure();
-		}
-	 }
-	
 	/** 
 	 * Filter out unwanted contacts and initializes the seqSep variable. 
 	 * Note: this causes trouble for directed graphs 
@@ -136,8 +109,8 @@ public abstract class Model {
 	
 	/** Print some warnings if necessary */
 	protected void printWarnings(String oldChainCode) {
-		if(unobservedResidues > 0) 
-			System.out.println("Warning: " + unobservedResidues + " unobserved or non-standard residues");
+		if(getNumberOfUnobservedResidues() > 0) 
+			System.out.println("Warning: " + getNumberOfUnobservedResidues() + " unobserved or non-standard residues");
 		if(!oldChainCode.equals(getChainCode())) System.out.println("Warning: Chain " + oldChainCode + " is now called " + getChainCode());
 	}
 	
@@ -151,14 +124,12 @@ public abstract class Model {
 					System.out.println("(Re)assigning secondary structure using DSSP");
 					try {
 						pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
-						// update secondary structure pointer in model
-						secondaryStructure = pdb.getSecondaryStructure();
 					} catch (IOException e) {
-						System.out.println("Failed to assign secondary structure: " + e.getMessage());
+						System.err.println("Failed to assign secondary structure: " + e.getMessage());
 					}
 				}
 			}
-		}
+		} 
 	}
 	
 	/**
@@ -198,7 +169,7 @@ public abstract class Model {
 	
 	/** Returns the size of the data matrix */
 	public int getMatrixSize() {
-		return this.matrixSize;
+		return this.graph.getFullLength();
 	}
 	
 	/** Returns the contacts as an EdgeSet */
@@ -214,15 +185,6 @@ public abstract class Model {
 	/** Returns the graph object */
 	public RIGraph getGraph(){
 		return this.graph;
-	}
-	
-	/**
-	 * Sets the graph member variable
-	 * @param newGraph the new graph
-	 */
-	public void setGraph(RIGraph newGraph) {
-	    this.graph = newGraph;
-	    initializeContactMap();
 	}
 	
 	/** Returns the number of contacts */
@@ -342,7 +304,7 @@ public abstract class Model {
 	 * Returns the number of unsoberved or non-standard residues
 	 * in the structure. The contacts of these residues are ignored. */
 	public int getNumberOfUnobservedResidues() {
-		return unobservedResidues;
+		return (graph.getFullLength() - graph.getObsLength());
 	}
 	
 	/** Write the current contact map to a contact map file */
@@ -520,26 +482,31 @@ public abstract class Model {
 	 * @return true if secondary structure information is available, false otherwise
 	 */
 	public boolean hasSecondaryStructure() {
-		return !secondaryStructure.isEmpty();
+		if (this.pdb==null) {
+			return false;
+		}
+		return this.pdb.hasSecondaryStructure();
 	}
 	
 	/** 
-	 * Returns the secondary structure annotation object of this model. Currently, this can come either from a
-	 * graph or from a pdb object.
+	 * Returns the secondary structure annotation object of this model.
 	 * @return the secondary structure annotation object 
 	 */
 	public SecondaryStructure getSecondaryStructure() {
-		return this.secondaryStructure;
+		
+		// We don't need to try to get the secondary structure from graph as at the moment there 
+		// is no way we could have a graph without 3D coordinates that has secondary structure 
+		// annotation (neither in our database nor in our file formats we have a way to store the secondary structure annotation)
+		
+		//assert pdb.getSecondaryStructure()==graph.getSecondaryStructure();
+		
+		if(pdb != null && pdb.hasSecondaryStructure()) {
+			return pdb.getSecondaryStructure();
+		} else {
+			return new SecondaryStructure();
+		}
 	}
 
-	/**
-	 * Sets the secondary structure member
-	 * @param secStruct
-	 */
-	public void setSecSctruct(SecondaryStructure secStruct)	{
-		this.secondaryStructure = secStruct;
-	}
-	
 	// end of secondary structure related methods
 	
 	/**

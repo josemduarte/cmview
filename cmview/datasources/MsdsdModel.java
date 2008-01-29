@@ -44,6 +44,7 @@ public class MsdsdModel extends Model {
 		try {
 			// get structure from db
 			this.pdb.load(pdbChainCode,modelSerial);
+			super.checkAndAssignSecondaryStructure();
 			
 			// get graph from structure
 			this.graph = pdb.get_graph(edgeType, distCutoff);
@@ -56,10 +57,8 @@ public class MsdsdModel extends Model {
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			super.writeTempPdbFile();
-			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
-			super.checkAndAssignSecondaryStructure();
 			
 		} catch (PdbLoadError e) {
 			System.err.println("Failed to load structure");

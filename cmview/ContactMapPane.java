@@ -703,6 +703,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected void drawCoordinates(Graphics2D g2d, Model mod, IntPairSet modContacts, int x, int y, boolean showAliAndSeqPos) {
 		Pair<Integer> currentCell = screen2cm(mousePos);
+
 		// alignment indices
 		int iAliIdx = currentCell.getFirst();
 		int jAliIdx = currentCell.getSecond();
@@ -718,28 +719,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// converting to sequence indices
 		int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
 		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
-		
-		RIGNode iNode = null;
-		RIGNode jNode = null;
-		String i_res = "";
-		String j_res = "";
-		
-		// handling gaps
-		if (iSeqIdx < 0) {
-			i_res=AAinfo.getGapCharacterOneLetter()+"";
-		} else {
-			iNode = mod.getNodeFromSerial(iSeqIdx);
-			// handling unobserves
-			i_res = iNode==null?"?":iNode.getResidueType();
-		}
-		if (jSeqIdx < 0) {
-			j_res=AAinfo.getGapCharacterOneLetter()+"";
-		} else {
-			jNode = mod.getNodeFromSerial(jSeqIdx);
-			// handling unobserves
-			j_res = jNode==null?"?":jNode.getResidueType();
-		}
-		
+
+		// residue types
+		String i_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(iSeqIdx-1)));
+		String j_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(jSeqIdx-1)));		
 		
 		int extraX = 0;
 		if( showAliAndSeqPos ) {
@@ -772,8 +755,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
-			SecStrucElement iSSElem = iNode==null?null:iNode.getSecStrucElement();
-			SecStrucElement jSSElem = jNode==null?null:jNode.getSecStrucElement();
+			SecStrucElement iSSElem = mod.getSecondaryStructure().getSecStrucElement(iSeqIdx);
+			SecStrucElement jSSElem = mod.getSecondaryStructure().getSecStrucElement(jSeqIdx);
 			Character iSSType = iSSElem==null?' ':iSSElem.getType();
 			Character jSSType = jSSElem==null?' ':jSSElem.getType();
 			switch(iSSType) {
@@ -815,23 +798,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
 			xOffset = xOffset + 40;
 		}
+		
 		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
-		RIGNode node = null;
-		String res = "";
-		if (seqIdx<0) { // handling gaps
-			res = AAinfo.getGapCharacterOneLetter()+"";
-		} else {
-			node = mod.getNodeFromSerial(seqIdx);
-			// handling unobserves
-			res = node==null?"?":node.getResidueType();
-		}
+
+		String res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(seqIdx-1)));
+
 		g2d.setColor(coordinatesColor);
 		//g2d.drawString("i", xOffset, outputSize-90);
 		g2d.drawString(seqIdx+"", xOffset, outputSize-70);
 
 		g2d.drawString(res, xOffset, outputSize-50);
 		if (mod.hasSecondaryStructure()){
-			SecStrucElement ssElem = node==null?null:node.getSecStrucElement();
+			SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(seqIdx);
 			Character ssType = ssElem==null?' ':ssElem.getType();
 			switch(ssType) {
 			case 'H': ssType = '\u03b1'; break;	// alpha

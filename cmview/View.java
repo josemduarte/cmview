@@ -164,7 +164,7 @@ public class View extends JFrame implements ActionListener {
 		}
 		this.guiState = new GUIState(this);
 		this.initGUI(); // build gui tree and show window
-		//this.toFront(); // bring window to front
+		this.toFront(); // bring window to front TODO tried to see if this solve the problem of new window appearing on the back (on java 6) and doesn't work!
 	}
 	
 	public void dispose() {

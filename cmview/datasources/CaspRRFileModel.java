@@ -33,10 +33,8 @@ public class CaspRRFileModel extends Model {
 			} 
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
-			super.initializeContactMap();
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			//super.printWarnings(chainCode); // doesn't make sense here
-			super.checkAndAssignSecondaryStructure();
 			
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from CASP RR file.");

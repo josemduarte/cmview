@@ -47,6 +47,7 @@ public class PdbaseModel extends Model {
 		// load structure from Pdbase
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
+			super.checkAndAssignSecondaryStructure();
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 			
 			// assign a loadedGraphId to this model
@@ -57,10 +58,8 @@ public class PdbaseModel extends Model {
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			super.writeTempPdbFile();
 
-			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
-			super.checkAndAssignSecondaryStructure();
 			
 		} catch (PdbLoadError e) {
 			System.err.println("Failed to load structure");

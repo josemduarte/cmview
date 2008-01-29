@@ -42,21 +42,23 @@ public class PdbFileModel extends Model {
 		// load PDB file
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
+			super.checkAndAssignSecondaryStructure();
 			this.graph = pdb.get_graph(edgeType, distCutoff);
 
 			// assign a loadedGraphId to this model
-			String name = this.graph.getPdbCode()+this.graph.getChainCode();
-			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
-				name = DEFAULT_LOADEDGRAPHID;
+			String name = DEFAULT_LOADEDGRAPHID;
+			if (!this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+				name = this.graph.getPdbCode()+this.graph.getChainCode();
 			} 
+			if (this.graph.getTargetNum()!=0) {
+				name = String.format("T%04d",this.graph.getTargetNum());
+			}
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 
 			super.writeTempPdbFile();
 			
-			super.initializeContactMap();
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
-			super.checkAndAssignSecondaryStructure();
 			
 		} catch (PdbLoadError e) {
 			throw new ModelConstructionError(e.getMessage());
