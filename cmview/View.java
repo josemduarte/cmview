@@ -155,9 +155,6 @@ public class View extends JFrame implements ActionListener {
 	public View(Model mod, String title) {
 		super(title);
 		
-		// count all view instances
-		++Start.VIEW_INSTANCES;
-		
 		this.mod = mod;
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
@@ -168,7 +165,6 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	public void dispose() {
-		--Start.VIEW_INSTANCES;	
 		super.dispose();
 	}
 

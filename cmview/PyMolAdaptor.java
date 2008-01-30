@@ -338,9 +338,8 @@ public class PyMolAdaptor {
 
 	/**
 	 * Shuts down the external viewer instance and releases all resources of this Adaptor.
-	 * @param url The PyMol server url // TODO: can we get rid of this?
 	 */
-	public void shutdown(String url) {
+	public void shutdown() {
 		Out.println("quit");
 		Out.close();
 	}

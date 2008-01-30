@@ -42,16 +42,24 @@ public class Start {
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 		
-	// The following config file name may be overwritten by a command line switch
-	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file (can be overridden by cmd line param)
+	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file
 	
 	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
 	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
 	// there has to be a line in the applyUserProperties method. The preassigned values are the default and being used unless overwritten by the user.
 	// Additioanlly, values that should appear in the example config file should be added to the getSelectedProperties method.
 
-	// environment
-	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
+	// Initialization of these properties should happen in the following order:
+	// 1a. 	Initialize most properties to hard-coded default values (in case that master config file is missing)
+	// 1b.	Initialize some properties to values specified at runtime (e.g. temp dir, user name)
+	// 2.	Load all properties except 1b from master config file (in resources), this defines the 'release configuration'
+	// 3.	Load config files from the following locations, possibly overwriting previous settings:
+	// 3a.	Current directory
+	// 3b.	User's home directory
+	// 3c.	Location specififed by command line parameter
+	
+	// environment (should be set at runtime and not in master config file but can be overwritten in user config file)
+	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir"); 																			
 	
 	// user customizations
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
@@ -60,7 +68,7 @@ public class Start {
 	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 																		// currently: common nbh related things, directed graphs
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
-	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shutdown on exit
+	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shut down on exit
 	
 	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
 	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
@@ -85,9 +93,9 @@ public class Start {
 	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
 	// database connection
-	public static String			DB_HOST = "localhost";							// TODO: change to dummy name
+	public static String			DB_HOST = "localhost";							
 	public static String			DB_USER = getUserName();						// guess user name
-	public static String			DB_PWD = "tiger";								// TODO: change to tiger
+	public static String			DB_PWD = "tiger";								
 	
 	// default values for loading contact maps
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
@@ -98,15 +106,12 @@ public class Start {
 	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
-	// anything directly connected to class View
-	public static int				VIEW_INSTANCES = 0;			// TODO: not a constant
-	
-	// internal status variables
+	// internal status variables (TODO: make private, use getter methods)
 	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
 	protected static boolean		pymol_found = true;
 	protected static boolean		dssp_found = true;			// check later whether dssp can be used
-	protected static Properties		userProperties;				// properties read from the user's config file
-	protected static Properties		selectedProperties;			// selected default properties for the example config file
+	private static Properties		userProperties;				// properties read from the user's config file
+	private static Properties		selectedProperties;			// selected default properties for the example config file
 	
 	// global session variables (use getter methods)
 	private static MySQLConnection conn;
@@ -174,7 +179,9 @@ public class Start {
 		}
 		return user;
 	}
-		
+	
+	/*-------------- properties and config files --------------*/
+	
 	/**
 	 * Returns a property object with the default values for selected customizable variables.
 	 * These are the variables that we expect users to commonly change. They are written
@@ -204,9 +211,9 @@ public class Start {
 		d.setProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString());
 		
 		// properties which will become obsolete when loading from online pdb is implemented
-		d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
-		d.setProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
-		d.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);
+		//d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
+		//d.setProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
+		//d.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);
 		
 		// properties that should be changed only if problems arise
 		// these will be mentioned in the documentation somewhere but not in the example config file
@@ -270,6 +277,17 @@ public class Start {
 		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
 
 	}
+	
+	/*
+	 * Returns a properties objects with all current properties.
+	 */
+	public Properties getCurrentProperties() {
+		Properties p = new Properties();
+		
+		return p;
+	}
+	
+	/*----------------- resources -----------------*/
 	
 	/** 
 	 * Copy external resources (data files and executables) from the jar archive to a temp directory.
@@ -335,21 +353,19 @@ public class Start {
 	private static void setLookAndFeel() {
 		try {
 		    // Set System L&F
-	        UIManager.setLookAndFeel(
-	            //looks[2].getClassName());
-	        	UIManager.getSystemLookAndFeelClassName());
+	        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 	    } 
 	    catch (UnsupportedLookAndFeelException e) {
-	       System.out.println(e);
+	       System.err.println(e);
 	    }
 	    catch (ClassNotFoundException e) {
-		       System.out.println(e);	       // handle exception
+		       System.err.println(e);	   
 	    }
 	    catch (InstantiationException e) {
-		       System.out.println(e);	       // handle exception
+		       System.err.println(e);	  
 	    }
 	    catch (IllegalAccessException e) {
-		       System.out.println(e);	       // handle exception
+		       System.err.println(e);	   
 	    }
 	}
 	
@@ -555,7 +571,7 @@ public class Start {
 	 public static void setPyMolServerUrl(String host, String port) {
 		 PYMOL_SERVER_URL = "http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	 }
-	
+
 	/**
 	 * Main method to start CMView application
 	 * @param args command line arguments
@@ -667,8 +683,8 @@ public class Start {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 System.out.println("Shutting down");
-                if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT && VIEW_INSTANCES <= 0) {
-                	pymolAdaptor.shutdown(PYMOL_SERVER_URL);
+                if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT) {
+                	pymolAdaptor.shutdown();
                 }
             }
         });
