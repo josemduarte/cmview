@@ -1,0 +1,366 @@
+<?xml version='1.0'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="">
+
+  <sect1>
+
+    <title>CMView Tutorial</title>
+
+    <para>Version: 1.0</para>
+
+    <para>Date: 15/Jan/2008</para>
+
+    <para />
+
+    <para>CMView is an interactive Contact Map viewer for protein 
+    structures. CMView will allow you to display the contact map and 
+    interact with it as well as to show features of the contact map in 
+    the corresponding 3-dimensional structure by using the PyMol 
+    molecular viewer.</para>
+
+    <sect2>
+
+      <title>Viewing a Contact Map</title>
+
+      <sect3>
+
+        <title>Loading a Contact Map/Structure</title>
+
+        <para>The first step to get your contact map on screen is to 
+        load it by using Load from from the File menu. Here there are 
+        many options for the source of your data:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Online PDB which will download the PDB data for your 
+            chosen 4 letter PDB code directly from the Protein Data 
+            Bank&apos;s web</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>PDB File, if what you have is a model output of a 
+            molecular modeling program in PDB format, then choose this 
+            option to load your data</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>CASP RR File, to load CASP residue-residue contact 
+            predictions. You can also save files with this format with 
+            Save to-&gt; CASP RR File</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contact Map File refers to CMView&apos;s own format, 
+            you can choose this if you previously saved a file from 
+            CMView in this format.</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>For this example we will load from Online PDB the PDB 
+        entry 1bxy, with chain code A. In the load dialog</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para>we can then choose the contact type and distance cutoff: 
+        we take Ca (for C) and 8.0 Å as cutoff. After clicking OK the 
+        contact map is displayed and the 3D structure is loaded to the 
+        PyMol molecular viewer:</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Working with the Contact Map</title>
+
+        <para>Some useful things you can do once your contact map has 
+        been loaded are:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Select contacts: rectangle select, fill select, 
+            diagonal select. While on diagonal mode the sequence 
+            separation will be shown together with the coordinates in 
+            the lower left corner.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Show the distance map overlaid (View menu). You can 
+            still select contacts while the distance map is shown</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Click on the Info &lt;icon&gt; button to get a full 
+            report on the contact map: number of contacts, sequence 
+            etc.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>The top and left rulers show the color coded 
+            secondary structure elements: blue for -helix, red for 
+            -sheet, green for turns. You can select contacts between 2 
+            secondary structure elements by first clicking on the first 
+            element in the top ruler and then on the second element on 
+            the left ruler. You will get something like:</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Some other useful selections for secondary structure 
+            elements can also be done from the View menu: helix-helix 
+            contacts, strand-strand and intra/inter secondary structure 
+            elements contacts.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Select neighborhoods, i.e. all the contacts for a 
+            given residue. Just choose the Neighborhood Selection Mode 
+            and click on the ruler: all neighbors of the chosen residue 
+            will be selected. If you click instead on the contact map 
+            you will get the neighbors for the 2 residues of the 
+            clicked residue pair. For instance if you click on cell 
+            (26,43) one gets all neighbors of residue 26 and all 
+            neighbors of residue 43. Here we present this in the 
+            contact map view, in a graph representation and in the 
+            3-dimensional structure:</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para>At any time while navigating around the contact map or 
+        the residue rulers you will always be able to see the contact 
+        map coordinates of the current contact or residue: residue 
+        number, residue type and secondary structure. You can also view 
+        the original author assigned PDB residue numbers if you switch 
+        the appropriate option on in the View menu (only if structure 
+        was loaded from Online PDB).</para>
+
+        <para>Remember in all selections above, you can always use 
+        CTRL+click to add to the current selection.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Interacting with PyMol</title>
+
+        <para>Here is where CMView becomes most useful. After selecting 
+        residue/contacts in the contact map we can then view their 
+        correspondence on the 3-dimensional protein structure by using 
+        the PyMol molecular viewer. Commands are sent directly and 
+        interactively to PyMol. There are two functions:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Show selected contacts in 3D: will show the selected 
+            contacts as distance objects between the C atoms of the 2 
+            residues part of the contact. As well as the distance 
+            object a selection is created in PyMol which contains all 
+            residues present in the contact selection.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Show residue pair as edge in 3D (available from the 
+            context menu): will show the distance between the current 
+            (where you right-clicked) pair of residues as a distance 
+            object in PyMol.</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>As an example here we show contacts between secondary 
+        structures element for our structure1bxy. Corresponding to each 
+        function in the Select menu we have: a,b) helix-helix contacts, 
+        c,d) strand-strand contacts, e,f) contacts within SS elements 
+        and finally g,h) contacts between SS elements.</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para>Of course PyMol still works as usual so that it is 
+        possible to do other things with the selections: highlighting 
+        or showing different representations like sticks, spheres 
+        etc.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Comparing two contact maps</title>
+
+      <sect3>
+
+        <title>Loading the second contact map. Alignments.</title>
+
+        <para>As an interesting example for the contact map comparison 
+        feature we will use a CASP7 prediction. We want to compare the 
+        target T0354 to a good prediction. So first we load the real 
+        structure from the PDB file (same procedure as before) &lt;link 
+        to the file&gt; and then the prediction &lt;link to the 
+        file&gt; by using Compare -&gt; Load Second Structure From 
+        -&gt; PDB File. As before we choose Ca as contact type and 8.0 
+        Å distance cutoff.</para>
+
+        <para>After pressing OK the second contact map is calculated 
+        and a dialog comes up to choose what type of alignment we 
+        want:</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para>For this case we have two structures with the same 
+        sequence so we can simply select Needleman-Wunsch which will do 
+        the trivial alignment. The second contact map is displayed and 
+        at the same time the corresponding structure is loaded to PyMol 
+        superimposed to the first structure:</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para />
+
+        <para>CMView offers here also a structural alignment (SADP) 
+        based on maximum contact map overlap that would be useful when 
+        we have distant sequences. See CMView&apos;s full reference 
+        &lt;link&gt; for more info about SADP. As a last alternative 
+        you can also load in your own alignment from a FASTA 
+        file.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Comparing</title>
+
+        <para>The pairwise comparison mode shows the two contact maps 
+        with contacts in 3 colors:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>black for common contacts</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>pink for contacts unique to the first structure (the 
+            real structure)</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>green for contacts unique to the second structure 
+            (the prediction)</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>For our example of prediction against real this allows us 
+        to see at a glance over-predicted (pink) and under-predicted 
+        contacts (green).</para>
+
+        <para>It is possible to switch between displaying each of the 
+        sets with the toggle buttons &lt;icons&gt; in the tool bar. 
+        Selections always refer to the currently displayed set.</para>
+
+        <para>As in single mode above, the coordinates are displayed in 
+        the lower left corner this time for the two structures. The 
+        Info &lt;icon&gt; function will also display now information 
+        for both structures including the numbers of common contacts 
+        and unique contacts to each structure.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Interacting with PyMol</title>
+
+        <para>Finally as before we can also interactively send contacts 
+        to PyMol. In the pairwise case it gets more interesting because 
+        we get a clear comparison of contacts made/not made by the two 
+        structures. We will get now yellow edges in both structures for 
+        the common contacts, pink edges for the contacts only in the 
+        first structure and green edges for contacts only in the second 
+        structure. Correspondingly dashed pink/green edges will be 
+        displayed representing the absent (not-made) contacts in the 
+        opposite structures.</para>
+
+        <para>As an example we select the green contacts within the red 
+        rectangle in b) below. For clarity we have separated the two 
+        structures and highlighted residues with colors and spheres in 
+        PyMol: c) contacts present in the second structure with solid 
+        green edges, a) matching (from alignment) contacts absent in 
+        the second structure, dashed pink edges.</para>
+
+        <para><inlinegraphic fileref="" width=""/></para>
+
+        <para>Two extra functions are available in the pairwise 
+        comparison mode:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Superimpose from Selection will superimpose the two 
+            structures in PyMol doing a best fit of residues from the 
+            selected contacts.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Show Corresponding Residues From Selection will show 
+            the alignment matching pairs for the contacts 
+            selected.</para>
+
+          </listitem>
+
+        </orderedlist>
+
+      </sect3>
+
+    </sect2>
+
+  </sect1>
+
+</article>
+
