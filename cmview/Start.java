@@ -35,7 +35,7 @@ public class Start {
 	static final long serialVersionUID = 1l;
 
 	// internal constants (not user changeable)
-	public static final String		APP_NAME = 				"CMView";			// name of this application
+	public static final String		APP_NAME = 				"CMView";		// name of this application
 	public static final String		VERSION = 				"0.9.2";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
@@ -62,25 +62,25 @@ public class Start {
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir"); 																			
 	
 	// user customizations
-	public static Integer			INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
-	public static Boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
-	public static Boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static Boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
+	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
+	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 																		// currently: common nbh related things, directed graphs
-	public static Boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
-	public static Boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shut down on exit
+	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
+	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shut down on exit
 	
-	public static Boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
-	public static Boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
+	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
+	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = ""; 				
 	public static String			DSSP_PARAMETERS = "--";
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	
 	// constants not in config file yet
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
-	public static Boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
-	public static Boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
-	public static Boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map
+	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
+	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
+	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
 	
 	// pymol connection
 	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
@@ -90,7 +90,7 @@ public class Start {
 	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMView_pymol.log";
 	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMView_pymol.cmd";
 	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
-	public static Long 				PYMOL_CONN_TIMEOUT = 	15000l;					// pymol connection time out in milliseconds
+	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
 	// database connection
 	public static String			DB_HOST = "localhost";							
@@ -102,9 +102,9 @@ public class Start {
 	public static String     		DEFAULT_PDB_DB = 			"";					// for loading from command line
 	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
-	public static Double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
-	private static Integer        	DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
-	private static Integer       	DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
+	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
 	// internal status variables (TODO: make private, use getter methods)
 	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
@@ -118,9 +118,6 @@ public class Start {
 	private static JFileChooser fileChooser;
 	private static JColorChooser colorChooser;
 	private static PyMolAdaptor pymolAdaptor;
-	
-	// the session properties
-	public static TreeMap<String, Object> currentProperties = defineCurrentProperties();
 	
 	// the thread pool
 	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
@@ -184,60 +181,6 @@ public class Start {
 	}
 	
 	/*-------------- properties and config files --------------*/
-	
-	/**
-	 * Collects all 'constants' which should be written to and read from config files into a map.
-	 * The map associates the actual variable with its name in the config file and allows to
-	 * batch process all constants by iterating over the map.
-	 */
-	private static TreeMap<String, Object> defineCurrentProperties() {
-		TreeMap<String, Object> map = new TreeMap<String, Object>();
-		
-		map.put("TEMP_DIR", TEMP_DIR);
-		map.put("INITIAL_SCREEN_SIZE", INITIAL_SCREEN_SIZE);
-		map.put("USE_DATABASE", USE_DATABASE);
-		map.put("USE_PYMOL", USE_PYMOL);
-		map.put("INCLUDE_GROUP_INTERNALS",  INCLUDE_GROUP_INTERNALS);																			
-		map.put("PRELOAD_PYMOL", PRELOAD_PYMOL);
-		map.put("SHUTDOWN_PYMOL_ON_EXIT", SHUTDOWN_PYMOL_ON_EXIT);
-		
-		map.put("SHOW_RULERS_ON_STARTUP", SHOW_RULERS_ON_STARTUP);
-		map.put("FORCE_DSSP",FORCE_DSSP);
-		map.put("DSSP_EXECUTABLE",DSSP_EXECUTABLE);			
-		map.put("DSSP_PARAMETERS",DSSP_PARAMETERS);
-		map.put("PDB_FTP_URL",PDB_FTP_URL);
-		
-		map.put("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
-		map.put("SHOW_ICON_BAR",SHOW_ICON_BAR);
-		map.put("ICON_BAR_FLOATABLE",ICON_BAR_FLOATABLE);
-		map.put("SHOW_ALIGNMENT_COORDS",SHOW_ALIGNMENT_COORDS);
-		
-		// pymol connection
-		map.put("PYMOL_HOST",PYMOL_HOST);
-		map.put("PYMOL_PORT",PYMOL_PORT);
-		map.put("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
-		map.put("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
-		map.put("PYMOL_LOGFILE",PYMOL_LOGFILE);
-		map.put("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
-		map.put("PYMOL_PARAMETERS",PYMOL_PARAMETERS);
-		map.put("PYMOL_CONN_TIMEOUT",PYMOL_CONN_TIMEOUT);
-		
-		// database connection
-		map.put("DB_HOST",DB_HOST);		
-		map.put("DB_USER",DB_USER);
-		map.put("DB_PWD",DB_PWD);					
-		
-		// default values for loading contact maps
-		map.put("DEFAULT_GRAPH_DB",DEFAULT_GRAPH_DB);
-		map.put("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
-		map.put("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);
-		map.put("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
-		map.put("DEFAULT_DISTANCE_CUTOFF",DEFAULT_DISTANCE_CUTOFF);
-		map.put("DEFAULT_MIN_SEQSEP",DEFAULT_MIN_SEQSEP);
-		map.put("DEFAULT_MAX_SEQSEP",DEFAULT_MAX_SEQSEP);
-		
-		return map;
-	}
 	
 	/**
 	 * Returns a property object with the default values for selected customizable variables.
@@ -335,42 +278,12 @@ public class Start {
 
 	}
 	
-	/**
-	 * Assigns the properties in Properties object p to the local variables defined in 
-	 * currentProperties.
-	 * @param p
-	 */
-	public static void setCurrentProperties(Properties p) {
-		for(String key:currentProperties.keySet()) {
-			Object localProperty = currentProperties.get(key);
-			if(localProperty instanceof String) {
-				localProperty = p.getProperty(key, localProperty.toString());
-			} else
-			if(localProperty instanceof Boolean) {
-				localProperty = Boolean.valueOf(p.getProperty(key, localProperty.toString()));
-			} else
-			if(localProperty instanceof Integer) {
-				localProperty = Integer.valueOf(p.getProperty(key, localProperty.toString()));
-			} else
-			if(localProperty instanceof Double) {
-				localProperty = Double.valueOf(p.getProperty(key, localProperty.toString()));
-			} else
-			if(localProperty instanceof Long) {
-				localProperty = Long.valueOf(p.getProperty(key, localProperty.toString()));
-			} else {
-				System.err.println("Could not handle property " + key + " in Start.setCurrentProperties()");
-			}
-		}
-	}
-	
 	/*
 	 * Returns a properties objects with all current properties.
 	 */
-	public static Properties getCurrentProperties() {
+	public Properties getCurrentProperties() {
 		Properties p = new Properties();
-		for(String key:currentProperties.keySet()) {
-			p.setProperty(key, currentProperties.get(key).toString());
-		}
+		
 		return p;
 	}
 	
@@ -746,23 +659,6 @@ public class Start {
 			}
 		} catch (IOException e) {
 			System.err.println("Error while reading from file " + userConfigFile.getAbsolutePath() + ": " + e.getMessage());
-		}
-		
-		// debug
-		currentProperties = defineCurrentProperties();
-		File outFileTxt = new File("properties.txt");
-		File outFileXml = new File("properties.xml");		
-		try {
-			getCurrentProperties().store(new PrintWriter(outFileTxt), "All properties for debugging");
-			System.out.println("Writing properties to " + outFileTxt.getAbsolutePath());
-		} catch(IOException e) {
-			System.err.println("Error while writing debug configutation file " + outFileTxt.getAbsolutePath());
-		}
-		try {
-			getCurrentProperties().storeToXML(new FileOutputStream(outFileXml), "All properties for debugging");
-			System.out.println("Writing properties to " + outFileXml.getAbsolutePath());
-		} catch(IOException e) {
-			System.err.println("Error while writing debug configutation file " + outFileXml.getAbsolutePath());
 		}
 		
 		// loading from file given as command line parameter
