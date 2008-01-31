@@ -25,9 +25,14 @@ import proteinstructure.AAinfo;
  */
 public class LoadDialog extends JDialog implements ActionListener, PopupMenuListener, DocumentListener {
 
+	/*------------------------------ constants ------------------------------*/
+	
 	// class variables
 	static final long serialVersionUID = 1l;
-		
+	private static final String INITIAL_COMBO_CC_VALUE = ""; 
+	
+	/*--------------------------- member variables --------------------------*/
+	
 	/**
 	 * Maps some field-identifiers to default values. Make use of the following keys
 	 * <ul>
@@ -63,7 +68,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	private String prevLabelAfterCc;
 	private String prevLabelAfterModel;
 	
-	/*------------------------- static function ----------------------------*/
+	/*------------------------- static functions ----------------------------*/
 	
 	/**
 	 * The values for some fields of the preceding load dialog are kept in 
@@ -172,10 +177,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		// construct combo box for the present chain codes. this load-dialog 
 		// functions as popup-event handler of events fired by this combo box
 		comboCc = new JComboBox();
+		//comboModel.setMaximumRowCount(10);
 		comboCc.addPopupMenuListener(this);
 		
 		comboModel = new JComboBox();
-		comboModel.setMaximumRowCount(10);
+		//comboModel.setMaximumRowCount(10);
 		comboModel.addPopupMenuListener(this);
 		
 		//JPanel labelPane = new JPanel();
@@ -217,6 +223,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			inputPane.add(labelCc);
 			inputPane.add(comboCc);
 			inputPane.add(labelAfterCc);
+			comboCc.addItem(makeObj(INITIAL_COMBO_CC_VALUE));
 			fields++;
 		}
 		if(showModel != null) {
@@ -618,6 +625,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			prevComboCcItems[i] = comboCc.getItemAt(i);
 		}
 		comboCc.removeAllItems();
+		comboCc.addItem(makeObj(INITIAL_COMBO_CC_VALUE));	// TODO: Always use makeObj instead of passing strings directly
 		comboCc.setEditable(false);
 	}
 	
@@ -632,6 +640,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			determinedAllCc = true;
 
 			// reset the item of the combo box for the chain codes
+			comboCc.removeAllItems();
 			for( int i = 0; i < prevComboCcItems.length; ++i ) {
 				comboCc.addItem(prevComboCcItems[i]);
 			}
@@ -665,6 +674,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			determinedAllModels = true;
 
 			// reset the item of the combo box for the chain codes
+			comboModel.removeAllItems();
 			for( int i = 0; i < prevComboModelItems.length; ++i ) {
 				comboModel.addItem(prevComboModelItems[i]);
 			}
@@ -723,6 +733,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 						}
 					} else {
 						// copy everything from the array to the combo-box
+						comboCc.removeAllItems();
 						for( int i = 0; i < allCc.length; ++i ) {
 							comboCc.addItem(makeObj(allCc[i]));						
 						}
@@ -756,11 +767,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 						comboModel.addItem(makeObj("1"));
 					} else {
 						comboModel.removeAllItems();
-
 						for (int i = 0; i < allModels.length; ++i) {
 							comboModel.addItem(makeObj(allModels[i].toString()));
 						}
-
+						//comboModel.setMaximumRowCount(comboModel.getItemCount());	// doesn't seem to work
 						determinedAllModels = true;
 						backupPdbName();
 					}

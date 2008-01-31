@@ -1563,7 +1563,7 @@ public class View extends JFrame implements ActionListener {
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
 		} catch (IOException e) {
-			System.err.println("Failed to load structure from ftp:" + e.getMessage());
+			showLoadError(e.getMessage());
 		}
 	}
 
