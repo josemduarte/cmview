@@ -721,8 +721,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
 
 		// residue types
-		String i_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(iSeqIdx-1)));
-		String j_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(jSeqIdx-1)));		
+		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
+		if (iSeqIdx>0) { // to skip gaps
+			i_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(iSeqIdx-1)));
+		}
+		String j_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
+		if (jSeqIdx>0) { // to skip gaps
+			j_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(jSeqIdx-1)));
+		}
 		
 		int extraX = 0;
 		if( showAliAndSeqPos ) {
@@ -801,7 +807,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
 
-		String res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(seqIdx-1)));
+		String res = String.valueOf(AAinfo.getGapCharacterOneLetter());
+		if (seqIdx>0) { // to skip gaps
+			res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(seqIdx-1)));
+		}
 
 		g2d.setColor(coordinatesColor);
 		//g2d.drawString("i", xOffset, outputSize-90);
