@@ -1,244 +1,1065 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<article lang=""><sect1><title>CMView Function Reference</title><sect2><title>File</title><sect3><title>Info</title>
-<para>Shows information about the currently loaded contact map (or contact maps in compare mode):</para>
-<orderedlist>
-<listitem>
-<para>Name An identifier for the contact map (usually the PDB four-letter code if applicable)</para>
-</listitem>
-<listitem>
-<para>Contact type The contact type used when creating the contact map, e.g. Ca, Cb, SC, BB</para>
-</listitem>
-<listitem>
-<para>Distance cutoff The distance cutoff in angstroms used when creating the contact map</para>
-</listitem>
-<listitem>
-<para>Min Seq Sep The minimum sequence separation filter used when creating the contact map</para>
-</listitem>
-<listitem>
-<para>Max Seq Sep The macimum sequence separation filter used when creating the contact map</para>
-</listitem>
-<listitem>
-<para>Sequence The protein sequence, to see the full sequence, hover mouse over the first few letters</para>
-</listitem>
-<listitem>
-<para>Sequence The number of residues in the full protein sequence</para>
-</listitem>
-<listitem>
-<para>Unobserved residues The number of residues for which no 3D coordinates are available</para>
-</listitem>
-<listitem>
-<para>Secondary structure source The source of the secondary structure annotation (author or DSSP)</para>
-</listitem>
-<listitem>
-<para>Number of contacts The number of contacts in the contact map</para>
-</listitem>
-<listitem>
-<para>Number of selected contacts The number of contacts currently selected</para>
-</listitem>
-</orderedlist>
-<para>Only in compare mode:</para>
-<orderedlist>
-<listitem>
-<para>Number of unique contacts The number of contacts unique to this structure</para>
-</listitem>
-<listitem>
-<para>Number of common contacts The number of contacts present in both structures</para>
-</listitem>
-</orderedlist></sect3><sect3><title>Load from</title>
-<para>CMView can import two general classes of data files: </para>
-<orderedlist>
-<listitem>
-<para>Tertiary structure files</para>
-</listitem>
-<listitem>
-<para>Contact map files</para>
-</listitem>
-</orderedlist>
-<para>For tertiary structure files (e.g. PDB files), a contact map will be calculated from the 3D coordinates using the user specified contact type and distance cutoff, the structure will be automatically loaded into PyMol and the 3D visualization features will be available.</para>
-<para>For contact map files, only the main contact map window will be available.</para>
-<para>CMView contact map files are special in the sense that they store the PDB code of the structure they were derived from (if applicable). When opening a .cm file, the application then tries to retrieve the 3D coordinates from the online PDB.</para><sect4><title>Load from online PDB</title>
-<para>Loads a structure from the PDB ftp site. The file is downloaded in mmCIF format and cached locally.</para></sect4><sect4><title>Load from PDB file</title>
-<para>Loads a structure from a local PDB file. The file needs to contain an initial HEADER line and one or more ATOM lines following the PDB file specification [1]. Alternatively, files may also follow the Casp tertiary structure prediction format [2].</para>
-<para>[1] <ulink url="http://www.wwpdb.org/docs.html">http://www.wwpdb.org/docs.html</ulink>
-</para>
-<para>[2] <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html">http://predictioncenter.org/casp7/doc/casp7-format.html#TS</ulink> </para></sect4><sect4><title>Load from contact map file</title>
-<para>Loads a file in the native CMView contact map file format. A file saved in this format contains some metadata including the PDB-four-letter code of the structure it was derived from (if applicable). The corresponding structure will then be retrieved from the PDB when the file is loaded again. </para></sect4><sect4><title>Load from Casp RR file</title>
-<para>Loads a contact map in CASP residue-residue contact prediction format.</para>
-<para>See <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html#RR">http://predictioncenter.org/casp7/doc/casp7-format.html#RR</ulink> for the format specification.</para></sect4></sect3><sect3><title>Save to</title><sect4><title>Save to contact map file*</title>
-<para>Saves the current contact map in CMView contact map file format. The sequence, the residue-residue contacts and some meta data (original PDB four-letter code and chain code, contact type, distance cutoff) will be stored in the file.</para></sect4><sect4><title>Save to Casp RR file*</title>
-<para>Saves the current contact map in Casp residue-residue contact prediction format.</para>
-<para>See <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html#RR">http://predictioncenter.org/casp7/doc/casp7-format.html#RR</ulink> for the format specification.</para></sect4><sect4><title>Save to PNG file</title>
-<para>Exports the contents of the main contact map window as a PNG image file.</para></sect4><sect4><title>Save Alignment to file</title>
-<para>Saves the current alignment to a text file in FASTA alignment format. This function is only available in comparison mode.</para></sect4></sect3><sect3><title>Print</title>
-<para>Opens a dialog to send the contents of the main contact map window to a printer.</para></sect3><sect3><title>Quit</title>
-<para>Closes all windows and exits CMView.</para></sect3></sect2><sect2><title>View</title><sect3><title>Show PDB residue numbers</title>
-<para>Shows or hides display of classic residue numbers as found in PDB text files.</para>
-<para>It is not uncommon to find residue numbers in PDB text files which are non-sequential, negative, starting from a very high number, contain insertion codes etc. This creates many problems in data processing. Whenever possible, CMView therefore uses residue numbers following the full protein sequence. This numbering is now provided for all PDB entries in mmCIF files. For comparison with pdb text files it may be desirable to know the classic number of a particular residue. When this option is selected, the classic numbers are shown in the status corner below the secondary structure annotation.</para></sect3><sect3><title>Show rulers</title>
-<para>Shows/hides the rulers at the top and left end of the contact maps. The rulers are used to display the secondary structure annotation if available and to allow selections based on residues and secondary structure elements.</para></sect3><sect3><title>Show icon bar</title>
-<para>Shows/hides the icon bar above the contact map.</para></sect3><sect3><title>Show common neighborhood sizes*</title>
-<para>Displays/hides an information overlay showing the common neighborhood size for each residue pair.</para>
-<para>The common neighborhood of residue pair (i,j) is the set of residues in contact with both i and j. Common neighborhood sizes are shown as colors in the contacts map where darker colors indicate larger common neighborhoods. Pairs which are in contact are shown in shades of purple, those which are not in contact as shades of green.</para></sect3><sect3><title>Show contact density*</title>
-<para>Displays/hides the contact density map.</para>
-<para>The contact density map shows for every residue pair (i,j) the density of contacts within the backbone fragment ranging from i to j. The density is defined as the number of contacts within the fragment normalized by the average number of contacts over all fragments of the same size. High densities are shown in red, low densities are shown in blue. To smooth the data, contacts between sequence neighbors are added if they are not present (e.g. because a sequence separation filter &gt; 1 was used when creating the contact map).</para>
-<para>High-density regions often coincide with structural units like domains, secondary- and super-secondary structure elements.</para></sect3><sect3><title>Show distance map*</title>
-<para>Displays/hides a distance map showing all pairwise distances between residues.</para>
-<para>Distances are visualized as colors. The color coding depends on the distance cutoff of the current contact map. Distances above the cutoff are shown in blue, distances around the cutoff are shown in green and distances below the cutoff are shown in red, where the darkest blue is the longest distance and the darkest red is the shortest distance. Distances are calculated between C-alpha atoms.</para>
-<para>The distance map can only be shown if 3D coordinates for the structure are available.</para></sect3></sect2><sect2><title>Select</title><sect3><title>Selection modes </title>
-<para>The selection mode defines the mouse behavior for selecting contacts in the main contact map window and in the secondary structure rulers at the left and at the top of the contact map window.</para><sect4><title>Rectangular selection mode </title>
-<para>In contact map</para>
-<para>Drag to select rectangular region of contacts</para>
-<para>Click on contact to select single contact</para>
-<para>Ctrl+click to add to current selection</para>
-<para>Click on white space to reset selection</para>
-<para>In ruler</para>
-<para>Click on secondary structure element to select the corresponding residues</para>
-<para>Drag to select range of residues</para>
-<para>Intersection of horizontal and vertical residue selections selects contacts</para></sect4><sect4><title>Fill selection mode </title>
-<para>In contact map</para>
-<para>Click on contact to select cluster of contacts</para>
-<para>Ctrl+click to add to current selection</para>
-<para>Click on white space to reset selection</para>
-<para>In ruler</para>
-<para>Same behavior as in square selection mode</para></sect4><sect4><title>Diagonal selection mode </title>
-<para>In contact map</para>
-<para>Click to select contacts on current diagonal</para>
-<para>Drag to select contacts in several diagonals</para>
-<para>Ctrl+click to add to current selection</para>
-<para>Click on white space to reset selection</para>
-<para>In ruler</para>
-<para>Same behavior as in square selection mode</para></sect4><sect4><title>Neighborhood selection mode*</title>
-<para>In contact map</para>
-<para>Click on matrix cell (i,j) to select neighborhoods of residues i and j</para>
-<para>Click on diagonal to select neighborhood of single residue</para>
-<para>Ctrl+click to add to current selection</para>
-<para>Click on lower left half to reset selection</para>
-<para>In ruler</para>
-<para>Click on residue to select its neighborhood</para>
-<para>Ctrl+click to add to current selection</para></sect4><sect4><title>Color selection mode*</title>
-<para>In contact map</para>
-<para>Click on contact to select all contact having the same color</para>
-<para>Ctrl+click to add to current selection</para>
-<para>Click on white space to reset selection</para>
-<para>In ruler</para>
-<para>Same behavior as in square selection mode</para></sect4></sect3><sect3><title>Select all contacts</title>
-<para>Selects all currently visible contacts.</para></sect3><sect3><title>Select by residue number</title>
-<para>Selects all contacts between elements from a user selected set of residues. The residue set is specified by a selection string. A selection string is a comma separated list of residue numbers and/or residue ranges where a residue range r1-r2 specifies all residues between and including r1 and r2.</para>
-<para>Example: 1,3,5-7,10-12</para></sect3><sect3><title>Select helix-helix contacts*</title>
-<para>Selects all contacts between distinct alpha helices.</para></sect3><sect3><title>Select sheet-sheet contacts*</title>
-<para>Selects all contacts between distinct beta strands.</para></sect3><sect3><title>Select contacts between secondary structure elements</title>
-<para>Selects all contacts between distinct secondary structure elements.</para></sect3><sect3><title>Select contacts within secondary structure elements</title>
-<para>Selects all contacts between two residues from the same secondary structure element.</para></sect3></sect2><sect2><title>Color</title>
-<para>Different regions of interest in the contact map can be assigned user-defined colors, e.g. to highlight different domains or a particular functional site.</para><sect3><title>Choose color</title>
-<para>Chooses the active color for coloring contacts using the Paint selection contacts function.</para></sect3><sect3><title>Color selected contacts*</title>
-<para>Assigns the active color to the currently selected contacts</para></sect3><sect3><title>Reset contact colors to black*</title>
-<para>Resets all contacts to the default color (black)</para></sect3></sect2><sect2><title>Action</title><sect3><title>Show selected contacts in 3D</title>
-<para>Visualizes the currently selected contacts as edges in the 3D viewer. The edges are drawn between the C-alpha atoms of the residues in contact.</para>
-<para>In single contact map mode, two selection object are created in the 3D viewer:</para>
-<orderedlist>
-<listitem>
-<para>The set of contacts (drawn as solid yellow lines)</para>
-</listitem>
-<listitem>
-<para>The set of residues participating in one of the contacts</para>
-</listitem>
-</orderedlist>
-<para>These selection objects can be manipulated directly in the 3D viewer, for example to change colors or to display side-chain atoms.</para>
-<para>In comparison mode, six contact objects and the corresponding residue selections are created:</para>
-<orderedlist>
-<listitem>
-<para>Contacts in structure A which are present in both structures – drawn as solid yellow lines</para>
-</listitem>
-<listitem>
-<para>Contacts in structure B which are present in both structures – drawn as solid yellow lines</para>
-</listitem>
-<listitem>
-<para>Contacts in structure A which are present only in structure A – drawn as solid pink lines</para>
-</listitem>
-<listitem>
-<para>Contacts in structure B which are present only in structure B – drawn as solid green lines</para>
-</listitem>
-<listitem>
-<para>Pseudo-contacts in structure A (present in B but absent in A) – drawn as dashed pink lines</para>
-</listitem>
-<listitem>
-<para>Pseudo-contacts in structure B (present in A but absent in B) – drawn as dashed green lines</para>
-</listitem>
-</orderedlist>
-<para>Pseudo-contacts means that the distance between the two residues is above the defined distance cutoff. They are shown to allow easier analysis of conformational changes, where contacts have been lost or new contacts have been established.</para>
-<para>Note: In PyMol 1.00 and above, above selections will be grouped together for a better overview. Earlier versions of PyMol do not support this feature.</para></sect3><sect3><title>Delete selected contacts*</title>
-<para>Permanently deletes the currently selected contacts from the contact map. </para></sect3></sect2><sect2><title>Compare</title><sect3><title>Load second contact map</title>
-<para>TODO: Rename menu item</para>
-<para>Loads a second contact map (in the following called B) to compare it to the currently open one (A). For the different input files see Load from (TODO: add link)</para>
-<para>After a second contact map has been loaded, contacts are shown with the following color coding:</para>
-<orderedlist>
-<listitem>
-<para>Black: contacts present in both structure A and structure B</para>
-</listitem>
-<listitem>
-<para>Pink: contacts present in contact map A but absent in B</para>
-</listitem>
-<listitem>
-<para>Green: contacts present in structure B but absent in A</para>
-</listitem>
-</orderedlist>
-<para>To overlay the contact maps, an alignment between the residue of A and B needs to be defined. CMView offers the following options to obtain an alignment:</para>
-<orderedlist>
-<listitem>
-<para>Needleman-Wunsch sequence alignment</para>
-<para>Calculates a global sequence alignment using the classic Needleman-Wunsch-Gotoh algorithm with standard parameters (Matrix: BLOSSUM50, Gap-open: 10, Gap-extend: 0.5). The JAligner package [1] is used for the calculation.</para>
-</listitem>
-<listitem>
-<para>Maximum contact map overlap structural alignment</para>
-<para>Calculates a structure based alignment using the SADP algorithm [2]. It applies a very fast heuristic to maximize the contact map overlap between two structures. The algorithm is particularly well suited for aligning contact maps since it can be applied even if no exact 3D coordinates are available.</para>
-</listitem>
-<listitem>
-<para>Load alignment from FASTA file</para>
-<para>Loads an alignment from a text file in FASTA alignment format. This format can be exported by many standard sequence alignment programs (e.g. Muscle, T-Coffee, EMBOSS, Bioperl).</para>
-</listitem>
-</orderedlist>
-<para>References: (TODO: add links)</para>
-<para>[1] Ahmed Moustafa, JAligner: Open source Java implementation of Smith-Waterman, http://jaligner.sourceforge.net (2006/03/23).</para>
-<para>[2] Jain, B.J. and M. Lappe (2007). "Joining Softassign and Dynamic Programming for the Contact Map Overlap Problem" Springer Lecture Notes in Computer Science, S. Hochreiter and R. Wagner (Eds.): BIRD 2007, LNBI 4414, pp. 410-423. </para></sect3><sect3><title>Show common contacts</title>
-<para>Shows/hides contacts present in both structure A and structure B.</para></sect3><sect3><title>Show contacts unique to first structure</title>
-<para>Shows/hides contacts present in contact map A but absent in B (displayed in pink).</para></sect3><sect3><title>Show contacts unique to second structure</title>
-<para>Shows/hides contacts present in structure B but absent in A (displayed in green).</para></sect3><sect3><title>Show difference map</title>
-<para>Displays/hides the difference distance map of the two structures.</para>
-<para>The difference distance map is a powerful tool to visualize conformational changes between two protein structures. For a pair of residues (i,j) the distance map visualizes how much the distance between i and j has changed from one structure to the other. This highlights regions of conformational change as red hotspots while regions which remain unchanged appear in blue.</para>
-<para>For each pair of residues, the absolute difference between the distance in structure A and the distance in structure B.</para>
-<para>The difference map can only be shown if 3D coordinates for both structures are available.</para></sect3><sect3><title>Superimpose from selection</title>
-<para>Superimposes the structures in the 3D viewer based on the currently selected contacts.</para>
-<para>When two structure are loaded for comparison, they are initially superimposed using an all-residue C-alpha minimum RMSD fit. In such a rigid-body superimposition, some regions may not align well in 3D. This feature allows to select a region of interest and to perform a minimum-RMSD fit only based on the residues participating in the contact selection. </para>
-<para>Note: When changing the orientation of structures in PyMol (e.g. using the custom superposition function), earlier contact objects are not moved with the original structure. There is currently no workaround for this.</para></sect3><sect3><title>Show corresponding residues from selection</title>
-<para>(TODO: Merge with above?)</para>
-<para>Visualizes aligned residues in the 3D viewer.</para>
-<para>To highlights the correspondence between residues in structure A and structure B, lines are drawn between corresponding residues. This gives a visual three dimensional impression of the underlying alignment.</para></sect3></sect2><sect2><title>Help</title><sect3><title>Help </title>
-<para>Shows the inline help (TODO: update in CMView)</para></sect3><sect3><title>CMView website </title>
-<para>Opens the CMView website in a browser window (TODO: add to menu)</para></sect3><sect3><title>Write example configuration file</title>
-<para>Writes an example configuration file (cmview.cfg) to the current working directory.</para>
-<para>CMView can be customized using key-value pairs in a configuration file (cmview.cfg). The example file contains some commonly used settings. CMView is looking for configuration files:</para>
-<orderedlist>
-<listitem>
-<para>In the user's home directory</para>
-</listitem>
-<listitem>
-<para>In the current directory</para>
-</listitem>
-<listitem>
-<para>At the location specified as a command line argument</para>
-</listitem>
-</orderedlist>
-<para>If the same variable is set in more than one file, the latest value takes precedence according to the above order.</para></sect3><sect3><title>About</title>
-<para>Shows version and licensing information.</para></sect3></sect2><sect2><title>Context menu</title>
-<para>Available by right-clicking on the main contact map window.</para><sect3><title>Show residue pair as edge in 3D</title>
-<para>Draws a line in the 3D viewer labeled with the distance between the respective residues in Angstroms. This feature is independent of whether the two residues are in contact or not.</para></sect3></sect2><sect2><title>Experimental features</title><sect3><title>Load structure from relational database</title>
-<para>Loads PDB structures from a relational database in PDBase[1] or MSD[2] format.</para>
-<para>[1] <ulink url="http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html">http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html</ulink>
-</para>
-<para>[2] <ulink url="http://www.ebi.ac.uk/msd-srv/docs/dbdoc/">http://www.ebi.ac.uk/msd-srv/docs/dbdoc/</ulink>
-</para></sect3><sect3><title>Load from/save to graph database</title>
-<para>Loads and saves contact maps from/to a simple relational database with tables for graphs, nodes and edges.</para></sect3><sect3><title>Show common neighbor triangles in contact map</title>
-<para>Shows the common neighborhood for a pair of residues as triangles in the contact map.</para></sect3><sect3><title>Show common neighbor triangles in 3D</title>
-<para>Shows the common neighborhood for a pair of residues as triangles in the 3D viewer.</para></sect3><sect3><title>Show common neighborhood size map</title>
-<para>Shows the common neighborhood sizes for all residue pairs as colors in the contact map.</para>
-<para/></sect3></sect2></sect1></article>
+<article lang="">
+
+  <sect1>
+
+    <title>CMView Function Reference</title>
+
+    <sect2>
+
+      <title>File</title>
+
+      <sect3>
+
+        <title>Info</title>
+
+        <para>Shows information about the currently loaded contact map 
+        (or contact maps in compare mode):</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Name An identifier for the contact map (usually the 
+            PDB four-letter code if applicable)</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contact type The contact type used when creating the 
+            contact map, e.g. Ca, Cb, SC, BB</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Distance cutoff The distance cutoff in angstroms used 
+            when creating the contact map</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Min Seq Sep The minimum sequence separation filter 
+            used when creating the contact map</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Max Seq Sep The macimum sequence separation filter 
+            used when creating the contact map</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Sequence The protein sequence, to see the full 
+            sequence, hover mouse over the first few letters</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Sequence The number of residues in the full protein 
+            sequence</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Unobserved residues The number of residues for which 
+            no 3D coordinates are available</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Secondary structure source The source of the 
+            secondary structure annotation (author or DSSP)</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Number of contacts The number of contacts in the 
+            contact map</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Number of selected contacts The number of contacts 
+            currently selected</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>Only in compare mode:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Number of unique contacts The number of contacts 
+            unique to this structure</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Number of common contacts The number of contacts 
+            present in both structures</para>
+
+          </listitem>
+
+        </orderedlist>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Load from</title>
+
+        <para>CMView can import two general classes of data 
+        files:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Tertiary structure files</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contact map files</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>For tertiary structure files (e.g. PDB files), a contact 
+        map will be calculated from the 3D coordinates using the user 
+        specified contact type and distance cutoff, the structure will 
+        be automatically loaded into PyMol and the 3D visualization 
+        features will be available.</para>
+
+        <para>For contact map files, only the main contact map window 
+        will be available.</para>
+
+        <para>CMView contact map files are special in the sense that 
+        they store the PDB code of the structure they were derived from 
+        (if applicable). When opening a .cm file, the application then 
+        tries to retrieve the 3D coordinates from the online PDB.</para>
+
+        <sect4>
+
+          <title>Load from online PDB</title>
+
+          <para>Loads a structure from the PDB ftp site. The file is 
+          downloaded in mmCIF format and cached locally.</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Load from PDB file</title>
+
+          <para>Loads a structure from a local PDB file. The file needs 
+          to contain an initial HEADER line and one or more ATOM lines 
+          following the PDB file specification [1]. Alternatively, 
+          files may also follow the Casp tertiary structure prediction 
+          format [2].</para>
+
+          <para>[1] <ulink url="http://www.wwpdb.org/docs.html">
+          http://www.wwpdb.org/docs.html</ulink></para>
+
+          <para>[2] 
+          <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html">
+          http://predictioncenter.org/casp7/doc/casp7-format.html#TS</ulink></para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Load from contact map file</title>
+
+          <para>Loads a file in the native CMView contact map file 
+          format. A file saved in this format contains some metadata 
+          including the PDB-four-letter code of the structure it was 
+          derived from (if applicable). The corresponding structure 
+          will then be retrieved from the PDB when the file is loaded 
+          again.</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Load from Casp RR file</title>
+
+          <para>Loads a contact map in CASP residue-residue contact 
+          prediction format.</para>
+
+          <para>See 
+          <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html#RR">
+          http://predictioncenter.org/casp7/doc/casp7-format.html#RR</ulink> 
+          for the format specification.</para>
+
+        </sect4>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Save to</title>
+
+        <sect4>
+
+          <title>Save to contact map file*</title>
+
+          <para>Saves the current contact map in CMView contact map 
+          file format. The sequence, the residue-residue contacts and 
+          some meta data (original PDB four-letter code and chain code, 
+          contact type, distance cutoff) will be stored in the 
+          file.</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Save to Casp RR file*</title>
+
+          <para>Saves the current contact map in Casp residue-residue 
+          contact prediction format.</para>
+
+          <para>See 
+          <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html#RR">
+          http://predictioncenter.org/casp7/doc/casp7-format.html#RR</ulink> 
+          for the format specification.</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Save to PNG file</title>
+
+          <para>Exports the contents of the main contact map window as 
+          a PNG image file.</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Save Alignment to file</title>
+
+          <para>Saves the current alignment to a text file in FASTA 
+          alignment format. This function is only available in 
+          comparison mode.</para>
+
+        </sect4>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Print</title>
+
+        <para>Opens a dialog to send the contents of the main contact 
+        map window to a printer.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Quit</title>
+
+        <para>Closes all windows and exits CMView.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>View</title>
+
+      <sect3>
+
+        <title>Show PDB residue numbers</title>
+
+        <para>Shows or hides display of classic residue numbers as 
+        found in PDB text files.</para>
+
+        <para>It is not uncommon to find residue numbers in PDB text 
+        files which are non-sequential, negative, starting from a very 
+        high number, contain insertion codes etc. This creates many 
+        problems in data processing. Whenever possible, CMView 
+        therefore uses residue numbers following the full protein 
+        sequence. This numbering is now provided for all PDB entries in 
+        mmCIF files. For comparison with pdb text files it may be 
+        desirable to know the classic number of a particular residue. 
+        When this option is selected, the classic numbers are shown in 
+        the status corner below the secondary structure 
+        annotation.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show rulers</title>
+
+        <para>Shows/hides the rulers at the top and left end of the 
+        contact maps. The rulers are used to display the secondary 
+        structure annotation if available and to allow selections based 
+        on residues and secondary structure elements.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show icon bar</title>
+
+        <para>Shows/hides the icon bar above the contact map.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show common neighborhood sizes*</title>
+
+        <para>Displays/hides an information overlay showing the common 
+        neighborhood size for each residue pair.</para>
+
+        <para>The common neighborhood of residue pair (i,j) is the set 
+        of residues in contact with both i and j. Common neighborhood 
+        sizes are shown as colors in the contacts map where darker 
+        colors indicate larger common neighborhoods. Pairs which are in 
+        contact are shown in shades of purple, those which are not in 
+        contact as shades of green.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show contact density*</title>
+
+        <para>Displays/hides the contact density map.</para>
+
+        <para>The contact density map shows for every residue pair 
+        (i,j) the density of contacts within the backbone fragment 
+        ranging from i to j. The density is defined as the number of 
+        contacts within the fragment normalized by the average number 
+        of contacts over all fragments of the same size. High densities 
+        are shown in red, low densities are shown in blue. To smooth 
+        the data, contacts between sequence neighbors are added if they 
+        are not present (e.g. because a sequence separation filter &gt; 
+        1 was used when creating the contact map).</para>
+
+        <para>High-density regions often coincide with structural units 
+        like domains, secondary- and super-secondary structure 
+        elements.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show distance map*</title>
+
+        <para>Displays/hides a distance map showing all pairwise 
+        distances between residues.</para>
+
+        <para>Distances are visualized as colors. The color coding 
+        depends on the distance cutoff of the current contact map. 
+        Distances above the cutoff are shown in blue, distances around 
+        the cutoff are shown in green and distances below the cutoff 
+        are shown in red, where the darkest blue is the longest 
+        distance and the darkest red is the shortest distance. 
+        Distances are calculated between C-alpha atoms.</para>
+
+        <para>The distance map can only be shown if 3D coordinates for 
+        the structure are available.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Select</title>
+
+      <sect3>
+
+        <title>Selection modes</title>
+
+        <para>The selection mode defines the mouse behavior for 
+        selecting contacts in the main contact map window and in the 
+        secondary structure rulers at the left and at the top of the 
+        contact map window.</para>
+
+        <sect4>
+
+          <title>Rectangular selection mode</title>
+
+          <para>In contact map</para>
+
+          <para>Drag to select rectangular region of contacts</para>
+
+          <para>Click on contact to select single contact</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+          <para>Click on white space to reset selection</para>
+
+          <para>In ruler</para>
+
+          <para>Click on secondary structure element to select the 
+          corresponding residues</para>
+
+          <para>Drag to select range of residues</para>
+
+          <para>Intersection of horizontal and vertical residue 
+          selections selects contacts</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Fill selection mode</title>
+
+          <para>In contact map</para>
+
+          <para>Click on contact to select cluster of contacts</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+          <para>Click on white space to reset selection</para>
+
+          <para>In ruler</para>
+
+          <para>Same behavior as in square selection mode</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Diagonal selection mode</title>
+
+          <para>In contact map</para>
+
+          <para>Click to select contacts on current diagonal</para>
+
+          <para>Drag to select contacts in several diagonals</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+          <para>Click on white space to reset selection</para>
+
+          <para>In ruler</para>
+
+          <para>Same behavior as in square selection mode</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Neighborhood selection mode*</title>
+
+          <para>In contact map</para>
+
+          <para>Click on matrix cell (i,j) to select neighborhoods of 
+          residues i and j</para>
+
+          <para>Click on diagonal to select neighborhood of single 
+          residue</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+          <para>Click on lower left half to reset selection</para>
+
+          <para>In ruler</para>
+
+          <para>Click on residue to select its neighborhood</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+        </sect4>
+
+        <sect4>
+
+          <title>Color selection mode*</title>
+
+          <para>In contact map</para>
+
+          <para>Click on contact to select all contact having the same 
+          color</para>
+
+          <para>Ctrl+click to add to current selection</para>
+
+          <para>Click on white space to reset selection</para>
+
+          <para>In ruler</para>
+
+          <para>Same behavior as in square selection mode</para>
+
+        </sect4>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select all contacts</title>
+
+        <para>Selects all currently visible contacts.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select by residue number</title>
+
+        <para>Selects all contacts between elements from a user 
+        selected set of residues. The residue set is specified by a 
+        selection string. A selection string is a comma separated list 
+        of residue numbers and/or residue ranges where a residue range 
+        r1-r2 specifies all residues between and including r1 and 
+        r2.</para>
+
+        <para>Example: 1,3,5-7,10-12</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select helix-helix contacts*</title>
+
+        <para>Selects all contacts between distinct alpha 
+        helices.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select sheet-sheet contacts*</title>
+
+        <para>Selects all contacts between distinct beta strands.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select contacts between secondary structure 
+        elements</title>
+
+        <para>Selects all contacts between distinct secondary structure 
+        elements.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Select contacts within secondary structure 
+        elements</title>
+
+        <para>Selects all contacts between two residues from the same 
+        secondary structure element.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Color</title>
+
+      <para>Different regions of interest in the contact map can be 
+      assigned user-defined colors, e.g. to highlight different domains 
+      or a particular functional site.</para>
+
+      <sect3>
+
+        <title>Choose color</title>
+
+        <para>Chooses the active color for coloring contacts using the 
+        Paint selection contacts function.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Color selected contacts*</title>
+
+        <para>Assigns the active color to the currently selected 
+        contacts</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Reset contact colors to black*</title>
+
+        <para>Resets all contacts to the default color (black)</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Action</title>
+
+      <sect3>
+
+        <title>Show selected contacts in 3D</title>
+
+        <para>Visualizes the currently selected contacts as edges in 
+        the 3D viewer. The edges are drawn between the C-alpha atoms of 
+        the residues in contact.</para>
+
+        <para>In single contact map mode, two selection object are 
+        created in the 3D viewer:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>The set of contacts (drawn as solid yellow 
+            lines)</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>The set of residues participating in one of the 
+            contacts</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>These selection objects can be manipulated directly in 
+        the 3D viewer, for example to change colors or to display 
+        side-chain atoms.</para>
+
+        <para>In comparison mode, six contact objects and the 
+        corresponding residue selections are created:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Contacts in structure A which are present in both 
+            structures – drawn as solid yellow lines</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contacts in structure B which are present in both 
+            structures – drawn as solid yellow lines</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contacts in structure A which are present only in 
+            structure A – drawn as solid pink lines</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Contacts in structure B which are present only in 
+            structure B – drawn as solid green lines</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Pseudo-contacts in structure A (present in B but 
+            absent in A) – drawn as dashed pink lines</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Pseudo-contacts in structure B (present in A but 
+            absent in B) – drawn as dashed green lines</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>Pseudo-contacts means that the distance between the two 
+        residues is above the defined distance cutoff. They are shown 
+        to allow easier analysis of conformational changes, where 
+        contacts have been lost or new contacts have been 
+        established.</para>
+
+        <para>Note: In PyMol 1.00 and above, above selections will be 
+        grouped together for a better overview. Earlier versions of 
+        PyMol do not support this feature.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Delete selected contacts*</title>
+
+        <para>Permanently deletes the currently selected contacts from 
+        the contact map.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Compare</title>
+
+      <sect3>
+
+        <title>Load second contact map</title>
+
+        <para>TODO: Rename menu item</para>
+
+        <para>Loads a second contact map (in the following called B) to 
+        compare it to the currently open one (A). For the different 
+        input files see Load from (TODO: add link)</para>
+
+        <para>After a second contact map has been loaded, contacts are 
+        shown with the following color coding:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Black: contacts present in both structure A and 
+            structure B</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Pink: contacts present in contact map A but absent in 
+            B</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Green: contacts present in structure B but absent in 
+            A</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>To overlay the contact maps, an alignment between the 
+        residue of A and B needs to be defined. CMView offers the 
+        following options to obtain an alignment:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>Needleman-Wunsch sequence alignment</para>
+
+            <para>Calculates a global sequence alignment using the 
+            classic Needleman-Wunsch-Gotoh algorithm with standard 
+            parameters (Matrix: BLOSSUM50, Gap-open: 10, Gap-extend: 
+            0.5). The JAligner package [1] is used for the 
+            calculation.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Maximum contact map overlap structural 
+            alignment</para>
+
+            <para>Calculates a structure based alignment using the SADP 
+            algorithm [2]. It applies a very fast heuristic to maximize 
+            the contact map overlap between two structures. The 
+            algorithm is particularly well suited for aligning contact 
+            maps since it can be applied even if no exact 3D 
+            coordinates are available.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Load alignment from FASTA file</para>
+
+            <para>Loads an alignment from a text file in FASTA 
+            alignment format. This format can be exported by many 
+            standard sequence alignment programs (e.g. Muscle, 
+            T-Coffee, EMBOSS, Bioperl).</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>References: (TODO: add links)</para>
+
+        <para>[1] Ahmed Moustafa, JAligner: Open source Java 
+        implementation of Smith-Waterman, 
+        http://jaligner.sourceforge.net (2006/03/23).</para>
+
+        <para>[2] Jain, B.J. and M. Lappe (2007). &quot;Joining 
+        Softassign and Dynamic Programming for the Contact Map Overlap 
+        Problem&quot; Springer Lecture Notes in Computer Science, S. 
+        Hochreiter and R. Wagner (Eds.): BIRD 2007, LNBI 4414, pp. 
+        410-423. </para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show common contacts</title>
+
+        <para>Shows/hides contacts present in both structure A and 
+        structure B.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show contacts unique to first structure</title>
+
+        <para>Shows/hides contacts present in contact map A but absent 
+        in B (displayed in pink).</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show contacts unique to second structure</title>
+
+        <para>Shows/hides contacts present in structure B but absent in 
+        A (displayed in green).</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show difference map</title>
+
+        <para>Displays/hides the difference distance map of the two 
+        structures.</para>
+
+        <para>The difference distance map is a powerful tool to 
+        visualize conformational changes between two protein 
+        structures. For a pair of residues (i,j) the distance map 
+        visualizes how much the distance between i and j has changed 
+        from one structure to the other. This highlights regions of 
+        conformational change as red hotspots while regions which 
+        remain unchanged appear in blue.</para>
+
+        <para>For each pair of residues, the absolute difference 
+        between the distance in structure A and the distance in 
+        structure B.</para>
+
+        <para>The difference map can only be shown if 3D coordinates 
+        for both structures are available.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Superimpose from selection</title>
+
+        <para>Superimposes the structures in the 3D viewer based on the 
+        currently selected contacts.</para>
+
+        <para>When two structure are loaded for comparison, they are 
+        initially superimposed using an all-residue C-alpha minimum 
+        RMSD fit. In such a rigid-body superimposition, some regions 
+        may not align well in 3D. This feature allows to select a 
+        region of interest and to perform a minimum-RMSD fit only based 
+        on the residues participating in the contact selection.</para>
+
+        <para>Note: When changing the orientation of structures in 
+        PyMol (e.g. using the custom superposition function), earlier 
+        contact objects are not moved with the original structure. 
+        There is currently no workaround for this.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show corresponding residues from selection</title>
+
+        <para>(TODO: Merge with above?)</para>
+
+        <para>Visualizes aligned residues in the 3D viewer.</para>
+
+        <para>To highlights the correspondence between residues in 
+        structure A and structure B, lines are drawn between 
+        corresponding residues. This gives a visual three dimensional 
+        impression of the underlying alignment.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Help</title>
+
+      <sect3>
+
+        <title>Help</title>
+
+        <para>Shows the inline help (TODO: update in CMView)</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>CMView website</title>
+
+        <para>Opens the CMView website in a browser window (TODO: add 
+        to menu)</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Write example configuration file</title>
+
+        <para>Writes an example configuration file (cmview.cfg) to the 
+        current working directory.</para>
+
+        <para>CMView can be customized using key-value pairs in a 
+        configuration file (cmview.cfg). The example file contains some 
+        commonly used settings. CMView is looking for configuration 
+        files:</para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>In the user&apos;s home directory</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>In the current directory</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>At the location specified as a command line 
+            argument</para>
+
+          </listitem>
+
+        </orderedlist>
+
+        <para>If the same variable is set in more than one file, the 
+        latest value takes precedence according to the above 
+        order.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>About</title>
+
+        <para>Shows version and licensing information.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Context menu</title>
+
+      <para>Available by right-clicking on the main contact map 
+      window.</para>
+
+      <sect3>
+
+        <title>Show residue pair as edge in 3D</title>
+
+        <para>Draws a line in the 3D viewer labeled with the distance 
+        between the respective residues in Angstroms. This feature is 
+        independent of whether the two residues are in contact or 
+        not.</para>
+
+      </sect3>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Experimental features</title>
+
+      <sect3>
+
+        <title>Load structure from relational database</title>
+
+        <para>Loads PDB structures from a relational database in 
+        PDBase[1] or MSD[2] format.</para>
+
+        <para>[1] 
+        <ulink url="http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html">
+        http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html</ulink></para>
+
+        <para>[2] <ulink url="http://www.ebi.ac.uk/msd-srv/docs/dbdoc/">
+        http://www.ebi.ac.uk/msd-srv/docs/dbdoc/</ulink></para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Load from/save to graph database</title>
+
+        <para>Loads and saves contact maps from/to a simple relational 
+        database with tables for graphs, nodes and edges.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show common neighbor triangles in contact map</title>
+
+        <para>Shows the common neighborhood for a pair of residues as 
+        triangles in the contact map.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show common neighbor triangles in 3D</title>
+
+        <para>Shows the common neighborhood for a pair of residues as 
+        triangles in the 3D viewer.</para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Show common neighborhood size map</title>
+
+        <para>Shows the common neighborhood sizes for all residue pairs 
+        as colors in the contact map.</para>
+
+        <para />
+
+      </sect3>
+
+    </sect2>
+
+  </sect1>
+
+</article>
+
