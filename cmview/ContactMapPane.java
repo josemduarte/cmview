@@ -2,9 +2,11 @@ package cmview;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -1029,7 +1031,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case COLOR:
 				dragging=false;		// TODO: can we pull this up?
 				Pair<Integer> clickedPos = screen2cm(mousePressedPos); // TODO: this as well?
-				if(!evt.isControlDown()) {
+				if(!isControlDown(evt)) {
 					resetSelections();
 				}
 				Color clickedColor = userContactColors.get(clickedPos);
@@ -1063,7 +1065,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						if(selContacts.contains(clicked)) {
 							// if clicked position is a selected contact,
 							// deselect it
-							if(evt.isControlDown()) {
+							if(isControlDown(evt)) {
 								selContacts.remove(clicked);
 							} else {
 								selContacts = new IntPairSet();
@@ -1072,7 +1074,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						} else {
 							// if clicked position is a contact but not
 							// selected, select it
-							if(!evt.isControlDown()) {
+							if(!isControlDown(evt)) {
 								selContacts = new IntPairSet();
 							}
 							selContacts.add(clicked);
@@ -1080,11 +1082,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					} else {
 						// else: if clicked position is outside of a contact and
 						// ctrl not pressed, reset selContacts
-						if(!evt.isControlDown()) resetSelections();
+						if(!isControlDown(evt)) resetSelections();
 					}
 					this.repaint();
 				} else { // dragging
-					if (evt.isControlDown()){
+					if (isControlDown(evt)){
 						selContacts.addAll(tmpContacts);
 					} else{
 						selContacts = new IntPairSet();
@@ -1098,7 +1100,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case FILL:
 				dragging = false;
 				// resets selContacts when clicking mouse
-				if (!evt.isControlDown()){
+				if (!isControlDown(evt)){
 					resetSelections();
 				}
 
@@ -1110,7 +1112,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case NBH:
 				dragging = false;
 				// resets selContacts when clicking mouse
-				if (!evt.isControlDown()){
+				if (!isControlDown(evt)){
 					resetSelections();
 				}
 				// we select the node neighbourhoods of both i and j of the
@@ -1130,7 +1132,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				if (!dragging){
 					Pair<Integer> clicked = screen2cm(mousePressedPos);
 					// new behaviour: select current diagonal
-					if(!evt.isControlDown()) {
+					if(!isControlDown(evt)) {
 						resetSelections();
 					}
 					// in undirected case only selectDiagonal if we are above diagonal
@@ -1140,7 +1142,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 					this.repaint();
 				} else { // dragging
-					if (evt.isControlDown()){
+					if (isControlDown(evt)){
 						selContacts.addAll(tmpContacts);
 					} else{
 						selContacts = new IntPairSet();
@@ -2340,6 +2342,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	private int getContactSquareSize() {
 //	return contactSquareSize;
 //	}
+	
+	/**
+	 * Checks whether ctrl (or meta on mac) was pressed when the given mouse event was created.
+	 * This method specifically takes care of Mac Look&Feels where the Apple-key
+	 * is supposed to be used for multiple selections and menu shortcuts. In this
+	 * case the functions will - contrary to its name - actually check whether
+	 * the Apple-key was down.
+	 */
+	protected boolean isControlDown(MouseEvent evt) {
+		int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();		
+		if(mask==Event.META_MASK) return evt.isMetaDown();	// we are on a Mac!
+		else return evt.isControlDown();
+	}
 
 } 
 

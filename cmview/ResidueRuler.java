@@ -251,7 +251,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 				
 				// node nbh selection mode
 				if (view.getGUIState().getSelectionMode()==GUIState.SelMode.NBH) {				
-					if (evt.isControlDown()){
+					if (cmPane.isControlDown(evt)){
 						cmPane.selectNodeNbh(screen2cm(mousePressedPos));
 					} else{
 						cmPane.resetSelections();
@@ -263,7 +263,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(cmPane.mapAl2Seq(mod.getLoadedGraphID(),clickedRes));
 					if(ssElem==null) {
 						// clicking outside of secondary structure
-						if(!evt.isControlDown()) { // default behaviour: control-click on whitespace does nothing
+						if(!cmPane.isControlDown(evt)) { // default behaviour: control-click on whitespace does nothing
 							if(location==TOP || location==BOTTOM) {
 								cmPane.resetVerticalNodeSelection();
 							} else {
@@ -274,7 +274,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 						// clicking on secondary structure element
 						Interval ssint = ssElem.getInterval();
 						Interval ssintAliIdx = new Interval(cmPane.mapSeq2Al(mod.getLoadedGraphID(), ssint.beg),cmPane.mapSeq2Al(mod.getLoadedGraphID(), ssint.end));
-						if(evt.isControlDown()) {
+						if(cmPane.isControlDown(evt)) {
 							// adding to current selection
 							System.out.println("Selecting " + ssElem.getId() + " from " + ssint.beg + " to " + ssint.end); // for the user we want to show sequence indices
 							if(location==TOP || location==BOTTOM) {
