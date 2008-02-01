@@ -19,7 +19,7 @@ public class runTests extends ScriptFixture {
             /** Determine whether the given script should be included. */
             public boolean accept(File file) {
                 String name = file.getName();
-                return name.startsWith("load_from_casp_rr");
+                return name.startsWith("load");
             }
         };
     }
