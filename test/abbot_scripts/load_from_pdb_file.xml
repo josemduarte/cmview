@@ -43,7 +43,7 @@
   <sequence>
     <action args="PDB File..." method="actionSelectMenuItem" />
     <wait args="Load from PDB file" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
-    <action args="File Name:,../sample_files/2id1.pdb" method="actionKeyString" />
+    <action args="File Name:,test/sample_files/2id1.pdb" method="actionKeyString" />
     <action args="JComboBox Instance" class="javax.swing.JComboBox" method="actionClick" />
     <event component="JButton Instance" kind="MOUSE_RELEASED" type="MouseEvent" x="12" y="16" />
     <action args="ComboBox.list,&quot;A&quot;" class="javax.swing.JList" method="actionSelectRow" />

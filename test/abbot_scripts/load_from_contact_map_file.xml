@@ -28,7 +28,7 @@
   <sequence>
     <action args="Contact Map File..." method="actionSelectMenuItem" />
     <wait args="Load from CM file" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
-    <action args="JTextField Instance,../sample_files/2id1A.cm" method="actionKeyString" />
+    <action args="JTextField Instance,test/sample_files/2id1A.cm" method="actionKeyString" />
     <action args="Ok" class="javax.swing.AbstractButton" method="actionClick" />
     <wait args="Contact Map of 2id1A" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
   </sequence>
