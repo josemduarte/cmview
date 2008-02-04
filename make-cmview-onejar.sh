@@ -37,9 +37,9 @@ echo "Exporting source from svn"
 if [ "$cmviewtag" = "trunk" ]
 then
     cmviewtag="CMView-trunk"
-    svn export file:///project/StruPPi/svn/CMView/trunk/ $cmviewtag
+    svn export file:///project/StruPPi/svn/CMView/trunk/src $cmviewtag
 else
-    svn export file:///project/StruPPi/svn/CMView/tags/$cmviewtag
+    svn export file:///project/StruPPi/svn/CMView/tags/$cmviewtag/src $cmviewtag
 fi
 
 if [ "$aglappetag" = "trunk" ]
