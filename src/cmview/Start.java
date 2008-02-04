@@ -42,7 +42,7 @@ public class Start {
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 		
-	public static String			CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file
+	public static final String		CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file
 	
 	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
 	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
