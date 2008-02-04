@@ -138,8 +138,8 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler leftRuler;
 
 	// global icons TODO: replace these by tickboxes?
-	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/icons/tick.png"));
-	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/icons/bullet_blue.png"));
+	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/resources/icons/tick.png"));
+	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/resources/icons/bullet_blue.png"));
 
 	LoadDialog actLoadDialog;
 
@@ -283,21 +283,21 @@ public class View extends JFrame implements ActionListener {
 		//cmp2 = new JLayeredPane(); 				// for testing with layered panes
 
 		// Icons
-		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/icons/shape_square.png"));
-		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/icons/paintcan.png"));
-		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource("/icons/diagonals.png"));
-		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource("/icons/group.png"));
-		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource("/icons/shape_square_go.png"));
-		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource("/icons/shape_flip_horizontal.png"));
-		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource("/icons/shape_rotate_clockwise.png"));
-		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/icons/cross.png"));	
-		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/icons/user_go.png"));
-		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/icons/color_wheel.png"));
-		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/icons/information.png"));						
-		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/icons/page_copy.png"));
-		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/icons/page_delete.png"));
-		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/icons/page_add.png"));
-		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource("/icons/color_swatch.png"));
+		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/shape_square.png"));
+		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/paintcan.png"));
+		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/diagonals.png"));
+		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/group.png"));
+		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource("/resources/icons/shape_square_go.png"));
+		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource("/resources/icons/shape_flip_horizontal.png"));
+		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource("/resources/icons/shape_rotate_clockwise.png"));
+		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/resources/icons/cross.png"));	
+		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/resources/icons/user_go.png"));
+		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/resources/icons/color_wheel.png"));
+		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/resources/icons/information.png"));						
+		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/resources/icons/page_copy.png"));
+		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/resources/icons/page_delete.png"));
+		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/resources/icons/page_add.png"));
+		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource("/resources/icons/color_swatch.png"));
 		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
 		Icon icon_black = getBlackSquareIcon();		// black square icon
 
