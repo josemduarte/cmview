@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
+import javax.help.*;
 
 import actionTools.Getter;
 import actionTools.GetterError;
@@ -138,8 +140,8 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler leftRuler;
 
 	// global icons TODO: replace these by tickboxes?
-	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource("/resources/icons/tick.png"));
-	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource("/resources/icons/bullet_blue.png"));
+	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "tick.png"));
+	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
 
 	LoadDialog actLoadDialog;
 
@@ -162,10 +164,16 @@ public class View extends JFrame implements ActionListener {
 		this.guiState = new GUIState(this);
 		this.initGUI(); // build gui tree and show window
 		this.toFront(); // bring window to front TODO tried to see if this solve the problem of new window appearing on the back (on java 6) and doesn't work!
+		Start.viewInstancesCreated();
 	}
 	
 	public void dispose() {
 		super.dispose();
+		if(Start.viewInstanceDisposed() == 0) {
+			// no more views open, shut down
+			// Note that the shutdown hook for the virtual machine will still be executed
+			Start.shutDown(0);
+		}
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -178,6 +186,28 @@ public class View extends JFrame implements ActionListener {
 		JMenuItem newItem = new JMenuItem(label, icon);
 		newItem.addActionListener(this);
 		menu.add(newItem);
+		return newItem;
+	}
+	
+	/**
+	 * Sets up a help menu item with the given icon and label, adds it to the given JMenu and registers
+	 * an action listener which will open a help window.
+	 * @param label the label of the new help menu item
+	 * @param icon the icon of the new help menu item
+	 * @param menu the parent menu this menu item should be added to
+	 * @return the new menu item
+	 */
+	private JMenuItem makeHelpMenuItem(String label, Icon icon, JMenu menu) {
+		JMenuItem newItem = new JMenuItem(label, icon);
+		menu.add(newItem);
+		try {
+			URL url = this.getClass().getResource(Start.HELPSET);
+			HelpSet hs = new HelpSet(null, url);
+			HelpBroker hb = hs.createHelpBroker();
+			newItem.addActionListener(new CSH.DisplayHelpFromSource(hb));
+		} catch(HelpSetException e) {
+			System.err.println("Error. Could not intialize inline help.");
+		}
 		return newItem;
 	}
 
@@ -283,21 +313,21 @@ public class View extends JFrame implements ActionListener {
 		//cmp2 = new JLayeredPane(); 				// for testing with layered panes
 
 		// Icons
-		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/shape_square.png"));
-		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/paintcan.png"));
-		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/diagonals.png"));
-		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource("/resources/icons/group.png"));
-		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource("/resources/icons/shape_square_go.png"));
-		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource("/resources/icons/shape_flip_horizontal.png"));
-		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource("/resources/icons/shape_rotate_clockwise.png"));
-		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource("/resources/icons/cross.png"));	
-		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource("/resources/icons/user_go.png"));
-		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource("/resources/icons/color_wheel.png"));
-		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource("/resources/icons/information.png"));						
-		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource("/resources/icons/page_copy.png"));
-		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource("/resources/icons/page_delete.png"));
-		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource("/resources/icons/page_add.png"));
-		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource("/resources/icons/color_swatch.png"));
+		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
+		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "paintcan.png"));
+		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "diagonals.png"));
+		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "group.png"));
+		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square_go.png"));
+		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_flip_horizontal.png"));
+		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_rotate_clockwise.png"));
+		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));	
+		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "user_go.png"));
+		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_wheel.png"));
+		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "information.png"));						
+		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_copy.png"));
+		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_delete.png"));
+		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_add.png"));
+		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_swatch.png"));
 		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
 		Icon icon_black = getBlackSquareIcon();		// black square icon
 
@@ -501,7 +531,7 @@ public class View extends JFrame implements ActionListener {
 		// Help menu
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);	
-		mmHelpHelp = makeMenuItem("Help", null, menu);
+		mmHelpHelp = makeHelpMenuItem("Help", null, menu);
 		mmHelpWriteConfig = makeMenuItem("Write Example Configuration File", null, menu);
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		addToJMenuBar(menu);
@@ -1109,7 +1139,7 @@ public class View extends JFrame implements ActionListener {
 			handleHelpAbout();
 		}
 		if(e.getSource() == mmHelpHelp) {
-			handleHelpHelp();
+			// help is now being handled by a different action listener defined in makeHelpMenuItem
 		}
 		if(e.getSource() == mmHelpWriteConfig) {
 			handleHelpWriteConfig();
@@ -2243,7 +2273,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	private void handleQuit() {
-		System.exit(0);
+		Start.shutDown(0);
 	}
 
 	/* -------------------- View Menu -------------------- */
@@ -2876,48 +2906,6 @@ public class View extends JFrame implements ActionListener {
 				JOptionPane.PLAIN_MESSAGE);
 	}
 
-	private void handleHelpHelp() {
-		JOptionPane.showMessageDialog(this,
-				"<html>" +
-				"General<br>" +
-				"- Click right mouse button in contact map for a context menu of available actions<br>" +
-				"<br>" +
-				"Square selection mode<br>" +
-				"- Click on a contact to select it<br>" +
-				"- Drag the mouse to select a rectangular area of contacts<br>" +
-				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
-				"- Click on a non-contact to reset the current selection<br>" +
-				"<br>" +
-				"Fill selection mode<br>" +
-				"- Click on a contact to start a fill selection from that contact<br>" +
-				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
-				"<br>" +
-				"Diagonal selection mode<br>" +
-				"- Click to select all contacts along a diagonal<br>" +
-				"- Click and drag to select multiple diagonals<br>" +
-				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +
-				"<br>" +				
-				"Node neighbourhood selection mode<br>" +
-				"- Click on a residue in the ruler or in the diagonal to select its contacts<br>" +
-				"- Click on a cell in the upper half to select all contacts of that pair of residues<br>" +
-				"- Hold 'Ctrl' while selecting to add to the current selection<br>" +				
-				"<br>" +
-				"Show selected contacts in PyMol<br>" +
-				"- Shows the currently selected contacts as edges in PyMol<br>" +
-				"<br>" +
-				"Show common neigbours<br>" +
-				"- Click on a contact or non-contact to see the common neighbours for that pair of residues<br>" +
-				"<br>" +
-				"Show common neighbours in PyMol<br>" +
-				"- Shows the last shown common neighbours as triangles in PyMol<br>" +
-				"<br>" +
-				"Delete selected contacts<br>" +
-				"- Permanently deletes the selected contacts from the contact map<br>" +
-				"</html>",
-				"Help",
-				JOptionPane.PLAIN_MESSAGE);
-	}	
-
 	/**
 	 * Checks for existence of given file and displays a confirm dialog
 	 * @param file
@@ -3016,8 +3004,7 @@ public class View extends JFrame implements ActionListener {
 		String title = mod.getLoadedGraphID();
 		View view = new View(mod, "Contact Map of " + title);
 		if(view == null) {
-			JOptionPane.showMessageDialog(this, "Couldn't initialize contact map window", "Load error", JOptionPane.ERROR_MESSAGE);
-			//System.exit(-1);
+			JOptionPane.showMessageDialog(this, "Could not initialize contact map window", "Load error", JOptionPane.ERROR_MESSAGE);
 		} else {
 			if(this.mod == null ) {
 				// print the new View directly on top of the previous one if 

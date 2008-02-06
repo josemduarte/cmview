@@ -41,7 +41,9 @@ public class Start {
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
-		
+	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
+	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
+	
 	public static final String		CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file
 	
 	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
@@ -118,6 +120,7 @@ public class Start {
 	private static JFileChooser fileChooser;
 	private static JColorChooser colorChooser;
 	private static PyMolAdaptor pymolAdaptor;
+	private static int viewInstances = 0;		// for counting instances of view class (=open windows)
 	
 	// the thread pool
 	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
@@ -127,6 +130,31 @@ public class Start {
 	
 	// map of loadedGraphIDs (see member in Model) to original user-loaded Models (the members of View)
 	private static TreeMap<String, Model> loadedGraphs = new TreeMap<String, Model>();
+	
+	/**
+	 * Increase the counter of view instances.
+	 * @return the new number of view instances after increasing the count.
+	 */
+	protected static int viewInstancesCreated() {
+		return ++viewInstances;
+	}
+	
+	/**
+	 * Decreases the counter of view instances.
+	 * @return the new number of view instances after decreasing the count.
+	 */
+	protected static int viewInstanceDisposed() {
+		return --viewInstances;
+	}
+	
+	/**
+	 * Cleans up and exits CMView.
+	 * @param exitCode the exit code to return to the operating system
+	 */
+	protected static void shutDown(int exitCode) {
+		// Note that the shutdown hook of the virtual machine will still be executed.
+		System.exit(exitCode);
+	}
 	
 	/**
 	 * Sets the loadedGraphID and returns it, also putting it to the loadedGraphs map
