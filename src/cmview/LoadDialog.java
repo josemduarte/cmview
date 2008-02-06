@@ -23,13 +23,14 @@ import proteinstructure.AAinfo;
  * and displays different input fields depending on the given parameters.
  * The action to be performed when ok is pressed can be passed as a LoadAction instance.
  */
-public class LoadDialog extends JDialog implements ActionListener, PopupMenuListener, DocumentListener {
+public class LoadDialog extends JDialog implements ActionListener, PopupMenuListener, DocumentListener {  
 
 	/*------------------------------ constants ------------------------------*/
 	
 	// class variables
 	static final long serialVersionUID = 1l;
-	private static final String INITIAL_COMBO_CC_VALUE = ""; 
+	private static final String COMBO_FILL_VALUE = ""; 
+	private static final int NUMBER_COMBO_FILL_ITEMS = 6;
 	
 	/*--------------------------- member variables --------------------------*/
 	
@@ -223,7 +224,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			inputPane.add(labelCc);
 			inputPane.add(comboCc);
 			inputPane.add(labelAfterCc);
-			comboCc.addItem(makeObj(INITIAL_COMBO_CC_VALUE));
+			// TODO the following is a cheap solution for java bug 4743225 
+			// (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4743225)
+			// the bug is not solved but they give a number of more complicated workarounds there, 
+			// this solution is much simpler and for our purposes looks good enough to me 
+			for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboCc.addItem(makeObj(COMBO_FILL_VALUE));
 			fields++;
 		}
 		if(showModel != null) {
@@ -238,7 +243,12 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 				// model index
 				comboModel.addItem(field2defValue.get("model"));				
 			} else {
-				comboModel.addItem(showModel);
+				comboModel.addItem(makeObj(showModel));
+				// TODO the following is a cheap solution for java bug 4743225 
+				// (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4743225)
+				// the bug is not solved but they give a number of more complicated workarounds there, 
+				// this solution is much simpler and for our purposes looks good enough to me 
+				for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
 			}
 
 			fields++;
@@ -625,7 +635,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			prevComboCcItems[i] = comboCc.getItemAt(i);
 		}
 		comboCc.removeAllItems();
-		comboCc.addItem(makeObj(INITIAL_COMBO_CC_VALUE));	// TODO: Always use makeObj instead of passing strings directly
+		for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboCc.addItem(makeObj(COMBO_FILL_VALUE));
 		comboCc.setEditable(false);
 	}
 	
@@ -658,10 +668,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		// in mind!)
 		prevComboModelItems = new Object[comboModel.getItemCount()];
 		for( int i = 0; i < prevComboModelItems.length; ++i ) {
-			prevComboModelItems[i] = comboCc.getItemAt(i);
+			prevComboModelItems[i] = comboModel.getItemAt(i);
 		}
 		comboModel.removeAllItems();
 		comboModel.addItem(makeObj("1"));
+		for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
 		comboModel.setEditable(false);
 		prevLabelAfterModel = labelAfterModel.getText();
 		labelAfterModel.setText(LABEL_AFTER_COMBO_BOX);
@@ -737,7 +748,6 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 						for( int i = 0; i < allCc.length; ++i ) {
 							comboCc.addItem(makeObj(allCc[i]));						
 						}
-						
 						determinedAllCc = true;
 						backupPdbName();
 					}
