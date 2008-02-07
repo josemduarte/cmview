@@ -30,7 +30,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	// class variables
 	static final long serialVersionUID = 1l;
 	private static final String COMBO_FILL_VALUE = ""; 
-	private static final int NUMBER_COMBO_FILL_ITEMS = 6;
+	private static final int NUMBER_COMBO_FILL_ITEMS = 8;
 	
 	/*--------------------------- member variables --------------------------*/
 	
@@ -224,7 +224,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			inputPane.add(labelCc);
 			inputPane.add(comboCc);
 			inputPane.add(labelAfterCc);
-			// TODO the following is a cheap solution for java bug 4743225 
+			// TODO the following is a cheap workaround for java bug 4743225 
 			// (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4743225)
 			// the bug is not solved but they give a number of more complicated workarounds there, 
 			// this solution is much simpler and for our purposes looks good enough to me 
@@ -244,11 +244,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 				comboModel.addItem(field2defValue.get("model"));				
 			} else {
 				comboModel.addItem(makeObj(showModel));
-				// TODO the following is a cheap solution for java bug 4743225 
+				// TODO the following is a cheap workaround for java bug 4743225 
 				// (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4743225)
 				// the bug is not solved but they give a number of more complicated workarounds there, 
 				// this solution is much simpler and for our purposes looks good enough to me 
-				for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
+				for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS-1;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
 			}
 
 			fields++;
@@ -672,7 +672,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		}
 		comboModel.removeAllItems();
 		comboModel.addItem(makeObj("1"));
-		for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
+		for (int i=1;i<=NUMBER_COMBO_FILL_ITEMS-1;i++) comboModel.addItem(makeObj(COMBO_FILL_VALUE));
 		comboModel.setEditable(false);
 		prevLabelAfterModel = labelAfterModel.getText();
 		labelAfterModel.setText(LABEL_AFTER_COMBO_BOX);
