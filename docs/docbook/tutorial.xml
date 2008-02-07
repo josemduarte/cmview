@@ -2,27 +2,23 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 <article lang="">
 
-  <sect1>
+    <title>Tutorial</title>
 
-    <title>CMView Tutorial</title>
 
-    <para>Version: 1.0</para>
-
-    <para>Date: 15/Jan/2008</para>
-
-    <para />
-
-    <para>CMView is an interactive Contact Map viewer for protein 
+        <para>CMView is an interactive Contact Map viewer for protein 
     structures. CMView will allow you to display the contact map and 
     interact with it as well as to show features of the contact map in 
     the corresponding 3-dimensional structure by using the PyMol 
     molecular viewer.</para>
 
-    <sect2>
+ 
+    <sect1>
+    
+    
 
       <title>Viewing a Contact Map</title>
 
-      <sect3>
+      <sect2>
 
         <title>Loading a Contact Map/Structure</title>
 
@@ -69,18 +65,18 @@
         <para>For this example we will load from Online PDB the PDB 
         entry 1bxy, with chain code A. In the load dialog</para>
 
-        <para><inlinegraphic fileref="" width=""/></para>
+        <para><inlinegraphic fileref="images/load_dialog.png" width=""/></para>
 
         <para>we can then choose the contact type and distance cutoff: 
-        we take Ca (for C) and 8.0 Å as cutoff. After clicking OK the 
+        we take Ca (for C-alpha) and 8.0 Å as cutoff. After clicking OK the 
         contact map is displayed and the 3D structure is loaded to the 
         PyMol molecular viewer:</para>
 
         <para><inlinegraphic fileref="" width=""/></para>
 
-      </sect3>
+      </sect2>
 
-      <sect3>
+      <sect2>
 
         <title>Working with the Contact Map</title>
 
@@ -116,8 +112,8 @@
           <listitem>
 
             <para>The top and left rulers show the color coded 
-            secondary structure elements: blue for -helix, red for 
-            -sheet, green for turns. You can select contacts between 2 
+            secondary structure elements: blue for alpha-helix, red for 
+            beta-sheet, green for turns. You can select contacts between 2 
             secondary structure elements by first clicking on the first 
             element in the top ruler and then on the second element on 
             the left ruler. You will get something like:</para>
@@ -169,9 +165,9 @@
         <para>Remember in all selections above, you can always use 
         CTRL+click to add to the current selection.</para>
 
-      </sect3>
+      </sect2>
 
-      <sect3>
+      <sect2>
 
         <title>Interacting with PyMol</title>
 
@@ -186,7 +182,7 @@
           <listitem>
 
             <para>Show selected contacts in 3D: will show the selected 
-            contacts as distance objects between the C atoms of the 2 
+            contacts as distance objects between the C-alpha atoms of the 2 
             residues part of the contact. As well as the distance 
             object a selection is created in PyMol which contains all 
             residues present in the contact selection.</para>
@@ -217,15 +213,15 @@
         or showing different representations like sticks, spheres 
         etc.</para>
 
-      </sect3>
+      </sect2>
 
-    </sect2>
+    </sect1>
 
-    <sect2>
+    <sect1>
 
       <title>Comparing two contact maps</title>
 
-      <sect3>
+      <sect2>
 
         <title>Loading the second contact map. Alignments.</title>
 
@@ -261,9 +257,9 @@
         you can also load in your own alignment from a FASTA 
         file.</para>
 
-      </sect3>
+      </sect2>
 
-      <sect3>
+      <sect2>
 
         <title>Comparing</title>
 
@@ -308,9 +304,9 @@
         for both structures including the numbers of common contacts 
         and unique contacts to each structure.</para>
 
-      </sect3>
+      </sect2>
 
-      <sect3>
+      <sect2>
 
         <title>Interacting with PyMol</title>
 
@@ -356,11 +352,11 @@
 
         </orderedlist>
 
-      </sect3>
+      </sect2>
 
-    </sect2>
+    </sect1>
 
-  </sect1>
+
 
 </article>
 
