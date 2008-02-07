@@ -1,10 +1,18 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<article lang="">
+<article lang="en">
+
+<title>Manual</title>
+
+  <sect1>
+  	
+  	<title>Overview</title>
+  	
+  </sect1>
 
   <sect1>
 
-    <title>CMView Function Reference</title>
+    <title>Function Reference</title>
 
     <sect2>
 
@@ -1059,6 +1067,18 @@
 
     </sect2>
 
+  </sect1>
+  
+    <sect1>
+  	
+  	<title>File types</title>
+  	
+  </sect1>
+  
+  <sect1>
+  	
+  	<title>Configuration</title>
+  	
   </sect1>
 
 </article>
