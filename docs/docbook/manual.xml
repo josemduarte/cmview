@@ -1,24 +1,24 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<article lang="en">
+<article lang="en" id="top">
 
 <title>Manual</title>
 
-  <sect1>
+  <sect1 id="overview">
   	
   	<title>Overview</title>
   	
   </sect1>
 
-  <sect1>
+  <sect1 id="functionreference">
 
     <title>Function Reference</title>
 
-    <sect2>
+    <sect2 id="menu.file">
 
       <title>File</title>
 
-      <sect3>
+      <sect3 id="menu.file.info">
 
         <title>Info</title>
 
@@ -128,7 +128,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.file.load">
 
         <title>Load from</title>
 
@@ -292,7 +292,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.view">
 
       <title>View</title>
 
@@ -396,11 +396,11 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.select">
 
       <title>Select</title>
 
-      <sect3>
+      <sect3 id="menu.select.mode">
 
         <title>Selection modes</title>
 
@@ -409,7 +409,7 @@
         secondary structure rulers at the left and at the top of the 
         contact map window.</para>
 
-        <sect4>
+        <sect4 id="menu.select.mode.rect">
 
           <title>Rectangular selection mode</title>
 
@@ -435,7 +435,7 @@
 
         </sect4>
 
-        <sect4>
+        <sect4 id="menu.select.mode.fill">
 
           <title>Fill selection mode</title>
 
@@ -453,7 +453,7 @@
 
         </sect4>
 
-        <sect4>
+        <sect4 id="menu.select.mode.diag">
 
           <title>Diagonal selection mode</title>
 
@@ -473,7 +473,7 @@
 
         </sect4>
 
-        <sect4>
+        <sect4 id="menu.select.mode.nbh">
 
           <title>Neighborhood selection mode*</title>
 
@@ -497,7 +497,7 @@
 
         </sect4>
 
-        <sect4>
+        <sect4 id="menu.select.mode.color">
 
           <title>Color selection mode*</title>
 
@@ -580,7 +580,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.color">
 
       <title>Color</title>
 
@@ -616,11 +616,11 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.action">
 
       <title>Action</title>
 
-      <sect3>
+      <sect3 id="menu.action.show3d">
 
         <title>Show selected contacts in 3D</title>
 
@@ -714,7 +714,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.action.delete">
 
         <title>Delete selected contacts*</title>
 
@@ -725,7 +725,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.compare">
 
       <title>Compare</title>
 
@@ -826,7 +826,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.compare.showcommon">
 
         <title>Show common contacts</title>
 
@@ -835,7 +835,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.compare.showfirst">
 
         <title>Show contacts unique to first structure</title>
 
@@ -844,7 +844,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.compare.showsecond">
 
         <title>Show contacts unique to second structure</title>
 
@@ -915,7 +915,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="menu.help">
 
       <title>Help</title>
 
@@ -987,7 +987,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="popup">
 
       <title>Context menu</title>
 
@@ -1007,7 +1007,7 @@
 
     </sect2>
 
-    <sect2>
+    <sect2 id="experimental">
 
       <title>Experimental features</title>
 
@@ -1069,13 +1069,13 @@
 
   </sect1>
   
-    <sect1>
+    <sect1 id="files">
   	
   	<title>File types</title>
   	
   </sect1>
   
-  <sect1>
+  <sect1 id="config">
   	
   	<title>Configuration</title>
   	

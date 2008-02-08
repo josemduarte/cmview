@@ -201,12 +201,36 @@ public class View extends JFrame implements ActionListener {
 		JMenuItem newItem = new JMenuItem(label, icon);
 		menu.add(newItem);
 		try {
+			// init helpset
 			URL url = this.getClass().getResource(Start.HELPSET);
 			HelpSet hs = new HelpSet(null, url);
 			HelpBroker hb = hs.createHelpBroker();
+			hb.setCurrentID("top");
+			
+			// register help actions
+			hb.enableHelpKey(this.getRootPane(), "top", hs);
 			newItem.addActionListener(new CSH.DisplayHelpFromSource(hb));
+			
+//			// define help ids (couldn't get this to work properly)
+//			CSH.setHelpIDString(this.getRootPane(), "top");
+//			CSH.setHelpIDString(tbFileInfo, "menu.file.info");
+//			
+//			CSH.setHelpIDString(tbSquareSel, "menu.select.mode.rect");
+//			CSH.setHelpIDString(tbFillSel, "menu.select.mode.fill");
+//			CSH.setHelpIDString(tbDiagSel, "menu.select.mode.diag");
+//			CSH.setHelpIDString(tbNbhSel, "menu.select.mode.nbh");
+//			CSH.setHelpIDString(tbShowComNbh, "menu.select.mode.nbh");
+//			CSH.setHelpIDString(tbSelModeColor, "menu.select.mode.color");
+//			
+//			CSH.setHelpIDString(tbShowSel3D, "menu.action.show3d");
+//			CSH.setHelpIDString(tbDelete, "menu.action.delete");
+//
+//			CSH.setHelpIDString(tbShowCommon, "menu.compare.showcommon");
+//			CSH.setHelpIDString(tbShowFirst, "menu.compare.showfirst");
+//			CSH.setHelpIDString(tbShowSecond, "menu.compare.showsecond");
+			
 		} catch(HelpSetException e) {
-			System.err.println("Error. Could not intialize inline help.");
+			System.err.println("Severe error. Could not initialize inline help: " + e.getMessage());
 		}
 		return newItem;
 	}
@@ -532,6 +556,7 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpHelp = makeHelpMenuItem("Help", null, menu);
+		
 		mmHelpWriteConfig = makeMenuItem("Write Example Configuration File", null, menu);
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		addToJMenuBar(menu);
