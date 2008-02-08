@@ -1,30 +1,76 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<article lang=""><sect1><title>Installing</title><sect2><title>Quick install</title>
-<para>In short installation in most cases should be very simple:</para>
-<orderedlist>
-<listitem>
-<para>Download the zip file <ulink url="cmview.zip">cmview.zip</ulink>
-</para>
-</listitem>
-<listitem>
-<para>Unzip it into a new directory, this is where CMView will be installed</para>
-</listitem>
-<listitem>
-<para>Edit the cmview.cfg file and add the path to your pymol executable in the</para>
-</listitem>
-<listitem>
-<para>You are done! To run it do:</para>
-</listitem>
-<listitem>
-<para>In linux: just run the cmview shell script</para>
-</listitem>
-<listitem>
-<para>In Windows: double click on cmview.bat</para>
-</listitem>
-<listitem>
-<para>In Mac: double click on CMView.jar</para>
-</listitem>
-</orderedlist></sect2><sect2><title>The details</title>
-<para>The CMView application itself is just a single java archive file (jar file): CMView.jar. There is a number of external library dependencies</para>
-<para/></sect2></sect1></article>
+<article lang="en">
+
+<title>Installation</title>
+
+    <sect1>
+
+      <title>Quick install</title>
+
+      <para>In short installation in most cases should be very 
+      simple:</para>
+
+      <orderedlist>
+
+        <listitem>
+
+          <para>Download the zip file <ulink url="cmview.zip">
+          cmview.zip</ulink></para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Unzip it into a new directory, this is where CMView 
+          will be installed</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Edit the cmview.cfg file and add the path to your pymol 
+          executable in the</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>You are done! To run it do:</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>In linux: just run the cmview shell script</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>In Windows: double click on cmview.bat</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>In Mac: double click on CMView.jar</para>
+
+        </listitem>
+
+      </orderedlist>
+
+    </sect1>
+
+    <sect1>
+
+      <title>The details</title>
+
+      <para>The CMView application itself is just a single java archive 
+      file (jar file): CMView.jar. There is a number of external 
+      library dependencies</para>
+
+    </sect1>
+
+</article>
+
