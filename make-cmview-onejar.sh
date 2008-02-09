@@ -21,7 +21,8 @@ CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:\
 /project/StruPPi/jars/java-getopt-1.0.13.jar:\
 /project/StruPPi/jars/collections-generic-4.01.jar:\
 /project/StruPPi/jars/jung/jung-api-2.0-alpha2.jar:\
-/project/StruPPi/jars/jung/jung-graph-impl-2.0-alpha2.jar
+/project/StruPPi/jars/jung/jung-graph-impl-2.0-alpha2.jar:\
+/project/StruPPi/jars/jh.jar
 
 cd $tempdir
 
