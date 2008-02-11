@@ -10,23 +10,6 @@
 
       <question>
 
-        <para>Why is there no content here?</para>
-
-      </question>
-
-      <answer>
-
-        <para>This site is still under construction. Contents may 
-        appear in the near future.</para>
-
-      </answer>
-
-    </qandaentry>
-
-    <qandaentry>
-
-      <question>
-
         <para>Who created CMView?</para>
 
       </question>
@@ -92,10 +75,10 @@
 
       <answer>
 
-        <para>For large proteins the contact map calculation may use up 
-        substantial amounts of main memory. Try setting the -Xmx 
-        parameter in the startup script to a bigger number (e.g. 512M 
-        or 1024M).</para>
+        <para>For large proteins the contact map calculation may use 
+        more than the preset amount of memory. Try setting the -Xmx 
+        parameter in the startup script to a higher value (e.g. -Xmx512m 
+        or -Xmx1024m).</para>
 
       </answer>
 
