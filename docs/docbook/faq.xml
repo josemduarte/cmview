@@ -27,6 +27,44 @@
 
       <question>
 
+        <para>Who created CMView?</para>
+
+      </question>
+
+      <answer>
+
+        <para>CMView was developed by the 
+        <ulink url="http://www.molgen.mpg.de/~lappe/">Structural 
+        Proteomics Group</ulink> at the 
+        <ulink url="http://www.molgen.mpg.de">Max Planck Institute for 
+        Molecular Genetics</ulink>.</para>
+
+      </answer>
+
+    </qandaentry>
+
+    <qandaentry>
+
+      <question>
+
+        <para>What are the license terms for CMView?</para>
+
+      </question>
+
+      <answer>
+
+        <para>CMView will be released under an open source license. If 
+        you use CMView in your study we ask you to cite this 
+        website.</para>
+
+      </answer>
+
+    </qandaentry>
+
+    <qandaentry>
+
+      <question>
+
         <para>How to cite the CMView software?</para>
 
       </question>
@@ -37,7 +75,27 @@
         the moment, please use the following citation:</para>
 
         <para><emphasis>CMView: Interactive Contact Map Visualization 
-        and Analysis. http://www.molgen.mpg.de/~lappe/cmview/.</emphasis></para>
+        and Analysis. 
+        http://www.molgen.mpg.de/~lappe/cmview/.</emphasis></para>
+
+      </answer>
+
+    </qandaentry>
+
+    <qandaentry>
+
+      <question>
+
+        <para>I am getting a Java out of memory exception.</para>
+
+      </question>
+
+      <answer>
+
+        <para>For large proteins the contact map calculation may use up 
+        substantial amounts of main memory. Try setting the -Xmx 
+        parameter in the startup script to a bigger number (e.g. 512M 
+        or 1024M).</para>
 
       </answer>
 

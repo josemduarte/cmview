@@ -7,24 +7,24 @@
   <mapID target="menu.file" url="ar01s02.html#menu.file"/>
   <mapID target="menu.file.info" url="ar01s02.html#menu.file.info"/>
   <mapID target="menu.file.load" url="ar01s02.html#menu.file.load"/>
-  <mapID target="id2529282" url="ar01s02.html#id2529282"/>
-  <mapID target="id2529294" url="ar01s02.html#id2529294"/>
-  <mapID target="id2529327" url="ar01s02.html#id2529327"/>
-  <mapID target="id2529343" url="ar01s02.html#id2529343"/>
-  <mapID target="id2529367" url="ar01s02.html#id2529367"/>
-  <mapID target="id2529373" url="ar01s02.html#id2529373"/>
-  <mapID target="id2529388" url="ar01s02.html#id2529388"/>
-  <mapID target="id2529411" url="ar01s02.html#id2529411"/>
-  <mapID target="id2529422" url="ar01s02.html#id2529422"/>
-  <mapID target="id2529436" url="ar01s02.html#id2529436"/>
-  <mapID target="id2529447" url="ar01s02.html#id2529447"/>
+  <mapID target="id2529295" url="ar01s02.html#id2529295"/>
+  <mapID target="id2529307" url="ar01s02.html#id2529307"/>
+  <mapID target="id2529339" url="ar01s02.html#id2529339"/>
+  <mapID target="id2529355" url="ar01s02.html#id2529355"/>
+  <mapID target="id2529378" url="ar01s02.html#id2529378"/>
+  <mapID target="id2529384" url="ar01s02.html#id2529384"/>
+  <mapID target="id2529398" url="ar01s02.html#id2529398"/>
+  <mapID target="id2529421" url="ar01s02.html#id2529421"/>
+  <mapID target="id2529432" url="ar01s02.html#id2529432"/>
+  <mapID target="id2529445" url="ar01s02.html#id2529445"/>
+  <mapID target="id2529457" url="ar01s02.html#id2529457"/>
   <mapID target="menu.view" url="ar01s02.html#menu.view"/>
-  <mapID target="id2529468" url="ar01s02.html#id2529468"/>
-  <mapID target="id2529506" url="ar01s02.html#id2529506"/>
-  <mapID target="id2529520" url="ar01s02.html#id2529520"/>
-  <mapID target="id2529531" url="ar01s02.html#id2529531"/>
-  <mapID target="id2529552" url="ar01s02.html#id2529552"/>
-  <mapID target="id2529590" url="ar01s02.html#id2529590"/>
+  <mapID target="id2529477" url="ar01s02.html#id2529477"/>
+  <mapID target="id2529514" url="ar01s02.html#id2529514"/>
+  <mapID target="id2529528" url="ar01s02.html#id2529528"/>
+  <mapID target="id2529539" url="ar01s02.html#id2529539"/>
+  <mapID target="id2529560" url="ar01s02.html#id2529560"/>
+  <mapID target="id2529598" url="ar01s02.html#id2529598"/>
   <mapID target="menu.select" url="ar01s02.html#menu.select"/>
   <mapID target="menu.select.mode" url="ar01s02.html#menu.select.mode"/>
   <mapID target="menu.select.mode.rect" url="ar01s02.html#menu.select.mode.rect"/>
@@ -32,40 +32,40 @@
   <mapID target="menu.select.mode.diag" url="ar01s02.html#menu.select.mode.diag"/>
   <mapID target="menu.select.mode.nbh" url="ar01s02.html#menu.select.mode.nbh"/>
   <mapID target="menu.select.mode.color" url="ar01s02.html#menu.select.mode.color"/>
-  <mapID target="id2529842" url="ar01s02.html#id2529842"/>
-  <mapID target="id2529853" url="ar01s02.html#id2529853"/>
-  <mapID target="id2529873" url="ar01s02.html#id2529873"/>
-  <mapID target="id2529884" url="ar01s02.html#id2529884"/>
-  <mapID target="id2529895" url="ar01s02.html#id2529895"/>
-  <mapID target="id2529908" url="ar01s02.html#id2529908"/>
+  <mapID target="id2529837" url="ar01s02.html#id2529837"/>
+  <mapID target="id2529848" url="ar01s02.html#id2529848"/>
+  <mapID target="id2529866" url="ar01s02.html#id2529866"/>
+  <mapID target="id2529877" url="ar01s02.html#id2529877"/>
+  <mapID target="id2529888" url="ar01s02.html#id2529888"/>
+  <mapID target="id2529900" url="ar01s02.html#id2529900"/>
   <mapID target="menu.color" url="ar01s02.html#menu.color"/>
-  <mapID target="id2529936" url="ar01s02.html#id2529936"/>
-  <mapID target="id2529948" url="ar01s02.html#id2529948"/>
-  <mapID target="id2529960" url="ar01s02.html#id2529960"/>
+  <mapID target="id2529929" url="ar01s02.html#id2529929"/>
+  <mapID target="id2529940" url="ar01s02.html#id2529940"/>
+  <mapID target="id2529951" url="ar01s02.html#id2529951"/>
   <mapID target="menu.action" url="ar01s02.html#menu.action"/>
   <mapID target="menu.action.show3d" url="ar01s02.html#menu.action.show3d"/>
   <mapID target="menu.action.delete" url="ar01s02.html#menu.action.delete"/>
   <mapID target="menu.compare" url="ar01s02.html#menu.compare"/>
-  <mapID target="id2530144" url="ar01s02.html#id2530144"/>
+  <mapID target="id2530134" url="ar01s02.html#id2530134"/>
   <mapID target="menu.compare.showcommon" url="ar01s02.html#menu.compare.showcommon"/>
   <mapID target="menu.compare.showfirst" url="ar01s02.html#menu.compare.showfirst"/>
   <mapID target="menu.compare.showsecond" url="ar01s02.html#menu.compare.showsecond"/>
-  <mapID target="id2524410" url="ar01s02.html#id2524410"/>
+  <mapID target="id2524397" url="ar01s02.html#id2524397"/>
   <mapID target="id2524036" url="ar01s02.html#id2524036"/>
   <mapID target="id2524065" url="ar01s02.html#id2524065"/>
   <mapID target="menu.help" url="ar01s02.html#menu.help"/>
   <mapID target="id2524098" url="ar01s02.html#id2524098"/>
   <mapID target="id2524108" url="ar01s02.html#id2524108"/>
   <mapID target="id2524120" url="ar01s02.html#id2524120"/>
-  <mapID target="id2524716" url="ar01s02.html#id2524716"/>
+  <mapID target="id2524704" url="ar01s02.html#id2524704"/>
   <mapID target="popup" url="ar01s02.html#popup"/>
-  <mapID target="id2524742" url="ar01s02.html#id2524742"/>
+  <mapID target="id2524729" url="ar01s02.html#id2524729"/>
   <mapID target="experimental" url="ar01s02.html#experimental"/>
-  <mapID target="id2524767" url="ar01s02.html#id2524767"/>
+  <mapID target="id2524754" url="ar01s02.html#id2524754"/>
+  <mapID target="id2524785" url="ar01s02.html#id2524785"/>
   <mapID target="id2524798" url="ar01s02.html#id2524798"/>
   <mapID target="id2524810" url="ar01s02.html#id2524810"/>
   <mapID target="id2524822" url="ar01s02.html#id2524822"/>
-  <mapID target="id2524834" url="ar01s02.html#id2524834"/>
   <mapID target="files" url="ar01s03.html"/>
   <mapID target="config" url="ar01s04.html"/>
 </map>
