@@ -6,18 +6,16 @@
 
   <sect1>
 
-    <title>Quick install</title>
+    <title>Quick installation</title>
 
-    <para>In short installation in most cases should be very 
-    simple:</para>
+    <para>The basic installation is very simple:</para>
 
     <orderedlist>
 
       <listitem>
 
-        <para>As a prerequisite you will need to have PyMol installed. 
-        Get the free version (0.99) 
-        <ulink url="http://delsci.com/rel/099/">here</ulink></para>
+        <para>As a prerequisite you will need to have <ulink url="http://pymol.sourceforge.net/">PyMol</ulink> installed. We recommend to get a <ulink url="http://www.pymol.org/funding.html">
+        sponsor version</ulink>. However, a free version (0.99) can be downloaded from here <ulink url="http://delsci.com/rel/099/">here</ulink>.</para>
 
       </listitem>
 
@@ -47,7 +45,7 @@
 
       <listitem>
 
-        <para>You are done! To run it do:</para>
+        <para>You are done! To run the program:</para>
 
         <itemizedlist>
 
@@ -89,8 +87,8 @@
       <title>External libraries</title>
 
       <para>The CMView application itself is just a single java archive 
-      file (jar file): <filename>CMView.jar</filename>. There is a 
-      number of external library dependencies that for convenience we 
+      file (jar file): <filename>CMView.jar</filename>. It uses a 
+      number of external libraries which for convenience we 
       include in the downloadable zip file. These are:</para>
 
       <orderedlist>
