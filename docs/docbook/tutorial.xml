@@ -61,15 +61,15 @@
       </orderedlist>
 
       <para>For this example we will load from Online PDB the PDB entry 
-      1bxy, with chain code A. In the load dialog</para>
+      1bxy, with chain code A. In the load dialog we can then choose 
+      the contact type and distance cutoff, we take Ca (for C-alpha) 
+      and 8.0 Å as cutoff:</para>
 
       <para><inlinegraphic fileref="images/load_dialog.png"
        width=""/></para>
 
-      <para>we can then choose the contact type and distance cutoff: we 
-      take Ca (for C-alpha) and 8.0 Å as cutoff. After clicking OK the 
-      contact map is displayed and the 3D structure is loaded to the 
-      PyMol molecular viewer:</para>
+      <para>After clicking OK the contact map is displayed and the 3D 
+      structure is loaded to the PyMol molecular viewer:</para>
 
       <para>
       <inlinegraphic fileref="images/single_cm_with_pymol-small.png"
@@ -117,9 +117,9 @@
           <para>The top and left rulers show the color coded secondary 
           structure elements: blue for alpha-helix, red for beta-sheet, 
           green for turns. You can select contacts between 2 secondary 
-          structure elements by first clicking on the first element in 
-          the top ruler and then on the second element on the left 
-          ruler. You will get something like:</para>
+          structure elements by clicking on the first element in the 
+          top ruler and then on the second element on the left ruler. 
+          You will get something like:</para>
 
         </listitem>
 
@@ -136,7 +136,7 @@
           <para>Some other useful selections for secondary structure 
           elements can also be done from the <guimenu>View</guimenu> 
           menu: helix-helix contacts, strand-strand and intra/inter 
-          secondary structure elements contacts.</para>
+          secondary structure elements (SSEs) contacts.</para>
 
         </listitem>
 
@@ -186,7 +186,8 @@
 
       <title>Interacting with PyMol</title>
 
-      <para>Here is where CMView becomes most useful. After selecting 
+      <para>Here is where CMView becomes most useful: the visualization 
+      of 2D elements in the 3D structure. After selecting 
       residue/contacts in the contact map we can then view their 
       correspondence on the 3-dimensional protein structure by using 
       the PyMol molecular viewer. Commands are sent directly and 
@@ -196,19 +197,19 @@
 
         <listitem>
 
-          <para><guimenuitem>Show selected contacts in 
-          3D</guimenuitem>: will show the selected contacts as distance 
-          objects between the C-alpha atoms of the 2 residues part of 
-          the contact. As well as the distance object a selection is 
-          created in PyMol which contains all residues present in the 
-          contact selection.</para>
+          <para><guimenuitem>Show selected contacts in 3D</guimenuitem> 
+          will show the selected contacts as distance objects between 
+          the C-alpha atoms of the 2 residues part of the contact. As 
+          well as the distance object a selection is created in PyMol 
+          which contains all residues present in the contact selection, 
+          useful for further manipulations in PyMol.</para>
 
         </listitem>
 
         <listitem>
 
           <para><guimenuitem>Show residue pair as edge in 
-          3D</guimenuitem> (available from the context menu): will show 
+          3D</guimenuitem> (available from the context menu) will show 
           the distance between the current (where you right-clicked) 
           pair of residues as a distance object in PyMol.</para>
 
@@ -261,11 +262,13 @@
       <title>Loading the second contact map. Alignments.</title>
 
       <para>As an interesting example for the contact map comparison 
-      feature we will use a CASP7 prediction. We want to compare the 
-      target T0354 to a good prediction. So first we load the 
-      <ulink url="downloads/hard_real_T0354.pdb">real structure</ulink> from the PDB file (same procedure 
-      as before) and then the <ulink url="hard_good_T0354_TS276_1.pdb">prediction</ulink> by using 
-      <guimenu>Compare</guimenu> -&gt; <guimenuitem>Load Second 
+      feature we will use a CASP7 prediction to see what predictions 
+      get right or not in terms of contacts. We want to compare native 
+      structure of target T0354 to a prediction. So first we load the 
+      <ulink url="downloads/hard_real_T0354.pdb">real structure</ulink> 
+      from the PDB file (same procedure as before) and then the 
+      <ulink url="hard_good_T0354_TS276_1.pdb">prediction</ulink> by 
+      using <guimenu>Compare</guimenu> -&gt; <guimenuitem>Load Second 
       Structure From</guimenuitem> -&gt; <guimenuitem>PDB 
       File</guimenuitem>. As before we choose Ca as contact type and 
       8.0 Å distance cutoff.</para>
@@ -273,7 +276,8 @@
       <para>After pressing OK the second contact map is calculated and 
       a dialog comes up to choose what type of alignment we want:</para>
 
-      <para><inlinegraphic fileref="images/alignment_dialog.png" width=""/></para>
+      <para><inlinegraphic fileref="images/alignment_dialog.png"
+       width=""/></para>
 
       <para>For this case we have two structures with the same sequence 
       so we can simply select Needleman-Wunsch which will do the 
@@ -281,16 +285,17 @@
       same time the corresponding structure is loaded to PyMol 
       superimposed to the first structure:</para>
 
-      <para><inlinegraphic fileref="images/compare_mode-small.png" width="450px"/></para>
+      <para><inlinegraphic fileref="images/compare_mode-small.png"
+       width="450px"/></para>
 
       <para />
 
       <para>CMView offers here also a structural alignment (SADP) based 
-      on maximum contact map overlap that would be useful when we have 
-      distant sequences. See CMView&apos;s <ulink url="manual.html">
-      full reference</ulink> for more info about SADP. As a last 
-      alternative you can also load your own alignment from a FASTA 
-      file.</para>
+      on maximum contact map overlap that would be useful when we want 
+      to compare distantly related sequences. See CMView&apos;s 
+      <ulink url="manual.html">full reference</ulink> for more info 
+      about SADP. As a last alternative you can also load your own 
+      alignment from a FASTA file.</para>
 
     </sect2>
 
@@ -367,9 +372,17 @@
       green edges, a) matching (from alignment) contacts absent in the 
       second structure, dashed pink edges.</para>
 
-      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_a-small.png" width="350px"/></para>
-      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_b-small.png" width="350px"/></para>
-      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_c-small.png" width="350px"/></para>
+      <para>
+      <inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_a-small.png"
+       width="350px"/></para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_b-small.png"
+       width="350px"/></para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_c-small.png"
+       width="350px"/></para>
 
       <para>Two extra functions are available in the pairwise 
       comparison mode:</para>
