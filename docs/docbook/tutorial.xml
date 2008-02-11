@@ -45,7 +45,8 @@
 
           <para><guimenuitem>CASP RR File</guimenuitem>, to load CASP 
           residue-residue contact predictions. You can also save files 
-          with this format with Save to-&gt; CASP RR File</para>
+          with this format with <guimenuitem>Save to</guimenuitem> 
+          -&gt; <guimenuitem>CASP RR File</guimenuitem></para>
 
         </listitem>
 
@@ -70,7 +71,9 @@
       contact map is displayed and the 3D structure is loaded to the 
       PyMol molecular viewer:</para>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para>
+      <inlinegraphic fileref="images/single_cm_with_pymol-small.png"
+       width="450px"/></para>
 
     </sect2>
 
@@ -94,17 +97,18 @@
 
         <listitem>
 
-          <para>Show the distance map overlaid (
-          <guimenuitem>View</guimenuitem> menu). You can still select 
-          contacts while the distance map is shown</para>
+          <para>Show the distance map overlaid ( <guimenuitem>
+          View</guimenuitem> menu). You can still select contacts while 
+          the distance map is shown</para>
 
         </listitem>
 
         <listitem>
 
-          <para>Click on the <guibutton>Info<inlinegraphic fileref="images/information.png" width=""/></guibutton> button to get 
-          a full report on the contact map: number of contacts, 
-          sequence etc.</para>
+          <para>Click on the <guibutton>Info 
+          <inlinegraphic fileref="images/information.png" width=""/>
+          </guibutton> button to get a full report on the contact map: 
+          number of contacts, sequence etc.</para>
 
         </listitem>
 
@@ -117,9 +121,15 @@
           the top ruler and then on the second element on the left 
           ruler. You will get something like:</para>
 
-          <para><inlinegraphic fileref="" width=""/></para>
-
         </listitem>
+
+      </itemizedlist>
+
+      <para>
+      <inlinegraphic fileref="images/secstruct_selection-small.png"
+       width="450px"/></para>
+
+      <itemizedlist>
 
         <listitem>
 
@@ -147,7 +157,17 @@
 
       </itemizedlist>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para>
+      <inlinegraphic fileref="images/composed_NbhSelections_a-small.png"
+       width=""/></para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_NbhSelections_b-small.png"
+       width=""/></para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_NbhSelections_c-small.png"
+       width=""/></para>
 
       <para>At any time while navigating around the contact map or the 
       residue rulers you will always be able to see the contact map 
@@ -197,12 +217,32 @@
       </orderedlist>
 
       <para>As an example here we show contacts between secondary 
-      structures element for our structure1bxy. Corresponding to each 
-      function in the Select menu we have: a,b) helix-helix contacts, 
-      c,d) strand-strand contacts, e,f) contacts within SS elements and 
-      finally g,h) contacts between SS elements.</para>
+      structures element for our structure 1bxy. Corresponding to each 
+      function in the Select menu we have:</para>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para>helix-helix contacts,</para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_SSESelections_ab-small.png"
+       width="450px"/></para>
+
+      <para>strand-strand contacts,</para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_SSESelections_cd-small.png"
+       width="450px"/></para>
+
+      <para>contacts within SS elements</para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_SSESelections_ef-small.png"
+       width="450px"/></para>
+
+      <para>and finally contacts between SS elements</para>
+
+      <para>
+      <inlinegraphic fileref="images/composed_SSESelections_gh-small.png"
+       width="450px"/></para>
 
       <para>Of course PyMol still works as usual so that it is possible 
       to do other things with the selections: highlighting or showing 
@@ -233,7 +273,7 @@
       <para>After pressing OK the second contact map is calculated and 
       a dialog comes up to choose what type of alignment we want:</para>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para><inlinegraphic fileref="images/alignment_dialog.png" width=""/></para>
 
       <para>For this case we have two structures with the same sequence 
       so we can simply select Needleman-Wunsch which will do the 
@@ -241,7 +281,7 @@
       same time the corresponding structure is loaded to PyMol 
       superimposed to the first structure:</para>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para><inlinegraphic fileref="images/compare_mode-small.png" width="450px"/></para>
 
       <para />
 
@@ -290,21 +330,17 @@
       contacts (green).</para>
 
       <para>It is possible to switch between displaying each of the 
-      sets with the 
-      <guibutton>toggle buttons 
-      <inlinegraphic fileref="images/page_copy.png" width=""/>
-      <inlinegraphic fileref="images/page_add.png" width=""/>
+      sets with the <guibutton>toggle buttons 
+      <inlinegraphic fileref="images/page_copy.png" width=""/> 
+      <inlinegraphic fileref="images/page_add.png" width=""/> 
       <inlinegraphic fileref="images/page_delete.png" width=""/>
-      </guibutton> 
-      in the tool 
-      bar. Selections always refer to the currently displayed 
-      set.</para>
+      </guibutton> in the tool bar. Selections always refer to the 
+      currently displayed set.</para>
 
       <para>As in single mode above, the coordinates are displayed in 
       the lower left corner this time for the two structures. The 
-      <guibutton>Info
-      <inlinegraphic fileref="images/information.png" width=""/>
-      </guibutton> function will also display now 
+      <guibutton>Info <inlinegraphic fileref="images/information.png"
+       width=""/></guibutton> function will also display now 
       information for both structures including the numbers of common 
       contacts and unique contacts to each structure.</para>
 
@@ -331,7 +367,9 @@
       green edges, a) matching (from alignment) contacts absent in the 
       second structure, dashed pink edges.</para>
 
-      <para><inlinegraphic fileref="" width=""/></para>
+      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_a-small.png" width="350px"/></para>
+      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_b-small.png" width="350px"/></para>
+      <para><inlinegraphic fileref="images/composed_CompareMode_CaspHardGood_c-small.png" width="350px"/></para>
 
       <para>Two extra functions are available in the pairwise 
       comparison mode:</para>
@@ -340,16 +378,17 @@
 
         <listitem>
 
-          <para>Superimpose from Selection will superimpose the two 
-          structures in PyMol doing a best fit of residues from the 
-          selected contacts.</para>
+          <para><guimenuitem>Superimpose from Selection</guimenuitem> 
+          will superimpose the two structures in PyMol doing a best fit 
+          of residues from the selected contacts.</para>
 
         </listitem>
 
         <listitem>
 
-          <para>Show Corresponding Residues From Selection will show 
-          the alignment matching pairs for the contacts selected.</para>
+          <para><guimenuitem>Show Corresponding Residues From 
+          Selection</guimenuitem> will show the alignment matching 
+          pairs for the contacts selected.</para>
 
         </listitem>
 
