@@ -1,0 +1,49 @@
+<?xml version='1.0'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="en">
+
+  <title>FAQ</title>
+
+  <qandaset>
+
+    <qandaentry>
+
+      <question>
+
+        <para>Why is there no content here?</para>
+
+      </question>
+
+      <answer>
+
+        <para>This site is still under construction. Contents may 
+        appear in the near future.</para>
+
+      </answer>
+
+    </qandaentry>
+
+    <qandaentry>
+
+      <question>
+
+        <para>How to cite the CMView software?</para>
+
+      </question>
+
+      <answer>
+
+        <para>A publication describing CMView is being prepared. For 
+        the moment, please use the following citation:</para>
+
+        <para><emphasis>CMView: Interactive Contact Map Visualization 
+        and Analysis. http://www.molgen.mpg.de/~lappe/cmview/.</emphasis></para>
+
+      </answer>
+
+    </qandaentry>
+
+  </qandaset>
+
+</article>
+
