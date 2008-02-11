@@ -263,8 +263,8 @@
       <para>As an interesting example for the contact map comparison 
       feature we will use a CASP7 prediction. We want to compare the 
       target T0354 to a good prediction. So first we load the 
-      <ulink>real structure</ulink> from the PDB file (same procedure 
-      as before) and then the <ulink>prediction</ulink> by using 
+      <ulink url="downloads/hard_real_T0354.pdb">real structure</ulink> from the PDB file (same procedure 
+      as before) and then the <ulink url="hard_good_T0354_TS276_1.pdb">prediction</ulink> by using 
       <guimenu>Compare</guimenu> -&gt; <guimenuitem>Load Second 
       Structure From</guimenuitem> -&gt; <guimenuitem>PDB 
       File</guimenuitem>. As before we choose Ca as contact type and 
