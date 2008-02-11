@@ -156,15 +156,19 @@ public class View extends JFrame implements ActionListener {
 	/** Create a new View object */
 	public View(Model mod, String title) {
 		super(title);
-		
+		Start.viewInstancesCreated();
 		this.mod = mod;
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		this.guiState = new GUIState(this);
-		this.initGUI(); // build gui tree and show window
-		this.toFront(); // bring window to front TODO tried to see if this solve the problem of new window appearing on the back (on java 6) and doesn't work!
-		Start.viewInstancesCreated();
+		this.initGUI(); 							// build gui tree and show window
+		final JFrame parent = this;					// need a final to refer to in the thread below
+		EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
+			public void run() {
+				parent.toFront();					// bring new window to front
+			}
+		});
 	}
 	
 	public void dispose() {
