@@ -36,7 +36,7 @@ public class Start {
 
 	// internal constants (not user changeable)
 	public static final String		APP_NAME = 				"CMView";		// name of this application
-	public static final String		VERSION = 				"0.9.2";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"0.9.3";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
 	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
@@ -48,8 +48,9 @@ public class Start {
 	
 	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
 	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
-	// there has to be a line in the applyUserProperties method. The preassigned values are the default and being used unless overwritten by the user.
-	// Additioanlly, values that should appear in the example config file should be added to the getSelectedProperties method.
+	// there has to be a line in the applyUserProperties and the getLocalProperties method. The preassigned values are the default and being used
+	// unless overwritten by the user.
+	// Additionally, values that should appear in the example config file should be added to the getSelectedProperties method.
 
 	// Initialization of these properties should happen in the following order:
 	// 1a. 	Initialize most properties to hard-coded default values (in case that master config file is missing)
@@ -105,8 +106,8 @@ public class Start {
 	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
-	private static final int        DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
-	private static final int        DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	private static int        		DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	
 	// internal status variables (TODO: make private, use getter methods)
 	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
@@ -221,34 +222,10 @@ public class Start {
 		Properties d = new Properties();
 		
 		// properties which the user will have to change
-		d.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);		
-		d.setProperty("DB_HOST",DB_HOST);
-		d.setProperty("DB_USER",DB_USER);
-		d.setProperty("DB_PWD",DB_PWD);
-				
-		// properties which the user may want to change
-		d.setProperty("INITIAL_SCREEN_SIZE",new Integer(INITIAL_SCREEN_SIZE).toString());
-		d.setProperty("USE_DATABASE",new Boolean(USE_DATABASE).toString());
-		d.setProperty("USE_PYMOL",new Boolean(USE_PYMOL).toString());
-		d.setProperty("PRELOAD_PYMOL",new Boolean(PRELOAD_PYMOL).toString());
-		d.setProperty("SHUTDOWN_PYMOL_ON_EXIT",new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString());
+		d.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
+		d.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
 		d.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		d.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
-		d.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
-		d.setProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString());
-		d.setProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString());
-		
-		// properties which will become obsolete when loading from online pdb is implemented
-		//d.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);
-		//d.setProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
-		//d.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);
-		
-		// properties that should be changed only if problems arise
-		// these will be mentioned in the documentation somewhere but not in the example config file
-		//d.setProperty("TEMP_DIR",TEMP_DIR);
-		//d.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);
-		//d.setProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString());
-		//d.setProperty("DSSP_PARAMETERS", DSSP_PARAMETERS);
 		
 		return d;
 	}
@@ -259,10 +236,22 @@ public class Start {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	private static Properties loadUserProperties(String fileName) throws FileNotFoundException, IOException {
+	private static Properties loadConfigFile(String fileName) throws FileNotFoundException, IOException {
 		Properties p = new Properties();
 		p.load(new FileInputStream(fileName));
 		return p;
+	}
+	
+	/**
+	 * Writes the given properties object to a file using the default property file format.
+	 * @param p the properties object to be written to file
+	 * @param fileName the output file
+	 * @param comments the comment header to be written to the file
+	 * @throws IOException if writing to the output file failed
+	 */
+	private static void saveConfigFile(Properties p, String fileName) throws IOException {
+		String comments = "Properties file for " + APP_NAME + " " + VERSION;
+		p.store(new FileOutputStream(fileName), comments);
 	}
 
 	/**
@@ -278,39 +267,94 @@ public class Start {
 		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
 		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
 		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
+		INCLUDE_GROUP_INTERNALS = Boolean.valueOf(p.getProperty("INCLUDE_GROUP_INTERNALS", new Boolean(INCLUDE_GROUP_INTERNALS).toString()));
 		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL", new Boolean(PRELOAD_PYMOL).toString()));
 		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
+		
 		SHOW_RULERS_ON_STARTUP = Boolean.valueOf(p.getProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString()));
-		INCLUDE_GROUP_INTERNALS = Boolean.valueOf(p.getProperty("INCLUDE_GROUP_INTERNALS", new Boolean(INCLUDE_GROUP_INTERNALS).toString()));
-		
-		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
-		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
-		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
-		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
-		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
-		
+		FORCE_DSSP = Boolean.valueOf(p.getProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString()));
 		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
 		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
-		FORCE_DSSP = Boolean.valueOf(p.getProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString()));
+		PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
+
+		DIST_MAP_CONTACT_TYPE = p.getProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
+		SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
+		ICON_BAR_FLOATABLE = Boolean.valueOf(p.getProperty("ICON_BAR_FLOATABLE",Boolean.toString(ICON_BAR_FLOATABLE)));
+		SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
 		
+		// pymol connection
+		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
+		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
+		PYMOL_SERVER_URL = p.getProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
+		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
+		PYMOL_LOGFILE = p.getProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);
+		PYMOL_CMDBUFFER_FILE = p.getProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
+		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
+		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
+		
+		// database connection		
 		DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 		DB_USER = p.getProperty("DB_USER", DB_USER);
 		DB_PWD = p.getProperty("DB_PWD", DB_PWD);
 
+		DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
 		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
+		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
 		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
 		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
-		
-		DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
-		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
+		DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
+		DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));		
 
 	}
 	
 	/*
 	 * Returns a properties objects with all current properties.
 	 */
-	public Properties getCurrentProperties() {
+	private static Properties getCurrentProperties() {
 		Properties p = new Properties();
+		
+		p.setProperty("TEMP_DIR", TEMP_DIR);													// doc
+		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
+		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
+		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
+		p.setProperty("INCLUDE_GROUP_INTERNALS",  Boolean.toString(INCLUDE_GROUP_INTERNALS));	// doc?																			
+		p.setProperty("PRELOAD_PYMOL", Boolean.toString(PRELOAD_PYMOL));						// doc?
+		p.setProperty("SHUTDOWN_PYMOL_ON_EXIT", Boolean.toString(SHUTDOWN_PYMOL_ON_EXIT));		// doc
+		
+		p.setProperty("SHOW_RULERS_ON_STARTUP", Boolean.toString(SHOW_RULERS_ON_STARTUP));		// doc?
+		p.setProperty("FORCE_DSSP",Boolean.toString(FORCE_DSSP));								// doc
+		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
+		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
+		p.setProperty("PDB_FTP_URL",PDB_FTP_URL);												// doc!
+		
+		p.setProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);							// doc?
+		p.setProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR));							// doc?
+		p.setProperty("ICON_BAR_FLOATABLE",Boolean.toString(ICON_BAR_FLOATABLE));				// nono!
+		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
+		
+		// pymol connection
+		p.setProperty("PYMOL_HOST",PYMOL_HOST);													// doc?
+		p.setProperty("PYMOL_PORT",PYMOL_PORT);													// doc?
+		p.setProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);										// doc?
+		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);										// !!!!
+		p.setProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);											// doc
+		p.setProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);								// ???
+		p.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);										// doc?
+		p.setProperty("PYMOL_CONN_TIMEOUT",Long.toString(PYMOL_CONN_TIMEOUT));					// doc?
+		
+		// database connection
+		p.setProperty("DB_HOST",DB_HOST);														// doc?
+		p.setProperty("DB_USER",DB_USER);														// doc?
+		p.setProperty("DB_PWD",DB_PWD);															// doc?
+		
+		// default values for loading contact maps
+		p.setProperty("DEFAULT_GRAPH_DB",DEFAULT_GRAPH_DB);										// doc?
+		p.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);											// doc?
+		p.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);										// doc?
+		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);								// doc!
+		p.setProperty("DEFAULT_DISTANCE_CUTOFF",Double.toString(DEFAULT_DISTANCE_CUTOFF));		// doc!
+		p.setProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP));				// doc!
+		p.setProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP));				// doc!
 		
 		return p;
 	}
@@ -616,9 +660,10 @@ public class Start {
 		String pdbChainCode = null;
 		String contactType = null;
 		String cmdLineConfigFile = null;
+		String debugConfigFile = null;
 		double cutoff = 0.0;
 
-		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vh?");
+		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vg:h?");
 		int c;
 		while ((c = g.getopt()) != -1) {
 			switch(c){
@@ -640,6 +685,9 @@ public class Start {
 			case 'o':
 				cmdLineConfigFile = g.getOptarg();
 				break;
+			case 'g':											// write current config parameters to a file (for debugging)
+				debugConfigFile = g.getOptarg();
+				break;
 			case 'v':
 				System.out.println(APP_NAME+" "+VERSION);
 				System.exit(0);
@@ -652,9 +700,6 @@ public class Start {
 			}
 		}
 
-		
-		
-		
 		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
 		
 		// load configuration
@@ -666,7 +711,7 @@ public class Start {
 		File currentDirConfigFile = new File(CONFIG_FILE_NAME);
 		try {
 			if(currentDirConfigFile.exists()) {
-				Properties p = loadUserProperties(CONFIG_FILE_NAME);
+				Properties p = loadConfigFile(CONFIG_FILE_NAME);
 				System.out.println("Loading configuration file " + CONFIG_FILE_NAME);
 				userProperties.putAll(p);
 				applyUserProperties(userProperties);
@@ -681,7 +726,7 @@ public class Start {
 		try {
 			if (userConfigFile.exists()) {
 				System.out.println("Loading user configuration file " + userConfigFile.getAbsolutePath());
-				userProperties.putAll(loadUserProperties(userConfigFile.getAbsolutePath()));
+				userProperties.putAll(loadConfigFile(userConfigFile.getAbsolutePath()));
 				applyUserProperties(userProperties);
 				configFileFound = true;
 			}
@@ -694,7 +739,7 @@ public class Start {
 			if (cmdLineConfigFile!=null) {
 				if(new File(cmdLineConfigFile).exists()) {
 					System.out.println("Loading command line configuration file " + cmdLineConfigFile);
-					userProperties.putAll(loadUserProperties(cmdLineConfigFile));
+					userProperties.putAll(loadConfigFile(cmdLineConfigFile));
 					applyUserProperties(userProperties);
 					configFileFound = true;
 				}
@@ -706,7 +751,18 @@ public class Start {
 			System.out.println("No configuration file found. Using default options.");
 		}
 				
-				
+		// write current configuration to file (for debugging)
+		if(debugConfigFile != null) {
+			Properties p = getCurrentProperties();
+			try {
+					saveConfigFile(p, debugConfigFile);
+				} catch (IOException e) {
+					System.err.println("Error writing local setting to config file " + debugConfigFile + ": " + e.getMessage());
+					System.exit(1);
+				}
+			System.exit(0);
+		}
+		
 		// add shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

@@ -185,11 +185,14 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * Sets up and returns a new menu item with the given icon and label, adds it to the given JMenu and
 	 * registers 'this' as the action listener.
+	 * @param label the text of the item in the menu
+	 * @param icon an optional icon to be shown in the menu
+	 * @param menu the JMenu this item will be added to, or null if the item should be invisible
 	 */
 	private JMenuItem makeMenuItem(String label, Icon icon, JMenu menu) {
 		JMenuItem newItem = new JMenuItem(label, icon);
 		newItem.addActionListener(this);
-		menu.add(newItem);
+		if(menu != null) menu.add(newItem);
 		return newItem;
 	}
 	
@@ -467,7 +470,7 @@ public class View extends JFrame implements ActionListener {
 		menu.add(submenu);
 		smFile.put("Save", submenu);
 		// Print, Quit
-		mmPrint = makeMenuItem(LABEL_FILE_PRINT, null, menu);
+		mmPrint = makeMenuItem(LABEL_FILE_PRINT, null, null);					// function disabled
 		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		addToJMenuBar(menu);
 
@@ -475,8 +478,8 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);		
 		mmViewShowPdbResSers = makeMenuItem("Show PDB Residue Numbers", icon_deselected, menu);
-		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, menu);
-		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, menu);	// doesn't work properly if icon bar is floatable
+		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, null);		// function disabled
+		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, null);	// function disabled
 		menu.addSeparator();		
 		mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
 		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
@@ -561,7 +564,7 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_H);	
 		mmHelpHelp = makeHelpMenuItem("Help", null, menu);
 		
-		mmHelpWriteConfig = makeMenuItem("Write Example Configuration File", null, menu);
+		mmHelpWriteConfig = makeMenuItem("Write Example Configuration File", null, null);		// function disabled
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		addToJMenuBar(menu);
 
