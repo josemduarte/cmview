@@ -12,5 +12,6 @@ echo $basename
 cp -f web/$basename.html $webhome
 #rm -f web/$basename.*
 done
-echo Copying images...
+echo Copying images and css...
 cp -f images/* $webhome/images/
+cp -f web/*.css $webhome
