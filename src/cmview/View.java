@@ -2932,7 +2932,7 @@ public class View extends JFrame implements ActionListener {
 				"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
 				"Contact Map Viewer v"+Start.VERSION +
 				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" + 
-				"<p>(C) AG Lappe 2007</p>" +
+				"<p>(C) AG Lappe 2008</p>" +
 				"</center></html>",
 				"About",
 				JOptionPane.PLAIN_MESSAGE);

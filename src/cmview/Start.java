@@ -439,6 +439,10 @@ public class Start {
 	    catch (IllegalAccessException e) {
 		       System.err.println(e);	   
 	    }
+	    
+	    // for MacOS X, set property apple.laf.useScreenMenuBar such that menu bar appears on top
+	    System.setProperty("apple.laf.useScreenMenuBar", "true");
+	    
 	}
 	
 	/**
