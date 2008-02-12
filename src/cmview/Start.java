@@ -441,7 +441,7 @@ public class Start {
 	    }
 	    
 	    // for MacOS X, set property apple.laf.useScreenMenuBar such that menu bar appears on top
-	    System.setProperty("apple.laf.useScreenMenuBar", "true");
+	    // System.setProperty("apple.laf.useScreenMenuBar", "true");	// does not work, causes NullPointerException in pack()...paintIcon()
 	    
 	}
 	
