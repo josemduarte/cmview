@@ -1,13 +1,13 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<article lang="en" id="top">
+<article id="top" lang="en">
 
-<title>Manual</title>
+  <title>Manual</title>
 
   <sect1 id="overview">
-  	
-  	<title>Overview</title>
-  	
+
+    <title>Overview</title>
+
   </sect1>
 
   <sect1 id="functionreference">
@@ -1068,17 +1068,95 @@
     </sect2>
 
   </sect1>
-  
-    <sect1 id="files">
-  	
-  	<title>File types</title>
-  	
+
+  <sect1>
+
+    <title>Command line parameters</title>
+
+    <para>The following command line parameters are available when 
+    calling CMView from the command line, help can be obtained by 
+    calling <command>cmview -h</command>:</para>
+
+    <para>
+
+      <itemizedlist>
+
+        <listitem>
+
+          <para><command>-p &lt;pdb code&gt;</command>: a 4-letter PDB 
+          code to be loaded in CMView from Online PDB.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-f &lt;pdb file&gt;</command>: a PDB file to 
+          be loaded in CMView.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-c &lt;chain code&gt;</command>: a PDB chain 
+          code. This will be the chain selected either from the PDB 
+          file or for the given PDB code. If one is not given then 
+          default chain &apos;A&apos; will be chosen.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-t &lt;contact type&gt;</command>: the contact 
+          type for the Contact Map to be loaded in CMView.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-d &lt;distance cutoff&gt;</command>: the 
+          distance cutoff for the Contact Map to be loaded in 
+          CMView.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-o &lt;config file&gt;</command>: a config 
+          file to read configuration parameters from. See 
+          <link linkend="config">Configuration</link>.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-v</command>: prints CMView&apos;s version and 
+          exit.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para><command>-h</command>: prints out command line 
+          parameters help and exit.</para>
+
+        </listitem>
+
+      </itemizedlist>
+
+    </para>
+
   </sect1>
-  
+
+  <sect1 id="files">
+
+    <title>File types</title>
+
+  </sect1>
+
   <sect1 id="config">
-  	
-  	<title>Configuration</title>
-  	
+
+    <title>Configuration</title>
+
   </sect1>
 
 </article>
