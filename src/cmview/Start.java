@@ -276,25 +276,23 @@ public class Start {
 		
 		TEMP_DIR = p.getProperty("TEMP_DIR",TEMP_DIR);
 		CONFIG_FILE_NAME = p.getProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);
-		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
-		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
-		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
-		USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
-		PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
-		PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
-		
-		USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
-		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
-		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
 		PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
 		DIST_MAP_CONTACT_TYPE = p.getProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
-		
+
+		// gui settings
+		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
 		SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
 		SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
 		SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
 		SHOW_PDB_RES_NUMS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS)));
+
+		// enabling/disabling features
+		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
+		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
+		USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
+		USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
 		
-		// pymol connection
+		// external programs: pymol
 		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
 		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
 		PYMOL_SERVER_URL = p.getProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
@@ -303,15 +301,23 @@ public class Start {
 		PYMOL_CMDBUFFER_FILE = p.getProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
 		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
 		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
+		PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
+		PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
+
+		// external programs: dssp
+		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
+		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
 		
 		// database connection		
 		DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 		DB_USER = p.getProperty("DB_USER", DB_USER);
 		DB_PWD = p.getProperty("DB_PWD", DB_PWD);
 
+		// default setting for loading contact maps
 		DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
 		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
 		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
+		
 		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
 		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
 		DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
@@ -328,33 +334,37 @@ public class Start {
 		
 		p.setProperty("TEMP_DIR", TEMP_DIR);													// doc
 		p.setProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);									// doc?
-		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
-		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
-		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
-		p.setProperty("USE_EXPERIMENTAL_FEATURES",  Boolean.toString(USE_EXPERIMENTAL_FEATURES));	// doc?																			
-		p.setProperty("PYMOL_LOAD_ON_START", Boolean.toString(PYMOL_LOAD_ON_START));						// doc?
-		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
-		
-		p.setProperty("USE_DSSP",Boolean.toString(USE_DSSP));								// doc
-		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
-		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
 		p.setProperty("PDB_FTP_URL",PDB_FTP_URL);												// doc!		
 		p.setProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);							// doc?
 		
+		// gui settings
+		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
 		p.setProperty("SHOW_RULERS", Boolean.toString(SHOW_RULERS));							// doc?
 		p.setProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR));							// doc?
 		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
 		p.setProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS));					// doc?
+
+		// feature settings
+		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
+		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
+		p.setProperty("USE_EXPERIMENTAL_FEATURES",  Boolean.toString(USE_EXPERIMENTAL_FEATURES));	// doc?																					
+		p.setProperty("USE_DSSP",Boolean.toString(USE_DSSP));									// doc
 		
-		// pymol connection
+		// external programs: pymol
 		p.setProperty("PYMOL_HOST",PYMOL_HOST);													// doc?
 		p.setProperty("PYMOL_PORT",PYMOL_PORT);													// doc?
 		p.setProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);										// doc?
-		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);										// !!!!
+		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);										// doc!!!!
 		p.setProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);											// doc
-		p.setProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);								// ???
+		p.setProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);								// doc???
 		p.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);										// doc?
 		p.setProperty("PYMOL_CONN_TIMEOUT",Long.toString(PYMOL_CONN_TIMEOUT));					// doc?
+		p.setProperty("PYMOL_LOAD_ON_START", Boolean.toString(PYMOL_LOAD_ON_START));			// doc?
+		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
+
+		// external programs: dssp
+		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
+		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
 		
 		// database connection
 		p.setProperty("DB_HOST",DB_HOST);														// doc?
@@ -365,6 +375,7 @@ public class Start {
 		p.setProperty("DEFAULT_GRAPH_DB",DEFAULT_GRAPH_DB);										// doc?
 		p.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);											// doc?
 		p.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);										// doc?
+		
 		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);								// doc!
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",Double.toString(DEFAULT_DISTANCE_CUTOFF));		// doc!
 		p.setProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP));				// doc!
