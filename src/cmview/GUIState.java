@@ -44,8 +44,8 @@ public class GUIState {
 		// TODO: add showAlignmentIndices
 		this.view = view;
 		this.selectionMode = INITIAL_SEL_MODE;
-		this.showPdbSers = false;
-		this.showRulers=Start.SHOW_RULERS_ON_STARTUP;
+		this.showPdbSers = Start.SHOW_PDB_RES_NUMBERS;
+		this.showRulers=Start.SHOW_RULERS;
 		this.showIconBar=Start.SHOW_ICON_BAR;
 		this.showNbhSizeMap = false;
 		this.showDensityMap=false;

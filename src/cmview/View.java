@@ -82,6 +82,8 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
 
+	/*--------------------------- member variables --------------------------*/
+	
 	private static int pymolSelSerial = 1;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
 	
 	// GUI components in the main frame
@@ -93,7 +95,6 @@ public class View extends JFrame implements ActionListener {
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
 	JPopupMenu popup; 			// right-click context menu
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
-	//JLayeredPane cmp2; 		// added for testing
 
 	// Tool bar buttons
 	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
@@ -171,6 +172,9 @@ public class View extends JFrame implements ActionListener {
 		});
 	}
 	
+	/**
+	 * Called when this class is about to be disposed
+	 */
 	public void dispose() {
 		super.dispose();
 		if(Start.viewInstanceDisposed() == 0) {
@@ -341,7 +345,6 @@ public class View extends JFrame implements ActionListener {
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
 		statusPane = new JPanel(); 					// pane holding the status bar, TODO: Create a class StatusBar
 		statusBar = new JLabel(" ");				// a primitive status bar for testing
-		//cmp2 = new JLayeredPane(); 				// for testing with layered panes
 
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
@@ -393,7 +396,7 @@ public class View extends JFrame implements ActionListener {
 		tbViewNbhSizeMap = new JToggleButton();
 		tbViewDistanceMap = new JToggleButton();
 		tbViewDensityMap = new JToggleButton();
-		toolBar.setFloatable(Start.ICON_BAR_FLOATABLE);
+		toolBar.setFloatable(false);	// does currently not work properly if floatable
 
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
@@ -585,20 +588,6 @@ public class View extends JFrame implements ActionListener {
 
 		// Creating contact map pane if model loaded
 		if(mod != null) {
-			// testing: use two separate layers for contacts and interaction
-//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
-//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this, cmPaneBg);
-//			cmp.setLayout(new OverlayLayout(cmp));
-//			cmp.add(cmPaneInt);
-//			cmp.add(cmPaneBg);
-
-			// alternative: use JLayeredPane
-//			TestCmInteractionPane cmPaneInt = new TestCmInteractionPane(mod, this);
-//			TestCmBackgroundPane cmPaneBg = new TestCmBackgroundPane(mod, this);
-//			cmp2.setLayout(new OverlayLayout(cmp2));
-//			cmp2.add(cmPaneInt, new Integer(2));
-//			cmp2.add(cmPaneBg, new Integer(1));
-			//add cmp2 to contentPane
 			
 			String[] tags = {mod.getLoadedGraphID()};
 			String[] seqs = {mod.getSequence()};

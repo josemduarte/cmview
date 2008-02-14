@@ -32,10 +32,12 @@ import cmview.datasources.PdbaseModel;
  */
 public class Start {
 
+	/*------------------------------ constants ------------------------------*/
+	
 	static final long serialVersionUID = 1l;
 
-	// internal constants (not user changeable)
-	public static final String		APP_NAME = 				"CMView";		// name of this application
+	/* internal constants (not user changeable) */
+	public static final String		APP_NAME = 				"CMView";			// name of this application
 	public static final String		VERSION = 				"0.9.3";			// current version of this application (should match manifest)
 	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
 	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
@@ -44,48 +46,60 @@ public class Start {
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
 	
-	public static final String		CONFIG_FILE_NAME = 		"cmview.cfg";		// default name of config file
+	/*---------------------------- configuration ---------------------------*/
 	
-	// The following 'constants' can be overwritten by the user's config file. In the code, they are being used as if they were (final) constants
-	// and the only time when they may change is during startup. Note that for each variable that ought to be user changeable, i.e. read from cfg file
-	// there has to be a line in the applyUserProperties and the getLocalProperties method. The preassigned values are the default and being used
-	// unless overwritten by the user.
-	// Additionally, values that should appear in the example config file should be added to the getSelectedProperties method.
+	/*
+	  Configuration variables
+	  
+	  The following 'constants' can be overwritten by settings in config files. In the code, they are being used as if they were (final) constants
+	  and the only time when they may change is during startup. Note that each variable that ought to be user changeable, i.e. read from cfg file
+	  needs to be processed in both in the 'applyUserProperties' and the 'getLocalProperties' method. The preassigned values are the default and
+	  being used if no value was found in the config files.
+	  Additionally, values that should appear in the example config file should be added to the getSelectedProperties method.
+	 
+	  Initialization
 
-	// Initialization of these properties should happen in the following order:
-	// 1a. 	Initialize most properties to hard-coded default values (in case that master config file is missing)
-	// 1b.	Initialize some properties to values specified at runtime (e.g. temp dir, user name)
-	// 2.	Load all properties except 1b from master config file (in resources), this defines the 'release configuration'
-	// 3.	Load config files from the following locations, possibly overwriting previous settings:
-	// 3a.	Current directory
-	// 3b.	User's home directory
-	// 3c.	Location specififed by command line parameter
+	  Initialization of these properties happends in the following order:
+	  1a. 	Initialize most properties to hard-coded default values (in case that master config file is missing)
+	  1b.	Initialize some properties to values specified at runtime (e.g. temp dir, user name)
+	  2.	Load all properties except 1b from master config file (in resources), this defines the 'release configuration'
+	  3.	Load config files from the following locations, possibly overwriting previous settings:
+	  3a.	Current directory
+	  3b.	User's home directory
+	  3c.	Location specififed by command line parameter
+	*/
 	
-	// environment (should be set at runtime and not in master config file but can be overwritten in user config file)
-	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir"); 																			
+	/* environment (should be set at runtime and not in master config file but can be overwritten in user config file) */
+	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
+	public static String			DB_USER = getUserName();						// guess user name
 	
-	// user customizations
+	/* gui settings which should in general not be changed */
+	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
+	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
+	//public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
+	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
+	public static boolean 			SHOW_PDB_RES_NUMBERS = false;		// if true, pdb residue numbers also shown in bottom left corner of contact map
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+
+	/* global preferences */
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
-																		// currently: common nbh related things, directed graphs
 	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
 	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shut down on exit
+	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+																		// currently: common nbh related things, directed graph	
+	/* internal settings (should generally not be changed) */
+	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file
+	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
+	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
+	// TODO: alignment parameters
 	
-	public static boolean			SHOW_RULERS_ON_STARTUP = true;		// if true, rulers will be shown by default
+	/* external programs: dssp */
 	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = ""; 				
-	public static String			DSSP_PARAMETERS = "--";
-	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
+	public static String			DSSP_PARAMETERS = "--";	
 	
-	// constants not in config file yet
-	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
-	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
-	public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
-	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
-	
-	// pymol connection
+	/* external programs: pymol */
 	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
 	public static String			PYMOL_PORT =			"9123";		 // default port, if port is blocked, pymol will increase automatically
 	public static String			PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT;
@@ -95,26 +109,28 @@ public class Start {
 	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
 	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
 	
-	// database connection
+	/* database connection */
 	public static String			DB_HOST = "localhost";							
-	public static String			DB_USER = getUserName();						// guess user name
-	public static String			DB_PWD = "tiger";								
+	public static String			DB_PWD = "tiger";
+	//public static String			DB_USER = getUserName();						// see above
 	
-	// default values for loading contact maps
+	/* default values for loading contact maps */
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"";					// for loading from command line
 	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
+	
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
 	private static int        		DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
 	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	
+	/*--------------------------- member variables --------------------------*/
 	
 	// internal status variables (TODO: make private, use getter methods)
 	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
 	protected static boolean		pymol_found = true;
 	protected static boolean		dssp_found = true;			// check later whether dssp can be used
 	private static Properties		userProperties;				// properties read from the user's config file
-	private static Properties		selectedProperties;			// selected default properties for the example config file
 	
 	// global session variables (use getter methods)
 	private static MySQLConnection conn;
@@ -212,25 +228,6 @@ public class Start {
 	/*-------------- properties and config files --------------*/
 	
 	/**
-	 * Returns a property object with the default values for selected customizable variables.
-	 * These are the variables that we expect users to commonly change. They are written
-	 * when the users selects the 'write example config file' from the Help menu.
-	 * Other possible customizable variables should be mentioned somewhere in the manual.
-	 */
-	private static Properties getSelectedProperties() {
-
-		Properties d = new Properties();
-		
-		// properties which the user will have to change
-		d.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
-		d.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
-		d.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
-		d.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
-		
-		return d;
-	}
-
-	/**
 	 * Loads user properties from the given configuration file.
 	 * Returns null on failure;
 	 * @throws IOException 
@@ -253,17 +250,36 @@ public class Start {
 		String comments = "Properties file for " + APP_NAME + " " + VERSION;
 		p.store(new FileOutputStream(fileName), comments);
 	}
+	
+	/**
+	 * Writes an example configuration file with the default values for selected user
+	 * customizable variables. The file will be written to the current directory.
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	public static void writeExampleConfigFile(String fileName) throws FileNotFoundException, IOException {
+		Properties p = new Properties();
+		
+		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
+		p.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
+		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
+		p.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
+		
+		saveConfigFile(p, fileName);
+	}
 
 	/**
 	 * Overwrite the local constants with the values from the given properties object
 	 */
 	private static void applyUserProperties(Properties p) {
 
-		// The logic here is: First, take the value from the user config file,
-		// if that is not found, keep the variable value unchanged.
-		// Note that any value in the user config file that is not being processed here is ignored.
+		/* The logic here is: First, take the value from the user config file,
+		   if that is not found, keep the variable value unchanged.
+		   Note that any value in the user config file that is not being processed here is ignored. 
+		*/
 		
 		TEMP_DIR = p.getProperty("TEMP_DIR",TEMP_DIR);
+		CONFIG_FILE_NAME = p.getProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);
 		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
 		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
 		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
@@ -271,16 +287,16 @@ public class Start {
 		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL", new Boolean(PRELOAD_PYMOL).toString()));
 		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
 		
-		SHOW_RULERS_ON_STARTUP = Boolean.valueOf(p.getProperty("SHOW_RULERS_ON_STARTUP", new Boolean(SHOW_RULERS_ON_STARTUP).toString()));
 		FORCE_DSSP = Boolean.valueOf(p.getProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString()));
 		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
 		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
 		PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
-
 		DIST_MAP_CONTACT_TYPE = p.getProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
+		
+		SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
 		SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
-		ICON_BAR_FLOATABLE = Boolean.valueOf(p.getProperty("ICON_BAR_FLOATABLE",Boolean.toString(ICON_BAR_FLOATABLE)));
 		SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
+		SHOW_PDB_RES_NUMBERS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMBERS",Boolean.toString(SHOW_PDB_RES_NUMBERS)));
 		
 		// pymol connection
 		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
@@ -303,17 +319,19 @@ public class Start {
 		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
 		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
 		DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
-		DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));		
-
+		DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
 	}
 	
 	/*
-	 * Returns a properties objects with all current properties.
+	 * Returns a properties objects with all current properties. Use this for debugging and for
+	 * writing the master config file. For the master file, TEMP_DIR and DB_USER should be
+	 * removed afterwards because they are better initialized at runtime.
 	 */
 	private static Properties getCurrentProperties() {
 		Properties p = new Properties();
 		
 		p.setProperty("TEMP_DIR", TEMP_DIR);													// doc
+		p.setProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);									// doc?
 		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
 		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
 		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
@@ -321,16 +339,16 @@ public class Start {
 		p.setProperty("PRELOAD_PYMOL", Boolean.toString(PRELOAD_PYMOL));						// doc?
 		p.setProperty("SHUTDOWN_PYMOL_ON_EXIT", Boolean.toString(SHUTDOWN_PYMOL_ON_EXIT));		// doc
 		
-		p.setProperty("SHOW_RULERS_ON_STARTUP", Boolean.toString(SHOW_RULERS_ON_STARTUP));		// doc?
 		p.setProperty("FORCE_DSSP",Boolean.toString(FORCE_DSSP));								// doc
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
 		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
-		p.setProperty("PDB_FTP_URL",PDB_FTP_URL);												// doc!
-		
+		p.setProperty("PDB_FTP_URL",PDB_FTP_URL);												// doc!		
 		p.setProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);							// doc?
+		
+		p.setProperty("SHOW_RULERS", Boolean.toString(SHOW_RULERS));							// doc?
 		p.setProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR));							// doc?
-		p.setProperty("ICON_BAR_FLOATABLE",Boolean.toString(ICON_BAR_FLOATABLE));				// nono!
 		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
+		p.setProperty("SHOW_PDB_RES_NUMBERS",Boolean.toString(SHOW_PDB_RES_NUMBERS));			// doc?
 		
 		// pymol connection
 		p.setProperty("PYMOL_HOST",PYMOL_HOST);													// doc?
@@ -412,7 +430,7 @@ public class Start {
 	
 	/** 
 	 * Return the absolute path to the unpacked resource with the given name.
-	 * Will always return a file object but the resource may not exists unless
+	 * Will always return a file object but the resource may not exist unless
 	 * it has been created with unpackResource() previously. 
 	 */
 	protected static String getResourcePath(String resource) {
@@ -440,9 +458,11 @@ public class Start {
 		       System.err.println(e);	   
 	    }
 	    
-	    // for MacOS X, set property apple.laf.useScreenMenuBar such that menu bar appears on top
-	    // System.setProperty("apple.laf.useScreenMenuBar", "true");	// does not work, causes NullPointerException in pack()...paintIcon()
-	    
+	    /* In MacOS X, the menu bar is usually on top of the screen, while the default Java behaviour is to have it in the application window.
+	       The MacOS specific system property apple.laf.useScreenMenuBar=true is supposed to make swing application behave "the Mac way".
+	       However, System.setProperty("apple.laf.useScreenMenuBar", "true"); currently, causes a NullPointerException in pack()...paintIcon().
+	       So we do not use it here until we can fix this. TODO
+	    */
 	}
 	
 	/**
@@ -564,20 +584,6 @@ public class Start {
 	}
 
 	/*---------------------------- public methods ---------------------------*/
-
-	/**
-	 * Writes an example configuration file with the default values for selected user
-	 * customizable variables. The file will be written in the current directory.
-	 * The values are taken from the variable selectedProperties which has to be
-	 * initialized previously using getSelectedProperties().
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
-	 */
-	public static void writeExampleConfigFile(String fileName) throws FileNotFoundException, IOException {
-		Properties d = selectedProperties;
-		String comment = "Properties file for " + APP_NAME + " " + VERSION;
-		d.store(new FileOutputStream(fileName), comment);
-	}
 	
 	/**
 	 * Returns true if a database connection is expected to be available. This is to avoid
@@ -708,7 +714,6 @@ public class Start {
 		
 		// load configuration
 		boolean configFileFound = false;
-		selectedProperties = getSelectedProperties();	// initialize default options
 		userProperties = new Properties();
 		
 		// loading from current directory
