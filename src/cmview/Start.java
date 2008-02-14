@@ -72,47 +72,45 @@ public class Start {
 	/* environment (should be set at runtime and not in master config file but can be overwritten in user config file) */
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
 	public static String			DB_USER = getUserName();						// guess user name
-	
-	/* gui settings which should in general not be changed */
-	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
-	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
-	//public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
-	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map
-	public static boolean 			SHOW_PDB_RES_NUMBERS = false;		// if true, pdb residue numbers also shown in bottom left corner of contact map
-	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 
-	/* global preferences */
-	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
-	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static boolean			PRELOAD_PYMOL = true; 				// if true, pymol is preloaded on startup
-	public static boolean			SHUTDOWN_PYMOL_ON_EXIT = true;		// if true, pymol is shut down on exit
-	public static boolean           INCLUDE_GROUP_INTERNALS = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
-																		// currently: common nbh related things, directed graph	
-	/* internal settings (should generally not be changed) */
+	/* internal settings */
 	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	// TODO: alignment parameters
 	
+	/* gui settings */
+	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
+	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
+	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map
+	public static boolean 			SHOW_PDB_RES_NUMS = true;			// if true, pdb residue numbers also shown in bottom left corner of contact map
+
+	/* enable/disable features */
+	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
+	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
+	public static boolean			USE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
+	public static boolean           USE_EXPERIMENTAL_FEATURES = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
+																		// currently: common nbh related things, directed graph	
 	/* external programs: dssp */
-	public static boolean			FORCE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static String			DSSP_EXECUTABLE = ""; 				
 	public static String			DSSP_PARAMETERS = "--";	
 	
 	/* external programs: pymol */
-	public static String			PYMOL_HOST = 			"localhost"; // currently, the XMLRPC server in Pymol only supports localhost
-	public static String			PYMOL_PORT =			"9123";		 // default port, if port is blocked, pymol will increase automatically
-	public static String			PYMOL_SERVER_URL = 		"http://"+PYMOL_HOST+":"+PYMOL_PORT;
-	public static String			PYMOL_EXECUTABLE = 		""; 		// to start pymol automatically
-	public static String			PYMOL_LOGFILE =			TEMP_DIR + File.separator + "CMView_pymol.log";
-	public static String			PYMOL_CMDBUFFER_FILE =	TEMP_DIR + File.separator + "CMView_pymol.cmd";
-	public static String			PYMOL_PARAMETERS =  	"-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
-	public static long 				PYMOL_CONN_TIMEOUT = 	15000; 					// pymol connection time out in milliseconds
-	
+	public static String			PYMOL_HOST = 			 "localhost"; // currently, the XMLRPC server in Pymol only supports localhost
+	public static String			PYMOL_PORT =			 "9123";	  // default port, if port is blocked, pymol will increase automatically
+	public static String			PYMOL_SERVER_URL = 		 "http://"+PYMOL_HOST+":"+PYMOL_PORT;
+	public static String			PYMOL_EXECUTABLE = 		 ""; 		  // to start pymol automatically
+	public static String			PYMOL_LOGFILE =			 TEMP_DIR + File.separator + "CMView_pymol.log";
+	public static String			PYMOL_CMDBUFFER_FILE =	 TEMP_DIR + File.separator + "CMView_pymol.cmd";
+	public static String			PYMOL_PARAMETERS =  	 "-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
+	public static long 				PYMOL_CONN_TIMEOUT = 	 15000; 	  // pymol connection time out in milliseconds
+	public static boolean			PYMOL_LOAD_ON_START =    true; 		  // if true, pymol will be preloaded on startup
+	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
+
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
 	public static String			DB_PWD = "tiger";
-	//public static String			DB_USER = getUserName();						// see above
 	
 	/* default values for loading contact maps */
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
@@ -121,8 +119,8 @@ public class Start {
 	
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
-	private static int        		DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
-	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito, but not user changeable at the moment
+	private static int        		DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito
+	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito
 	
 	/*--------------------------- member variables --------------------------*/
 	
@@ -283,11 +281,11 @@ public class Start {
 		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
 		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
 		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
-		INCLUDE_GROUP_INTERNALS = Boolean.valueOf(p.getProperty("INCLUDE_GROUP_INTERNALS", new Boolean(INCLUDE_GROUP_INTERNALS).toString()));
-		PRELOAD_PYMOL = Boolean.valueOf(p.getProperty("PRELOAD_PYMOL", new Boolean(PRELOAD_PYMOL).toString()));
-		SHUTDOWN_PYMOL_ON_EXIT = Boolean.valueOf(p.getProperty("SHUTDOWN_PYMOL_ON_EXIT", new Boolean(SHUTDOWN_PYMOL_ON_EXIT).toString()));
+		USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
+		PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
+		PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
 		
-		FORCE_DSSP = Boolean.valueOf(p.getProperty("FORCE_DSSP", new Boolean(FORCE_DSSP).toString()));
+		USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
 		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
 		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
 		PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
@@ -296,7 +294,7 @@ public class Start {
 		SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
 		SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
 		SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
-		SHOW_PDB_RES_NUMBERS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMBERS",Boolean.toString(SHOW_PDB_RES_NUMBERS)));
+		SHOW_PDB_RES_NUMS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS)));
 		
 		// pymol connection
 		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
@@ -335,11 +333,11 @@ public class Start {
 		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
 		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
 		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
-		p.setProperty("INCLUDE_GROUP_INTERNALS",  Boolean.toString(INCLUDE_GROUP_INTERNALS));	// doc?																			
-		p.setProperty("PRELOAD_PYMOL", Boolean.toString(PRELOAD_PYMOL));						// doc?
-		p.setProperty("SHUTDOWN_PYMOL_ON_EXIT", Boolean.toString(SHUTDOWN_PYMOL_ON_EXIT));		// doc
+		p.setProperty("USE_EXPERIMENTAL_FEATURES",  Boolean.toString(USE_EXPERIMENTAL_FEATURES));	// doc?																			
+		p.setProperty("PYMOL_LOAD_ON_START", Boolean.toString(PYMOL_LOAD_ON_START));						// doc?
+		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
 		
-		p.setProperty("FORCE_DSSP",Boolean.toString(FORCE_DSSP));								// doc
+		p.setProperty("USE_DSSP",Boolean.toString(USE_DSSP));								// doc
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
 		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
 		p.setProperty("PDB_FTP_URL",PDB_FTP_URL);												// doc!		
@@ -348,7 +346,7 @@ public class Start {
 		p.setProperty("SHOW_RULERS", Boolean.toString(SHOW_RULERS));							// doc?
 		p.setProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR));							// doc?
 		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
-		p.setProperty("SHOW_PDB_RES_NUMBERS",Boolean.toString(SHOW_PDB_RES_NUMBERS));			// doc?
+		p.setProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS));					// doc?
 		
 		// pymol connection
 		p.setProperty("PYMOL_HOST",PYMOL_HOST);													// doc?
@@ -776,7 +774,7 @@ public class Start {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 System.out.println("Shutting down");
-                if(isPyMolConnectionAvailable() && SHUTDOWN_PYMOL_ON_EXIT) {
+                if(isPyMolConnectionAvailable() && PYMOL_SHUTDOWN_ON_EXIT) {
                 	pymolAdaptor.shutdown();
                 }
             }
@@ -796,10 +794,10 @@ public class Start {
 			if(pymolAdaptor.tryConnectingToPymol(100) == true) { // running pymol server found
 				System.out.println("PyMol server found. Connected.");
 				// do not shutdown View's possessions!!! 
-				SHUTDOWN_PYMOL_ON_EXIT = false;
+				PYMOL_SHUTDOWN_ON_EXIT = false;
 				pymol_found = true;
 			} else {
-				if(PRELOAD_PYMOL) {
+				if(PYMOL_LOAD_ON_START) {
 					if(runPymol() == false) {
 						//System.err.println("Warning: Failed to start PyMol automatically. Please manually start Pymol with the -R parameter.");	
 						System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
