@@ -131,7 +131,7 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	
 	public void actionPerformed(ActionEvent arg0) {
 		// fetch position of selection and send to viewer (experimental)
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			int start = seqField.getSelectionStart();
 			int end = seqField.getSelectionEnd();
 			int startSeq = 0, endSeq = 0, startPos = 0, endPos = 0;	// all counting from 1..n

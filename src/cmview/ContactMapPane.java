@@ -685,8 +685,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if( !this.hasSecondModel() ) {
 			drawCoordinates(g2d,mod,allContacts,20,outputSize-70,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,Start.SHOW_ALIGNMENT_COORDS);
+			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,view.getGUIState().getShowAlignmentCoords());
+			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,view.getGUIState().getShowAlignmentCoords());
 		}
 	}
 

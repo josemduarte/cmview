@@ -374,14 +374,14 @@ public class View extends JFrame implements ActionListener {
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
 		}
 		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
 		toolBar.addSeparator(separatorDim);		
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
@@ -404,7 +404,7 @@ public class View extends JFrame implements ActionListener {
 		selectionModeButtons.add(tbFillSel);
 		selectionModeButtons.add(tbDiagSel);
 		selectionModeButtons.add(tbSelModeColor);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			selectionModeButtons.add(tbNbhSel);
 			selectionModeButtons.add(tbShowComNbh);
 		}
@@ -416,7 +416,7 @@ public class View extends JFrame implements ActionListener {
 		squareP = makePopupMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, popup);
 		fillP = makePopupMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, popup);
 		rangeP = makePopupMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode, popup);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
 			comNeiP = makePopupMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, popup);
 		}
@@ -425,7 +425,7 @@ public class View extends JFrame implements ActionListener {
 			popup.addSeparator();		
 			sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
 			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
-			if(Start.INCLUDE_GROUP_INTERNALS) {
+			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
 			}
 		}
@@ -496,7 +496,7 @@ public class View extends JFrame implements ActionListener {
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
 		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, submenu);
 		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, submenu);
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, submenu);
 			comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, submenu);
 		}
@@ -525,7 +525,7 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_A);
 		if (Start.USE_PYMOL) {
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
-			if(Start.INCLUDE_GROUP_INTERNALS) {
+			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
 			}
 			menu.addSeparator();

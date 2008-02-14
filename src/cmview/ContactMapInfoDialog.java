@@ -257,7 +257,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		}
 		rows++;
 
-		if(Start.INCLUDE_GROUP_INTERNALS) {
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
 
 			// blank line
 			dataPane.add(new JLabel(" "));

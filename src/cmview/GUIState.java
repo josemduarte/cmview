@@ -23,6 +23,7 @@ public class GUIState {
 	private View view;					// the parent view
 	private SelMode selectionMode;		// current selection mode, modify using setSelectionMode
 	private boolean showPdbSers;		// whether showing pdb serials is switched on
+	private boolean showAlignmentCoords;// whether showing alignment coordinates in info corner is switched on
 	private boolean showRulers;			// whether showing residue rulers is switched on
 	private boolean showIconBar;		// whether showing the icon bar is switched on
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
@@ -41,10 +42,10 @@ public class GUIState {
 	 * Initializes the GUI state with default values.
 	 */
 	GUIState(View view) {
-		// TODO: add showAlignmentIndices
 		this.view = view;
 		this.selectionMode = INITIAL_SEL_MODE;
-		this.showPdbSers = Start.SHOW_PDB_RES_NUMBERS;
+		this.showPdbSers = Start.SHOW_PDB_RES_NUMS;
+		this.showAlignmentCoords=Start.SHOW_ALIGNMENT_COORDS;
 		this.showRulers=Start.SHOW_RULERS;
 		this.showIconBar=Start.SHOW_ICON_BAR;
 		this.showNbhSizeMap = false;
@@ -75,6 +76,13 @@ public class GUIState {
 	protected boolean getShowPdbSers() {
 		return showPdbSers;
 	}
+	
+	/**
+	 * @return the showAlignmentCoords
+	 */
+	protected boolean getShowAlignmentCoords() {
+		return showAlignmentCoords;
+	}	
 
 	/**
 	 * @return the showRulers
