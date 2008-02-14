@@ -261,7 +261,7 @@ public class PyMolAdaptor {
 			if(Out.checkError()) {
 				if (reconnectTries>4) {
 					System.err.println("Couldn't reset connection, PyMol connection is lost!");
-					Start.usePymol(false);
+					Start.setUsePymol(false);
 					return;
 				}
 				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");

@@ -113,7 +113,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		result.setSecondName(getSecondName());
 				
 		if( getActionWhenDone() != null ) {
-			Start.threadPool.submit(
+			Start.getThreadPool().submit(
 					new Runner() {
 						public void implRun() {
 							((Doer) getActionWhenDone()).doit();

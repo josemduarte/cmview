@@ -123,29 +123,27 @@ public class Start {
 	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito
 	
 	/*--------------------------- member variables --------------------------*/
-	
-	// internal status variables (TODO: make private, use getter methods)
-	protected static boolean		database_found = true;		// TODO: Should these be false by default just to be sure?
-	protected static boolean		pymol_found = true;
-	protected static boolean		dssp_found = true;			// check later whether dssp can be used
-	private static Properties		userProperties;				// properties read from the user's config file
-	
+
 	// global session variables (use getter methods)
-	private static MySQLConnection conn;
-	private static JFileChooser fileChooser;
-	private static JColorChooser colorChooser;
-	private static PyMolAdaptor pymolAdaptor;
-	private static int viewInstances = 0;		// for counting instances of view class (=open windows)
+	private static boolean			database_found = false;
+	private static boolean			pymol_found = false;
+	private static boolean			dssp_found = false;
+	
+	private static MySQLConnection 	conn;
+	private static JFileChooser 	fileChooser;
+	private static JColorChooser 	colorChooser;
+	private static PyMolAdaptor 	pymolAdaptor;
+	private static int 				viewInstances = 0;		// for counting instances of view class (=open windows)
 	
 	// the thread pool
-	public static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
+	private static ThreadPoolExecutor threadPool =  (ThreadPoolExecutor) Executors.newCachedThreadPool();
 	
 	// mapping pdb-code to mmCIF files in the tmp-directory, only to be used for ftp loading
 	private static TreeMap<String, File> pdbCode2file = new TreeMap<String, File>();
 	
 	// map of loadedGraphIDs (see member in Model) to original user-loaded Models (the members of View)
 	private static TreeMap<String, Model> loadedGraphs = new TreeMap<String, Model>();
-	
+		
 	/**
 	 * Increase the counter of view instances.
 	 * @return the new number of view instances after increasing the count.
@@ -604,8 +602,7 @@ public class Start {
 	 * e.g.: called after pymol communication is lost
 	 * @param usePymol
 	 */
-	public static void usePymol (boolean usePymol) {
-		USE_PYMOL = usePymol;
+	public static void setUsePymol (boolean usePymol) {
 		pymol_found = usePymol;
 	}
 	
@@ -633,7 +630,7 @@ public class Start {
 	}
 	 
 	 /**
-	  * Return the global colorChooser for this session.
+	  * Returns the global colorChooser for this session.
 	  * @return A JColorChooser to be used whenever possible.
 	  */	
 	 public static JColorChooser getColorChooser() {
@@ -641,17 +638,27 @@ public class Start {
 	  }
 	
 	 /** 
-	  * Return the global pymolAdaptor of this session.
+	  * Returns the global pymolAdaptor of this session.
 	  * @return The PyMolAdaptor object
 	  */
 	 public static PyMolAdaptor getPyMolAdaptor() {
 		 return pymolAdaptor;
 	 }
 	 
+	 /**
+	  * Returns the global threadPool of this session. 
+	  * @return the thread pool
+	  */
+	 public static ThreadPoolExecutor getThreadPool() {
+		 return threadPool;
+	 }
+	 
 	 public static void setPyMolServerUrl(String host, String port) {
 		 PYMOL_SERVER_URL = "http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	 }
 
+	 /*--------------------------------- main --------------------------------*/
+	 
 	/**
 	 * Main method to start CMView application
 	 * @param args command line arguments
@@ -712,7 +719,7 @@ public class Start {
 		
 		// load configuration
 		boolean configFileFound = false;
-		userProperties = new Properties();
+		Properties userProperties = new Properties();
 		
 		// loading from current directory
 		File currentDirConfigFile = new File(CONFIG_FILE_NAME);

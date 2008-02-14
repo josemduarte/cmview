@@ -112,7 +112,7 @@ public class SADPDialog extends ToolDialog {
 		getPreferencesButton().setEnabled(false);
 
 		// compute the alignment in a different thread
-		runnerTask = Start.threadPool.submit(runner);
+		runnerTask = Start.getThreadPool().submit(runner);
 	}
 
 	public void preferences() {

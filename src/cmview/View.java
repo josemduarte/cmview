@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import javax.help.*;
@@ -145,9 +144,6 @@ public class View extends JFrame implements ActionListener {
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
 
 	LoadDialog actLoadDialog;
-
-	// holds a pointer to Start's thread-pool
-	ThreadPoolExecutor threadPool = Start.threadPool;
 
 	// invisible notifiers
 	SADPDialogDoneNotifier sadpNotifier;
