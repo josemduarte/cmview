@@ -77,7 +77,7 @@ public class Start {
 	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	//public static boolean			ICON_BAR_FLOATABLE = false;			// if true, icon bar can be dragged out of the window (buggy, don't use)
-	public static boolean 			SHOW_ALIGNMENT_COORDS = true;		// if true, alignment coordinates also shown in bottom left corner of contact map
+	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map
 	public static boolean 			SHOW_PDB_RES_NUMBERS = false;		// if true, pdb residue numbers also shown in bottom left corner of contact map
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
 
