@@ -1,0 +1,57 @@
+CMView 1.0
+
+Interactive Contact Map Visualization and Analysis
+
+http://molgen.mpg.de/~lappe/cmview/
+
+INSTALLATION
+
+You need Java 1.5 or newer installed on your machine.
+
+1. Edit the file cmview.cfg and set the parameters PYMOL_EXECUTABLE and
+   optionally DSSP_EXECUTABLE to point to your local PyMol and DSSP 
+   executables. (CMView will still run without this step but
+   some functionality will not be available)
+   
+2. To start CMView 
+   on Windows: run cmview.bat
+   on Unix/MacOSX: run cmview.sh 
+
+See http://molgen.mpg.de/~lappe/cmview/installation.html for more information.
+
+DEPENDENCIES
+
+1. Java libraries
+
+Jar file name							Reference												License
+Jama-1.0.2.jar                          http://math.nist.gov/javanumerics/jama/                 Public Domain
+commons-codec-1.3.jar                   http://commons.apache.org/                              Apache License 2.0
+jaligner.jar                            http://jaligner.sourceforge.net/                        GPL
+mysql-connector-java-5.0.5-bin.jar      http://dev.mysql.com/downloads/connector/j/5.1.html     GPL
+vecmath.jar                             https://java3d.dev.java.net/binary-builds.html          GPL with Classpath exception
+ws-commons-util-1.0.1.jar               http://commons.apache.org/                              Apache License 2.0
+xmlrpc-client-3.0.jar                   http://commons.apache.org/                              Apache License 2.0
+xmlrpc-common-3.0.jar                   http://commons.apache.org/                              Apache License 2.0
+JUNG2                                   http://jung.sourceforge.net/                            BSD license
+ collections-generic-4.01.jar
+ jung-api-2.0-alpha2.jar
+ jung-graph-impl-2.0-alpha2.jar
+java-getopt-1.0.13.jar                  http://www.urbanophile.com/arenn/hacking/download.html  LGPL (see http://www.urbanophile.com/arenn/hacking/getopt/ChangeLog)
+
+2. Referenced third-party applications
+
+PyMol http://delsci.com/rel/099/ (Linux, Win, Mac)
+DSSP http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
+
+3. Additional resources
+
+Resource name		License										Author/Contact					Reference
+Silk icon set 1.3	Creative Commons Attribution 2.5 License	Mark James, mjames@gmail.com	http://www.famfamfam.com/lab/icons/silk/
+
+APPENDIX: License file references
+
+Creative Commons Attribution 2.5 License	http://creativecommons.org/licenses/by/2.5/
+Apache License 2.0							http://www.apache.org/licenses/LICENSE-2.0.html
+GPL											http://www.gnu.org/copyleft/gpl.html
+GPL with Classpath exception				http://www.gnu.org/software/classpath/license.html
+BSD license									http://en.wikipedia.org/wiki/BSD_license
