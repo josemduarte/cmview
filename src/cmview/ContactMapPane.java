@@ -792,7 +792,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 
-		if (view.getGUIState().getShowPdbSers()){
+		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
 			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+60);

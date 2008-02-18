@@ -476,10 +476,10 @@ public class View extends JFrame implements ActionListener {
 		// View menu
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);		
-		mmViewShowPdbResSers = makeMenuItem("Show PDB Residue Numbers", icon_deselected, menu);
+		mmViewShowPdbResSers = makeMenuItem("Show PDB Residue Numbers", icon_deselected, null);  // function disabled
 		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, null);		// function disabled
 		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, null);	// function disabled
-		menu.addSeparator();		
+		//menu.addSeparator(); // not needed since all functions above are disabled
 		mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
 		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
 		mmViewShowDistMatrix = makeMenuItem("Show Distance Map", icon_deselected, menu);
