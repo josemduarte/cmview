@@ -2,32 +2,31 @@
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN" "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 <toc version="1.0">
   <tocitem target="top" text="Manual">
-    <tocitem target="overview" text="Overview"/>
     <tocitem target="functionreference" text="Function Reference">
       <tocitem target="menu.file" text="File">
         <tocitem target="menu.file.info" text="Info"/>
         <tocitem target="menu.file.load" text="Load from">
-          <tocitem target="id2529295" text="Load from online PDB"/>
-          <tocitem target="id2529307" text="Load from PDB file"/>
-          <tocitem target="id2529339" text="Load from contact map file"/>
-          <tocitem target="id2529355" text="Load from Casp RR file"/>
+          <tocitem target="id2529290" text="Load from online PDB"/>
+          <tocitem target="id2529302" text="Load from PDB file"/>
+          <tocitem target="id2529334" text="Load from contact map file"/>
+          <tocitem target="id2529350" text="Load from Casp RR file"/>
         </tocitem>
-        <tocitem target="id2529378" text="Save to">
-          <tocitem target="id2529384" text="Save to contact map file*"/>
-          <tocitem target="id2529398" text="Save to Casp RR file*"/>
-          <tocitem target="id2529421" text="Save to PNG file"/>
-          <tocitem target="id2529432" text="Save Alignment to file"/>
+        <tocitem target="id2529373" text="Save to">
+          <tocitem target="id2529379" text="Save to contact map file*"/>
+          <tocitem target="id2529393" text="Save to Casp RR file*"/>
+          <tocitem target="id2529416" text="Save to PNG file"/>
+          <tocitem target="id2529427" text="Save Alignment to file"/>
         </tocitem>
-        <tocitem target="id2529445" text="Print"/>
-        <tocitem target="id2529457" text="Quit"/>
+        <tocitem target="id2529440" text="Print"/>
+        <tocitem target="id2529452" text="Quit"/>
       </tocitem>
       <tocitem target="menu.view" text="View">
-        <tocitem target="id2529477" text="Show PDB residue numbers"/>
-        <tocitem target="id2529514" text="Show rulers"/>
-        <tocitem target="id2529528" text="Show icon bar"/>
-        <tocitem target="id2529539" text="Show common neighborhood sizes*"/>
-        <tocitem target="id2529560" text="Show contact density*"/>
-        <tocitem target="id2529598" text="Show distance map*"/>
+        <tocitem target="id2529471" text="Show PDB residue numbers"/>
+        <tocitem target="id2529509" text="Show rulers"/>
+        <tocitem target="id2529523" text="Show icon bar"/>
+        <tocitem target="id2529534" text="Show common neighborhood sizes*"/>
+        <tocitem target="id2529555" text="Show contact density*"/>
+        <tocitem target="id2529592" text="Show distance map*"/>
       </tocitem>
       <tocitem target="menu.select" text="Select">
         <tocitem target="menu.select.mode" text="Selection modes">
@@ -37,28 +36,28 @@
           <tocitem target="menu.select.mode.nbh" text="Neighborhood selection mode*"/>
           <tocitem target="menu.select.mode.color" text="Color selection mode*"/>
         </tocitem>
-        <tocitem target="id2529837" text="Select all contacts"/>
-        <tocitem target="id2529848" text="Select by residue number"/>
-        <tocitem target="id2529866" text="Select helix-helix contacts*"/>
-        <tocitem target="id2529877" text="Select sheet-sheet contacts*"/>
-        <tocitem target="id2529888" text="Select contacts between secondary structure elements"/>
-        <tocitem target="id2529900" text="Select contacts within secondary structure elements"/>
+        <tocitem target="id2529831" text="Select all contacts"/>
+        <tocitem target="id2529842" text="Select by residue number"/>
+        <tocitem target="id2529860" text="Select helix-helix contacts*"/>
+        <tocitem target="id2529871" text="Select sheet-sheet contacts*"/>
+        <tocitem target="id2529882" text="Select contacts between secondary structure elements"/>
+        <tocitem target="id2529895" text="Select contacts within secondary structure elements"/>
       </tocitem>
       <tocitem target="menu.color" text="Color">
-        <tocitem target="id2529929" text="Choose color"/>
-        <tocitem target="id2529940" text="Color selected contacts*"/>
-        <tocitem target="id2529951" text="Reset contact colors to black*"/>
+        <tocitem target="id2529923" text="Choose color"/>
+        <tocitem target="id2529935" text="Color selected contacts*"/>
+        <tocitem target="id2529946" text="Reset contact colors to black*"/>
       </tocitem>
       <tocitem target="menu.action" text="Action">
         <tocitem target="menu.action.show3d" text="Show selected contacts in 3D"/>
         <tocitem target="menu.action.delete" text="Delete selected contacts*"/>
       </tocitem>
       <tocitem target="menu.compare" text="Compare">
-        <tocitem target="id2530134" text="Load second contact map"/>
+        <tocitem target="id2530128" text="Load second contact map"/>
         <tocitem target="menu.compare.showcommon" text="Show common contacts"/>
         <tocitem target="menu.compare.showfirst" text="Show contacts unique to first structure"/>
         <tocitem target="menu.compare.showsecond" text="Show contacts unique to second structure"/>
-        <tocitem target="id2524397" text="Show difference map"/>
+        <tocitem target="id2524390" text="Show difference map"/>
         <tocitem target="id2524036" text="Superimpose from selection"/>
         <tocitem target="id2524065" text="Show corresponding residues from selection"/>
       </tocitem>
@@ -66,20 +65,19 @@
         <tocitem target="id2524098" text="Help"/>
         <tocitem target="id2524108" text="CMView website"/>
         <tocitem target="id2524120" text="Write example configuration file"/>
-        <tocitem target="id2524704" text="About"/>
+        <tocitem target="id2524697" text="About"/>
       </tocitem>
       <tocitem target="popup" text="Context menu">
-        <tocitem target="id2524729" text="Show residue pair as edge in 3D"/>
+        <tocitem target="id2524722" text="Show residue pair as edge in 3D"/>
       </tocitem>
       <tocitem target="experimental" text="Experimental features">
-        <tocitem target="id2524754" text="Load structure from relational database"/>
-        <tocitem target="id2524785" text="Load from/save to graph database"/>
-        <tocitem target="id2524798" text="Show common neighbor triangles in contact map"/>
-        <tocitem target="id2524810" text="Show common neighbor triangles in 3D"/>
-        <tocitem target="id2524822" text="Show common neighborhood size map"/>
+        <tocitem target="id2524747" text="Load structure from relational database"/>
+        <tocitem target="id2524778" text="Load from/save to graph database"/>
+        <tocitem target="id2524791" text="Show common neighbor triangles in contact map"/>
+        <tocitem target="id2524803" text="Show common neighbor triangles in 3D"/>
+        <tocitem target="id2524815" text="Show common neighborhood size map"/>
       </tocitem>
     </tocitem>
-    <tocitem target="files" text="File types"/>
-    <tocitem target="config" text="Configuration"/>
+    <tocitem target="id2524831" text="Command line parameters"/>
   </tocitem>
 </toc>
