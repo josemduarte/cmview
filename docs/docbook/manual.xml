@@ -4,11 +4,11 @@
 
   <title>Manual</title>
 
-  <sect1 id="overview">
+  <!-- sect1 id="overview">
 
     <title>Overview</title>
     
-  </sect1>
+  </sect1 -->
 
   <sect1 id="functionreference">
 
@@ -1147,17 +1147,17 @@
 
   </sect1>
 
-  <sect1 id="files">
+  <!-- sect1 id="files">
 
     <title>File types</title>
 
-  </sect1>
+  </sect1 -->
 
-  <sect1 id="config">
+  <!-- sect1 id="config">
 
     <title>Configuration</title>
 
-  </sect1>
+  </sect1 -->
 
 </article>
 
