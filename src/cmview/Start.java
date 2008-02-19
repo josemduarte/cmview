@@ -543,7 +543,7 @@ public class Start {
 		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
 		// parameters should be pdb code and chain code
 		if (pdbCode!=null) {
-			if(USE_DATABASE && database_found) {
+			if(isDatabaseConnectionAvailable()) {
 				try {
 					mod = new PdbaseModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
 					mod.load(pdbChainCode, 1);
@@ -599,6 +599,7 @@ public class Start {
 	 */
 	public static boolean isDatabaseConnectionAvailable() {
 		return Start.USE_DATABASE && Start.database_found;
+		// checking for Start.USE_DATABASE should not be necessary here, but to be safe we keep it here.
 	}
 	
 	/**
@@ -607,6 +608,7 @@ public class Start {
 	 */
 	public static boolean isPyMolConnectionAvailable() {
 		return Start.USE_PYMOL && Start.pymol_found;
+		// checking for Start.USE_PYMOL should not be necessary here, but to be safe we keep it here.
 	}
 	
 	/**
@@ -808,13 +810,11 @@ public class Start {
 				pymol_found = true;
 			} else {
 				if(PYMOL_LOAD_ON_START) {
+					System.out.println("Connecting to PyMol server...");
 					if(runPymol() == false) {
-						//System.err.println("Warning: Failed to start PyMol automatically. Please manually start Pymol with the -R parameter.");	
 						System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
 						pymol_found = false;
-					} else {
-						System.out.println("Connecting to PyMol server...");
-						
+					} else {						
 						// re-set url in case function runPymol detected that 
 						// PyMOL is running on a different port 
 						pymolAdaptor.setPyMolServerUrl(PYMOL_SERVER_URL);
@@ -837,9 +837,10 @@ public class Start {
 		} else {
 			pymol_found = false;
 		}
+		if(pymol_found) pymolAdaptor.initialize();
 		
 		// connect to database
-		if(USE_DATABASE) {
+		if(USE_DATABASE && USE_EXPERIMENTAL_FEATURES) {
 			System.out.println("Connecting to database...");
 			if(tryConnectingToDb() == false) {
 				System.err.println("No database found. Some functionality will not be available.");
@@ -848,6 +849,8 @@ public class Start {
 				System.out.println("Connected.");
 				database_found = true;
 			}
+		} else {
+			database_found = false;
 		}
 
 		// check dssp

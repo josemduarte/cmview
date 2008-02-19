@@ -325,17 +325,23 @@ public class PyMolAdaptor {
 		return false;
 	}
 
-	/** being called when a connection to pymol has been successfully established */ 
+	/** Being called when a connection to pymol has been successfully established */ 
 	private void hooray(OutputStream s) {
 		this.connected = true;
 		this.Out = new PrintWriter(s,true);
+	}
+
+	/**
+	 * Sends some inital set-up commands after a connection has been successfully established.
+	 */
+	public void initialize() {
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
 		
 		// flush the buffer and send commands to PyMol via log-file
-		this.flush();
+		this.flush();		
 	}
-
+	
 	/**
 	 * Shuts down the external viewer instance and releases all resources of this Adaptor.
 	 */
