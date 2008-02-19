@@ -782,6 +782,7 @@ public class Start {
 			Properties p = getCurrentProperties();
 			try {
 					saveConfigFile(p, debugConfigFile);
+					System.out.println("Writing current configuration to " + debugConfigFile);
 				} catch (IOException e) {
 					System.err.println("Error writing local setting to config file " + debugConfigFile + ": " + e.getMessage());
 					System.exit(1);
