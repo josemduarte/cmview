@@ -81,7 +81,7 @@ public class Start {
 	// TODO: DSSP three or four states
 	
 	/* gui settings */
-	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
+	public static int				INITIAL_SCREEN_SIZE = 650;			// initial size of the contactMapPane in pixels
 	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map

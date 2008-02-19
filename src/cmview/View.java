@@ -2914,10 +2914,15 @@ public class View extends JFrame implements ActionListener {
 	private void handleHelpAbout() {
 		JOptionPane.showMessageDialog(this,
 				"<html><center>" +
+				"<p>&nbsp;</p>" +
 				"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
-				"Contact Map Viewer v"+Start.VERSION +
-				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" + 
-				"<p>(C) AG Lappe 2008</p>" +
+				"CMView v"+Start.VERSION +
+				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" +
+				"<p>&nbsp;</p>" +
+				"<p>(C) 2008 The Structural Proteomics Group</p>" +
+				"<p>Max Planck Institute for Molecular Genetics</p>" +
+				"<p>Berlin, Germany</p>" +
+				"<p>&nbsp;</p>" +
 				"</center></html>",
 				"About",
 				JOptionPane.PLAIN_MESSAGE);
