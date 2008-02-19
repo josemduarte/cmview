@@ -14,33 +14,38 @@
 
       <listitem>
 
-        <para>As a prerequisite you will need to have <ulink url="http://pymol.sourceforge.net/">PyMol</ulink> installed. We recommend to get a <ulink url="http://www.pymol.org/funding.html">
-        sponsor version</ulink>. However, a free version (0.99) can be downloaded from here <ulink url="http://delsci.com/rel/099/">here</ulink>.</para>
+        <para>To use some of the most important features of CMView you 
+        need to have <ulink url="http://pymol.sourceforge.net/">
+        PyMol</ulink> installed. We recommend to get a 
+        <ulink url="http://www.pymol.org/funding.html">sponsor 
+        version</ulink>. However, a free version (0.99) can be 
+        downloaded from <ulink url="http://delsci.com/rel/099/">
+        here</ulink> or compiled from source.</para>
 
       </listitem>
 
       <listitem>
 
-        <para>Download the <filename>cmview.zip</filename> file from 
-        <ulink url="download.html">downloads</ulink></para>
+        <para>Download the current version of CMView from 
+        <ulink url="download.html">downloads</ulink>.</para>
 
       </listitem>
 
       <listitem>
 
-        <para>Unzip it into a new directory, this is where CMView will 
-        be installed</para>
+        <para>Unzip the archive into a new directory, this is where 
+        CMView will be installed.</para>
 
       </listitem>
 
       <listitem>
 
-        <para>Now you just need to edit the <filename>
-        cmview.cfg</filename> file to set the path to your pymol 
-        executable in the PYMOL_EXECUTABLE line. You MUST use forward 
-        slashes for the path and no quotes, e.g.: PYMOL_EXECUTABLE= 
-        <filename>c:/Program Files/PyMol/pymol.exe</filename></para>
+        <para>Edit the <filename>cmview.cfg</filename> file to set the 
+        path to your pymol executable in the PYMOL_EXECUTABLE line. 
+        Note that you need to use forward slashes (even on Windows) for 
+        the path and no quotes. For example:</para>
 
+        <programlisting>PYMOL_EXECUTABLE=C:/Program Files/PyMol/pymol.exe</programlisting>
       </listitem>
 
       <listitem>
@@ -51,8 +56,8 @@
 
           <listitem>
 
-            <para>In linux: just run the <filename>cmview</filename> 
-            shell script</para>
+            <para>In Unix: run the <filename>cmview</filename> shell 
+            script</para>
 
           </listitem>
 
@@ -88,8 +93,8 @@
 
       <para>The CMView application itself is just a single java archive 
       file (jar file): <filename>CMView.jar</filename>. It uses a 
-      number of external libraries which for convenience we 
-      include in the downloadable zip file. These are:</para>
+      number of external libraries which for convenience we include in 
+      the downloadable zip file. These are:</para>
 
       <orderedlist>
 
@@ -115,15 +120,15 @@
           <para>From the <ulink url="http://jung.sourceforge.net/">
           JUNG</ulink> project: <filename>
           collections-generic-4.01.jar</filename>, <filename>
-          jung-api-2.0-alpha2.jar</filename>,
-          <filename>jung-graph-impl-2.0-alpha2.jar</filename></para>
+          jung-api-2.0-alpha2.jar</filename>, <filename>
+          jung-graph-impl-2.0-alpha2.jar</filename></para>
 
         </listitem>
 
         <listitem>
 
           <para>
-          <ulink url="http://jaligner.sourceforge.net/">Jaligner</ulink>:
+          <ulink url="http://jaligner.sourceforge.net/">Jaligner</ulink>: 
           <filename>jaligner.jar</filename></para>
 
         </listitem>
@@ -132,8 +137,8 @@
 
           <para>Java 
           <ulink url="http://www.urbanophile.com/arenn/hacking/download.html">
-          getopt</ulink>:
-          <filename>java-getopt-1.0.13.jar</filename></para>
+          getopt</ulink>: <filename>
+          java-getopt-1.0.13.jar</filename></para>
 
         </listitem>
 
@@ -155,8 +160,8 @@
       <programlisting>java -Xmx256m -jar CMView.jar</programlisting>
       <para>We set the JVM memory to 256MB as the contact map 
       generation requires quite a lot of memory. For very big protein 
-      chains (&gt;400 aminoacids) using the ALL atom model you will 
-      need even more: set it to 512MB to be on the safe side.</para>
+      chains (&gt;400 aminoacids) using the ALL atom model you may need 
+      even more: set it to 512MB to be on the safe side.</para>
 
     </sect2>
 
@@ -167,12 +172,15 @@
       <para>By default CMView will get the secondary structure 
       annotation from the PDB file if present. For getting a more 
       consistent secondary structure annotation and to have it in those 
-      cases when is missing in the pdb file, CMView can use the 
-      external program DSSP to assign secondary structure. You can 
-      download DSSP <ulink url="http://swift.cmbi.ru.nl/gv/dssp/">
-      here</ulink>, once installed locally you will have to point the 
-      config file to the executable.</para>
+      cases when it is missing in the file, CMView can use the external 
+      program DSSP to assign secondary structure. You need to obtain 
+      your own licensed copy of DSSP. A free version for non-commercial 
+      use can be found <ulink url="http://swift.cmbi.ru.nl/gv/dssp/">
+      here</ulink>. To activate using DSSP in CMView you need to set 
+      the parameter DSSP_EXECUTABLE in <filename>cmview.cfg</filename>. 
+      For example:</para>
 
+      <programlisting>DSSP_EXECUTABLE=C:/Program Files/dssp/dssp.exe</programlisting>
     </sect2>
 
     <sect2>
@@ -188,8 +196,9 @@
       Per-user customisation is also possible by using a <filename>
       cmview.cfg</filename> file placed in your home directory (in 
       Windows that would be something like <filename>c:\Documents and 
-      Settings\yourusername</filename>). The user configuration will 
-      take precedence over the system-wide one.</para>
+      Settings\yourusername</filename>). Settings in the user 
+      configuration file will take precedence over those in the 
+      system-wide one.</para>
 
     </sect2>
 
