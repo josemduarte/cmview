@@ -781,10 +781,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.drawString(Character.toString(jSSType), x+extraX+40, y+extraTitleY+40);
 		}
 
+		// draw hyphen if (i,j) is a contact
 		if(modContacts.contains(currentCell) ) {
 			g2d.drawLine(x+28, y+extraTitleY+15, x+extraX+35, y+extraTitleY+15);		
 		}
 
+		// write sequence separation in diagonal selection mode
 		if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
 			if(!hasSecondModel()) { // we don't show seq separation in compare mode
 				g2d.drawString("SeqSep", x+80, y+extraTitleY);
@@ -792,6 +794,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 
+		// write pdb residue numbers (if available)
 		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
@@ -829,7 +832,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}			
 			g2d.drawString(Character.toString(ssType), xOffset, outputSize-30);
 		}
-		if (view.getGUIState().getShowPdbSers()){
+		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String pdbresser = mod.getPdbResSerial(seqIdx);
 			g2d.drawString(pdbresser==null?"?":pdbresser, xOffset, outputSize-10);
 		}

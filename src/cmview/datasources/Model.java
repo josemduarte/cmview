@@ -117,19 +117,15 @@ public abstract class Model {
 	/** Check whether secondary structure needs to be assigned and run dssp if so */
 	protected void checkAndAssignSecondaryStructure() {
 		if(has3DCoordinates()) {		// otherwise we can't (re)assign secondary structure
-			if(Start.USE_DSSP || !pdb.hasSecondaryStructure()) {
-				if(!Start.isDsspAvailable()) {
-					System.err.println("Can not (re)assign secondary structure because external DSSP is not available");
-				} else {
-					System.out.println("(Re)assigning secondary structure using DSSP");
-					try {
-						pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
-					} catch (IOException e) {
-						System.err.println("Failed to assign secondary structure: " + e.getMessage());
-					}
+			if(Start.isDsspAvailable()) {
+				System.out.println("(Re)assigning secondary structure using DSSP");
+				try {
+					pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
+				} catch (IOException e) {
+					System.err.println("Failed to assign secondary structure: " + e.getMessage());
 				}
 			}
-		} 
+		}
 	}
 	
 	/**

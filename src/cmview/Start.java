@@ -78,6 +78,7 @@ public class Start {
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
 	// TODO: alignment parameters
+	// TODO: DSSP three or four states
 	
 	/* gui settings */
 	public static int				INITIAL_SCREEN_SIZE = 800;			// initial size of the contactMapPane in pixels
@@ -89,7 +90,7 @@ public class Start {
 	/* enable/disable features */
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
-	public static boolean			USE_DSSP = false;					// if true, secondary structure will be always taken from DSSP (if available)
+	public static boolean			USE_DSSP = true;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static boolean           USE_EXPERIMENTAL_FEATURES = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 																		// currently: common nbh related things, directed graph	
 	/* external programs: dssp */
@@ -787,17 +788,7 @@ public class Start {
 				}
 			System.exit(0);
 		}
-		
-		// add shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                System.out.println("Shutting down");
-                if(isPyMolConnectionAvailable() && PYMOL_SHUTDOWN_ON_EXIT) {
-                	pymolAdaptor.shutdown();
-                }
-            }
-        });
-		
+			
 		// check temp directory
 		System.out.println("Using temporary directory " + TEMP_DIR);
 		if(isWritableDir(TEMP_DIR)) {
@@ -858,6 +849,30 @@ public class Start {
 			}
 		}
 
+		// check dssp
+		if(USE_DSSP) {
+			File dssp = new File(Start.DSSP_EXECUTABLE);
+			dssp_found = dssp.canExecute();
+			if(dssp_found) {
+				System.out.println("Using DSSP executable " + Start.DSSP_EXECUTABLE);
+			} else {
+				System.out.println("No DSSP executable found.");
+			}
+		} else {
+			dssp_found = false;
+		}
+		
+		
+		// add shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                System.out.println("Shutting down");
+                if(isPyMolConnectionAvailable() && PYMOL_SHUTDOWN_ON_EXIT) {
+                	pymolAdaptor.shutdown();
+                }
+            }
+        });
+		
 		setLookAndFeel();
 		
 		// initialize session variables
