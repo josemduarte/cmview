@@ -445,7 +445,7 @@ public class View extends JFrame implements ActionListener {
 		// Load
 		submenu = new JMenu("Load from");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
-		if(Start.USE_DATABASE) {
+		if(Start.USE_DATABASE && Start.USE_EXPERIMENTAL_FEATURES) {
 			mmLoadGraph = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
 			mmLoadPdbase = makeMenuItem(LABEL_PDBASE,null,submenu);
 			mmLoadMsd = makeMenuItem(LABEL_MSD,null, submenu);
@@ -462,7 +462,7 @@ public class View extends JFrame implements ActionListener {
 		mmSaveCmFile = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmSaveCaspRRFile = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		mmSavePng = makeMenuItem(LABEL_PNG_FILE, null, submenu);
-		if(Start.USE_DATABASE) {
+		if(Start.USE_DATABASE && Start.USE_EXPERIMENTAL_FEATURES) {
 			mmSaveGraphDb = makeMenuItem(LABEL_GRAPH_DB, null, submenu);
 		}
 		mmSaveAli = makeMenuItem(LABEL_ALIGNMENT_FILE, null, submenu);
@@ -536,7 +536,7 @@ public class View extends JFrame implements ActionListener {
 		submenu = new JMenu(LABEL_COMPARE_CM);
 		menu.add(submenu);
 		smCompare.put("Load", submenu);
-		if(Start.USE_DATABASE) {
+		if(Start.USE_DATABASE && Start.USE_EXPERIMENTAL_FEATURES) {
 			mmLoadGraph2 = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
 			mmLoadPdbase2 = makeMenuItem(LABEL_PDBASE,null,submenu);
 			mmLoadMsd2 = makeMenuItem(LABEL_MSD,null, submenu);
