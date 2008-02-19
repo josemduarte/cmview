@@ -852,7 +852,7 @@ public class Start {
 		// check dssp
 		if(USE_DSSP) {
 			File dssp = new File(Start.DSSP_EXECUTABLE);
-			dssp_found = dssp.canExecute();
+			dssp_found = dssp.canRead();
 			if(dssp_found) {
 				System.out.println("Using DSSP executable " + Start.DSSP_EXECUTABLE);
 			} else {
