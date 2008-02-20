@@ -38,9 +38,7 @@ public abstract class Model {
 	// structure and contact map data
 	protected Pdb pdb;								// this can be null if there are no 3D coordinates available
 	protected RIGraph graph;						// currently every model must have a valid graph object
-	protected int minSeqSep = -1; 				  	// -1 meaning not set
-	protected int maxSeqSep = -1; 					// store this here because the graph object doesn't have it yet
-	protected HashMap<Pair<Integer>,Double> distMatrix; 		// the scaled [0-1] distance matrix
+	protected HashMap<Pair<Integer>,Double> distMatrix; // the scaled [0-1] distance matrix TODO: Could move this to ContactMapPane
 
 	private File tempPdbFile;						// the file with the atomic coordinates to be loaded into pymol
 	
@@ -64,8 +62,6 @@ public abstract class Model {
 	public Model(Model mod) {
 	    this.pdb = mod.pdb;
 	    this.graph = mod.graph;
-	    this.minSeqSep = mod.minSeqSep; 				  
-	    this.maxSeqSep = mod.maxSeqSep;
 	    this.distMatrix = mod.distMatrix;
 	    this.tempPdbFile = mod.tempPdbFile;
 	    this.loadedGraphID = mod.loadedGraphID;
@@ -94,17 +90,15 @@ public abstract class Model {
 
 	/** 
 	 * Filter out unwanted contacts and initializes the seqSep variable. 
-	 * Note: this causes trouble for directed graphs 
+	 * Warning: Not tested for directed graphs 
 	 */
 	protected void filterContacts(int minSeqSep, int maxSeqSep) {
 		if(minSeqSep > 0) {
-			this.graph.restrictContactsToMinRange(minSeqSep);
+			this.graph.restrictContactsToMinRange(minSeqSep);			
 		}
 		if(maxSeqSep > 0) {
 			this.graph.restrictContactsToMaxRange(maxSeqSep);
 		}
-		this.minSeqSep = minSeqSep; // remember values for later (info screen)
-		this.maxSeqSep = maxSeqSep; 
 	}
 	
 	/** Print some warnings if necessary */
@@ -126,22 +120,6 @@ public abstract class Model {
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Sets the minimal sequence separation.
-	 * @param minSeqSep
-	 */
-	protected void setMinSequenceSeparation(int minSeqSep) {
-		this.minSeqSep = minSeqSep;
-	}
-	
-	/**
-	 * Sets the maximal sequence separation.
-	 * @param maxSeqSep
-	 */
-	protected void setMaxSequenceSeparation(int maxSeqSep) {
-		this.maxSeqSep = maxSeqSep;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -264,12 +242,12 @@ public abstract class Model {
 	
 	/** Returns the sequence separation of the current graph */
 	public int getMinSequenceSeparation() {
-		return this.minSeqSep;
+		return this.graph.getMinSeqSep();
 	}
 	
 	/** Returns the sequence separation of the current graph */
 	public int getMaxSequenceSeparation() {
-		return this.maxSeqSep;
+		return this.graph.getMaxSeqSep();
 	}
 
 	/** 

@@ -17,6 +17,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import proteinstructure.PdbCodeNotFoundError;
+import proteinstructure.Pdb;
+import proteinstructure.ProtStructGraph;
 
 import tools.MySQLConnection;
 
@@ -39,9 +41,6 @@ public class Start {
 	/* internal constants (not user changeable) */
 	public static final String		APP_NAME = 				"CMView";			// name of this application
 	public static final String		VERSION = 				"1.0-rc1";			// current version of this application (should match manifest)
-	public static final String		NULL_CHAIN_CODE = 		"NULL"; 			// used by Pdb/Graph objects for the empty pdbChainCode
-	public static final int			NO_SEQ_SEP_VAL =		-1;					// default seq sep value indicating that no seq sep has been specified
-	public static final String		NO_SEQ_SEP_STR =		"none";				// text output if some seqsep variable equals NO_SEQ_SEP_VAL
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
@@ -119,9 +118,9 @@ public class Start {
 	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
 	
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
-	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 				// dito
-	private static int        		DEFAULT_MIN_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito
-	private static int        		DEFAULT_MAX_SEQSEP = 		NO_SEQ_SEP_VAL;		// dito
+	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 								// dito
+	private static int        		DEFAULT_MIN_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
+	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -537,13 +536,14 @@ public class Start {
 	private static Model preloadModel(String pdbCode, String pdbFile, String pdbChainCode, String contactType, double cutoff) {
 		Model mod = null;
 		if(pdbChainCode==null) {
-			pdbChainCode = NULL_CHAIN_CODE;
+			pdbChainCode = Pdb.NULL_CHAIN_CODE;
 		}
 		if (contactType == null) contactType = DEFAULT_CONTACT_TYPE;
 		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
 		// parameters should be pdb code and chain code
 		if (pdbCode!=null) {
 			if(isDatabaseConnectionAvailable()) {
+				// load from pdbase
 				try {
 					mod = new PdbaseModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
 					mod.load(pdbChainCode, 1);
@@ -558,6 +558,7 @@ public class Start {
 					System.err.println(e.getMessage());
 				}			
 			} else {
+				// load from online pdb
 				try {
 					mod = new PdbFtpModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
 					mod.load(pdbChainCode, 1);

@@ -16,7 +16,7 @@ import actionTools.Getter;
 import actionTools.GetterError;
 
 import proteinstructure.AAinfo;
-
+import proteinstructure.Pdb;
 
 /**
  * A dialog to load a contact map. This dialog is used by several load commands
@@ -423,7 +423,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		}
 		
 		String selectedCc = item.toString();		
-		if(selectedCc.length() == 0) selectedCc = Start.NULL_CHAIN_CODE;
+		if(selectedCc.length() == 0) selectedCc = Pdb.NULL_CHAIN_CODE;
 		return selectedCc;
 	}
 

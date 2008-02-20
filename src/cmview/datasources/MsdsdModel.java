@@ -8,20 +8,24 @@ import cmview.Start;
  */
 public class MsdsdModel extends Model {
 
-	String pdbCode;
-	String edgeType;
-	double distCutoff;
-	
+	/* These members' only purpose is to temporarily store some values passed to the constructor and use them in load().
+	   Eventually these should be parameters of load directly, but for the moment we keep them here in order to keep
+	   the interface unchanged.
+	*/
+	private String edgeType;
+	private double distCutoff;
+	private int minSeqSep;
+	private int maxSeqSep;
+
 	/**
 	 * Overloaded constructor to load the data.
 	 * @throws ModelConstructionError 
 	 */
 	public MsdsdModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) {
-		this.pdbCode = pdbCode;
 		this.edgeType = edgeType;
 		this.distCutoff = distCutoff;
-		super.setMinSequenceSeparation(minSeqSep);
-		super.setMaxSequenceSeparation(maxSeqSep);
+		this.minSeqSep = minSeqSep;
+		this.maxSeqSep = maxSeqSep;		
 		this.pdb = new MsdsdPdb(pdbCode, db, Start.getDbConnection());
 	}
 	

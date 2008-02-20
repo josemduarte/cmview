@@ -10,8 +10,14 @@ import proteinstructure.*;
  */
 public class PdbaseModel extends Model {
 	
-	String edgeType;
-	double distCutoff;
+	/* These members' only purpose is to temporarily store some values passed to the constructor and use them in load().
+	   Eventually these should be parameters of load directly, but for the moment we keep them here in order to keep
+	   the interface unchanged.
+	*/
+	private String edgeType;
+	private double distCutoff;
+	private int minSeqSep;
+	private int maxSeqSep;
 		
 	/**
 	 * Overloaded constructor to load the data.
@@ -22,8 +28,8 @@ public class PdbaseModel extends Model {
 	throws PdbCodeNotFoundError, SQLException   {
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
-		super.setMinSequenceSeparation(minSeqSep);
-		super.setMaxSequenceSeparation(maxSeqSep);
+		this.minSeqSep = minSeqSep;
+		this.maxSeqSep = maxSeqSep;		
 		this.pdb = new PdbasePdb(pdbCode, db, Start.getDbConnection());
 	}
 	
