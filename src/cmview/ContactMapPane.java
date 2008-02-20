@@ -49,6 +49,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	static final boolean BG_PRELOADING = false;		// if true, maps will be
 													// preloaded in
 													// background
+	
+	private static final boolean SHOW_WEIGHTED_CONTACTS = true; // experimental feature: to show grey-shaded contact weights 
 
 	protected enum ContactSelSet {COMMON, ONLY_FIRST, ONLY_SECOND}; 
 	protected static final int FIRST = 0;
@@ -581,6 +583,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					g2d.setColor(userContactColors.get(cont)); 
 				} else {
 					g2d.setColor(contactColor);
+					if (SHOW_WEIGHTED_CONTACTS) {
+						double weight = mod.getGraph().getEdgeFromSerials(cont.getFirst(), cont.getSecond()).getWeight();
+						float colorWeight = 1.0f - (float) Math.max(0, Math.min(1, weight));
+						g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));
+					}
 				}
 				drawContact(g2d, cont);
 			}
