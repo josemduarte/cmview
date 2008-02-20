@@ -33,141 +33,141 @@
             </listitem>
 
           </varlistentry>
-          
+
           <varlistentry>
 
             <term>Contact type</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The contact type used when creating the 
-            contact map, e.g. Ca, Cb, SC, BB</para>
+              <para>The contact type used when creating the contact 
+              map, e.g. Ca, Cb, SC, BB</para>
 
-          </listitem>
+            </listitem>
 
           </varlistentry>
-          
+
           <varlistentry>
 
             <term>Distance cutoff</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The distance cutoff in angstroms used 
-            when creating the contact map</para>
+              <para>The distance cutoff in angstroms used when creating 
+              the contact map</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
-          
+          </varlistentry>
+
           <varlistentry>
 
             <term>Min Seq Sep</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The minimum sequence separation filter 
-            used when creating the contact map</para>
+              <para>The minimum sequence separation filter used when 
+              creating the contact map</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Max Seq Sep</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The maximum sequence separation filter 
-            used when creating the contact map</para>
+              <para>The maximum sequence separation filter used when 
+              creating the contact map</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Sequence</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The protein sequence. To see the full 
-            sequence, hover mouse over the first few letters, or
-            use click the Show sequence button below</para>
+              <para>The protein sequence. To see the full sequence, 
+              hover mouse over the first few letters, or use click the 
+              <guibutton>Show sequence</guibutton> button at the 
+              bottom.</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Sequence length</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of residues in the full protein 
-            sequence</para>
+              <para>The number of residues in the full protein 
+              sequence</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Unobserved residues</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of residues for which 
-            no 3D coordinates are available</para>
+              <para>The number of residues for which no 3D coordinates 
+              are available</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Secondary structure source</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The source of the 
-            secondary structure annotation (author, DSSP or none)</para>
+              <para>The source of the secondary structure annotation 
+              (author, DSSP or none)</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Number of contacts</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of contacts in the 
-            contact map</para>
+              <para>The number of contacts in the contact map</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
           <varlistentry>
 
             <term>Number of selected contacts</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of contacts 
-            currently selected</para>
+              <para>The number of contacts currently selected</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>            
+          </varlistentry>
 
         </variablelist>
 
-        <para>Only in compare mode:</para>
+        <sect4>
+        <title>Only in compare mode:</title>
 
         <variablelist>
 
@@ -175,29 +175,31 @@
 
             <term>Number of unique contacts</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of contacts 
-            unique to this structure</para>
+              <para>The number of contacts unique to this 
+              structure</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>    
-        
+          </varlistentry>
+
           <varlistentry>
 
             <term>Number of common contacts</term>
 
-          <listitem>
+            <listitem>
 
-            <para>The number of contacts 
-            present in both structures</para>
+              <para>The number of contacts present in both 
+              structures</para>
 
-          </listitem>
+            </listitem>
 
-          </varlistentry>    
+          </varlistentry>
 
         </variablelist>
+        
+       </sect4>
 
       </sect3>
 
@@ -1311,14 +1313,15 @@
         <listitem>
 
           <para><command>-p &lt;pdb code&gt;</command>: a 4-letter PDB 
-          code to be loaded in CMView from Online PDB.</para>
+          code to be loaded in CMView from Online PDB (Internet 
+          connection required).</para>
 
         </listitem>
 
         <listitem>
 
-          <para><command>-f &lt;pdb file&gt;</command>: a PDB file to 
-          be loaded in CMView.</para>
+          <para><command>-f &lt;pdb file&gt;</command>: a local PDB 
+          file to be loaded in CMView.</para>
 
         </listitem>
 
@@ -1348,23 +1351,22 @@
 
         <listitem>
 
-          <para><command>-o &lt;config file&gt;</command>: a config 
-          file to read configuration parameters from. See 
+          <para><command>-o &lt;config file&gt;</command>: a file to 
+          read configuration parameters from. See 
           <link linkend="config">Configuration</link>.</para>
 
         </listitem>
 
         <listitem>
 
-          <para><command>-v</command>: prints CMView&apos;s version and 
-          exit.</para>
+          <para><command>-v</command>: print version and exit.</para>
 
         </listitem>
 
         <listitem>
 
-          <para><command>-h</command>: prints out command line 
-          parameters help and exit.</para>
+          <para><command>-h</command>: print help on command line 
+          parameters and exit.</para>
 
         </listitem>
 

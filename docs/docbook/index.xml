@@ -8,7 +8,7 @@
   tool. It will be available for download soon. If you are interested 
   in a preview version, please contact stehr@molgen.mpg.de.</para>
 
-  <para>Current version: 0.9.3</para>
+  <para>Current version: 1.0-rc1</para>
 
   <para />
 
@@ -53,8 +53,8 @@
 
     <listitem>
 
-      <para>Various contact map analysis features including distance 
-      map, difference map and contact density</para>
+      <para>Distance map, difference map, contact density 
+      analysis</para>
 
     </listitem>
 
@@ -71,8 +71,7 @@
 
   <itemizedlist>
 
-    <title>Types of analyses that can be done with CMView 
-    include:</title>
+    <title>Example applications:</title>
 
     <listitem>
 
