@@ -18,7 +18,8 @@
 
     <listitem>
 
-      <para>Combined contact map and 3D structure view</para>
+      <para>Combined contact map and 3D structure view (using 
+      PyMol)</para>
 
     </listitem>
 
@@ -35,18 +36,11 @@
       definitions</para>
 
     </listitem>
-    
+
     <listitem>
 
       <para>Integration with PyMol for feature-rich 3D molecular 
       visualization</para>
-
-    </listitem>
-
-    <listitem>
-
-      <para>Interactive selection of single or multiple contacts and 
-      visualization in 3D</para>
 
     </listitem>
 
@@ -60,14 +54,14 @@
     <listitem>
 
       <para>Various contact map analysis features including distance 
-      map, difference map, contact density</para>
+      map, difference map and contact density</para>
 
     </listitem>
 
     <listitem>
 
-      <para>Available for Unix, Windows, MacOS and other 
-      platforms</para>
+      <para>Available for Unix, Windows, MacOS and other platforms 
+      supporting Java</para>
 
     </listitem>
 
@@ -82,14 +76,14 @@
 
     <listitem>
 
-      <para>Assessing similarites and differences between structure or 
+      <para>Assessing similarites and differences between structure- or 
       contact predictions</para>
 
     </listitem>
 
     <listitem>
 
-      <para>Studying interactions between secondary structure 
+      <para>Studying interaction patterns between secondary structure 
       elements</para>
 
     </listitem>

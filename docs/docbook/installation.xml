@@ -2,25 +2,27 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 <article lang="en">
 
-  <title>Installing</title>
+  <title>Installation</title>
 
   <sect1>
 
     <title>Quick installation</title>
 
-    <para>The basic installation is very simple:</para>
+    <para> You need Java 1.5 or newer installed (available from 
+    <ulink>http://java.sun.com</ulink>).</para>
 
     <orderedlist>
 
       <listitem>
 
-        <para>To use some of the most important features of CMView you 
-        need to have <ulink url="http://pymol.sourceforge.net/">
-        PyMol</ulink> installed. We recommend to get a 
-        <ulink url="http://www.pymol.org/funding.html">sponsor 
+        <para>CMView uses <ulink url="http://pymol.sourceforge.net/">
+        PyMol</ulink> for 3D molecular visualization. To use this 
+        feature you need to have PyMol installed. For the latest 
+        features and because PyMol is great software, we recommend to 
+        get a <ulink url="http://www.pymol.org/funding.html">sponsor 
         version</ulink>. However, a free version (0.99) can be 
         downloaded from <ulink url="http://delsci.com/rel/099/">
-        here</ulink> or compiled from source.</para>
+        here</ulink> or can be compiled from source code.</para>
 
       </listitem>
 
@@ -33,45 +35,39 @@
 
       <listitem>
 
-        <para>Unzip the archive into a new directory, this is where 
-        CMView will be installed.</para>
+        <para>Unzip the archive. A directory 
+        <filename>cmview-currentversion</filename> will be 
+        created.</para>
 
       </listitem>
 
       <listitem>
 
-        <para>Edit the <filename>cmview.cfg</filename> file to set the 
-        path to your pymol executable in the PYMOL_EXECUTABLE line. 
-        Note that you need to use forward slashes (even on Windows) for 
-        the path and no quotes. For example:</para>
+        <para>Edit the <filename>cmview.cfg</filename> file in 
+        <filename>cmview-currentversion</filename> and set the variable 
+        PYMOL_EXECUTABLE to point to your local PyMol executable (see 
+        example below). Note that you need to use forward slashes (even 
+        on Windows) for the path and no quotes.</para>
 
         <programlisting>PYMOL_EXECUTABLE=C:/Program Files/PyMol/pymol.exe</programlisting>
       </listitem>
 
       <listitem>
 
-        <para>You are done! To run the program:</para>
+        <para>To run the program:</para>
 
         <itemizedlist>
 
           <listitem>
 
-            <para>In Unix: run the <filename>cmview</filename> shell 
-            script</para>
+            <para>In Unix and MacOSX: run <filename>
+            cmview.sh</filename></para>
 
           </listitem>
 
           <listitem>
 
-            <para>In Windows: double click on <filename>
-            cmview.bat</filename></para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>In Mac: double click on <filename>
-            CMView.jar</filename></para>
+            <para>In Windows: run <filename>cmview.bat</filename></para>
 
           </listitem>
 
@@ -91,8 +87,8 @@
 
       <title>External libraries</title>
 
-      <para>The CMView application itself is just a single java archive 
-      file (jar file): <filename>CMView.jar</filename>. It uses a 
+      <para>The CMView application itself is packaged in a single java 
+      archive (.jar) file: <filename>CMView.jar</filename>. It uses a 
       number of external libraries which for convenience we include in 
       the downloadable zip file. These are:</para>
 
@@ -144,10 +140,6 @@
 
       </orderedlist>
 
-      <para>All of the jar dependencies must be placed in a <filename>
-      jars</filename> directory under the directory where <filename>
-      CMView.jar</filename> is located.</para>
-
     </sect2>
 
     <sect2>
@@ -176,9 +168,9 @@
       program DSSP to assign secondary structure. You need to obtain 
       your own licensed copy of DSSP. A free version for non-commercial 
       use can be found <ulink url="http://swift.cmbi.ru.nl/gv/dssp/">
-      here</ulink>. To activate using DSSP in CMView you need to set 
-      the parameter DSSP_EXECUTABLE in <filename>cmview.cfg</filename>. 
-      For example:</para>
+      here</ulink>. To enable using DSSP in CMView you need to set the 
+      parameter DSSP_EXECUTABLE in <filename>cmview.cfg</filename> to 
+      point to your dssp executable. For example:</para>
 
       <programlisting>DSSP_EXECUTABLE=C:/Program Files/dssp/dssp.exe</programlisting>
     </sect2>
@@ -188,8 +180,9 @@
       <title>Config file</title>
 
       <para>There are other configurable parameters that can be set in 
-      the config file. Please refer to the <ulink url="manual.html">
-      user&apos;s manual</ulink> for a full description.</para>
+      the config file <filename>cmview.cfg</filename>. Please refer to 
+      the <ulink url="manual.html">user&apos;s manual</ulink> for a 
+      full description.</para>
 
       <para>The configuration file will be read first from the 
       directory where you installed CMView (system-wide config). 

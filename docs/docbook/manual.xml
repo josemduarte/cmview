@@ -4,12 +4,6 @@
 
   <title>Manual</title>
 
-  <!-- sect1 id="overview">
-
-    <title>Overview</title>
-    
-  </sect1 -->
-
   <sect1 id="functionreference">
 
     <title>Function Reference</title>
@@ -25,106 +19,185 @@
         <para>Shows information about the currently loaded contact map 
         (or contact maps in compare mode):</para>
 
-        <orderedlist>
+        <variablelist>
+
+          <varlistentry>
+
+            <term>Name</term>
+
+            <listitem>
+
+              <para>An identifier for the contact map (usually the PDB 
+              four-letter code if applicable)</para>
+
+            </listitem>
+
+          </varlistentry>
+          
+          <varlistentry>
+
+            <term>Contact type</term>
 
           <listitem>
 
-            <para>Name An identifier for the contact map (usually the 
-            PDB four-letter code if applicable)</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Contact type The contact type used when creating the 
+            <para>The contact type used when creating the 
             contact map, e.g. Ca, Cb, SC, BB</para>
 
           </listitem>
 
+          </varlistentry>
+          
+          <varlistentry>
+
+            <term>Distance cutoff</term>
+
           <listitem>
 
-            <para>Distance cutoff The distance cutoff in angstroms used 
+            <para>The distance cutoff in angstroms used 
             when creating the contact map</para>
 
           </listitem>
 
+          </varlistentry>            
+          
+          <varlistentry>
+
+            <term>Min Seq Sep</term>
+
           <listitem>
 
-            <para>Min Seq Sep The minimum sequence separation filter 
+            <para>The minimum sequence separation filter 
             used when creating the contact map</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Max Seq Sep</term>
+
           <listitem>
 
-            <para>Max Seq Sep The macimum sequence separation filter 
+            <para>The maximum sequence separation filter 
             used when creating the contact map</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Sequence</term>
+
           <listitem>
 
-            <para>Sequence The protein sequence, to see the full 
-            sequence, hover mouse over the first few letters</para>
+            <para>The protein sequence. To see the full 
+            sequence, hover mouse over the first few letters, or
+            use click the Show sequence button below</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Sequence length</term>
+
           <listitem>
 
-            <para>Sequence The number of residues in the full protein 
+            <para>The number of residues in the full protein 
             sequence</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Unobserved residues</term>
+
           <listitem>
 
-            <para>Unobserved residues The number of residues for which 
+            <para>The number of residues for which 
             no 3D coordinates are available</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Secondary structure source</term>
+
           <listitem>
 
-            <para>Secondary structure source The source of the 
-            secondary structure annotation (author or DSSP)</para>
+            <para>The source of the 
+            secondary structure annotation (author, DSSP or none)</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Number of contacts</term>
+
           <listitem>
 
-            <para>Number of contacts The number of contacts in the 
+            <para>The number of contacts in the 
             contact map</para>
 
           </listitem>
 
+          </varlistentry>            
+
+          <varlistentry>
+
+            <term>Number of selected contacts</term>
+
           <listitem>
 
-            <para>Number of selected contacts The number of contacts 
+            <para>The number of contacts 
             currently selected</para>
 
           </listitem>
 
-        </orderedlist>
+          </varlistentry>            
+
+        </variablelist>
 
         <para>Only in compare mode:</para>
 
-        <orderedlist>
+        <variablelist>
+
+          <varlistentry>
+
+            <term>Number of unique contacts</term>
 
           <listitem>
 
-            <para>Number of unique contacts The number of contacts 
+            <para>The number of contacts 
             unique to this structure</para>
 
           </listitem>
 
+          </varlistentry>    
+        
+          <varlistentry>
+
+            <term>Number of common contacts</term>
+
           <listitem>
 
-            <para>Number of common contacts The number of contacts 
+            <para>The number of contacts 
             present in both structures</para>
 
           </listitem>
 
-        </orderedlist>
+          </varlistentry>    
+
+        </variablelist>
 
       </sect3>
 
@@ -413,25 +486,67 @@
 
           <title>Rectangular selection mode</title>
 
-          <para>In contact map</para>
+          <itemizedlist>
 
-          <para>Drag to select rectangular region of contacts</para>
+            <title>In contact map</title>
 
-          <para>Click on contact to select single contact</para>
+            <listitem>
 
-          <para>Ctrl+click to add to current selection</para>
+              <para>Drag to select rectangular region of contacts</para>
 
-          <para>Click on white space to reset selection</para>
+            </listitem>
 
-          <para>In ruler</para>
+            <listitem>
 
-          <para>Click on secondary structure element to select the 
-          corresponding residues</para>
+              <para>Drag to select rectangular region of contacts</para>
 
-          <para>Drag to select range of residues</para>
+            </listitem>
 
-          <para>Intersection of horizontal and vertical residue 
-          selections selects contacts</para>
+            <listitem>
+
+              <para>Click on contact to select single contact</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on white space to reset selection</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+          <itemizedlist>
+
+            <title>In ruler</title>
+
+            <listitem>
+
+              <para>Click on secondary structure element to select the 
+              corresponding residues</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Drag to select range of residues</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Intersection of horizontal and vertical residue 
+              selections selects contacts</para>
+
+            </listitem>
+
+          </itemizedlist>
 
         </sect4>
 
@@ -439,17 +554,43 @@
 
           <title>Fill selection mode</title>
 
-          <para>In contact map</para>
+          <itemizedlist>
 
-          <para>Click on contact to select cluster of contacts</para>
+            <title>In contact map</title>
 
-          <para>Ctrl+click to add to current selection</para>
+            <listitem>
 
-          <para>Click on white space to reset selection</para>
+              <para>Click on contact to select cluster of 
+              contacts</para>
 
-          <para>In ruler</para>
+            </listitem>
 
-          <para>Same behavior as in square selection mode</para>
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on white space to reset selection</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+          <itemizedlist>
+
+            <title>In ruler</title>
+
+            <listitem>
+
+              <para>Same behavior as in rectangular selection 
+              mode</para>
+
+            </listitem>
+
+          </itemizedlist>
 
         </sect4>
 
@@ -457,19 +598,48 @@
 
           <title>Diagonal selection mode</title>
 
-          <para>In contact map</para>
+          <itemizedlist>
 
-          <para>Click to select contacts on current diagonal</para>
+            <title>In contact map</title>
 
-          <para>Drag to select contacts in several diagonals</para>
+            <listitem>
 
-          <para>Ctrl+click to add to current selection</para>
+              <para>Click to select contacts on current diagonal</para>
 
-          <para>Click on white space to reset selection</para>
+            </listitem>
 
-          <para>In ruler</para>
+            <listitem>
 
-          <para>Same behavior as in square selection mode</para>
+              <para>Drag to select contacts in several diagonals</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on white space to reset selection</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+          <itemizedlist>
+
+            <title>In ruler</title>
+
+            <listitem>
+
+              <para>Same behavior as in rectangular selection 
+              mode</para>
+
+            </listitem>
+
+          </itemizedlist>
 
         </sect4>
 
@@ -477,23 +647,55 @@
 
           <title>Neighborhood selection mode*</title>
 
-          <para>In contact map</para>
+          <itemizedlist>
 
-          <para>Click on matrix cell (i,j) to select neighborhoods of 
-          residues i and j</para>
+            <title>In contact map</title>
 
-          <para>Click on diagonal to select neighborhood of single 
-          residue</para>
+            <listitem>
 
-          <para>Ctrl+click to add to current selection</para>
+              <para>Click on residue pair (i,j) to select the union of 
+              neighborhoods of i and j</para>
 
-          <para>Click on lower left half to reset selection</para>
+            </listitem>
 
-          <para>In ruler</para>
+            <listitem>
 
-          <para>Click on residue to select its neighborhood</para>
+              <para>Click on diagonal to select neighborhood of single 
+              residue</para>
 
-          <para>Ctrl+click to add to current selection</para>
+            </listitem>
+
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on lower left half to reset selection</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+          <itemizedlist>
+
+            <title>In ruler</title>
+
+            <listitem>
+
+              <para>Click on residue to select its neighborhood</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+          </itemizedlist>
 
         </sect4>
 
@@ -501,18 +703,43 @@
 
           <title>Color selection mode*</title>
 
-          <para>In contact map</para>
+          <itemizedlist>
 
-          <para>Click on contact to select all contact having the same 
-          color</para>
+            <title>In contact map</title>
 
-          <para>Ctrl+click to add to current selection</para>
+            <listitem>
 
-          <para>Click on white space to reset selection</para>
+              <para>Click on contact to select all contact having the 
+              same color</para>
 
-          <para>In ruler</para>
+            </listitem>
 
-          <para>Same behavior as in square selection mode</para>
+            <listitem>
+
+              <para>Ctrl+click to add to current selection</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on white space to reset selection</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+          <itemizedlist>
+
+            <title>In ruler</title>
+
+            <listitem>
+
+              <para>Same behavior as in rectangular selection 
+              mode</para>
+
+            </listitem>
+
+          </itemizedlist>
 
         </sect4>
 
@@ -1146,18 +1373,6 @@
     </para>
 
   </sect1>
-
-  <!-- sect1 id="files">
-
-    <title>File types</title>
-
-  </sect1 -->
-
-  <!-- sect1 id="config">
-
-    <title>Configuration</title>
-
-  </sect1 -->
 
 </article>
 
