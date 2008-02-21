@@ -391,16 +391,13 @@ public class PyMolAdaptor {
 	 * nonsatisfying results for proteins with a rather low sequence 
 	 * identity!
 	 * 
-	 * @param pdbCodeFirst    pdb code of the first pdb structure
-	 * @param chainCodeFirst  chain code corresponding to the first 
-	 *                         structure
-	 * @param pdbCodeSecond   and the second one
-	 * @param chainCodeSecond and its chain to be considered
+	 * @param structureID1 the structure id of the first structure
+	 * @param structureID2 the structure id of the second structure
 	 * 
-	 * @see alignStructureUserDefined()
+	 * @see pairFitSuperposition()
 	 */
-	public void alignStructure(String pdbCodeFirst, String chainCodeFirst,  String pdbCodeSecond, String chainCodeSecond){
-		sendCommand("align " + pdbCodeSecond + chainCodeSecond + "," + pdbCodeFirst + chainCodeFirst);
+	public void alignStructures(String structureId1,  String structureId2){
+		sendCommand("align " + structureId1 + "," + structureId2);
 		sendCommand("hide lines");
 		sendCommand("hide sticks");
 		sendCommand("zoom");
@@ -410,6 +407,15 @@ public class PyMolAdaptor {
 		this.flush();
 	}
 
+	/**
+	 * Superimpose two structures identified by their structureIDs, using PyMol's
+	 * <code>pair_fit</code> command which does a C-alpha minimum RMSD fit on a
+	 * given set of residues.
+	 * @param structureID1 the structure id of the first structure
+	 * @param structureID2 the structure id of the second structure
+	 * @param chunksFirst an interval set of residues in the first structure
+	 * @param chunksSecond an interval set of residues in the second structure
+	 */
 	public void pairFitSuperposition(String structureID1, String structureID2, IntervalSet chunksFirst, IntervalSet chunksSecond) {
 		// put edge set into the recommended string format
 		StringBuffer chunkSeq = new StringBuffer(chunksFirst.size()*2);
@@ -431,8 +437,6 @@ public class PyMolAdaptor {
 
 		commandLine = commandLine + ", " + structureID2 + "///" + chunkSeq + "/CA";
 
-		//System.out.println("superpositioning cmd:"+commandLine);
-
 		sendCommand(commandLine);
 		sendCommand("hide lines");
 		sendCommand("hide sticks");
@@ -443,6 +447,14 @@ public class PyMolAdaptor {
 		this.flush();
 	}
 
+	/**
+	 * Draw triangle objects in PyMol for a given common neighbourhood.
+	 * @param chainObjName the structure id of the object in PyMol
+	 * @param triangleBaseName the basename of the triagle object in PyMol (a number will be apended)
+	 * @param nodeSelName the name of the node selection to be created
+	 * @param commonNbh the common neighbourhood object for which triangles will be drawn
+	 * @return
+	 */
 	public Collection<String> showTriangles(String chainObjName, String triangleBaseName, String nodeSelName, RIGCommonNbhood commonNbh){
 		int trinum=1;
 		TreeSet<Integer> residues = new TreeSet<Integer>();
@@ -647,12 +659,19 @@ public class PyMolAdaptor {
 		this.flush();
 	}
 	
+	/**
+	 * Create a new selection with the given name in PyMol.
+	 * @param selName the name of the new selection
+	 * @param selection the selection string (following PyMol's selection syntax)
+	 */
 	public void select(String selName, String selection) {
 		
 		String command = "select " + selName + "," + selection;
 		
 		if( command.length() < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT ) {
 			sendCommand(command);
+		} else {
+			System.err.println("Command too long to be sent to PyMol: " + command);
 		}
 	}
 	

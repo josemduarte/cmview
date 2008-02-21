@@ -2021,11 +2021,15 @@ public class View extends JFrame implements ActionListener {
 			if (mod.has3DCoordinates()) {
 				// clear the view (disables all previous selections)
 				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
-
-				// show superpositioning according to the common contacts in pymol
-				TreeSet<Integer> columns = new TreeSet<Integer>();
-				cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
-				doSuperposition3D(mod, mod2, ali, columns);
+				
+				if(cmPane.getCommonContacts().isEmpty()) {
+					Start.getPyMolAdaptor().alignStructures(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
+				} else {
+					// show superpositioning according to the common contacts in pymol
+					TreeSet<Integer> columns = new TreeSet<Integer>();
+					cmPane.getAlignmentColumnsFromContacts(cmPane.getCommonContacts(),columns); 
+					doSuperposition3D(mod, mod2, ali, columns);
+				}
 			}
 		}
 		
