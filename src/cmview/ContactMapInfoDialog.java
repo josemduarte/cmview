@@ -106,6 +106,9 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		String secStrucSrc = null, secStrucSrc2 = null;
 		String commonContactsStr = null, selectedContactsStr = null;
 		String uniqueContactsStr1 = null, uniqueContactsStr2 = null;
+		String cmoStr = null;
+		String accStr = null;
+		String covStr = null;
 		
 //		pdbCode = (mod.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod.getPDBCode());
 //		chainCode = (mod.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod.getChainCode());
@@ -137,6 +140,18 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 			commonContactsStr = Integer.toString(commonContacts);
 			uniqueContactsStr1 = Integer.toString(mod.getNumberOfContacts() - commonContacts);
 			uniqueContactsStr2 = Integer.toString(mod2.getNumberOfContacts() - commonContacts);
+			int unionContacts = mod.getNumberOfContacts() + mod2.getNumberOfContacts() - commonContacts;
+			double cmo = 0;
+			double acc = 0;
+			double cov = 0;
+			if(commonContacts > 0) {
+				cmo = 1.0 * commonContacts/unionContacts;
+				acc = 1.0 * commonContacts / mod2.getNumberOfContacts();
+				cov = 1.0 * commonContacts / mod.getNumberOfContacts();
+			} // else cmo, acc and cov should be zero
+			cmoStr = String.format("%.1f%%", cmo*100);
+			accStr = String.format("%.1f%%", acc*100);
+			covStr = String.format("%.1f%%", cov*100);			
 		}
 		
 		// contact map ids
@@ -309,6 +324,34 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 				dataPane.add(new JLabel(commonContactsStr));
 				dataPane.add(new JLabel(commonContactsStr));		
 				rows++;
+			}
+			
+			// contact map overlap (tanimoto coefficient)
+			if(mod2 != null) {
+				dataPane.add(new JLabel("Contact map overlap:"));
+				dataPane.add(new JLabel(cmoStr));
+				dataPane.add(new JLabel(" "));
+				rows++;
+			}
+			
+			if(Start.USE_EXPERIMENTAL_FEATURES) {
+			
+				// accuracy
+				if(mod2 != null) {
+					dataPane.add(new JLabel("Accuracy:"));
+					dataPane.add(new JLabel(accStr));
+					dataPane.add(new JLabel(" "));
+					rows++;
+				}
+				
+				// coverage
+				if(mod2 != null) {
+					dataPane.add(new JLabel("Coverage:"));
+					dataPane.add(new JLabel(covStr));
+					dataPane.add(new JLabel(" "));
+					rows++;
+				}
+			
 			}
 			
 		}

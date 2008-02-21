@@ -733,7 +733,7 @@ public class Start {
 			}
 		}
 
-		System.out.println("Starting " + APP_NAME + " " + VERSION + " - Interactive contact map viewer");
+		System.out.println("Starting " + APP_NAME + " " + VERSION);
 		
 		// load configuration
 		boolean configFileFound = false;

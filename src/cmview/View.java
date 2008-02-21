@@ -370,8 +370,8 @@ public class View extends JFrame implements ActionListener {
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
+		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
 		}
 		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
@@ -400,8 +400,8 @@ public class View extends JFrame implements ActionListener {
 		selectionModeButtons.add(tbFillSel);
 		selectionModeButtons.add(tbDiagSel);
 		selectionModeButtons.add(tbSelModeColor);
+		selectionModeButtons.add(tbNbhSel);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			selectionModeButtons.add(tbNbhSel);
 			selectionModeButtons.add(tbShowComNbh);
 		}
 
@@ -412,8 +412,8 @@ public class View extends JFrame implements ActionListener {
 		squareP = makePopupMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, popup);
 		fillP = makePopupMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, popup);
 		rangeP = makePopupMenuItem(LABEL_DIAGONAL_SELECTION_MODE, icon_diag_sel_mode, popup);
+		nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			nodeNbhSelP = makePopupMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, popup);
 			comNeiP = makePopupMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, popup);
 		}
 		pmSelModeColor = makePopupMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, popup);
@@ -492,8 +492,8 @@ public class View extends JFrame implements ActionListener {
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
 		fillM = makeMenuItem(LABEL_FILL_SELECTION_MODE, icon_fill_sel_mode, submenu);
 		rangeM = makeMenuItem(LABEL_DIAGONAL_SELECTION_MODE,icon_diag_sel_mode, submenu);
+		nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, submenu);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			nodeNbhSelM = makeMenuItem(LABEL_NODE_NBH_SELECTION_MODE, icon_nbh_sel_mode, submenu);
 			comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, submenu);
 		}
 		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, submenu);
