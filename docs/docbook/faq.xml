@@ -37,7 +37,7 @@
       <answer>
 
         <para>CMView will be released under an open source license. If 
-        you use CMView in your study we ask you to cite this 
+        you use CMView in published work, please cite this 
         website.</para>
 
       </answer>
@@ -69,7 +69,8 @@
 
       <question>
 
-        <para>I am getting a Java out of memory exception.</para>
+        <para>I am getting a Java out of memory exception. What can I 
+        do?</para>
 
       </question>
 
@@ -77,8 +78,8 @@
 
         <para>For large proteins the contact map calculation may use 
         more than the preset amount of memory. Try setting the -Xmx 
-        parameter in the startup script to a higher value (e.g. -Xmx512m 
-        or -Xmx1024m).</para>
+        parameter in the startup script to a higher value (e.g. 
+        -Xmx512m or -Xmx1024m).</para>
 
       </answer>
 

@@ -167,39 +167,40 @@
         </variablelist>
 
         <sect4>
-        <title>Only in compare mode:</title>
 
-        <variablelist>
+          <title>Only in compare mode:</title>
 
-          <varlistentry>
+          <variablelist>
 
-            <term>Number of unique contacts</term>
+            <varlistentry>
 
-            <listitem>
+              <term>Number of unique contacts</term>
 
-              <para>The number of contacts unique to this 
-              structure</para>
+              <listitem>
 
-            </listitem>
+                <para>The number of contacts unique to this 
+                structure</para>
 
-          </varlistentry>
+              </listitem>
 
-          <varlistentry>
+            </varlistentry>
 
-            <term>Number of common contacts</term>
+            <varlistentry>
 
-            <listitem>
+              <term>Number of common contacts</term>
 
-              <para>The number of contacts present in both 
-              structures</para>
+              <listitem>
 
-            </listitem>
+                <para>The number of contacts present in both 
+                structures</para>
 
-          </varlistentry>
+              </listitem>
 
-        </variablelist>
-        
-       </sect4>
+            </varlistentry>
+
+          </variablelist>
+
+        </sect4>
 
       </sect3>
 
@@ -240,7 +241,7 @@
         (if applicable). When opening a .cm file, the application then 
         tries to retrieve the 3D coordinates from the online PDB.</para>
 
-        <sect4>
+        <sect4 id="menu.file.load.onlinepdb">
 
           <title>Load from online PDB</title>
 
@@ -655,15 +656,17 @@
 
             <listitem>
 
-              <para>Click on residue pair (i,j) to select the union of 
-              neighborhoods of i and j</para>
+              <para>Click on residue pair (i,j) to select the 
+              neighborhoods of i and j, i.e. all contacts made by 
+              residue i or residue j.</para>
 
             </listitem>
 
             <listitem>
 
               <para>Click on diagonal to select neighborhood of single 
-              residue</para>
+              residue (This can also be done by clicking in the ruler. 
+              See below.)</para>
 
             </listitem>
 
@@ -1298,7 +1301,7 @@
 
   </sect1>
 
-  <sect1>
+  <sect1 id="command line parameters">
 
     <title>Command line parameters</title>
 
@@ -1373,6 +1376,551 @@
       </itemizedlist>
 
     </para>
+
+  </sect1>
+
+  <sect1 id="config">
+
+    <title>Configuration</title>
+
+    <sect2>
+
+      <para>Certain behaviours of CMView can be configured using 
+      key-value pairs in the configuration file <filename>
+      cmview.cfg</filename>. In general, this should not be necessary. 
+      Be sure you know what you are doing before changing any 
+      settings.</para>
+
+      <para>On startup, the program will search for the configuration 
+      file in the following locations:</para>
+
+      <para>
+
+        <orderedlist>
+
+          <listitem>
+
+            <para>The current directory</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>The current user&apos;s home directory</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>A location specified with the 
+            <link linkend="command line parameters">command line 
+            parameter</link> <command>-o</command></para>
+
+          </listitem>
+
+        </orderedlist>
+
+      </para>
+
+      <para>If a setting is found in more than one file, the earlier 
+      value will be overwritten according to the above order. If no 
+      config file is found, default settings will be used.</para>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Available configuration parameters:</title>
+
+      <para>
+
+        <variablelist>
+
+          <varlistentry>
+
+            <term><parameter>DEFAULT_CONTACT_TYPE</parameter></term>
+
+            <listitem>
+
+              <para>The contact type shown in the load dialog by 
+              default and used for graph generation when loading 
+              structures with <link linkend="command line parameters">
+              command line parameters</link> <command>-p</command> or 
+              <command>-f</command></para>
+
+              <para>Default: Cb</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DEFAULT_DISTANCE_CUTOFF</parameter></term>
+
+            <listitem>
+
+              <para>The distance cutoff shown in the load dialog by 
+              default and used for graph generation when loading 
+              structures with <link linkend="command line parameters">
+              command line parameters</link>  <command>-p</command> or 
+              <command>-f</command></para>
+
+              <para>Default: 8.0</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DEFAULT_MIN_SEQSEP</parameter></term>
+
+            <listitem>
+
+              <para>The minimum sequence separation shown in the load 
+              dialog by default, negative values meaning no 
+              restraint</para>
+
+              <para>Default: -1</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DEFAULT_MAX_SEQSEP</parameter></term>
+
+            <listitem>
+
+              <para>The maximum sequence separation shown in the load 
+              dialog by default, negative values meaning no 
+              restraint</para>
+
+              <para>Default: -1</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>CONFIG_FILE_NAME</parameter></term>
+
+            <listitem>
+
+              <para>The name of the configuration file</para>
+
+              <para>Default: cmview.cfg</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DIST_MAP_CONTACT_TYPE</parameter></term>
+
+            <listitem>
+
+              <para>The contact type being used to calculate the 
+              distance map</para>
+
+              <para>Allowed values: Ca, Cb</para>
+
+              <para>Default: Ca</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PDB_FTP_URL</parameter></term>
+
+            <listitem>
+
+              <para>A URL where PDB structures are being loaded from. 
+              (See <link linkend="menu.file.load.onlinepdb">Load from 
+              Online PDB</link>) This can be used to load structures 
+              from a local mirrored copy of the PDB</para>
+
+              <para>Default: 
+              ftp\://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>TEMP_DIR</parameter></term>
+
+            <listitem>
+
+              <para>The directory for storing temporary files</para>
+
+              <para>Default: The default system temp dir (e.g. 
+              <filename>/tmp</filename> or 
+              <filename>C:\Windows\Temp</filename>)</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>INITIAL_SCREEN_SIZE</parameter></term>
+
+            <listitem>
+
+              <para>The initial size in pixels of the main window on 
+              startup</para>
+
+              <para>Default: 650</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>SHOW_ICON_BAR</parameter></term>
+
+            <listitem>
+
+              <para>Whether the toolbar with command shortcut icons is 
+              shown</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>SHOW_PDB_RES_NUMS</parameter></term>
+
+            <listitem>
+
+              <para>Whether legacy PDB residue numbers are shown in the 
+              lower left corner of the contact map below the secondary 
+              structure</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>SHOW_RULERS</parameter></term>
+
+            <listitem>
+
+              <para>Whether secondary structure rulers are shown (above 
+              and to the left of the contact map)</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>SHOW_ALIGNMENT_COORDS</parameter></term>
+
+            <listitem>
+
+              <para>Whether residue numbers in the alignment are shown 
+              in the lower left corner of the contact map (in brackets 
+              after the default residue numbers)</para>
+
+              <para>Default: false</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>USE_PYMOL</parameter></term>
+
+            <listitem>
+
+              <para>Whether PyMol specific features should be shown in 
+              the menus.</para>
+
+              <para>See also: PYMOL_EXECUTABLE</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>USE_DSSP</parameter></term>
+
+            <listitem>
+
+              <para>Whether DSSP is used for secondary structure 
+              assigment from 3D coordinates.</para>
+
+              <para>See also: DSSP_EXECUTABLE</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DSSP_EXECUTABLE</parameter></term>
+
+            <listitem>
+
+              <para>The path to the local DSSP executable</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>DSSP_PARAMETERS</parameter></term>
+
+            <listitem>
+
+              <para>Parameters passed to DSSP when called by 
+              CMView</para>
+
+              <para>Default: --</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PYMOL_EXECUTABLE</parameter></term>
+
+            <listitem>
+
+              <para>The path to the local PyMol executable</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PYMOL_PORT</parameter></term>
+
+            <listitem>
+
+              <para>The port on which the PyMol server is listening to 
+              commands</para>
+
+              <para>Default: 9123</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PYMOL_SHUTDOWN_ON_EXIT</parameter></term>
+
+            <listitem>
+
+              <para>Whether PyMol will be shutdown when CMView is 
+              closed</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PYMOL_LOAD_ON_START</parameter></term>
+
+            <listitem>
+
+              <para>Whether CMView will try to start PyMol on 
+              startup</para>
+
+              <para>Default: true</para>
+
+            </listitem>
+
+          </varlistentry>
+
+          <varlistentry>
+
+            <term><parameter>PYMOL_CONN_TIMEOUT</parameter></term>
+
+            <listitem>
+
+              <para>The time in milliseconds that CMView will wait for 
+              PyMol to startup before reporting a time out error</para>
+
+              <para>Default: 15000</para>
+
+            </listitem>
+
+          </varlistentry>
+
+        </variablelist>
+
+      </para>
+
+      <sect3>
+
+        <title>Parameters affecting experimental features:</title>
+
+        <para>
+
+          <variablelist>
+
+            <varlistentry>
+
+              <term>
+              <parameter>USE_EXPERIMENTAL_FEATURES</parameter></term>
+
+              <listitem>
+
+                <para>Whether experimental features will be enabled. 
+                Experimental features are unsupported, probably not 
+                tested and are to be used on your own risk.</para>
+
+                <para>Default: false</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>SHOW_WEIGHTED_CONTACTS</parameter></term>
+
+              <listitem>
+
+                <para>Whether contacts with weights between 0 and 1 are 
+                shown as shades of grey in the contact map</para>
+
+                <para>Default: true</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>USE_DATABASE</parameter></term>
+
+              <listitem>
+
+                <para>Whether database specific features should appear 
+                in the menus</para>
+
+                <para>Default: true</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DB_HOST</parameter></term>
+
+              <listitem>
+
+                <para>The database server for structure/graph 
+                databases</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DB_PWD</parameter></term>
+
+              <listitem>
+
+                <para>The password for accessing the database</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DB_USER</parameter></term>
+
+              <listitem>
+
+                <para>The username for accessing the database</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DEFAULT_PDB_DB</parameter></term>
+
+              <listitem>
+
+                <para>The default database for loading structures in 
+                PDBASE format</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DEFAULT_GRAPH_DB</parameter></term>
+
+              <listitem>
+
+                <para>The default database for loading contact 
+                maps</para>
+
+              </listitem>
+
+            </varlistentry>
+
+            <varlistentry>
+
+              <term><parameter>DEFAULT_MSDSD_DB</parameter></term>
+
+              <listitem>
+
+                <para>The default database for loading structures in 
+                MSDSD format</para>
+
+              </listitem>
+
+            </varlistentry>
+
+          </variablelist>
+
+        </para>
+
+      </sect3>
+
+    </sect2>
 
   </sect1>
 

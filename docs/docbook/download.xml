@@ -3,41 +3,38 @@
 <article lang="en">
 
   <title>Download</title>
+
   <para>Coming soon...</para>
-  
-        <itemizedlist>
 
-        <listitem>
+  <itemizedlist>
 
-  			<para>Current version: CMView 1.0 (zip archive)</para>
+    <listitem>
 
-        </listitem>
+      <para>Current version: CMView 1.0-rc1 (zip archive)</para>
 
-        <listitem>
+    </listitem>
 
-  			<para>PDF manual</para>
+    <listitem>
 
-        </listitem>
-        
-        <listitem>
+      <para>PDF manual</para>
 
-  			<para>License files for third party libraries</para>
+    </listitem>
 
-        </listitem>
-        
-        <listitem>
+    <listitem>
 
-  			<para>Feature comparison with similar software</para>
+      <para>Feature comparison with similar software</para>
 
-        </listitem>
-        
-        <listitem>
+    </listitem>
 
-  			<para>Older versions</para>
+    <listitem>
 
-        </listitem>
+      <para>Older versions:</para>
 
-      </itemizedlist>
-  
+      <para>none so far</para>
+
+    </listitem>
+
+  </itemizedlist>
 
 </article>
+

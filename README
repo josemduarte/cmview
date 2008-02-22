@@ -11,11 +11,12 @@ INSTALLATION
 	1. Edit the file cmview.cfg and set the parameters PYMOL_EXECUTABLE and
 	   optionally DSSP_EXECUTABLE to point to your local PyMol and DSSP 
 	   executables. (CMView will still run without this step but
-	   some functionality will not be available)
+	   some functionality will not be available).
 	   
 	   Free executables for academic use are available from:
 	   http://delsci.com/rel/099/ (Linux, Win, Mac)
 	   http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
+	   Please note the individual terms of a license for these programs.
    
 	2. To start CMView 
 	   on Windows: run cmview.bat
@@ -24,7 +25,7 @@ INSTALLATION
 	See http://molgen.mpg.de/~lappe/cmview/installation.html for more
 	information.
 
-DEPENDENCIES
+THIRD PARTY LICENSE INFORMATION
 
 	CMView uses the following third-party libraries
 	which are contained in the CMView download archive:
