@@ -44,6 +44,7 @@ public class Start {
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
+	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
 	
 	/*---------------------------- configuration ---------------------------*/
 	
@@ -802,7 +803,14 @@ public class Start {
 			unpackResources();
 		} else {
 			System.err.println("Error: Can not write to temporary directory. Some features may not function correctly.");
+			System.exit(1);
 		}
+		
+		// setting the dummy file to trash all unwanted output from jaligner (done through a java Logger)
+		File trashLogFile = new File(TEMP_DIR, TRASH_LOGFILE);
+		trashLogFile.deleteOnExit();
+		System.setProperty("java.util.logging.config.file",trashLogFile.getAbsolutePath());
+		
 		
 		// connect to pymol
 		if(USE_PYMOL) {
