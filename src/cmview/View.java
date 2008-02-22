@@ -1705,6 +1705,8 @@ public class View extends JFrame implements ActionListener {
 			return;
 		}
 
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+		
 		// load alignment
 		ali = new Alignment(source.getPath(),"FASTA");
 
@@ -1716,11 +1718,13 @@ public class View extends JFrame implements ActionListener {
 		ali.resetTags(names);
 
 		// if file provided doesn't have the right sequences we throw exception
-		if (!mod.getSequence().equals(ali.getSequenceNoGaps(name1))) {	
+		if (!mod.getSequence().equals(ali.getSequenceNoGaps(name1))) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name1)+"\nSequence of contact map "+name1+":\n"+mod.getSequence());
 			throw new AlignmentConstructionError("First sequence from given alignment and sequence of first loaded contact map differ!");
 		}
 		if (!mod2.getSequence().equals(ali.getSequenceNoGaps(name2))) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name2)+"\nSequence of contact map "+name2+":\n"+mod2.getSequence());
 			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
@@ -1730,6 +1734,8 @@ public class View extends JFrame implements ActionListener {
 		
 		// adapt GUI behavior
 		setGUIStatusCompareMode();
+		
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}
 
 	/**
