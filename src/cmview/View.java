@@ -1720,12 +1720,30 @@ public class View extends JFrame implements ActionListener {
 		// if file provided doesn't have the right sequences we throw exception
 		if (!mod.getSequence().equals(ali.getSequenceNoGaps(name1))) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name1)+"\nSequence of contact map "+name1+":\n"+mod.getSequence());
+			System.err.println("First sequence in given alignment file and sequence of contact map "+name1+" differ");
+			try {
+				// we try to align the 2 missmatching sequences (from the file and the loaded contact map), 
+				// so that at least the user gets hopefully a better feeling of what's wrong
+				PairwiseSequenceAlignment psa = new PairwiseSequenceAlignment(ali.getSequenceNoGaps(name1),mod.getSequence(),"from file","from CMView");
+				System.err.println("This is an alignment of the non-matching sequences: ");
+				psa.printAlignment();
+			} catch (PairwiseSequenceAlignmentException e) {
+				// pairwise alignment didn't succeed, we do nothing 
+			}
 			throw new AlignmentConstructionError("First sequence from given alignment and sequence of first loaded contact map differ!");
 		}
 		if (!mod2.getSequence().equals(ali.getSequenceNoGaps(name2))) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			System.err.println("Given sequence in alignment:\n"+ali.getSequenceNoGaps(name2)+"\nSequence of contact map "+name2+":\n"+mod2.getSequence());
+			System.err.println("Second sequence in given alignment file and sequence of contact map "+name2+" differ");
+			try {
+				// we try to align the 2 missmatching sequences (from the file and the loaded contact map), 
+				// so that at least the user gets hopefully a better feeling of what's wrong
+				PairwiseSequenceAlignment psa = new PairwiseSequenceAlignment(ali.getSequenceNoGaps(name2),mod2.getSequence(),"from file","from CMView");
+				System.err.println("This is an alignment of the non-matching sequences: ");
+				psa.printAlignment();
+			} catch (PairwiseSequenceAlignmentException e) {
+				// pairwise alignment didn't succeed, we do nothing 
+			}
 			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
 
