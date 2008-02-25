@@ -4,6 +4,224 @@
 
   <title>Manual</title>
 
+  <sect1 id="overview">
+
+    <title>Overview</title>
+
+    <sect2>
+
+      <title>Contact map definition</title>
+
+      <para>CMView is a software tool for visualizing and analyzing the 
+      network of contacts between amino acid residues in a protein 
+      structure. Formally, this network is a graph where each residue 
+      corresponds to a node and two nodes are connected by an edge if 
+      and only if the two residues are in contact. Two residues are 
+      considered to be in contact if they are spacially close in the 
+      three dimensional structure. The exact definition of contact 
+      depends on two parameters which can be chosen interactively in 
+      the program: the contact type and the distance cutoff. The 
+      contact type defines a subset of atoms of the residue. Two 
+      residues i and j are then in contact if two atoms out of this 
+      subset, one from i and one from j, are not further apart than the 
+      distance cutoff. The depiction of the contact network as a matrix 
+      is often called a contact map. CMView shows the contact map of a 
+      single polypeptide chain in its main window.</para>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Contact types</title>
+
+      <para>The supported contact types are:</para>
+
+      <para>
+
+        <informaltable>
+
+          <tgroup cols="2">
+
+            <tbody>
+
+              <row>
+
+                <entry>AL</entry>
+
+                <entry>All atoms</entry>
+
+              </row>
+
+              <row>
+
+                <entry>BB</entry>
+
+                <entry>All backbone atoms</entry>
+
+              </row>
+
+              <row>
+
+                <entry>SC</entry>
+
+                <entry>All side-chain atoms</entry>
+
+              </row>
+
+              <row>
+
+                <entry>C</entry>
+
+                <entry>The C atom of the backbone</entry>
+
+              </row>
+
+              <row>
+
+                <entry>Ca</entry>
+
+                <entry>The C-alpha atom of the backbone</entry>
+
+              </row>
+
+              <row>
+
+                <entry>Cb</entry>
+
+                <entry>The C-beta atom of the side-chain (C-alpha for 
+                glycine)</entry>
+
+              </row>
+
+            </tbody>
+
+          </tgroup>
+
+        </informaltable>
+
+      </para>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Screen elements</title>
+
+      <sect3>
+
+        <title>Contact map window</title>
+
+        <para>CMView shows the contact map of a single polypeptide 
+        chain in its main window. A position (i,j) in the contact map 
+        corresponds to residues i and j in the sequence of the 
+        displayed chain. In the lower left corner information is 
+        displayed about the current residue pair (or pairs in compare 
+        mode):</para>
+
+        <para>
+
+          <itemizedlist>
+
+            <listitem>
+
+              <para>The residue numbers of i and j in the 
+              sequence</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>The residue types (in three letter notation)</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>The secondary structure types (alpha, beta or 
+              none)</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>The PDB residue numbers. These are shown only if a 
+              tertiary structure file was loaded. By default, CMView 
+              numbers residues by their position in the sequence. This 
+              does not necessarily match the numbers assigned to 
+              residues in the ATOM lines of PDB files. To compare with 
+              other data where the PDB residue numbering is used, the 
+              residue numbers as found in the PDB file are printed 
+              here.</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+        </para>
+
+      </sect3>
+
+      <sect3>
+
+        <title>Secondary structure rulers</title>
+
+        <para>The rulers shown above and to the left of the contact map 
+        are used for:</para>
+
+          <itemizedlist>
+
+            <listitem>
+
+              <para>Displaying secondary structure elements</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Selecting residues (see <link linkend="menu.select.mode">selection 
+              modes</link>)</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Selecting secondary structure elements (see 
+              <link linkend="menu.select.mode">selection modes</link>)</para>
+
+            </listitem>
+
+          </itemizedlist>
+
+        <para>The color scheme for secondary structure elements is:</para>
+
+        <itemizedlist>
+
+          <listitem>
+
+            <para>Blue: Alpha-helix</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Red: Beta-sheet</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Green: Turn</para>
+
+          </listitem>
+
+        </itemizedlist>
+
+      </sect3>
+
+    </sect2>
+
+  </sect1>
+
   <sect1 id="functionreference">
 
     <title>Function Reference</title>
@@ -28,7 +246,7 @@
             <listitem>
 
               <para>An identifier for the contact map (usually the PDB 
-              four-letter code if applicable)</para>
+              four-letter plus chain code if applicable)</para>
 
             </listitem>
 
@@ -198,7 +416,26 @@
 
             </varlistentry>
 
+            <varlistentry>
+
+              <term>Contact map overlap</term>
+
+              <listitem>
+
+                <para>The overlap between the two contact maps measured 
+                by the Tanimoto coefficient [1]:</para>
+
+                <para>T(A,B) = common contacts / (contacts(A) + 
+                contacts(B) - common contacts )</para>
+
+              </listitem>
+
+            </varlistentry>
+
           </variablelist>
+
+          <para>[1] Tanimoto, T.T. (1957) IBM Internal Report 17th Nov. 
+          1957.</para>
 
         </sect4>
 
@@ -215,7 +452,7 @@
 
           <listitem>
 
-            <para>Tertiary structure files</para>
+            <para>Tertiary structure files (3D coordinates)</para>
 
           </listitem>
 
@@ -257,8 +494,8 @@
           <para>Loads a structure from a local PDB file. The file needs 
           to contain an initial HEADER line and one or more ATOM lines 
           following the PDB file specification [1]. Alternatively, 
-          files may also follow the Casp tertiary structure prediction 
-          format [2].</para>
+          files may also follow the <acronym>CASP</acronym> tertiary 
+          structure prediction format [2].</para>
 
           <para>[1] <ulink url="http://www.wwpdb.org/docs.html">
           http://www.wwpdb.org/docs.html</ulink></para>
@@ -284,7 +521,7 @@
 
         <sect4>
 
-          <title>Load from Casp RR file</title>
+          <title>Load from <acronym>CASP</acronym> RR file</title>
 
           <para>Loads a contact map in CASP residue-residue contact 
           prediction format.</para>
@@ -304,7 +541,7 @@
 
         <sect4>
 
-          <title>Save to contact map file*</title>
+          <title>Save to contact map file</title>
 
           <para>Saves the current contact map in CMView contact map 
           file format. The sequence, the residue-residue contacts and 
@@ -316,10 +553,11 @@
 
         <sect4>
 
-          <title>Save to Casp RR file*</title>
+          <title>Save to <acronym>CASP</acronym> RR file</title>
 
-          <para>Saves the current contact map in Casp residue-residue 
-          contact prediction format.</para>
+          <para>Saves the current contact map in 
+          <acronym>CASP</acronym> residue-residue contact prediction 
+          format.</para>
 
           <para>See 
           <ulink url="http://predictioncenter.org/casp7/doc/casp7-format.html#RR">
@@ -349,7 +587,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 status="draft">
 
         <title>Print</title>
 
@@ -372,7 +610,7 @@
 
       <title>View</title>
 
-      <sect3>
+      <sect3 status="draft">
 
         <title>Show PDB residue numbers</title>
 
@@ -393,7 +631,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 status="draft">
 
         <title>Show rulers</title>
 
@@ -404,7 +642,7 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 status="draft">
 
         <title>Show icon bar</title>
 
@@ -412,9 +650,9 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 status="draft">
 
-        <title>Show common neighborhood sizes*</title>
+        <title>Show common neighborhood sizes</title>
 
         <para>Displays/hides an information overlay showing the common 
         neighborhood size for each residue pair.</para>
@@ -430,7 +668,7 @@
 
       <sect3>
 
-        <title>Show contact density*</title>
+        <title>Show contact density</title>
 
         <para>Displays/hides the contact density map.</para>
 
@@ -439,10 +677,7 @@
         ranging from i to j. The density is defined as the number of 
         contacts within the fragment normalized by the average number 
         of contacts over all fragments of the same size. High densities 
-        are shown in red, low densities are shown in blue. To smooth 
-        the data, contacts between sequence neighbors are added if they 
-        are not present (e.g. because a sequence separation filter &gt; 
-        1 was used when creating the contact map).</para>
+        are shown in red, low densities are shown in blue.</para>
 
         <para>High-density regions often coincide with structural units 
         like domains, secondary- and super-secondary structure 
@@ -452,7 +687,7 @@
 
       <sect3>
 
-        <title>Show distance map*</title>
+        <title>Show distance map</title>
 
         <para>Displays/hides a distance map showing all pairwise 
         distances between residues.</para>
@@ -465,8 +700,8 @@
         distance and the darkest red is the shortest distance. 
         Distances are calculated between C-alpha atoms.</para>
 
-        <para>The distance map can only be shown if 3D coordinates for 
-        the structure are available.</para>
+        <para>The distance map can only be calculated if 3D coordinates 
+        for the structure are available.</para>
 
       </sect3>
 
@@ -588,8 +823,9 @@
 
             <listitem>
 
-              <para>Same behavior as in rectangular selection 
-              mode</para>
+              <para>Same behavior as in 
+              <link linkend="menu.select.mode.rect">rectangular 
+              selection mode</link></para>
 
             </listitem>
 
@@ -637,8 +873,9 @@
 
             <listitem>
 
-              <para>Same behavior as in rectangular selection 
-              mode</para>
+              <para>Same behavior as in 
+              <link linkend="menu.select.mode.rect">rectangular 
+              selection mode</link></para>
 
             </listitem>
 
@@ -648,7 +885,7 @@
 
         <sect4 id="menu.select.mode.nbh">
 
-          <title>Neighborhood selection mode*</title>
+          <title>Neighborhood selection mode</title>
 
           <itemizedlist>
 
@@ -706,7 +943,11 @@
 
         <sect4 id="menu.select.mode.color">
 
-          <title>Color selection mode*</title>
+          <title>Color selection mode</title>
+
+          <para>Select contacts which have been previously marked with 
+          the <link linkend="menu.color.paint">color</link> 
+          function.</para>
 
           <itemizedlist>
 
@@ -714,7 +955,7 @@
 
             <listitem>
 
-              <para>Click on contact to select all contact having the 
+              <para>Click on contact to select all contacts having the 
               same color</para>
 
             </listitem>
@@ -739,8 +980,9 @@
 
             <listitem>
 
-              <para>Same behavior as in rectangular selection 
-              mode</para>
+              <para>Same behavior as in 
+              <link linkend="menu.select.mode.rect">rectangular 
+              selection mode</link></para>
 
             </listitem>
 
@@ -775,7 +1017,7 @@
 
       <sect3>
 
-        <title>Select helix-helix contacts*</title>
+        <title>Select helix-helix contacts</title>
 
         <para>Selects all contacts between distinct alpha 
         helices.</para>
@@ -784,7 +1026,7 @@
 
       <sect3>
 
-        <title>Select sheet-sheet contacts*</title>
+        <title>Select sheet-sheet contacts</title>
 
         <para>Selects all contacts between distinct beta strands.</para>
 
@@ -820,6 +1062,9 @@
       assigned user-defined colors, e.g. to highlight different domains 
       or a particular functional site.</para>
 
+      <para>See also: <link linkend="menu.select.mode.color">Select by 
+      color</link></para>
+
       <sect3>
 
         <title>Choose color</title>
@@ -829,9 +1074,9 @@
 
       </sect3>
 
-      <sect3>
+      <sect3 id="menu.color.paint">
 
-        <title>Color selected contacts*</title>
+        <title>Color selected contacts</title>
 
         <para>Assigns the active color to the currently selected 
         contacts</para>
@@ -840,7 +1085,7 @@
 
       <sect3>
 
-        <title>Reset contact colors to black*</title>
+        <title>Reset contact colors to black</title>
 
         <para>Resets all contacts to the default color (black)</para>
 
@@ -948,7 +1193,7 @@
 
       <sect3 id="menu.action.delete">
 
-        <title>Delete selected contacts*</title>
+        <title>Delete selected contacts</title>
 
         <para>Permanently deletes the currently selected contacts from 
         the contact map.</para>
@@ -965,11 +1210,10 @@
 
         <title>Load second contact map</title>
 
-        <para>TODO: Rename menu item</para>
-
         <para>Loads a second contact map (in the following called B) to 
         compare it to the currently open one (A). For the different 
-        input files see Load from (TODO: add link)</para>
+        input files see <link linkend="menu.file.load">Load 
+        from</link></para>
 
         <para>After a second contact map has been loaded, contacts are 
         shown with the following color coding:</para>
@@ -1044,17 +1288,16 @@
 
         </orderedlist>
 
-        <para>References: (TODO: add links)</para>
+        <para>References:</para>
 
         <para>[1] Ahmed Moustafa, JAligner: Open source Java 
         implementation of Smith-Waterman, 
         http://jaligner.sourceforge.net (2006/03/23).</para>
 
-        <para>[2] Jain, B.J. and M. Lappe (2007). &quot;Joining 
-        Softassign and Dynamic Programming for the Contact Map Overlap 
-        Problem&quot; Springer Lecture Notes in Computer Science, S. 
-        Hochreiter and R. Wagner (Eds.): BIRD 2007, LNBI 4414, pp. 
-        410-423. </para>
+        <para>[2] Jain, B.J. and M. Lappe (2007). Joining Softassign 
+        and Dynamic Programming for the Contact Map Overlap Problem; 
+        Springer Lecture Notes in Computer Science, S. Hochreiter and 
+        R. Wagner (Eds.): BIRD 2007, LNBI 4414, pp. 410-423. </para>
 
       </sect3>
 
@@ -1134,8 +1377,6 @@
 
         <title>Show corresponding residues from selection</title>
 
-        <para>(TODO: Merge with above?)</para>
-
         <para>Visualizes aligned residues in the 3D viewer.</para>
 
         <para>To highlights the correspondence between residues in 
@@ -1155,57 +1396,7 @@
 
         <title>Help</title>
 
-        <para>Shows the inline help (TODO: update in CMView)</para>
-
-      </sect3>
-
-      <sect3>
-
-        <title>CMView website</title>
-
-        <para>Opens the CMView website in a browser window (TODO: add 
-        to menu)</para>
-
-      </sect3>
-
-      <sect3>
-
-        <title>Write example configuration file</title>
-
-        <para>Writes an example configuration file (cmview.cfg) to the 
-        current working directory.</para>
-
-        <para>CMView can be customized using key-value pairs in a 
-        configuration file (cmview.cfg). The example file contains some 
-        commonly used settings. CMView is looking for configuration 
-        files:</para>
-
-        <orderedlist>
-
-          <listitem>
-
-            <para>In the user&apos;s home directory</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>In the current directory</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>At the location specified as a command line 
-            argument</para>
-
-          </listitem>
-
-        </orderedlist>
-
-        <para>If the same variable is set in more than one file, the 
-        latest value takes precedence according to the above 
-        order.</para>
+        <para>Shows the inline help</para>
 
       </sect3>
 
@@ -1241,7 +1432,10 @@
 
     <sect2 id="experimental">
 
-      <title>Experimental features</title>
+      <title>Experimental features (unsupported features)</title>
+
+      <para>Experimental features can be enabled by setting 
+      USE_EXPERIMENTAL_FEATURES = true in the config file.</para>
 
       <sect3>
 
@@ -1385,46 +1579,39 @@
 
     <sect2>
 
-      <para>Certain behaviours of CMView can be configured using 
-      key-value pairs in the configuration file <filename>
-      cmview.cfg</filename>. In general, this should not be necessary. 
-      Be sure you know what you are doing before changing any 
-      settings.</para>
+      <title>Overview</title>
 
-      <para>On startup, the program will search for the configuration 
-      file in the following locations:</para>
+      <para>CMView can be customized using key-value pairs in a 
+      configuration file (<filename>cmview.cfg</filename>). The example 
+      file contains some commonly used settings. CMView is looking for 
+      configuration files:</para>
 
-      <para>
+      <orderedlist>
 
-        <orderedlist>
+        <listitem>
 
-          <listitem>
+          <para>In the current directory</para>
 
-            <para>The current directory</para>
+        </listitem>
 
-          </listitem>
+        <listitem>
 
-          <listitem>
+          <para>In the user&apos;s home directory</para>
 
-            <para>The current user&apos;s home directory</para>
+        </listitem>
 
-          </listitem>
+        <listitem>
 
-          <listitem>
+          <para>At the location specified with the 
+          <link linkend="command line parameters">command line 
+          parameter</link> <command>-o</command></para>
 
-            <para>A location specified with the 
-            <link linkend="command line parameters">command line 
-            parameter</link> <command>-o</command></para>
+        </listitem>
 
-          </listitem>
+      </orderedlist>
 
-        </orderedlist>
-
-      </para>
-
-      <para>If a setting is found in more than one file, the earlier 
-      value will be overwritten according to the above order. If no 
-      config file is found, default settings will be used.</para>
+      <para>If the same variable is set in more than one file, the 
+      latest value takes precedence according to the above order.</para>
 
     </sect2>
 
@@ -1432,213 +1619,368 @@
 
       <title>Available configuration parameters:</title>
 
-      <para>
+      <variablelist>
+
+        <varlistentry>
+
+          <term><parameter>DEFAULT_CONTACT_TYPE</parameter></term>
+
+          <listitem>
+
+            <para>The contact type shown in the load dialog by default 
+            and used for graph generation when loading structures with 
+            <link linkend="command line parameters">command line 
+            parameters</link> <command>-p</command> or <command>
+            -f</command></para>
+
+            <para>Default: Cb</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DEFAULT_DISTANCE_CUTOFF</parameter></term>
+
+          <listitem>
+
+            <para>The distance cutoff shown in the load dialog by 
+            default and used for graph generation when loading 
+            structures with <link linkend="command line parameters">
+            command line parameters</link> <command>-p</command> or 
+            <command>-f</command></para>
+
+            <para>Default: 8.0</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DEFAULT_MIN_SEQSEP</parameter></term>
+
+          <listitem>
+
+            <para>The minimum sequence separation shown in the load 
+            dialog by default, negative values meaning no 
+            restraint</para>
+
+            <para>Default: -1</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DEFAULT_MAX_SEQSEP</parameter></term>
+
+          <listitem>
+
+            <para>The maximum sequence separation shown in the load 
+            dialog by default, negative values meaning no 
+            restraint</para>
+
+            <para>Default: -1</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>CONFIG_FILE_NAME</parameter></term>
+
+          <listitem>
+
+            <para>The name of the configuration file</para>
+
+            <para>Default: cmview.cfg</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DIST_MAP_CONTACT_TYPE</parameter></term>
+
+          <listitem>
+
+            <para>The contact type being used to calculate the distance 
+            map</para>
+
+            <para>Allowed values: Ca, Cb</para>
+
+            <para>Default: Ca</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PDB_FTP_URL</parameter></term>
+
+          <listitem>
+
+            <para>A URL where PDB structures are being loaded from. 
+            (See <link linkend="menu.file.load.onlinepdb">Load from 
+            Online PDB</link>) This can be used to load structures from 
+            a local mirrored copy of the PDB</para>
+
+            <para>Default: 
+            ftp\://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>TEMP_DIR</parameter></term>
+
+          <listitem>
+
+            <para>The directory for storing temporary files</para>
+
+            <para>Default: The default system temp dir (e.g. <filename>
+            /tmp</filename> or <filename>
+            C:\Windows\Temp</filename>)</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>INITIAL_SCREEN_SIZE</parameter></term>
+
+          <listitem>
+
+            <para>The initial size in pixels of the main window on 
+            startup</para>
+
+            <para>Default: 650</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>SHOW_ICON_BAR</parameter></term>
+
+          <listitem>
+
+            <para>Whether the toolbar with command shortcut icons is 
+            shown</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>SHOW_PDB_RES_NUMS</parameter></term>
+
+          <listitem>
+
+            <para>Whether legacy PDB residue numbers are shown in the 
+            lower left corner of the contact map below the secondary 
+            structure</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>SHOW_RULERS</parameter></term>
+
+          <listitem>
+
+            <para>Whether secondary structure rulers are shown (above 
+            and to the left of the contact map)</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>SHOW_ALIGNMENT_COORDS</parameter></term>
+
+          <listitem>
+
+            <para>Whether residue numbers in the alignment are shown in 
+            the lower left corner of the contact map (in brackets after 
+            the default residue numbers)</para>
+
+            <para>Default: false</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>USE_PYMOL</parameter></term>
+
+          <listitem>
+
+            <para>Whether PyMol specific features should be shown in 
+            the menus.</para>
+
+            <para>See also: PYMOL_EXECUTABLE</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>USE_DSSP</parameter></term>
+
+          <listitem>
+
+            <para>Whether DSSP is used for secondary structure 
+            assigment from 3D coordinates.</para>
+
+            <para>See also: DSSP_EXECUTABLE</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DSSP_EXECUTABLE</parameter></term>
+
+          <listitem>
+
+            <para>The path to the local DSSP executable</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>DSSP_PARAMETERS</parameter></term>
+
+          <listitem>
+
+            <para>Parameters passed to DSSP when called by CMView</para>
+
+            <para>Default: --</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PYMOL_EXECUTABLE</parameter></term>
+
+          <listitem>
+
+            <para>The path to the local PyMol executable</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PYMOL_PORT</parameter></term>
+
+          <listitem>
+
+            <para>The port on which the PyMol server is listening to 
+            commands</para>
+
+            <para>Default: 9123</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PYMOL_SHUTDOWN_ON_EXIT</parameter></term>
+
+          <listitem>
+
+            <para>Whether PyMol will be shutdown when CMView is 
+            closed</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PYMOL_LOAD_ON_START</parameter></term>
+
+          <listitem>
+
+            <para>Whether CMView will try to start PyMol on 
+            startup</para>
+
+            <para>Default: true</para>
+
+          </listitem>
+
+        </varlistentry>
+
+        <varlistentry>
+
+          <term><parameter>PYMOL_CONN_TIMEOUT</parameter></term>
+
+          <listitem>
+
+            <para>The time in milliseconds that CMView will wait for 
+            PyMol to startup before reporting a time out error</para>
+
+            <para>Default: 15000</para>
+
+          </listitem>
+
+        </varlistentry>
+
+      </variablelist>
+
+      <sect3>
+
+        <title>Parameters affecting experimental features:</title>
 
         <variablelist>
 
           <varlistentry>
 
-            <term><parameter>DEFAULT_CONTACT_TYPE</parameter></term>
+            <term>
+            <parameter>USE_EXPERIMENTAL_FEATURES</parameter></term>
 
             <listitem>
 
-              <para>The contact type shown in the load dialog by 
-              default and used for graph generation when loading 
-              structures with <link linkend="command line parameters">
-              command line parameters</link> <command>-p</command> or 
-              <command>-f</command></para>
-
-              <para>Default: Cb</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>DEFAULT_DISTANCE_CUTOFF</parameter></term>
-
-            <listitem>
-
-              <para>The distance cutoff shown in the load dialog by 
-              default and used for graph generation when loading 
-              structures with <link linkend="command line parameters">
-              command line parameters</link>  <command>-p</command> or 
-              <command>-f</command></para>
-
-              <para>Default: 8.0</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>DEFAULT_MIN_SEQSEP</parameter></term>
-
-            <listitem>
-
-              <para>The minimum sequence separation shown in the load 
-              dialog by default, negative values meaning no 
-              restraint</para>
-
-              <para>Default: -1</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>DEFAULT_MAX_SEQSEP</parameter></term>
-
-            <listitem>
-
-              <para>The maximum sequence separation shown in the load 
-              dialog by default, negative values meaning no 
-              restraint</para>
-
-              <para>Default: -1</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>CONFIG_FILE_NAME</parameter></term>
-
-            <listitem>
-
-              <para>The name of the configuration file</para>
-
-              <para>Default: cmview.cfg</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>DIST_MAP_CONTACT_TYPE</parameter></term>
-
-            <listitem>
-
-              <para>The contact type being used to calculate the 
-              distance map</para>
-
-              <para>Allowed values: Ca, Cb</para>
-
-              <para>Default: Ca</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>PDB_FTP_URL</parameter></term>
-
-            <listitem>
-
-              <para>A URL where PDB structures are being loaded from. 
-              (See <link linkend="menu.file.load.onlinepdb">Load from 
-              Online PDB</link>) This can be used to load structures 
-              from a local mirrored copy of the PDB</para>
-
-              <para>Default: 
-              ftp\://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>TEMP_DIR</parameter></term>
-
-            <listitem>
-
-              <para>The directory for storing temporary files</para>
-
-              <para>Default: The default system temp dir (e.g. 
-              <filename>/tmp</filename> or 
-              <filename>C:\Windows\Temp</filename>)</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>INITIAL_SCREEN_SIZE</parameter></term>
-
-            <listitem>
-
-              <para>The initial size in pixels of the main window on 
-              startup</para>
-
-              <para>Default: 650</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>SHOW_ICON_BAR</parameter></term>
-
-            <listitem>
-
-              <para>Whether the toolbar with command shortcut icons is 
-              shown</para>
-
-              <para>Default: true</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>SHOW_PDB_RES_NUMS</parameter></term>
-
-            <listitem>
-
-              <para>Whether legacy PDB residue numbers are shown in the 
-              lower left corner of the contact map below the secondary 
-              structure</para>
-
-              <para>Default: true</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>SHOW_RULERS</parameter></term>
-
-            <listitem>
-
-              <para>Whether secondary structure rulers are shown (above 
-              and to the left of the contact map)</para>
-
-              <para>Default: true</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>SHOW_ALIGNMENT_COORDS</parameter></term>
-
-            <listitem>
-
-              <para>Whether residue numbers in the alignment are shown 
-              in the lower left corner of the contact map (in brackets 
-              after the default residue numbers)</para>
+              <para>Whether experimental features will be enabled. 
+              Experimental features are unsupported, probably not 
+              tested and are to be used on your own risk.</para>
 
               <para>Default: false</para>
 
@@ -1648,14 +1990,12 @@
 
           <varlistentry>
 
-            <term><parameter>USE_PYMOL</parameter></term>
+            <term><parameter>SHOW_WEIGHTED_CONTACTS</parameter></term>
 
             <listitem>
 
-              <para>Whether PyMol specific features should be shown in 
-              the menus.</para>
-
-              <para>See also: PYMOL_EXECUTABLE</para>
+              <para>Whether contacts with weights between 0 and 1 are 
+              shown as shades of grey in the contact map</para>
 
               <para>Default: true</para>
 
@@ -1665,14 +2005,12 @@
 
           <varlistentry>
 
-            <term><parameter>USE_DSSP</parameter></term>
+            <term><parameter>USE_DATABASE</parameter></term>
 
             <listitem>
 
-              <para>Whether DSSP is used for secondary structure 
-              assigment from 3D coordinates.</para>
-
-              <para>See also: DSSP_EXECUTABLE</para>
+              <para>Whether database specific features should appear in 
+              the menus</para>
 
               <para>Default: true</para>
 
@@ -1682,11 +2020,12 @@
 
           <varlistentry>
 
-            <term><parameter>DSSP_EXECUTABLE</parameter></term>
+            <term><parameter>DB_HOST</parameter></term>
 
             <listitem>
 
-              <para>The path to the local DSSP executable</para>
+              <para>The database server for structure/graph 
+              databases</para>
 
             </listitem>
 
@@ -1694,14 +2033,11 @@
 
           <varlistentry>
 
-            <term><parameter>DSSP_PARAMETERS</parameter></term>
+            <term><parameter>DB_PWD</parameter></term>
 
             <listitem>
 
-              <para>Parameters passed to DSSP when called by 
-              CMView</para>
-
-              <para>Default: --</para>
+              <para>The password for accessing the database</para>
 
             </listitem>
 
@@ -1709,11 +2045,11 @@
 
           <varlistentry>
 
-            <term><parameter>PYMOL_EXECUTABLE</parameter></term>
+            <term><parameter>DB_USER</parameter></term>
 
             <listitem>
 
-              <para>The path to the local PyMol executable</para>
+              <para>The username for accessing the database</para>
 
             </listitem>
 
@@ -1721,14 +2057,12 @@
 
           <varlistentry>
 
-            <term><parameter>PYMOL_PORT</parameter></term>
+            <term><parameter>DEFAULT_PDB_DB</parameter></term>
 
             <listitem>
 
-              <para>The port on which the PyMol server is listening to 
-              commands</para>
-
-              <para>Default: 9123</para>
+              <para>The default database for loading structures in 
+              PDBASE format</para>
 
             </listitem>
 
@@ -1736,14 +2070,11 @@
 
           <varlistentry>
 
-            <term><parameter>PYMOL_SHUTDOWN_ON_EXIT</parameter></term>
+            <term><parameter>DEFAULT_GRAPH_DB</parameter></term>
 
             <listitem>
 
-              <para>Whether PyMol will be shutdown when CMView is 
-              closed</para>
-
-              <para>Default: true</para>
+              <para>The default database for loading contact maps</para>
 
             </listitem>
 
@@ -1751,172 +2082,18 @@
 
           <varlistentry>
 
-            <term><parameter>PYMOL_LOAD_ON_START</parameter></term>
+            <term><parameter>DEFAULT_MSDSD_DB</parameter></term>
 
             <listitem>
 
-              <para>Whether CMView will try to start PyMol on 
-              startup</para>
-
-              <para>Default: true</para>
-
-            </listitem>
-
-          </varlistentry>
-
-          <varlistentry>
-
-            <term><parameter>PYMOL_CONN_TIMEOUT</parameter></term>
-
-            <listitem>
-
-              <para>The time in milliseconds that CMView will wait for 
-              PyMol to startup before reporting a time out error</para>
-
-              <para>Default: 15000</para>
+              <para>The default database for loading structures in 
+              MSDSD format</para>
 
             </listitem>
 
           </varlistentry>
 
         </variablelist>
-
-      </para>
-
-      <sect3>
-
-        <title>Parameters affecting experimental features:</title>
-
-        <para>
-
-          <variablelist>
-
-            <varlistentry>
-
-              <term>
-              <parameter>USE_EXPERIMENTAL_FEATURES</parameter></term>
-
-              <listitem>
-
-                <para>Whether experimental features will be enabled. 
-                Experimental features are unsupported, probably not 
-                tested and are to be used on your own risk.</para>
-
-                <para>Default: false</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>SHOW_WEIGHTED_CONTACTS</parameter></term>
-
-              <listitem>
-
-                <para>Whether contacts with weights between 0 and 1 are 
-                shown as shades of grey in the contact map</para>
-
-                <para>Default: true</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>USE_DATABASE</parameter></term>
-
-              <listitem>
-
-                <para>Whether database specific features should appear 
-                in the menus</para>
-
-                <para>Default: true</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DB_HOST</parameter></term>
-
-              <listitem>
-
-                <para>The database server for structure/graph 
-                databases</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DB_PWD</parameter></term>
-
-              <listitem>
-
-                <para>The password for accessing the database</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DB_USER</parameter></term>
-
-              <listitem>
-
-                <para>The username for accessing the database</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DEFAULT_PDB_DB</parameter></term>
-
-              <listitem>
-
-                <para>The default database for loading structures in 
-                PDBASE format</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DEFAULT_GRAPH_DB</parameter></term>
-
-              <listitem>
-
-                <para>The default database for loading contact 
-                maps</para>
-
-              </listitem>
-
-            </varlistentry>
-
-            <varlistentry>
-
-              <term><parameter>DEFAULT_MSDSD_DB</parameter></term>
-
-              <listitem>
-
-                <para>The default database for loading structures in 
-                MSDSD format</para>
-
-              </listitem>
-
-            </varlistentry>
-
-          </variablelist>
-
-        </para>
 
       </sect3>
 
