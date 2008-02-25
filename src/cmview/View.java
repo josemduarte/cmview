@@ -163,7 +163,7 @@ public class View extends JFrame implements ActionListener {
 		final JFrame parent = this;					// need a final to refer to in the thread below
 		//EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
 		//	public void run() {
-				parent.toFront();					// bring new window to front
+		//		parent.toFront();					// bring new window to front
 		//	}
 		//});
 	}
