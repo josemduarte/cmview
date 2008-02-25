@@ -161,11 +161,11 @@ public class View extends JFrame implements ActionListener {
 		this.guiState = new GUIState(this);
 		this.initGUI(); 							// build gui tree and show window
 		final JFrame parent = this;					// need a final to refer to in the thread below
-		//EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
-		//	public void run() {
-		//		parent.toFront();					// bring new window to front
-		//	}
-		//});
+		EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
+			public void run() {
+				parent.toFront();					// bring new window to front
+			}
+		});
 	}
 	
 	/**
@@ -3066,7 +3066,7 @@ public class View extends JFrame implements ActionListener {
 				Rectangle new_r = new Rectangle(old_r.x,old_r.y,cur_r.width,cur_r.height);
 				view.setBounds(new_r);
 			}
-			//view.toFront();
+			view.toFront();
 
 			System.out.println("Contact map " + title + " loaded.");
 
@@ -3074,6 +3074,12 @@ public class View extends JFrame implements ActionListener {
 				view.cmPane.preloadBackgroundMaps();
 			}
 
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println("Unexpected error!: couldn't pause thread.");
+			}
+			
 			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 				// load structure in PyMol
 				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
