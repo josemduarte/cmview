@@ -3075,7 +3075,7 @@ public class View extends JFrame implements ActionListener {
 			}
 
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				System.err.println("Unexpected error!: couldn't pause thread.");
 			}
