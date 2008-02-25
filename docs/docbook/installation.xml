@@ -19,7 +19,7 @@
         downloaded from 
         <ulink>http://www.java.com/en/download/manual.jsp</ulink>. You 
         may need to add the <filename>bin</filename> directory of your 
-        Java installation to your path so that CMView can find the java 
+        Java installation to the path so that CMView can find the java 
         executable.</para>
 
       </listitem>

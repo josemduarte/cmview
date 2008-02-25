@@ -118,8 +118,6 @@
         displayed about the current residue pair (or pairs in compare 
         mode):</para>
 
-        <para>
-
           <itemizedlist>
 
             <listitem>
@@ -157,8 +155,6 @@
 
           </itemizedlist>
 
-        </para>
-
       </sect3>
 
       <sect3>
@@ -168,31 +164,34 @@
         <para>The rulers shown above and to the left of the contact map 
         are used for:</para>
 
-          <itemizedlist>
+        <itemizedlist>
 
-            <listitem>
+          <listitem>
 
-              <para>Displaying secondary structure elements</para>
+            <para>Displaying secondary structure elements</para>
 
-            </listitem>
+          </listitem>
 
-            <listitem>
+          <listitem>
 
-              <para>Selecting residues (see <link linkend="menu.select.mode">selection 
-              modes</link>)</para>
+            <para>Selecting residues (see 
+            <link linkend="menu.select.mode">selection 
+            modes</link>)</para>
 
-            </listitem>
+          </listitem>
 
-            <listitem>
+          <listitem>
 
-              <para>Selecting secondary structure elements (see 
-              <link linkend="menu.select.mode">selection modes</link>)</para>
+            <para>Selecting secondary structure elements (see 
+            <link linkend="menu.select.mode">selection 
+            modes</link>)</para>
 
-            </listitem>
+          </listitem>
 
-          </itemizedlist>
+        </itemizedlist>
 
-        <para>The color scheme for secondary structure elements is:</para>
+        <para>The color scheme for secondary structure elements 
+        is:</para>
 
         <itemizedlist>
 
@@ -587,15 +586,6 @@
 
       </sect3>
 
-      <sect3 status="draft">
-
-        <title>Print</title>
-
-        <para>Opens a dialog to send the contents of the main contact 
-        map window to a printer.</para>
-
-      </sect3>
-
       <sect3>
 
         <title>Quit</title>
@@ -609,62 +599,6 @@
     <sect2 id="menu.view">
 
       <title>View</title>
-
-      <sect3 status="draft">
-
-        <title>Show PDB residue numbers</title>
-
-        <para>Shows or hides display of classic residue numbers as 
-        found in PDB text files.</para>
-
-        <para>It is not uncommon to find residue numbers in PDB text 
-        files which are non-sequential, negative, starting from a very 
-        high number, contain insertion codes etc. This creates many 
-        problems in data processing. Whenever possible, CMView 
-        therefore uses residue numbers following the full protein 
-        sequence. This numbering is now provided for all PDB entries in 
-        mmCIF files. For comparison with pdb text files it may be 
-        desirable to know the classic number of a particular residue. 
-        When this option is selected, the classic numbers are shown in 
-        the status corner below the secondary structure 
-        annotation.</para>
-
-      </sect3>
-
-      <sect3 status="draft">
-
-        <title>Show rulers</title>
-
-        <para>Shows/hides the rulers at the top and left end of the 
-        contact maps. The rulers are used to display the secondary 
-        structure annotation if available and to allow selections based 
-        on residues and secondary structure elements.</para>
-
-      </sect3>
-
-      <sect3 status="draft">
-
-        <title>Show icon bar</title>
-
-        <para>Shows/hides the icon bar above the contact map.</para>
-
-      </sect3>
-
-      <sect3 status="draft">
-
-        <title>Show common neighborhood sizes</title>
-
-        <para>Displays/hides an information overlay showing the common 
-        neighborhood size for each residue pair.</para>
-
-        <para>The common neighborhood of residue pair (i,j) is the set 
-        of residues in contact with both i and j. Common neighborhood 
-        sizes are shown as colors in the contacts map where darker 
-        colors indicate larger common neighborhoods. Pairs which are in 
-        contact are shown in shades of purple, those which are not in 
-        contact as shades of green.</para>
-
-      </sect3>
 
       <sect3>
 
@@ -1212,7 +1146,7 @@
 
         <para>Loads a second contact map (in the following called B) to 
         compare it to the currently open one (A). For the different 
-        input files see <link linkend="menu.file.load">Load 
+        input options see <link linkend="menu.file.load">Load 
         from</link></para>
 
         <para>After a second contact map has been loaded, contacts are 
@@ -1396,7 +1330,7 @@
 
         <title>Help</title>
 
-        <para>Shows the inline help</para>
+        <para>Shows the inline help.</para>
 
       </sect3>
 
@@ -1432,10 +1366,11 @@
 
     <sect2 id="experimental">
 
-      <title>Experimental features (unsupported features)</title>
+      <title>Experimental features (unsupported)</title>
 
       <para>Experimental features can be enabled by setting 
-      USE_EXPERIMENTAL_FEATURES = true in the config file.</para>
+      <parameter>USE_EXPERIMENTAL_FEATURES = true</parameter> in the 
+      config file.</para>
 
       <sect3>
 
@@ -1503,8 +1438,6 @@
     calling CMView from the command line, help can be obtained by 
     calling <command>cmview -h</command>:</para>
 
-    <para>
-
       <itemizedlist>
 
         <listitem>
@@ -1568,8 +1501,6 @@
         </listitem>
 
       </itemizedlist>
-
-    </para>
 
   </sect1>
 
