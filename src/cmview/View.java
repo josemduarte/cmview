@@ -480,7 +480,9 @@ public class View extends JFrame implements ActionListener {
 		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, null);		// function disabled
 		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, null);	// function disabled
 		//menu.addSeparator(); // not needed since all functions above are disabled
-		mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
+		if (Start.USE_EXPERIMENTAL_FEATURES) {
+			mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
+		} 
 		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
 		mmViewShowDistMatrix = makeMenuItem("Show Distance Map", icon_deselected, menu);
 		addToJMenuBar(menu);
