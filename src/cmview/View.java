@@ -3073,12 +3073,6 @@ public class View extends JFrame implements ActionListener {
 			if(ContactMapPane.BG_PRELOADING) {
 				view.cmPane.preloadBackgroundMaps();
 			}
-
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				System.err.println("Unexpected error!: couldn't pause thread.");
-			}
 			
 			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 				// load structure in PyMol
