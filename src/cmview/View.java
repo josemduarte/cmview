@@ -75,7 +75,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
 	// Compare
-	private static final String LABEL_COMPARE_CM = "Load Second Structure From"; 
+	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
 	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
