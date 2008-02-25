@@ -3066,7 +3066,7 @@ public class View extends JFrame implements ActionListener {
 				Rectangle new_r = new Rectangle(old_r.x,old_r.y,cur_r.width,cur_r.height);
 				view.setBounds(new_r);
 			}
-			view.toFront();
+			//view.toFront();
 
 			System.out.println("Contact map " + title + " loaded.");
 
