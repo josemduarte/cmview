@@ -259,7 +259,7 @@ public class PyMolAdaptor {
 		} else {
 			Out.println(cmd);			
 			if(Out.checkError()) {
-				if (reconnectTries>4) {
+				if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
 					System.err.println("Couldn't reset connection, PyMol connection is lost!");
 					Start.setUsePymol(false);
 					return;

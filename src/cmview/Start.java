@@ -109,6 +109,7 @@ public class Start {
 	public static long 				PYMOL_CONN_TIMEOUT = 	 15000; 	  // pymol connection time out in milliseconds
 	public static boolean			PYMOL_LOAD_ON_START =    true; 		  // if true, pymol will be preloaded on startup
 	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
+	public static int				PYMOL_RECONNECT_TRIES  = 1;			  // number of times a reconnection to PyMol is tried before giving up
 
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
@@ -275,56 +276,61 @@ public class Start {
 		   if that is not found, keep the variable value unchanged.
 		   Note that any value in the user config file that is not being processed here is ignored. 
 		*/
-		
-		TEMP_DIR = p.getProperty("TEMP_DIR",TEMP_DIR);
-		CONFIG_FILE_NAME = p.getProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);
-		PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
-		DIST_MAP_CONTACT_TYPE = p.getProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
+		try {
+			TEMP_DIR = p.getProperty("TEMP_DIR",TEMP_DIR);
+			CONFIG_FILE_NAME = p.getProperty("CONFIG_FILE_NAME", CONFIG_FILE_NAME);
+			PDB_FTP_URL = p.getProperty("PDB_FTP_URL", PDB_FTP_URL);
+			DIST_MAP_CONTACT_TYPE = p.getProperty("DIST_MAP_CONTACT_TYPE",DIST_MAP_CONTACT_TYPE);
 
-		// gui settings
-		INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
-		SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
-		SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
-		SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
-		SHOW_PDB_RES_NUMS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS)));
-		SHOW_WEIGHTED_CONTACTS = Boolean.valueOf(p.getProperty("SHOW_WEIGHTED_CONTACTS",Boolean.toString(SHOW_WEIGHTED_CONTACTS)));
-		
-		// enabling/disabling features
-		USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
-		USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
-		USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
-		USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
-		
-		// external programs: pymol
-		PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
-		PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
-		PYMOL_SERVER_URL = p.getProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
-		PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
-		PYMOL_LOGFILE = p.getProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);
-		PYMOL_CMDBUFFER_FILE = p.getProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
-		PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
-		PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
-		PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
-		PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
+			// gui settings
+			INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
+			SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
+			SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
+			SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
+			SHOW_PDB_RES_NUMS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS)));
+			SHOW_WEIGHTED_CONTACTS = Boolean.valueOf(p.getProperty("SHOW_WEIGHTED_CONTACTS",Boolean.toString(SHOW_WEIGHTED_CONTACTS)));
 
-		// external programs: dssp
-		DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
-		DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
-		
-		// database connection		
-		DB_HOST = p.getProperty("DB_HOST", DB_HOST);
-		DB_USER = p.getProperty("DB_USER", DB_USER);
-		DB_PWD = p.getProperty("DB_PWD", DB_PWD);
+			// enabling/disabling features
+			USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
+			USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
+			USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
+			USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
 
-		// default setting for loading contact maps
-		DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
-		DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
-		DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
-		
-		DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
-		DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
-		DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
-		DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
+			// external programs: pymol
+			PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
+			PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
+			PYMOL_SERVER_URL = p.getProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
+			PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
+			PYMOL_LOGFILE = p.getProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);
+			PYMOL_CMDBUFFER_FILE = p.getProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
+			PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
+			PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
+			PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
+			PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
+			PYMOL_RECONNECT_TRIES = Integer.valueOf(p.getProperty("PYMOL_RECONNECT_TRIES", new Integer(PYMOL_RECONNECT_TRIES).toString()));
+
+			// external programs: dssp
+			DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
+			DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
+
+			// database connection		
+			DB_HOST = p.getProperty("DB_HOST", DB_HOST);
+			DB_USER = p.getProperty("DB_USER", DB_USER);
+			DB_PWD = p.getProperty("DB_PWD", DB_PWD);
+
+			// default setting for loading contact maps
+			DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
+			DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
+			DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
+
+			DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
+			DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
+			DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
+			DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
+		} catch (NumberFormatException e) {
+			System.err.println("A numerical value in the config file was incorrectly specified: "+e.getMessage()+". Please check the config file.");
+			System.exit(1);
+		}
 	}
 	
 	/*
@@ -365,6 +371,7 @@ public class Start {
 		p.setProperty("PYMOL_CONN_TIMEOUT",Long.toString(PYMOL_CONN_TIMEOUT));					// doc?
 		p.setProperty("PYMOL_LOAD_ON_START", Boolean.toString(PYMOL_LOAD_ON_START));			// doc?
 		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
+		p.setProperty("PYMOL_RECONNECT_TRIES", Integer.toString(PYMOL_RECONNECT_TRIES));		// doc?
 
 		// external programs: dssp
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
