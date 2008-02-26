@@ -3066,7 +3066,6 @@ public class View extends JFrame implements ActionListener {
 				Rectangle new_r = new Rectangle(old_r.x,old_r.y,cur_r.width,cur_r.height);
 				view.setBounds(new_r);
 			}
-			view.toFront();
 
 			System.out.println("Contact map " + title + " loaded.");
 
@@ -3074,16 +3073,16 @@ public class View extends JFrame implements ActionListener {
 				view.cmPane.preloadBackgroundMaps();
 			}
 			
-			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
-				// load structure in PyMol
-				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
-
-			}		
 			// if previous window was empty (not showing a contact map) dispose it
 			if(this.mod == null) {
 				this.setVisible(false);
 				this.dispose();
 			}
+			
+			// load structure in PyMol
+			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
+				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
+			}		
 		}
 	}
 
