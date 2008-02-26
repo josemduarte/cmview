@@ -3079,9 +3079,19 @@ public class View extends JFrame implements ActionListener {
 				this.dispose();
 			}
 			
-			// load structure in PyMol
+			
+			// load structure in PyMol (in a new thread so that it doesn't interfere with other stuff happening at the same time)
+			// This is to fix a bug in Windows 2000/XP with Java6 (but not Vista): 
+			// when loading small structures (~<100 residues) the connection to PyMol is lost in the middle of the loadStructure() call
+			// This happens only when it is the first structure loaded in CMView. Thus this seems to be some weird interaction of 
+			// the spawning window threads and the pymol communication happening at the same time 
+			final Model themodel = mod; // dirty trick to be able to call mod from within the run() of the new thread
 			if (Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
-				Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
+				new Thread() {
+					public void run() {
+						Start.getPyMolAdaptor().loadStructure(themodel.getTempPdbFileName(), themodel.getLoadedGraphID(), false);	
+					}
+				}.start();
 			}		
 		}
 	}
