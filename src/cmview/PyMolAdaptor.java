@@ -386,7 +386,6 @@ public class PyMolAdaptor {
 	 */
 	public void loadStructure(String fileName, String structureID, boolean secondModel) {
 
-		//System.out.println("START loading structure "+structureID);
 		sendCommand("load " + fileName + ", " + structureID);
 		sendCommand("hide lines");
 		sendCommand("show cartoon");		
@@ -402,14 +401,13 @@ public class PyMolAdaptor {
 			sendCommand("color " + ModelColors[0] + ", " + structureID);
 		}
 
-		sendCommand("orient");
+		sendCommand("orient "+structureID);
 		
 		sendCommand("cmd.refresh()");
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
 		
-		//System.out.println("DONE loading structure "+structureID);
 	}
 
 	/**
@@ -422,8 +420,8 @@ public class PyMolAdaptor {
 	 * nonsatisfying results for proteins with a rather low sequence 
 	 * identity!
 	 * 
-	 * @param structureID1 the structure id of the first structure
-	 * @param structureID2 the structure id of the second structure
+	 * @param structureId1 the structure id of the first structure
+	 * @param structureId2 the structure id of the second structure
 	 * 
 	 * @see pairFitSuperposition()
 	 */
