@@ -17,16 +17,15 @@
       structure. Formally, this network is a graph where each residue 
       corresponds to a node and two nodes are connected by an edge if 
       and only if the two residues are in contact. Two residues are 
-      considered to be in contact if they are spacially close in the 
-      three dimensional structure. The exact definition of contact 
-      depends on two parameters which can be chosen interactively in 
-      the program: the contact type and the distance cutoff. The 
-      contact type defines a subset of atoms of the residue. Two 
-      residues i and j are then in contact if two atoms out of this 
-      subset, one from i and one from j, are not further apart than the 
-      distance cutoff. The depiction of the contact network as a matrix 
-      is often called a contact map. CMView shows the contact map of a 
-      single polypeptide chain in its main window.</para>
+      considered to be in contact if they are spatially close in the 
+      three dimensional structure. In CMView the definition of contact 
+      is sepcified by two paremeters: the contact type and the distance 
+      cutoff. The contact type defines a subset of atoms of the 
+      residue. Two residues i and j are then in contact if two atoms 
+      out of this subset, one from i and one from j, are not further 
+      apart than the distance cutoff. The depiction of the contact 
+      network as a matrix (formally, the adjacency matrix of the 
+      contact graph) is called a contact map.</para>
 
     </sect2>
 
@@ -118,42 +117,40 @@
         displayed about the current residue pair (or pairs in compare 
         mode):</para>
 
-          <itemizedlist>
+        <itemizedlist>
 
-            <listitem>
+          <listitem>
 
-              <para>The residue numbers of i and j in the 
-              sequence</para>
+            <para>The residue numbers of i and j in the sequence</para>
 
-            </listitem>
+          </listitem>
 
-            <listitem>
+          <listitem>
 
-              <para>The residue types (in three letter notation)</para>
+            <para>The residue types (in three letter notation)</para>
 
-            </listitem>
+          </listitem>
 
-            <listitem>
+          <listitem>
 
-              <para>The secondary structure types (alpha, beta or 
-              none)</para>
+            <para>The secondary structure types (alpha, beta or 
+            none)</para>
 
-            </listitem>
+          </listitem>
 
-            <listitem>
+          <listitem>
 
-              <para>The PDB residue numbers. These are shown only if a 
-              tertiary structure file was loaded. By default, CMView 
-              numbers residues by their position in the sequence. This 
-              does not necessarily match the numbers assigned to 
-              residues in the ATOM lines of PDB files. To compare with 
-              other data where the PDB residue numbering is used, the 
-              residue numbers as found in the PDB file are printed 
-              here.</para>
+            <para>The PDB residue numbers. These are shown only if a 
+            tertiary structure file was loaded. By default, CMView 
+            numbers residues by their position in the sequence. This 
+            does not necessarily match the numbers assigned to residues 
+            in the ATOM lines of PDB files. To compare with other data 
+            where the PDB residue numbering is used, the residue 
+            numbers as found in the PDB file are printed here.</para>
 
-            </listitem>
+          </listitem>
 
-          </itemizedlist>
+        </itemizedlist>
 
       </sect3>
 
@@ -425,7 +422,7 @@
                 by the Tanimoto coefficient [1]:</para>
 
                 <para>T(A,B) = common contacts / (contacts(A) + 
-                contacts(B) - common contacts )</para>
+                contacts(B) - common contacts)</para>
 
               </listitem>
 
@@ -1368,9 +1365,9 @@
 
       <title>Experimental features (unsupported)</title>
 
-      <para>Experimental features can be enabled by setting 
-      <parameter>USE_EXPERIMENTAL_FEATURES = true</parameter> in the 
-      config file.</para>
+      <para>Experimental features can be enabled by setting <parameter>
+      USE_EXPERIMENTAL_FEATURES = true</parameter> in the config 
+      file.</para>
 
       <sect3>
 
@@ -1438,69 +1435,69 @@
     calling CMView from the command line, help can be obtained by 
     calling <command>cmview -h</command>:</para>
 
-      <itemizedlist>
+    <itemizedlist>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-p &lt;pdb code&gt;</command>: a 4-letter PDB 
-          code to be loaded in CMView from Online PDB (Internet 
-          connection required).</para>
+        <para><command>-p &lt;pdb code&gt;</command>: a 4-letter PDB 
+        code to be loaded in CMView from Online PDB (Internet 
+        connection required).</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-f &lt;pdb file&gt;</command>: a local PDB 
-          file to be loaded in CMView.</para>
+        <para><command>-f &lt;pdb file&gt;</command>: a local PDB file 
+        to be loaded in CMView.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-c &lt;chain code&gt;</command>: a PDB chain 
-          code. This will be the chain selected either from the PDB 
-          file or for the given PDB code. If one is not given then 
-          default chain &apos;A&apos; will be chosen.</para>
+        <para><command>-c &lt;chain code&gt;</command>: a PDB chain 
+        code. This will be the chain selected either from the PDB file 
+        or for the given PDB code. If one is not given then default 
+        chain &apos;A&apos; will be chosen.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-t &lt;contact type&gt;</command>: the contact 
-          type for the Contact Map to be loaded in CMView.</para>
+        <para><command>-t &lt;contact type&gt;</command>: the contact 
+        type for the Contact Map to be loaded in CMView.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-d &lt;distance cutoff&gt;</command>: the 
-          distance cutoff for the Contact Map to be loaded in 
-          CMView.</para>
+        <para><command>-d &lt;distance cutoff&gt;</command>: the 
+        distance cutoff for the Contact Map to be loaded in 
+        CMView.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-o &lt;config file&gt;</command>: a file to 
-          read configuration parameters from. See 
-          <link linkend="config">Configuration</link>.</para>
+        <para><command>-o &lt;config file&gt;</command>: a file to read 
+        configuration parameters from. See <link linkend="config">
+        Configuration</link>.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-v</command>: print version and exit.</para>
+        <para><command>-v</command>: print version and exit.</para>
 
-        </listitem>
+      </listitem>
 
-        <listitem>
+      <listitem>
 
-          <para><command>-h</command>: print help on command line 
-          parameters and exit.</para>
+        <para><command>-h</command>: print help on command line 
+        parameters and exit.</para>
 
-        </listitem>
+      </listitem>
 
-      </itemizedlist>
+    </itemizedlist>
 
   </sect1>
 
@@ -1548,7 +1545,7 @@
 
     <sect2>
 
-      <title>Available configuration parameters:</title>
+      <title>Available configuration parameters</title>
 
       <variablelist>
 
@@ -1898,7 +1895,7 @@
 
       <sect3>
 
-        <title>Parameters affecting experimental features:</title>
+        <title>Parameters affecting experimental features</title>
 
         <variablelist>
 
