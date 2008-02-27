@@ -31,20 +31,19 @@ public class PyMolAdaptor {
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	// colors for triangles, one is chosen randomly from this list
-	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
+	private static final String[] 	COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 
-	private String[] ModelColors = {"lightpink", "palegreen"};
+	private static final String[] 	ModelColors = {"lightpink", "palegreen"};
 	
-	private static final int INITIAL_CMDBUFFER_LENGTH = 10000;
+	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;
 	
-	private static final String CMD_END_MARKER = "#end";
-	private static final long TIMEOUT = 4000;
+	private static final String 	CMD_END_MARKER = "#end";
+	private static final long 		TIMEOUT = 4000;
 	
 	/*--------------------------- member variables --------------------------*/
 	private String url;
 	private PrintWriter Out;
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
-	private boolean bufferedMode;
 	private File cmdBufferFile;
 	private StringWriter cmdBuffer; //TODO use StringBuffer instead?
 	private int cmdCounter;
@@ -54,10 +53,15 @@ public class PyMolAdaptor {
 
 	/*----------------------------- constructors ----------------------------*/
 
+	/**
+	 * Constructs a new PyMolAdaptor with given pyMolServerUrl, cmdBufferFile and log
+	 * @param pyMolServerUrl
+	 * @param cmdBufferFile
+	 * @param log
+	 */
 	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile, PrintWriter log) {
 		this.url = pyMolServerUrl;
 		this.connected = false;
-		this.bufferedMode = true;
 		this.cmdBufferFile = cmdBufferFile;
 		this.log = log;
 		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
@@ -254,15 +258,46 @@ public class PyMolAdaptor {
 
 	/*---------------------------- public methods ---------------------------*/
 
-	/** Send command to pymol and check for errors */
+	/** 
+	 * Writes command to command buffer so that it will be sent to PyMol upon 
+	 * next call of {@link #flush()} 
+	 * @param cmd the PyMol command
+	 */
 	private void sendCommand(String cmd) {
 		if (!Start.isPyMolConnectionAvailable()) {
 			return;
 		}
-		if( bufferedMode ) {
-			cmdBuffer.write(cmd + "\n");
-		} else {
-			Out.println(cmd);			
+		cmdBuffer.write(cmd + "\n");
+	}
+	
+	/**
+	 * Flushes the command buffer so that it is sent to PyMol by using a 
+	 * "load" command.
+	 */
+	public void flush() {		
+		try {
+			cmdCounter++;
+			// write data from buffer to file
+			FileWriter fWriter = new FileWriter(cmdBufferFile);
+			cmdBuffer.flush();
+			fWriter.write(cmdBuffer.toString());
+			fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
+			fWriter.write(CMD_END_MARKER+cmdCounter);
+			fWriter.flush(); //TODO is this needed, i.e. doesn't close() already do it?
+			fWriter.close();
+
+		} catch (IOException e1) {
+			System.err.println("Cannot write to command buffer file: "+e1.getMessage());
+			return;
+		} finally {
+			log.println(cmdBuffer.toString());
+			log.flush();
+			cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
+		}
+
+		try {
+			waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
+			Out.println("@" + cmdBufferFile.getAbsolutePath());
 			if(Out.checkError()) {
 				if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
 					System.err.println("Couldn't reset connection, PyMol connection is lost!");
@@ -273,54 +308,14 @@ public class PyMolAdaptor {
 				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
 				reconnectTries++;
 			}
-		}
-	}
-	
-	public void flush() {
-		if( bufferedMode ) {
-			try {
-				cmdCounter++;
-				// write data from buffer to file
-				FileWriter fWriter = new FileWriter(cmdBufferFile);
-				cmdBuffer.flush();
-				fWriter.write(cmdBuffer.toString());
-				fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
-				fWriter.write(CMD_END_MARKER+cmdCounter);
-				fWriter.flush(); //TODO is this needed?
-				fWriter.close();
-				
-			} catch (IOException e1) {
-				System.err.println("Cannot write to command buffer file: "+e1.getMessage());
-				return;
-			} finally {
-				log.println(cmdBuffer.toString());
-				log.flush();
-				cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
-			}
-			
+			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
 
-			try {
-				waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
-				Out.println("@" + cmdBufferFile.getAbsolutePath());
-				if(Out.checkError()) {
-					if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
-						System.err.println("Couldn't reset connection, PyMol connection is lost!");
-						Start.setUsePymol(false);
-						return;
-					}
-					System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
-					this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
-					reconnectTries++;
-				}
-				waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
-				
-			} catch (IOException e) {
-				System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
-				return;
-			} catch (TimeLimitExceededException e1) {
-				System.err.println(e1.getMessage());
-				return;
-			}
+		} catch (IOException e) {
+			System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
+			return;
+		} catch (TimeLimitExceededException e1) {
+			System.err.println(e1.getMessage());
+			return;
 		}
 	}
 
@@ -330,6 +325,8 @@ public class PyMolAdaptor {
 	
 	/**
 	 * Try connecting to pymol server. Returns true on success, false otherwise.
+	 * @param timeoutMillis the timeout in milliseconds before we give up 
+	 * finding PyMol
 	 */
 	public boolean tryConnectingToPymol(long timeoutMillis) {
 		long start = System.currentTimeMillis();
@@ -360,7 +357,8 @@ public class PyMolAdaptor {
 	}
 
 	/**
-	 * Sends some inital set-up commands after a connection has been successfully established.
+	 * Sends some inital set-up commands after a connection has been 
+	 * successfully established.
 	 */
 	public void initialize() {
 		sendCommand("set dash_gap, 0");
@@ -379,7 +377,12 @@ public class PyMolAdaptor {
 	}
 
 	/**
-	 * Send command to the pymol server to load a structure with the given name from the given temporary pdb file.
+	 * Send command to the pymol server to load a structure with the given name
+	 * from the given temporary pdb file.
+	 * @param fileName
+	 * @param structureID
+	 * @param secondModel true if the structure we are loading is the second 
+	 * model (pairwise mode)
 	 */
 	public void loadStructure(String fileName, String structureID, boolean secondModel) {
 
@@ -410,7 +413,7 @@ public class PyMolAdaptor {
 	}
 
 	/**
-	 * Alignes two structures employing PyMol's <code>align</code> command.
+	 * Aligns two structures employing PyMol's <code>align</code> command.
 	 * PyMol internally makes a sequence alignment of both structures and
 	 * tries to find the superposition with minimal RMSD of the structures
 	 * given this alignment. Please note, that one major drawback of using
@@ -614,7 +617,12 @@ public class PyMolAdaptor {
 	}
 	
 	
-	/** Show a single contact or non-contact as distance object in pymol */
+	/** 
+	 * Show a single contact or non-contact as distance object in pymol
+	 * @param structureID
+	 * @param pymolSelSerial
+	 * @param cont the pair of residues
+	 */
 	public void sendSingleEdge(String structureID, int pymolSelSerial, Pair<Integer> cont) {
 
 		String selObjName = "Sel"+pymolSelSerial+"_"+structureID+"_Dist";
@@ -633,12 +641,12 @@ public class PyMolAdaptor {
 	/**
 	 * Converts the lines of the given selection (e.g. a distance object) 
 	 * into dashed lines. 
-	 * @param edgeObjName  a selection identifier (please ensure that you 
+	 * @param edgeSelName  a selection identifier (please ensure that you 
 	 *  create your selection identifiers with function 
 	 *  {@link #getChainObjectName(String, String)} or 
 	 *  {@link #getMultiChainSelObjectName(Collection, String, int)} only)
 	 */
-	public void setDashes(String edgeSelName) {
+	private void setDashes(String edgeSelName) {
 		this.sendCommand("set dash_gap, 0.5, "    + edgeSelName);
 		this.sendCommand("set dash_length, 0.5, " + edgeSelName);
 		
@@ -646,7 +654,12 @@ public class PyMolAdaptor {
 		this.flush();
 	}
 
-	/** setting the view in PyMol if new selections were done */
+	/**
+	 * Sets the view in PyMol when new selections are done:
+	 * hides all objects (previous selections) and show just the 2 structures
+	 * @param structureID1
+	 * @param structureID2
+	 */
 	public void showStructureHideOthers(String structureID1, String structureID2){
 		sendCommand("disable all");
 		sendCommand("enable " + structureID1);
@@ -711,6 +724,19 @@ public class PyMolAdaptor {
 		return this.connected;
 	}
 
+	/**
+	 * Reads the given file until a line with tag is found before given timeOut 
+	 * is reached. To be called from {@link #flush()} so that it is guaranteed that 
+	 * command buffer file is fully written before loading from it or that PyMol is 
+	 * finished executing commands before continuing with others.
+	 * @param file
+	 * @param tag the tag we want to find in the file
+	 * @param timeOut the timeout in milliseconds
+	 * @throws IOException if file can't be read
+	 * @throws TimeLimitExceededException when timeOut is reached before finding 
+	 * the tag in file
+	 * @see {@link #flush()}
+	 */
 	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
 		long startTime = System.currentTimeMillis();
 
