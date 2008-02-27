@@ -2046,7 +2046,7 @@ public class View extends JFrame implements ActionListener {
 
 			if (mod.has3DCoordinates()) {
 				// clear the view (disables all previous selections)
-				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
+				Start.getPyMolAdaptor().showStructureHideOthers(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
 				
 				if(cmPane.getCommonContacts().isEmpty()) {
 					Start.getPyMolAdaptor().alignStructures(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
@@ -2070,7 +2070,7 @@ public class View extends JFrame implements ActionListener {
 			showNo3DCoordsWarning(mod2);
 		} else {
 			// clear the view (disables all previous selections)
-			Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
+			Start.getPyMolAdaptor().showStructureHideOthers(mod.getLoadedGraphID(), mod2.getLoadedGraphID());	
 			doSuperposition3D(mod, mod2, ali, cmPane.getAlignmentColumnsFromSelectedContacts());
 		}
 		
@@ -2153,7 +2153,7 @@ public class View extends JFrame implements ActionListener {
 		
 		// disable all previously made objects and selections only once! 
 		if( !residuePairs.isEmpty() ) {
-			pymol.setView(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
+			pymol.showStructureHideOthers(mod1.getLoadedGraphID(), mod2.getLoadedGraphID());
 		} else {
 			// nothing to do!
 			return;
@@ -2594,7 +2594,7 @@ public class View extends JFrame implements ActionListener {
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
-				Start.getPyMolAdaptor().setView(mod.getLoadedGraphID(),
+				Start.getPyMolAdaptor().showStructureHideOthers(mod.getLoadedGraphID(),
 												mod2.getLoadedGraphID());
 			} else {
 				// nothing to do!
@@ -2741,8 +2741,7 @@ public class View extends JFrame implements ActionListener {
 			String nodeSel        = topLevelGroup + "_" + chainObj + "_Nodes";
 			
 			//disable all old objects and selections
-			pymol.sendCommand("disable all");
-			pymol.sendCommand("enable " + chainObj);
+			pymol.showStructureHideOthers(chainObj, chainObj);
 
 			// send selection
 			pymol.edgeSelection(chainObj, chainObj, edgeSel, nodeSel, "magenta", contacts, false);

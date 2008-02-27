@@ -1,6 +1,8 @@
 package cmview;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +11,8 @@ import java.io.StringWriter;
 
 import tools.PymolServerOutputStream;
 import java.util.*;
+
+import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
 
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -30,35 +34,36 @@ public class PyMolAdaptor {
 	private static final String[] COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 
 	private String[] ModelColors = {"lightpink", "palegreen"};
-
+	
+	private static final int INITIAL_CMDBUFFER_LENGTH = 10000;
+	
+	private static final String CMD_END_MARKER = "#end";
+	private static final long TIMEOUT = 4000;
+	
 	/*--------------------------- member variables --------------------------*/
 	private String url;
 	private PrintWriter Out;
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
 	private boolean bufferedMode;
 	private File cmdBufferFile;
-	private StringWriter cmdBuffer;
+	private StringWriter cmdBuffer; //TODO use StringBuffer instead?
+	private int cmdCounter;
 	private int reconnectTries;
+	private PrintWriter log;
+	private File callbackFile;
 
 	/*----------------------------- constructors ----------------------------*/
 
-	/**
-	 *  Create a new Pymol communication object 
-	 */
-	public PyMolAdaptor(String pyMolServerUrl){
-		this.url=pyMolServerUrl;
-		this.connected = false;  // run tryConnectingToPymol() to connect
-		this.bufferedMode = false;
-		this.reconnectTries = 0;
-	}
-	
-	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile) {
+	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile, PrintWriter log) {
 		this.url = pyMolServerUrl;
 		this.connected = false;
 		this.bufferedMode = true;
 		this.cmdBufferFile = cmdBufferFile;
-		this.cmdBuffer = new StringWriter(10000);
+		this.log = log;
+		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
 		this.reconnectTries = 0;
+		this.cmdCounter = 0;
+		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -250,12 +255,12 @@ public class PyMolAdaptor {
 	/*---------------------------- public methods ---------------------------*/
 
 	/** Send command to pymol and check for errors */
-	public void sendCommand(String cmd) {
+	private void sendCommand(String cmd) {
 		if (!Start.isPyMolConnectionAvailable()) {
 			return;
 		}
 		if( bufferedMode ) {
-			cmdBuffer.append(cmd + "\n");
+			cmdBuffer.write(cmd + "\n");
 		} else {
 			Out.println(cmd);			
 			if(Out.checkError()) {
@@ -274,18 +279,47 @@ public class PyMolAdaptor {
 	public void flush() {
 		if( bufferedMode ) {
 			try {
+				cmdCounter++;
 				// write data from buffer to file
 				FileWriter fWriter = new FileWriter(cmdBufferFile);
+				cmdBuffer.flush();
 				fWriter.write(cmdBuffer.toString());
-				fWriter.flush();
+				fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
+				fWriter.write(CMD_END_MARKER+cmdCounter);
+				fWriter.flush(); //TODO is this needed?
 				fWriter.close();
 				
-				// flush command buffer
-				cmdBuffer.flush();
-				
-				Out.println("@" + cmdBufferFile.getCanonicalPath());
 			} catch (IOException e1) {
-				System.err.println("Cannot write to command buffer file.");
+				System.err.println("Cannot write to command buffer file: "+e1.getMessage());
+				return;
+			} finally {
+				log.println(cmdBuffer.toString());
+				log.flush();
+				cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
+			}
+			
+
+			try {
+				waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
+				Out.println("@" + cmdBufferFile.getAbsolutePath());
+				if(Out.checkError()) {
+					if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
+						System.err.println("Couldn't reset connection, PyMol connection is lost!");
+						Start.setUsePymol(false);
+						return;
+					}
+					System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
+					this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+					reconnectTries++;
+				}
+				waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
+				
+			} catch (IOException e) {
+				System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
+				return;
+			} catch (TimeLimitExceededException e1) {
+				System.err.println(e1.getMessage());
+				return;
 			}
 		}
 	}
@@ -301,18 +335,18 @@ public class PyMolAdaptor {
 		long start = System.currentTimeMillis();
 		while (System.currentTimeMillis()-start < timeoutMillis) {
 			try {
-				String cmd;
-				File f = new File(Start.getResourcePath(PYMOL_CALLBACK_FILE));
+				String cmd;	
 				OutputStream test = new PymolServerOutputStream(this.url);
 				cmd = "run "+Start.getResourcePath(PYMOLFUNCTIONS_SCRIPT);
 				test.write(cmd.getBytes());
 				test.flush();
-				cmd = "callback "+Start.getResourcePath(PYMOL_CALLBACK_FILE) + ", " + new Date();
+				cmd = "callback "+callbackFile.getAbsolutePath() + ", " + new Date();
 				test.write(cmd.getBytes());
 				test.flush();
-				if(f.exists()) {
-					f.deleteOnExit();
-					hooray(test);
+				if(callbackFile.exists()) {
+					callbackFile.deleteOnExit();
+					this.connected = true;
+					this.Out = new PrintWriter(test,true);
 					return true;
 				} else {
 					test.close();
@@ -323,12 +357,6 @@ public class PyMolAdaptor {
 			}
 		}
 		return false;
-	}
-
-	/** Being called when a connection to pymol has been successfully established */ 
-	private void hooray(OutputStream s) {
-		this.connected = true;
-		this.Out = new PrintWriter(s,true);
 	}
 
 	/**
@@ -619,7 +647,7 @@ public class PyMolAdaptor {
 	}
 
 	/** setting the view in PyMol if new selections were done */
-	public void setView(String structureID1, String structureID2){
+	public void showStructureHideOthers(String structureID1, String structureID2){
 		sendCommand("disable all");
 		sendCommand("enable " + structureID1);
 		sendCommand("enable " + structureID2);
@@ -664,7 +692,7 @@ public class PyMolAdaptor {
 	 * @param selName the name of the new selection
 	 * @param selection the selection string (following PyMol's selection syntax)
 	 */
-	public void select(String selName, String selection) {
+	private void select(String selName, String selection) {
 		
 		String command = "select " + selName + "," + selection;
 		
@@ -683,6 +711,22 @@ public class PyMolAdaptor {
 		return this.connected;
 	}
 
+	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
+		long startTime = System.currentTimeMillis();
+
+		while (System.currentTimeMillis()<startTime+timeOut) {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line=br.readLine())!=null) {
+				if (line.equals(tag)) {
+					br.close();
+					return;
+				}
+			}
+			br.close();
+		}
+		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
+	}
 }
 
 

@@ -45,7 +45,7 @@ public class Start {
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
 	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
-	
+	public static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes
 	/*---------------------------- configuration ---------------------------*/
 	
 	/*
@@ -103,9 +103,9 @@ public class Start {
 	public static String			PYMOL_PORT =			 "9123";	  // default port, if port is blocked, pymol will increase automatically
 	public static String			PYMOL_SERVER_URL = 		 "http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	public static String			PYMOL_EXECUTABLE = 		 ""; 		  // to start pymol automatically
-	public static String			PYMOL_LOGFILE =			 TEMP_DIR + File.separator + "CMView_pymol.log";
-	public static String			PYMOL_CMDBUFFER_FILE =	 TEMP_DIR + File.separator + "CMView_pymol.cmd";
-	public static String			PYMOL_PARAMETERS =  	 "-R -q -s " + PYMOL_LOGFILE; // run xmlrpc server and skip splash screen
+	public static String			PYMOL_LOGFILE = 		 "CMView_pymol.log";
+	public static String			PYMOL_CMDBUFFER_FILE =	 "CMView_pymol.cmd";
+	public static String			PYMOL_PARAMETERS =  	 "-R -q"; 	  // run xmlrpc server and skip splash screen (plus -s in main())
 	public static long 				PYMOL_CONN_TIMEOUT = 	 15000; 	  // pymol connection time out in milliseconds
 	public static boolean			PYMOL_LOAD_ON_START =    true; 		  // if true, pymol will be preloaded on startup
 	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
@@ -496,7 +496,9 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS);
+			File pymolInternalLogFile = new File(TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
+			pymolInternalLogFile.deleteOnExit();
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
 			
 			// determine the rpc port from PyMol's output stream as it might be
 			// different from 9123 which is used to be the default port. 
@@ -821,7 +823,18 @@ public class Start {
 		
 		// connect to pymol
 		if(USE_PYMOL) {
-			pymolAdaptor = new PyMolAdaptor(PYMOL_SERVER_URL);
+			
+			PrintWriter pymolLog = null; 
+			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
+			try {
+				pymolLog = new PrintWriter(pymolLogFile);
+			} catch (FileNotFoundException e) {
+				System.err.println("Can't write to pymol log file "+pymolLogFile.getAbsolutePath()+": "+e.getMessage()+". Exiting");
+				System.exit(1);
+			}
+			File cmdBufferFile = new File(TEMP_DIR, PYMOL_CMDBUFFER_FILE);
+			cmdBufferFile.deleteOnExit();
+			pymolAdaptor = new PyMolAdaptor(PYMOL_SERVER_URL, cmdBufferFile, pymolLog);
 			if(pymolAdaptor.tryConnectingToPymol(100) == true) { // running pymol server found
 				System.out.println("PyMol server found. Connected.");
 				// do not shutdown View's possessions!!! 
