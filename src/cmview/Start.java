@@ -7,8 +7,6 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
@@ -499,29 +497,11 @@ public class Start {
 			File pymolInternalLogFile = new File(TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
 			pymolInternalLogFile.deleteOnExit();
 			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
+
+			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
+			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
+			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
 			
-			// determine the rpc port from PyMol's output stream as it might be
-			// different from 9123 which is used to be the default port. 
-			// However, if the connection to this port fails, PyMol tries 
-			// a certain number of different ports for starting the server. 
-			// Therefore, we have to determine the possibly new server port.
-			BufferedReader in = new BufferedReader(new InputStreamReader(pymolProcess.getInputStream()));
-			String pymolOut = null;
-			// the group of wild-cards accepting digitals is for getting the 
-			// port number 
-			Pattern portPattern = Pattern.compile("^.*port\\s(\\d+).*");
-			Matcher matchPortPattern = null; 
-			while( true ) {
-				// TODO: we hopefully won't get stuck in this line if the stream is empty ?!?!?! maybe some Timer functionality would do ...
-				pymolOut = in.readLine();  
-				matchPortPattern = portPattern.matcher(pymolOut);
-				if( matchPortPattern.matches() ) {
-					PYMOL_PORT = matchPortPattern.group(1);
-					setPyMolServerUrl(PYMOL_HOST, PYMOL_PORT);
-					System.out.println("Found PyMol server running on port " + PYMOL_PORT + ".");
-					break;
-				}
-			}
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 			return false;
