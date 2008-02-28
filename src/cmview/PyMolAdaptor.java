@@ -230,7 +230,7 @@ public class PyMolAdaptor {
 	/*---------------------------- public methods ---------------------------*/
 
 	/** 
-	 * Writes command to command buffer so that it will be sent to PyMol upon 
+	 * Writes command to the output stream that will be sent to PyMol on 
 	 * next call of {@link #flush()} 
 	 * @param cmd the PyMol command
 	 */
@@ -239,64 +239,20 @@ public class PyMolAdaptor {
 			return;
 		}
 		
-		Out.write(cmd+"\n");
-		//cmdBuffer.write(cmd + "\n");
+		Out.println(cmd);
 	}
 	
 	/**
-	 * Flushes the command buffer so that it is sent to PyMol by using a 
-	 * "load" command.
+	 * Flushes the command buffer so that it is sent to PyMol
 	 */
 	public void flush() {	
-		Out.flush();
-		if(Out.checkError()) {			
+		//Out.flush();
+		// we don't need to call flush() because checkError() already does the flushing, see java doc
+		if (Out.checkError()) {			
 			System.err.println("Couldn't send command to PyMol. Connection is lost!");
 			Start.setUsePymol(false);
 			return;
 		}
-		
-//		try {
-//			cmdCounter++;
-//			// write data from buffer to file
-//			FileWriter fWriter = new FileWriter(cmdBufferFile);
-//			cmdBuffer.flush();
-//			fWriter.write(cmdBuffer.toString());
-//			fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
-//			fWriter.write(CMD_END_MARKER+cmdCounter);
-//			fWriter.flush(); //TODO is this needed, i.e. doesn't close() already do it?
-//			fWriter.close();
-//
-//		} catch (IOException e1) {
-//			System.err.println("Cannot write to command buffer file: "+e1.getMessage());
-//			return;
-//		} finally {
-//			log.println(cmdBuffer.toString());
-//			log.flush();
-//			cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
-//		}
-//
-//		try {
-//			waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
-//			Out.println("@" + cmdBufferFile.getAbsolutePath());
-//			if(Out.checkError()) {
-//				if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
-//					System.err.println("Couldn't reset connection, PyMol connection is lost!");
-//					Start.setUsePymol(false);
-//					return;
-//				}
-//				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
-//				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
-//				reconnectTries++;
-//			}
-//			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
-//
-//		} catch (IOException e) {
-//			System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
-//			return;
-//		} catch (TimeLimitExceededException e1) {
-//			System.err.println(e1.getMessage());
-//			return;
-//		}
 	}
 
 	/**
