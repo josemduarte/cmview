@@ -43,7 +43,6 @@ public class Start {
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
 	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
-	public static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes
 	/*---------------------------- configuration ---------------------------*/
 	
 	/*
@@ -97,17 +96,10 @@ public class Start {
 	public static String			DSSP_PARAMETERS = "--";	
 	
 	/* external programs: pymol */
-	public static String			PYMOL_HOST = 			 "localhost"; // currently, the XMLRPC server in Pymol only supports localhost
-	public static String			PYMOL_PORT =			 "9123";	  // default port, if port is blocked, pymol will increase automatically
-	public static String			PYMOL_SERVER_URL = 		 "http://"+PYMOL_HOST+":"+PYMOL_PORT;
 	public static String			PYMOL_EXECUTABLE = 		 ""; 		  // to start pymol automatically
 	public static String			PYMOL_LOGFILE = 		 "CMView_pymol.log";
-	public static String			PYMOL_CMDBUFFER_FILE =	 "CMView_pymol.cmd";
-	public static String			PYMOL_PARAMETERS =  	 "-R -q"; 	  // run xmlrpc server and skip splash screen (plus -s in main())
-	public static long 				PYMOL_CONN_TIMEOUT = 	 15000; 	  // pymol connection time out in milliseconds
-	public static boolean			PYMOL_LOAD_ON_START =    true; 		  // if true, pymol will be preloaded on startup
+	public static String			PYMOL_PARAMETERS =  	 "-q -p"; 	  // listen to standard input and skip splash screen (plus -s in main())
 	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
-	public static int				PYMOL_RECONNECT_TRIES  = 1;			  // number of times a reconnection to PyMol is tried before giving up
 
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
@@ -295,17 +287,10 @@ public class Start {
 			USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
 
 			// external programs: pymol
-			PYMOL_HOST = p.getProperty("PYMOL_HOST", PYMOL_HOST);
-			PYMOL_PORT = p.getProperty("PYMOL_PORT", PYMOL_PORT);
-			PYMOL_SERVER_URL = p.getProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);
 			PYMOL_EXECUTABLE = p.getProperty("PYMOL_EXECUTABLE", PYMOL_EXECUTABLE);		
 			PYMOL_LOGFILE = p.getProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);
-			PYMOL_CMDBUFFER_FILE = p.getProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);
 			PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
-			PYMOL_CONN_TIMEOUT = Long.valueOf(p.getProperty("PYMOL_CONN_TIMEOUT",new Long(PYMOL_CONN_TIMEOUT).toString()));
-			PYMOL_LOAD_ON_START = Boolean.valueOf(p.getProperty("PYMOL_LOAD_ON_START", new Boolean(PYMOL_LOAD_ON_START).toString()));
 			PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
-			PYMOL_RECONNECT_TRIES = Integer.valueOf(p.getProperty("PYMOL_RECONNECT_TRIES", new Integer(PYMOL_RECONNECT_TRIES).toString()));
 
 			// external programs: dssp
 			DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
@@ -359,17 +344,10 @@ public class Start {
 		p.setProperty("USE_DSSP",Boolean.toString(USE_DSSP));									// doc
 		
 		// external programs: pymol
-		p.setProperty("PYMOL_HOST",PYMOL_HOST);													// doc?
-		p.setProperty("PYMOL_PORT",PYMOL_PORT);													// doc?
-		p.setProperty("PYMOL_SERVER_URL",PYMOL_SERVER_URL);										// doc?
 		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);										// doc!!!!
 		p.setProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);											// doc
-		p.setProperty("PYMOL_CMDBUFFER_FILE",PYMOL_CMDBUFFER_FILE);								// doc???
 		p.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);										// doc?
-		p.setProperty("PYMOL_CONN_TIMEOUT",Long.toString(PYMOL_CONN_TIMEOUT));					// doc?
-		p.setProperty("PYMOL_LOAD_ON_START", Boolean.toString(PYMOL_LOAD_ON_START));			// doc?
 		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
-		p.setProperty("PYMOL_RECONNECT_TRIES", Integer.toString(PYMOL_RECONNECT_TRIES));		// doc?
 
 		// external programs: dssp
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
@@ -483,30 +461,26 @@ public class Start {
 	
 	/**
 	 * Runs external pymol executable if possible.
-	 * Tries to determine the port the PyMol server is running on.  
-	 * @return true on success, false otherwise.
+	 * 
+	 * @return the pymol input PrintWriter
+	 * @throws IOException if execution of PyMOL fails
 	 */
-	private static boolean runPymol() {
-		try {
+	private static PrintWriter runPymol() throws IOException {
+
 			System.out.println("Starting PyMol...");
 			File f = new File(PYMOL_EXECUTABLE);
 			if(!f.exists()) {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			File pymolInternalLogFile = new File(TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
-			pymolInternalLogFile.deleteOnExit();
-			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
+			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolLogFile.getAbsolutePath());			
 
 			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
 			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
 			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
 			
-		} catch(IOException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;				
+			return new PrintWriter(pymolProcess.getOutputStream()); 
 	}
 	
 	/**
@@ -661,10 +635,6 @@ public class Start {
 		 return threadPool;
 	 }
 	 
-	 public static void setPyMolServerUrl(String host, String port) {
-		 PYMOL_SERVER_URL = "http://"+PYMOL_HOST+":"+PYMOL_PORT;
-	 }
-
 	 /*--------------------------------- main --------------------------------*/
 	 
 	/**
@@ -803,46 +773,17 @@ public class Start {
 		
 		// connect to pymol
 		if(USE_PYMOL) {
-			
-			PrintWriter pymolLog = null; 
-			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
+			System.out.println("Connecting to PyMol...");
 			try {
-				pymolLog = new PrintWriter(pymolLogFile);
-			} catch (FileNotFoundException e) {
-				System.err.println("Can't write to pymol log file "+pymolLogFile.getAbsolutePath()+": "+e.getMessage()+". Exiting");
-				System.exit(1);
+				PrintWriter pymolInput = runPymol();
+				pymolAdaptor = new PyMolAdaptor(pymolInput);
+				System.out.println("Connected.");
+				pymol_found = true;	
+			} catch(IOException e) {						
+				System.err.println("Failed connecting to PyMol. Error: "+e.getMessage());
+				pymol_found = false;
 			}
-			File cmdBufferFile = new File(TEMP_DIR, PYMOL_CMDBUFFER_FILE);
-			cmdBufferFile.deleteOnExit();
-			pymolAdaptor = new PyMolAdaptor(PYMOL_SERVER_URL, cmdBufferFile, pymolLog);
-			if(pymolAdaptor.tryConnectingToPymol(100) == true) { // running pymol server found
-				System.out.println("PyMol server found. Connected.");
-				// do not shutdown View's possessions!!! 
-				PYMOL_SHUTDOWN_ON_EXIT = false;
-				pymol_found = true;
-			} else {
-				if(PYMOL_LOAD_ON_START) {
-					System.out.println("Connecting to PyMol server...");
-					if(runPymol() == false) {
-						System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
-						pymol_found = false;
-					} else {						
-						// re-set url in case function runPymol detected that 
-						// PyMOL is running on a different port 
-						pymolAdaptor.setPyMolServerUrl(PYMOL_SERVER_URL);
-						
-						if(pymolAdaptor.tryConnectingToPymol(PYMOL_CONN_TIMEOUT) == false) {
-							System.err.println("Failed. (You can try to restart this application after manually starting pymol with the -R parameter)");
-							pymol_found = false;
-						} else {
-							System.out.println("Connected.");
-							pymol_found = true;
-						}						
-					}
-				} else {
-					pymol_found = false;
-				}
-			}
+
 			if(!pymol_found) {
 				System.err.println("Could not connect to PyMol server. Some functionality will not be available.");
 			}

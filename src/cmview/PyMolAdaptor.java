@@ -1,18 +1,8 @@
 package cmview;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import tools.PymolServerOutputStream;
 import java.util.*;
-
-import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
 
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -34,40 +24,21 @@ public class PyMolAdaptor {
 	private static final String[] 	COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 
 	private static final String[] 	ModelColors = {"lightpink", "palegreen"};
-	
-	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;
-	
-	private static final String 	CMD_END_MARKER = "#end";
-	private static final long 		TIMEOUT = 4000;
-	
+		
 	/*--------------------------- member variables --------------------------*/
-	private String url;
+
 	private PrintWriter Out;
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
-	private File cmdBufferFile;
-	private StringWriter cmdBuffer; //TODO use StringBuffer instead?
-	private int cmdCounter;
-	private int reconnectTries;
-	private PrintWriter log;
-	private File callbackFile;
 
 	/*----------------------------- constructors ----------------------------*/
 
 	/**
-	 * Constructs a new PyMolAdaptor with given pyMolServerUrl, cmdBufferFile and log
-	 * @param pyMolServerUrl
-	 * @param cmdBufferFile
-	 * @param log
+	 * Constructs a new PyMolAdaptor with given pymolInput PrintWriter
+	 * @param pymolInput
 	 */
-	public PyMolAdaptor(String pyMolServerUrl, File cmdBufferFile, PrintWriter log) {
-		this.url = pyMolServerUrl;
+	public PyMolAdaptor(PrintWriter pymolInput) {
+		this.Out = pymolInput;
 		this.connected = false;
-		this.cmdBufferFile = cmdBufferFile;
-		this.log = log;
-		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
-		this.reconnectTries = 0;
-		this.cmdCounter = 0;
-		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -267,93 +238,65 @@ public class PyMolAdaptor {
 		if (!Start.isPyMolConnectionAvailable()) {
 			return;
 		}
-		cmdBuffer.write(cmd + "\n");
+		
+		Out.write(cmd+"\n");
+		//cmdBuffer.write(cmd + "\n");
 	}
 	
 	/**
 	 * Flushes the command buffer so that it is sent to PyMol by using a 
 	 * "load" command.
 	 */
-	public void flush() {		
-		try {
-			cmdCounter++;
-			// write data from buffer to file
-			FileWriter fWriter = new FileWriter(cmdBufferFile);
-			cmdBuffer.flush();
-			fWriter.write(cmdBuffer.toString());
-			fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
-			fWriter.write(CMD_END_MARKER+cmdCounter);
-			fWriter.flush(); //TODO is this needed, i.e. doesn't close() already do it?
-			fWriter.close();
-
-		} catch (IOException e1) {
-			System.err.println("Cannot write to command buffer file: "+e1.getMessage());
-			return;
-		} finally {
-			log.println(cmdBuffer.toString());
-			log.flush();
-			cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
-		}
-
-		try {
-			waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
-			Out.println("@" + cmdBufferFile.getAbsolutePath());
-			if(Out.checkError()) {
-				if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
-					System.err.println("Couldn't reset connection, PyMol connection is lost!");
-					Start.setUsePymol(false);
-					return;
-				}
-				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
-				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
-				reconnectTries++;
-			}
-			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
-
-		} catch (IOException e) {
-			System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
-			return;
-		} catch (TimeLimitExceededException e1) {
-			System.err.println(e1.getMessage());
+	public void flush() {	
+		Out.flush();
+		if(Out.checkError()) {			
+			System.err.println("Couldn't send command to PyMol. Connection is lost!");
+			Start.setUsePymol(false);
 			return;
 		}
-	}
-
-	public void setPyMolServerUrl(String url) {
-		this.url = url; 
-	}
-	
-	/**
-	 * Try connecting to pymol server. Returns true on success, false otherwise.
-	 * @param timeoutMillis the timeout in milliseconds before we give up 
-	 * finding PyMol
-	 */
-	public boolean tryConnectingToPymol(long timeoutMillis) {
-		long start = System.currentTimeMillis();
-		while (System.currentTimeMillis()-start < timeoutMillis) {
-			try {
-				String cmd;	
-				OutputStream test = new PymolServerOutputStream(this.url);
-				cmd = "run "+Start.getResourcePath(PYMOLFUNCTIONS_SCRIPT);
-				test.write(cmd.getBytes());
-				test.flush();
-				cmd = "callback "+callbackFile.getAbsolutePath() + ", " + new Date();
-				test.write(cmd.getBytes());
-				test.flush();
-				if(callbackFile.exists()) {
-					callbackFile.deleteOnExit();
-					this.connected = true;
-					this.Out = new PrintWriter(test,true);
-					return true;
-				} else {
-					test.close();
-					continue;
-				}
-			} catch (Exception e) {
-				continue;
-			}
-		}
-		return false;
+		
+//		try {
+//			cmdCounter++;
+//			// write data from buffer to file
+//			FileWriter fWriter = new FileWriter(cmdBufferFile);
+//			cmdBuffer.flush();
+//			fWriter.write(cmdBuffer.toString());
+//			fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
+//			fWriter.write(CMD_END_MARKER+cmdCounter);
+//			fWriter.flush(); //TODO is this needed, i.e. doesn't close() already do it?
+//			fWriter.close();
+//
+//		} catch (IOException e1) {
+//			System.err.println("Cannot write to command buffer file: "+e1.getMessage());
+//			return;
+//		} finally {
+//			log.println(cmdBuffer.toString());
+//			log.flush();
+//			cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
+//		}
+//
+//		try {
+//			waitForTagInFile(cmdBufferFile, CMD_END_MARKER+cmdCounter, TIMEOUT);
+//			Out.println("@" + cmdBufferFile.getAbsolutePath());
+//			if(Out.checkError()) {
+//				if (reconnectTries>=Start.PYMOL_RECONNECT_TRIES) {
+//					System.err.println("Couldn't reset connection, PyMol connection is lost!");
+//					Start.setUsePymol(false);
+//					return;
+//				}
+//				System.err.println("Pymol communication error. The last operation may have failed. Resetting connection.");
+//				this.Out = new PrintWriter(new PymolServerOutputStream(url),true);
+//				reconnectTries++;
+//			}
+//			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
+//
+//		} catch (IOException e) {
+//			System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
+//			return;
+//		} catch (TimeLimitExceededException e1) {
+//			System.err.println(e1.getMessage());
+//			return;
+//		}
 	}
 
 	/**
@@ -722,35 +665,6 @@ public class PyMolAdaptor {
 		return this.connected;
 	}
 
-	/**
-	 * Reads the given file until a line with tag is found before given timeOut 
-	 * is reached. To be called from {@link #flush()} so that it is guaranteed that 
-	 * command buffer file is fully written before loading from it or that PyMol is 
-	 * finished executing commands before continuing with others.
-	 * @param file
-	 * @param tag the tag we want to find in the file
-	 * @param timeOut the timeout in milliseconds
-	 * @throws IOException if file can't be read
-	 * @throws TimeLimitExceededException when timeOut is reached before finding 
-	 * the tag in file
-	 * @see {@link #flush()}
-	 */
-	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
-		long startTime = System.currentTimeMillis();
-
-		while (System.currentTimeMillis()<startTime+timeOut) {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line;
-			while ((line=br.readLine())!=null) {
-				if (line.equals(tag)) {
-					br.close();
-					return;
-				}
-			}
-			br.close();
-		}
-		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
-	}
 }
 
 
