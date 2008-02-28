@@ -14,7 +14,7 @@ ver=$4
 
 
 # files
-tmpdir=$roottmpdir/cmview-$ver
+tmpdir=$roottmpdir/CMView-$ver
 mkdir $tmpdir
 cp $cmviewjar $tmpdir/CMView.jar
 cp cmview.sh $tmpdir
@@ -29,4 +29,4 @@ cp $jarsdir/*.jar $tmpdir/jars
 
 # zipping up
 cd $roottmpdir
-zip -r cmview-$ver.zip cmview-$ver/
+zip -r CMView-$ver.zip CMView-$ver/
