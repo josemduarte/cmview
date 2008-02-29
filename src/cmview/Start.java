@@ -120,7 +120,6 @@ public class Start {
 
 	// global session variables (use getter methods)
 	private static boolean			database_found = false;
-	private static boolean			pymol_found = false;
 	private static boolean			dssp_found = false;
 	
 	private static MySQLConnection 	conn;
@@ -461,31 +460,6 @@ public class Start {
 	}
 	
 	/**
-	 * Runs external pymol executable if possible.
-	 * 
-	 * @return the pymol input PrintWriter
-	 * @throws IOException if execution of PyMOL fails
-	 */
-	private static PrintWriter runPymol() throws IOException {
-
-			System.out.println("Starting PyMol...");
-			File f = new File(PYMOL_EXECUTABLE);
-			if(!f.exists()) {
-				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
-				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
-			}
-			File pymolInternalLogFile = new File(TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
-			pymolInternalLogFile.deleteOnExit();
-			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
-
-			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
-			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
-			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
-			
-			return new PrintWriter(pymolProcess.getOutputStream()); 
-	}
-	
-	/**
 	 * Try connecting to the database server. Returns true on success, false otherwise.
 	 */
 	private static boolean tryConnectingToDb() {
@@ -573,21 +547,12 @@ public class Start {
 	}
 	
 	/**
-	 * Returns true if a connection to pymol is expected to be available. This is to avoid
-	 * trying to connect when it is clear that the trial will fail.
+	 * Returns true if a connection to the 3D viewer is available, false otherwise.
+	 * Use this for checking before calling any 3D specific functions.
 	 */
 	public static boolean isPyMolConnectionAvailable() {
-		return Start.USE_PYMOL && Start.pymol_found;
-		// checking for Start.USE_PYMOL should not be necessary here, but to be safe we keep it here.
-	}
-	
-	/**
-	 * Enables/disables use of pymol. 
-	 * e.g.: called after pymol communication is lost
-	 * @param usePymol
-	 */
-	public static void setUsePymol (boolean usePymol) {
-		pymol_found = usePymol;
+		return pymolAdaptor != null && pymolAdaptor.isConnected();
+		//return Start.USE_PYMOL && Start.pymol_found;
 	}
 	
 	/**
@@ -771,8 +736,7 @@ public class Start {
 		File trashLogFile = new File(TEMP_DIR, TRASH_LOGFILE);
 		trashLogFile.deleteOnExit();
 		System.setProperty("java.util.logging.config.file",trashLogFile.getAbsolutePath());
-		
-		
+					
 		// connect to pymol
 		if(USE_PYMOL) {
 		
@@ -787,22 +751,14 @@ public class Start {
 					System.err.println("Can't write to pymol log file "+pymolLogFile.getAbsolutePath()+": "+e.getMessage()+". Exiting");
 					System.exit(1);
 				}
-				PrintWriter pymolInput = runPymol();
-				pymolAdaptor = new PyMolAdaptor(pymolInput,  pymolLog);
+				pymolAdaptor = new PyMolAdaptor(pymolLog);			
+				pymolAdaptor.startup();
+				pymolAdaptor.initialize();
 				System.out.println("Connected.");
-				pymol_found = true;	
 			} catch(IOException e) {						
-				System.err.println("Failed connecting to PyMol. Error: "+e.getMessage());
-				pymol_found = false;
+				System.err.println("Failed: "+e.getMessage());
 			}
-
-			if(!pymol_found) {
-				System.err.println("Could not connect to PyMol server. Some functionality will not be available.");
-			}
-		} else {
-			pymol_found = false;
 		}
-		if(pymol_found) pymolAdaptor.initialize();
 		
 		// connect to database
 		if(USE_DATABASE && USE_EXPERIMENTAL_FEATURES) {

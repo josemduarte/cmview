@@ -23,9 +23,6 @@ import proteinstructure.*;
  */	
 public class PyMolAdaptor {
 
-
-
-
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
@@ -39,7 +36,7 @@ public class PyMolAdaptor {
 	private static final String 	CMD_END_MARKER = "#end";
 	private static final long 		TIMEOUT = 4000;
 	
-	private static final File CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
+	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -56,8 +53,8 @@ public class PyMolAdaptor {
 	 * Constructs a new PyMolAdaptor with given pymolInput PrintWriter
 	 * @param pymolInput
 	 */
-	public PyMolAdaptor(PrintWriter pymolInput, PrintWriter log) {
-		this.Out = pymolInput;
+	public PyMolAdaptor(PrintWriter log) {
+		this.Out = null;
 		this.connected = false;
 		this.log = log;
 		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
@@ -250,6 +247,36 @@ public class PyMolAdaptor {
 			System.err.println("Couldn't create pymol selection. Too many residues.");
 		}
 	}
+	
+	/**
+	 * Reads the given file until a line with tag is found before given timeOut 
+	 * is reached. To be called from {@link #flush()} so that it is guaranteed that 
+	 * command buffer file is fully written before loading from it or that PyMol is 
+	 * finished executing commands before continuing with others.
+	 * @param file
+	 * @param tag the tag we want to find in the file
+	 * @param timeOut the timeout in milliseconds
+	 * @throws IOException if file can't be read
+	 * @throws TimeLimitExceededException when timeOut is reached before finding 
+	 * the tag in file
+	 * @see {@link #flush()}
+	 */
+	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
+		long startTime = System.currentTimeMillis();
+
+		while (System.currentTimeMillis()<startTime+timeOut) {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line=br.readLine())!=null) {
+				if (line.equals(tag)) {
+					br.close();
+					return;
+				}
+			}
+			br.close();
+		}
+		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
+	}
 
 	/*---------------------------- public methods ---------------------------*/
 
@@ -259,7 +286,7 @@ public class PyMolAdaptor {
 	 * @param cmd the PyMol command
 	 */
 	private void sendCommand(String cmd) {
-		if (!Start.isPyMolConnectionAvailable()) {
+		if (!this.connected) {
 			return;
 		}
 		
@@ -269,7 +296,11 @@ public class PyMolAdaptor {
 	/**
 	 * Flushes the command buffer so that it is sent to PyMol
 	 */
-	public void flush() {	
+	public void flush() {
+		if(!this.connected) {
+			return;
+		}
+		
 		try {
 			cmdCounter++;
 			// write data from buffer to file
@@ -290,11 +321,11 @@ public class PyMolAdaptor {
 		}
 
 		try {
-			waitForTagInFile(CMD_BUFFER_FILE, CMD_END_MARKER+cmdCounter, TIMEOUT);
+			waitForTagInFile(CMD_BUFFER_FILE, CMD_END_MARKER+cmdCounter, TIMEOUT);	
 			Out.println("@" + CMD_BUFFER_FILE.getAbsolutePath());
 			if (Out.checkError()) {			
 				System.err.println("Couldn't send command to PyMol. Connection is lost!");
-				Start.setUsePymol(false);
+				this.connected = false;
 				return;
 			}
 			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
@@ -657,41 +688,36 @@ public class PyMolAdaptor {
 	}
 	
 	/**
-	 * Returns whether a connection of this Adaptor to the server had been already successfully established.
-	 * @return true if connection was established, false otherwise
+	 * Returns whether a connection of this Adaptor to the server had been already successfully established
+	 * (and was not subsequently lost).
+	 * @return true if a connection is established, false otherwise
 	 */
 	public boolean isConnected() {
 		return this.connected;
 	}
 
 	/**
-	 * Reads the given file until a line with tag is found before given timeOut 
-	 * is reached. To be called from {@link #flush()} so that it is guaranteed that 
-	 * command buffer file is fully written before loading from it or that PyMol is 
-	 * finished executing commands before continuing with others.
-	 * @param file
-	 * @param tag the tag we want to find in the file
-	 * @param timeOut the timeout in milliseconds
-	 * @throws IOException if file can't be read
-	 * @throws TimeLimitExceededException when timeOut is reached before finding 
-	 * the tag in file
-	 * @see {@link #flush()}
+	 * Runs external pymol executable if possible.
+	 * @throws IOException if execution of PyMol fails
 	 */
-	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
-		long startTime = System.currentTimeMillis();
-
-		while (System.currentTimeMillis()<startTime+timeOut) {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line;
-			while ((line=br.readLine())!=null) {
-				if (line.equals(tag)) {
-					br.close();
-					return;
-				}
+	public void startup() throws IOException {
+	
+			System.out.println("Starting PyMol...");
+			File f = new File(Start.PYMOL_EXECUTABLE);
+			if(!f.exists()) {
+				System.err.println(Start.PYMOL_EXECUTABLE + " does not exist.");
+				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			br.close();
-		}
-		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
+			File pymolInternalLogFile = new File(Start.TEMP_DIR,Start.PYMOL_INTERNAL_LOGFILE);
+			pymolInternalLogFile.deleteOnExit();
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + Start.PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
+	
+			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
+			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
+			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
+			
+			this.Out = new PrintWriter(pymolProcess.getOutputStream());
+			this.connected = true;
 	}
 }
 
