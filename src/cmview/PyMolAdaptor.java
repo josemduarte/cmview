@@ -342,7 +342,6 @@ public class PyMolAdaptor {
 		sendCommand("load " + fileName + ", " + structureID);
 		sendCommand("hide lines");
 		sendCommand("show cartoon");		
-		sendCommand("hide sticks");
 
 		if (secondModel){
 			// color second model green
@@ -352,11 +351,8 @@ public class PyMolAdaptor {
 			sendCommand("disable all");
 			sendCommand("enable " + structureID);
 			sendCommand("color " + ModelColors[0] + ", " + structureID);
+			sendCommand("orient "+structureID);
 		}
-
-		sendCommand("orient "+structureID);
-		
-		sendCommand("cmd.refresh()");
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
@@ -379,11 +375,8 @@ public class PyMolAdaptor {
 	 * @see pairFitSuperposition()
 	 */
 	public void alignStructures(String structureId1,  String structureId2){
-		sendCommand("align " + structureId1 + "," + structureId2);
-		sendCommand("hide lines");
-		sendCommand("hide sticks");
-		sendCommand("zoom");
-		sendCommand("cmd.refresh()");
+		sendCommand("align " + structureId2 + "," + structureId1);
+		sendCommand("zoom " + structureId1+ " or " + structureId2);
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
@@ -393,7 +386,7 @@ public class PyMolAdaptor {
 	 * Superimpose two structures identified by their structureIDs, using PyMol's
 	 * <code>pair_fit</code> command which does a C-alpha minimum RMSD fit on a
 	 * given set of residues.
-	 * @param structureID1 the structure id of the first structure
+	 * @param structureID1 the structure id of the first (reference) structure
 	 * @param structureID2 the structure id of the second structure
 	 * @param chunksFirst an interval set of residues in the first structure
 	 * @param chunksSecond an interval set of residues in the second structure
@@ -409,7 +402,7 @@ public class PyMolAdaptor {
 
 		// append sequence of chunks to the command line along with the
 		// atom types to be considered for superpositioning (here: CA)
-		String commandLine = "pair_fit " + structureID1 + "///" + chunkSeq + "/CA";
+		String commandLine = structureID1 + "///" + chunkSeq + "/CA";
 
 		chunkSeq.delete(0, chunkSeq.length());
 		for( Interval e : chunksSecond ) {
@@ -417,13 +410,10 @@ public class PyMolAdaptor {
 		}
 		chunkSeq.deleteCharAt(chunkSeq.length()-1);
 
-		commandLine = commandLine + ", " + structureID2 + "///" + chunkSeq + "/CA";
+		commandLine = "pair_fit " + structureID2 + "///" + chunkSeq + "/CA" + ", " + commandLine ;
 
 		sendCommand(commandLine);
-		sendCommand("hide lines");
-		sendCommand("hide sticks");
-		sendCommand("zoom");
-		sendCommand("cmd.refresh()");
+		sendCommand("zoom " + structureID1+ " or " + structureID2);
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
@@ -515,7 +505,7 @@ public class PyMolAdaptor {
 				}
 			}
 			
-			// check size
+			// check size TODO: Is this limit still necessary?
 			if( adjLists.size() > 500 ) {
 				System.err.println("Selection too big!");
 				return;
@@ -554,7 +544,6 @@ public class PyMolAdaptor {
 			// fixing the side chain problem
 			// side chains only occur in case of common contacts
 			sendCommand("hide lines,  " + edgeSelName);
-			sendCommand("hide sticks, " + edgeSelName);
 		}
 		
 		// create selection of nodes incident to the contacts
