@@ -1,8 +1,17 @@
 package cmview;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import tools.PymolServerOutputStream;
 import java.util.*;
+
+import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
 
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -24,21 +33,38 @@ public class PyMolAdaptor {
 	private static final String[] 	COLORS = {"blue", "red", "yellow", "magenta", "cyan", "tv_blue", "tv_green", "salmon", "warmpink"};
 
 	private static final String[] 	ModelColors = {"lightpink", "palegreen"};
-		
+	
+	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;
+	
+	private static final String 	CMD_END_MARKER = "#end";
+	private static final long 		TIMEOUT = 4000;
+	
+	private static final File CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
+	
 	/*--------------------------- member variables --------------------------*/
 
 	private PrintWriter Out;
 	private boolean connected; 		// indicated whether a connection to pymol server had been established already
-
+	private StringWriter cmdBuffer; //TODO use StringBuffer instead?
+	private int cmdCounter;
+	private PrintWriter log;
+	private File callbackFile;
+	
 	/*----------------------------- constructors ----------------------------*/
 
 	/**
 	 * Constructs a new PyMolAdaptor with given pymolInput PrintWriter
 	 * @param pymolInput
 	 */
-	public PyMolAdaptor(PrintWriter pymolInput) {
+	public PyMolAdaptor(PrintWriter pymolInput, PrintWriter log) {
 		this.Out = pymolInput;
 		this.connected = false;
+		this.log = log;
+		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
+		this.cmdCounter = 0;
+		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
+		CMD_BUFFER_FILE.deleteOnExit();
+		callbackFile.deleteOnExit();
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -230,7 +256,7 @@ public class PyMolAdaptor {
 	/*---------------------------- public methods ---------------------------*/
 
 	/** 
-	 * Writes command to the output stream that will be sent to PyMol on 
+	 * Writes command to the command buffer that will be sent to PyMol on 
 	 * next call of {@link #flush()} 
 	 * @param cmd the PyMol command
 	 */
@@ -239,18 +265,47 @@ public class PyMolAdaptor {
 			return;
 		}
 		
-		Out.println(cmd);
+		cmdBuffer.write(cmd + "\n");
 	}
 	
 	/**
 	 * Flushes the command buffer so that it is sent to PyMol
 	 */
 	public void flush() {	
-		//Out.flush();
-		// we don't need to call flush() because checkError() already does the flushing, see java doc
-		if (Out.checkError()) {			
-			System.err.println("Couldn't send command to PyMol. Connection is lost!");
-			Start.setUsePymol(false);
+		try {
+			cmdCounter++;
+			// write data from buffer to file
+			FileWriter fWriter = new FileWriter(CMD_BUFFER_FILE);
+			cmdBuffer.flush();
+			fWriter.write(cmdBuffer.toString());
+			fWriter.write("callback "+callbackFile.getAbsolutePath() + ", " + cmdCounter+"\n");
+			fWriter.write(CMD_END_MARKER+cmdCounter);
+			fWriter.close();
+
+		} catch (IOException e1) {
+			System.err.println("Cannot write to command buffer file: "+e1.getMessage());
+			return;
+		} finally {
+			log.println(cmdBuffer.toString());
+			log.flush();
+			cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
+		}
+
+		try {
+			waitForTagInFile(CMD_BUFFER_FILE, CMD_END_MARKER+cmdCounter, TIMEOUT);
+			Out.println("@" + CMD_BUFFER_FILE.getAbsolutePath());
+			if (Out.checkError()) {			
+				System.err.println("Couldn't send command to PyMol. Connection is lost!");
+				Start.setUsePymol(false);
+				return;
+			}
+			waitForTagInFile(callbackFile, Integer.toString(cmdCounter), TIMEOUT);
+
+		} catch (IOException e) {
+			System.err.println("Error while reading from command buffer or callback file: "+e.getMessage());
+			return;
+		} catch (TimeLimitExceededException e1) {
+			System.err.println(e1.getMessage());
 			return;
 		}
 	}
@@ -623,6 +678,35 @@ public class PyMolAdaptor {
 		return this.connected;
 	}
 
+	/**
+	 * Reads the given file until a line with tag is found before given timeOut 
+	 * is reached. To be called from {@link #flush()} so that it is guaranteed that 
+	 * command buffer file is fully written before loading from it or that PyMol is 
+	 * finished executing commands before continuing with others.
+	 * @param file
+	 * @param tag the tag we want to find in the file
+	 * @param timeOut the timeout in milliseconds
+	 * @throws IOException if file can't be read
+	 * @throws TimeLimitExceededException when timeOut is reached before finding 
+	 * the tag in file
+	 * @see {@link #flush()}
+	 */
+	private void waitForTagInFile(File file, String tag, long timeOut) throws IOException, TimeLimitExceededException {
+		long startTime = System.currentTimeMillis();
+
+		while (System.currentTimeMillis()<startTime+timeOut) {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line=br.readLine())!=null) {
+				if (line.equals(tag)) {
+					br.close();
+					return;
+				}
+			}
+			br.close();
+		}
+		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
+	}
 }
 
 

@@ -43,6 +43,7 @@ public class Start {
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
 	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
+	public static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes
 	/*---------------------------- configuration ---------------------------*/
 	
 	/*
@@ -473,8 +474,9 @@ public class Start {
 				System.err.println(PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
-			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolLogFile.getAbsolutePath());			
+			File pymolInternalLogFile = new File(TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
+			pymolInternalLogFile.deleteOnExit();
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
 
 			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
 			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
@@ -773,10 +775,20 @@ public class Start {
 		
 		// connect to pymol
 		if(USE_PYMOL) {
+		
+			PrintWriter pymolLog = null; 
+			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
+			
 			System.out.println("Connecting to PyMol...");
 			try {
+				try {
+					pymolLog = new PrintWriter(pymolLogFile);
+				} catch (FileNotFoundException e) {
+					System.err.println("Can't write to pymol log file "+pymolLogFile.getAbsolutePath()+": "+e.getMessage()+". Exiting");
+					System.exit(1);
+				}
 				PrintWriter pymolInput = runPymol();
-				pymolAdaptor = new PyMolAdaptor(pymolInput);
+				pymolAdaptor = new PyMolAdaptor(pymolInput,  pymolLog);
 				System.out.println("Connected.");
 				pymol_found = true;	
 			} catch(IOException e) {						
