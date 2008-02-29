@@ -260,6 +260,7 @@ public class PyMolAdaptor {
 	 * successfully established.
 	 */
 	public void initialize() {
+		sendCommand("run "+Start.getResourcePath(PYMOLFUNCTIONS_SCRIPT));
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
 		
