@@ -2157,22 +2157,9 @@ public class View extends JFrame implements ActionListener {
 			return;
 		}
 
-		//TODO move this code to a method in PyMolAdaptor
-		// prepare selection names
-		String topLevelGroup = "Sel" + pymol.getNextSelNum();
-		String firstObjSel   = mod1.getLoadedGraphID();
-		String secondObjSel  = mod2.getLoadedGraphID();
-		String edgeSel       = topLevelGroup + "_" + firstObjSel + "_" + secondObjSel + "_AliEdges";
-		String nodeSel       = edgeSel + "_Nodes";
-		
-		// color for the alignment edges
-		String aliEdgeColor = "blue";
-		
 		// send alignment edges to PyMol
-		pymol.edgeSelection(firstObjSel, secondObjSel, edgeSel, nodeSel, aliEdgeColor, residuePairs, false);
+		pymol.showMatchingResidues(mod1.getLoadedGraphID(), mod2.getLoadedGraphID(), residuePairs);
 		
-		// group selection in topLevelGroup
-		pymol.group(topLevelGroup, edgeSel + " " + nodeSel, null);
 	}
 
 	private void handleSaveToGraphDb() {
@@ -2567,21 +2554,7 @@ public class View extends JFrame implements ActionListener {
 				showNo3DCoordsWarning(mod2);
 				return;
 			}
-			// chain selection names. The names are only used the access the 
-			// right chain. We do not create this selection explicitely!!!
-			String firstChainSel  = mod.getLoadedGraphID();
-			String secondChainSel = mod2.getLoadedGraphID();
 
-			
-			// COMMON:
-			//   FIRST -> common contacts in first model -> draw solid yellow lines
-			//   SECOND -> "" second ""                  -> draw solid yellow lines
-			// ONLY_FIRST:
-			//   FIRST -> contacts only pres. in first model -> draw solid red lines
-			//   SECOND -> -> draw dashed green lines
-			// ONLY_SECOND:
-			//   SECOND -> contacts only pres. in sec. model -> draw solid green lines
-			//   FIRST -> -> draw dashed red lines
 			
 			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSetsOfSelectedContactsFor3D();
 			
@@ -2590,159 +2563,29 @@ public class View extends JFrame implements ActionListener {
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
-				pymol.showStructureHideOthers(mod.getLoadedGraphID(),
-												mod2.getLoadedGraphID());
+				pymol.showStructureHideOthers(mod.getLoadedGraphID(), mod2.getLoadedGraphID());
+				
 			} else {
 				// nothing to do!
 				return;
 			}
 			
-			// groups and edge selection names, this naming convention yields 
-			// the following grouping tree in PyMol:
-			// topLevelGroup
-			//   |--firstModGroup
-			//   |    |--presFirstEdgeSel
-			//   |    |--presFirstNodeSel
-			//   |    |--absFirstEdgeSel
-			//   |     `-absFirstNodeSel
-			//    `-secondModGroup
-			//        |--...
-			//        ...
-			String topLevelGroup     = "Sel" + pymol.getNextSelNum();
-			String firstModGroup     = topLevelGroup + "_" + firstChainSel;			
-			String secondModGroup    = topLevelGroup + "_" + secondChainSel;
+			pymol.showEdgesPairwiseMode(mod.getLoadedGraphID(), mod2.getLoadedGraphID(), selMap);
 			
-			String presFirstEdgeSel  = firstModGroup + "_PresCont";
-			String presFirstNodeSel  = firstModGroup + "_PresCont_Nodes";
-			String absFirstEdgeSel   = firstModGroup + "_AbsCont";
-			String absFirstNodeSel   = firstModGroup + "_AbsCont_Nodes";
-			String commonFirstEdgeSel = firstModGroup + "_CommonCont";
-			String commonFirstNodeSel = firstModGroup + "_CommonCont_Nodes";
-			
-			String presSecondEdgeSel = secondModGroup + "_PresCont";
-			String presSecondNodeSel = secondModGroup + "_PresCont_Nodes";
-			String absSecondEdgeSel  = secondModGroup + "_AbsCont";
-			String absSecondNodeSel  = secondModGroup + "_AbsCont_Nodes";
-			String commonSecondEdgeSel = secondModGroup + "_CommonCont";
-			String commonSecondNodeSel = secondModGroup + "_CommonCont_Nodes";
-			
-			// for coloring the edges
-			String firstColor  = "magenta";
-			String secondColor = "green";
-			String commonColor = "yellow";
-			
-			// send common contacts in the first and second model. It suffices 
-			// to check size only for one set as both are supposed to be of 
-			// same size.			
-			if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ) {				
-				// send common contacts to the object corresponding to the first model
-				pymol.edgeSelection(firstChainSel, firstChainSel, commonFirstEdgeSel, commonFirstNodeSel, 
-									commonColor, 
-									selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST], 
-									false);
-
-				// send common contacts to the object corresponding to the second model
-				pymol.edgeSelection(secondChainSel, secondChainSel, commonSecondEdgeSel, commonSecondNodeSel,
-									commonColor, 
-									selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.SECOND], 
-									false);
-				
-				// TODO: create node selections from selMap and add them to the	group!!!
-				
-				// group first and second structure selection
-				pymol.group(firstModGroup,  commonFirstEdgeSel,  null);
-				pymol.group(firstModGroup,  commonFirstNodeSel,  null);
-				pymol.group(secondModGroup, commonSecondEdgeSel, null);
-				pymol.group(secondModGroup, commonSecondNodeSel, null);
-				
-				// and group everything in the topLevelGroup representing the 
-				// whole selection
-				pymol.group(topLevelGroup, firstModGroup,  null);
-				pymol.group(topLevelGroup, secondModGroup, null);
-			}
-			
-			// send contacts present in the first and absent in the second model
-			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].size() != 0 ) {
-				
-				// draw true contacts being present in the first model between 
-				// the residues of the first model
-				pymol.edgeSelection(firstChainSel, firstChainSel, presFirstEdgeSel, presFirstNodeSel,
-									firstColor,
-									selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST], 
-									false);
-
-				// group selection of present contact in the first structure
-				pymol.group(firstModGroup, presFirstEdgeSel, null);
-				pymol.group(firstModGroup, presFirstNodeSel, null);
-				pymol.group(topLevelGroup, firstModGroup,    null);
-				
-				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND].size() != 0 ) {
-					// draw "contact" being absent in the second model but 
-					// NOT in the first one between the residues of the second 
-					// model
-					pymol.edgeSelection(secondChainSel, secondChainSel, absSecondEdgeSel, absSecondNodeSel,
-										secondColor,
-										selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND], 
-										true);
-					
-					// group selection of absent contact in the second 
-					// structure
-					pymol.group(secondModGroup, absSecondEdgeSel, null);
-					pymol.group(secondModGroup, absSecondNodeSel, null);
-					pymol.group(topLevelGroup,  secondModGroup,   null);
-				} 
-			}
-			
-			// send contacts present in the first and absent in the second model
-			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].size() != 0 ) {
-				
-				// draw true contacts being present in the second model between 
-				// the residues of the between model
-				pymol.edgeSelection(secondChainSel, secondChainSel, presSecondEdgeSel, presSecondNodeSel,
-									secondColor,
-									selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND],
-									false);
-
-				// group selection of present contact
-				pymol.group(secondModGroup, presSecondEdgeSel, null);
-				pymol.group(secondModGroup, presSecondNodeSel, null);
-				pymol.group(topLevelGroup,  secondModGroup,    null);
-				
-				if( selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST].size() != 0 ) {
-					// draw true contact being present in the second model but 
-					// NOT in the first one between the residues of the first 
-					// model
-					pymol.edgeSelection(firstChainSel, firstChainSel, absFirstEdgeSel, absFirstNodeSel, 
-										firstColor,
-										selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST], 
-										true);
-					
-					// group selection of absent contact
-					pymol.group(firstModGroup, absFirstEdgeSel, null);
-					pymol.group(firstModGroup, absFirstNodeSel, null);
-					pymol.group(topLevelGroup, firstModGroup,   null);
-				} 
-			}
 		} else {
 			IntPairSet contacts   = cmPane.getSelContacts();
-
-			String chainObj       = mod.getLoadedGraphID();
 			
 			if( contacts.isEmpty() ) {
 				return; // nothing to do!
 			}
-
-			String topLevelGroup  = "Sel" + pymol.getNextSelNum();
-			String edgeSel        = topLevelGroup + "_" + chainObj + "_Cont";
-			String nodeSel        = topLevelGroup + "_" + chainObj + "_Nodes";
 			
+			String structureId       = mod.getLoadedGraphID();
 			//disable all old objects and selections
-			pymol.showStructureHideOthers(chainObj, chainObj);
+			pymol.showStructureHideOthers(structureId, structureId);
 
 			// send selection
-			pymol.edgeSelection(chainObj, chainObj, edgeSel, nodeSel, "magenta", contacts, false);
-			
-			pymol.group(topLevelGroup,  edgeSel + " " + nodeSel, null);
+			pymol.showEdgesSingleMode(structureId, contacts);
+
 		}
 	}
 
@@ -2759,7 +2602,7 @@ public class View extends JFrame implements ActionListener {
 			showNoPyMolConnectionWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			pymol.sendSingleEdge(mod.getLoadedGraphID(), pymol.getNextSelNum(), cmPane.getRightClickCont());
+			pymol.sendSingleEdge(mod.getLoadedGraphID(), cmPane.getRightClickCont());
 		}
 	}
 
@@ -2777,23 +2620,7 @@ public class View extends JFrame implements ActionListener {
 			showNoCommonNbhSelectedWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			// TODO move this code to PyMolAdaptor
-			String topLevelGroup    = "Sel" + pymol.getNextSelNum();
-			String chainObjName     = mod.getLoadedGraphID();
-			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
-			String nodeSelName      = triangleBaseName + "_Nodes";
-			
-			//pymol.showTriangles(mod.getPDBCode(), mod.getChainCode(), cmPane.getCommonNbh(), pymolNbhSerial); 
-			Collection<String> triangleSelNames =  pymol.showTriangles(chainObjName, triangleBaseName, nodeSelName, cmPane.getCommonNbh());
-			
-			String groupMembers = "";
-			for( String s : triangleSelNames ) {
-				groupMembers += s + " ";
-			}
-			
-			groupMembers += nodeSelName;
-			
-			pymol.group(topLevelGroup, groupMembers, null);
+			pymol.showTriangles(mod.getLoadedGraphID(), cmPane.getCommonNbh());			
 		}
 	}
 
