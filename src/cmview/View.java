@@ -83,8 +83,6 @@ public class View extends JFrame implements ActionListener {
 
 	/*--------------------------- member variables --------------------------*/
 	
-	private static int pymolSelSerial = 1;		 	// for incremental numbering // TODO: Move this to PymolAdaptor
-	
 	// GUI components in the main frame
 	JPanel statusPane; 			// panel holding the status bar (currently not used)
 	JLabel statusBar; 			// TODO: Create a class StatusBar
@@ -2161,7 +2159,7 @@ public class View extends JFrame implements ActionListener {
 
 		//TODO move this code to a method in PyMolAdaptor
 		// prepare selection names
-		String topLevelGroup = "Sel" + View.pymolSelSerial;
+		String topLevelGroup = "Sel" + pymol.getNextSelNum();
 		String firstObjSel   = mod1.getLoadedGraphID();
 		String secondObjSel  = mod2.getLoadedGraphID();
 		String edgeSel       = topLevelGroup + "_" + firstObjSel + "_" + secondObjSel + "_AliEdges";
@@ -2175,8 +2173,6 @@ public class View extends JFrame implements ActionListener {
 		
 		// group selection in topLevelGroup
 		pymol.group(topLevelGroup, edgeSel + " " + nodeSel, null);
-		
-		++View.pymolSelSerial;
 	}
 
 	private void handleSaveToGraphDb() {
@@ -2594,7 +2590,7 @@ public class View extends JFrame implements ActionListener {
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST].isEmpty() ||
 				!selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND].isEmpty() ) {
 				
-				Start.getPyMolAdaptor().showStructureHideOthers(mod.getLoadedGraphID(),
+				pymol.showStructureHideOthers(mod.getLoadedGraphID(),
 												mod2.getLoadedGraphID());
 			} else {
 				// nothing to do!
@@ -2612,7 +2608,7 @@ public class View extends JFrame implements ActionListener {
 			//    `-secondModGroup
 			//        |--...
 			//        ...
-			String topLevelGroup     = "Sel" + View.pymolSelSerial;
+			String topLevelGroup     = "Sel" + pymol.getNextSelNum();
 			String firstModGroup     = topLevelGroup + "_" + firstChainSel;			
 			String secondModGroup    = topLevelGroup + "_" + secondChainSel;
 			
@@ -2736,7 +2732,7 @@ public class View extends JFrame implements ActionListener {
 				return; // nothing to do!
 			}
 
-			String topLevelGroup  = "Sel" + View.pymolSelSerial;
+			String topLevelGroup  = "Sel" + pymol.getNextSelNum();
 			String edgeSel        = topLevelGroup + "_" + chainObj + "_Cont";
 			String nodeSel        = topLevelGroup + "_" + chainObj + "_Nodes";
 			
@@ -2748,9 +2744,6 @@ public class View extends JFrame implements ActionListener {
 			
 			pymol.group(topLevelGroup,  edgeSel + " " + nodeSel, null);
 		}
-		
-		// and finally increment the serial for the PyMol selections
-		View.pymolSelSerial++;
 	}
 
 
@@ -2765,8 +2758,8 @@ public class View extends JFrame implements ActionListener {
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
 		} else {
-			Start.getPyMolAdaptor().sendSingleEdge(mod.getLoadedGraphID(), View.pymolSelSerial, cmPane.getRightClickCont());
-			View.pymolSelSerial++;
+			PyMolAdaptor pymol = Start.getPyMolAdaptor();
+			pymol.sendSingleEdge(mod.getLoadedGraphID(), pymol.getNextSelNum(), cmPane.getRightClickCont());
 		}
 	}
 
@@ -2785,7 +2778,7 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
 			// TODO move this code to PyMolAdaptor
-			String topLevelGroup    = "Sel" + View.pymolSelSerial;
+			String topLevelGroup    = "Sel" + pymol.getNextSelNum();
 			String chainObjName     = mod.getLoadedGraphID();
 			String triangleBaseName = topLevelGroup + "_" + chainObjName + "_NbhTri";
 			String nodeSelName      = triangleBaseName + "_Nodes";
@@ -2801,8 +2794,6 @@ public class View extends JFrame implements ActionListener {
 			groupMembers += nodeSelName;
 			
 			pymol.group(topLevelGroup, groupMembers, null);
-			
-			++View.pymolSelSerial;
 		}
 	}
 

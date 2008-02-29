@@ -37,13 +37,15 @@ public class PyMolAdaptor {
 	private static final long 		TIMEOUT = 4000;
 	
 	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
+	public static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes
 	
 	/*--------------------------- member variables --------------------------*/
 
 	private PrintWriter Out;
-	private boolean connected; 		// indicated whether a connection to pymol server had been established already
+	private boolean connected; 		// indicates whether a connection to pymol is established
 	private StringWriter cmdBuffer; //TODO use StringBuffer instead?
-	private int cmdCounter;
+	private int cmdCounter;			// auto-increment the command number
+	private int selCounter;			// auto-increment the selection number
 	private PrintWriter log;
 	private File callbackFile;
 	
@@ -59,6 +61,7 @@ public class PyMolAdaptor {
 		this.log = log;
 		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
 		this.cmdCounter = 0;
+		this.selCounter = 0;
 		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
 	}
 
@@ -278,8 +281,6 @@ public class PyMolAdaptor {
 		throw new TimeLimitExceededException("Timeout reached while waiting for tag "+tag+" in file "+file.getAbsolutePath());
 	}
 
-	/*---------------------------- public methods ---------------------------*/
-
 	/** 
 	 * Writes command to the command buffer that will be sent to PyMol on 
 	 * next call of {@link #flush()} 
@@ -292,6 +293,17 @@ public class PyMolAdaptor {
 		
 		cmdBuffer.write(cmd + "\n");
 	}
+
+	
+	/*---------------------------- public methods ---------------------------*/
+
+	/**
+	 * Increments the selection counter and returns it.
+	 */
+	public int getNextSelNum() {
+		return ++selCounter;
+	}
+	
 	
 	/**
 	 * Flushes the command buffer so that it is sent to PyMol
@@ -708,7 +720,7 @@ public class PyMolAdaptor {
 				System.err.println(Start.PYMOL_EXECUTABLE + " does not exist.");
 				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
 			}
-			File pymolInternalLogFile = new File(Start.TEMP_DIR,Start.PYMOL_INTERNAL_LOGFILE);
+			File pymolInternalLogFile = new File(Start.TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
 			pymolInternalLogFile.deleteOnExit();
 			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + Start.PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
 	
