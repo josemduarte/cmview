@@ -63,8 +63,6 @@ public class PyMolAdaptor {
 		this.cmdBuffer = new StringWriter(INITIAL_CMDBUFFER_LENGTH);
 		this.cmdCounter = 0;
 		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
-		CMD_BUFFER_FILE.deleteOnExit();
-		callbackFile.deleteOnExit();
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -316,7 +314,6 @@ public class PyMolAdaptor {
 	 */
 	public void initialize() {
 		sendCommand("run "+Start.getResourcePath(PYMOLFUNCTIONS_SCRIPT));
-		
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
 		
