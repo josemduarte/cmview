@@ -2602,7 +2602,7 @@ public class View extends JFrame implements ActionListener {
 			showNoPyMolConnectionWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			pymol.sendSingleEdge(mod.getLoadedGraphID(), cmPane.getRightClickCont());
+			pymol.showSingleDistance(mod.getLoadedGraphID(), cmPane.getRightClickCont());
 		}
 	}
 
