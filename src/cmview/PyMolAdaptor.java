@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import tools.PymolServerOutputStream;
 import java.util.*;
 
 import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
@@ -26,12 +25,9 @@ public class PyMolAdaptor {
 	/*------------------------------ constants ------------------------------*/
 	public static final String 		PYMOLFUNCTIONS_SCRIPT = "cmview.py";	 	// extending pymol with custom functions, previously called graph.py
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
-	
-	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;
-	
+	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;	
 	private static final String 	CMD_END_MARKER = "#end";
 	private static final long 		TIMEOUT = 4000;
-	
 	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
 	private static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes (with -s on startup)
 	
@@ -80,156 +76,67 @@ public class PyMolAdaptor {
 	}
 
 	/*---------------------------- private methods --------------------------*/
-
-	/**
-	 * Creates an edge between the C-alpha atoms of the given residues in the given chain.  
-	 */
-	private void setDistance(int i, int j, int pymolSelSerial, String selObjName, String chainObjNameFirst, String chainObjNameSecond){
-		String pymolStr = "distance "+selObjName +", " 
-		+ chainObjNameFirst  + " and resi " + i + " and name ca, " 
-		+ chainObjNameSecond + " and resi " + j + " and name ca"; 
-		this.sendCommand(pymolStr);
-	}
 	
 	/**
-	 * Create single edge between the CA atoms of the given residues of the given objects.
-	 * @param distName
-	 * @param firstSelObj  first structure object
-	 * @param secondSelObj  second structure object
+	 * Draws a single edge between the CA atoms of the given residues in the given objects.
+	 * @param distObjName the name of the distance object to be created or to add to
+	 * @param structureId1  first structure object
+	 * @param structureId2  second structure object
 	 * @param i  index of residue in the first structure object 
 	 * @param j  index of residue in the second structure object
 	 */
-	private void setDistance(String distName,String firstSelObj, String secondSelObj, int i, int j) {
-		sendCommand("distance " + distName + ", "
-					+ firstSelObj  + " and resi " + i + " and name ca, " 
-					+ secondSelObj + " and resi " + j + " and name ca"); 
-	}
-
-	private void setDistance(String distName, String firstSelObj, String secondSelObj, 
-							TreeSet<Integer> firstRes, TreeSet<Integer> secondRes) {
-		
-		if(firstRes.first() == 1) {
-			System.out.println();
-		}
-		
-		// prepare residue selection string
-		String firstResString  = Interval.createSelectionString(firstRes); 
-		String secondResString = Interval.createSelectionString(secondRes);
-		
-		// and send it to PyMol
-		sendCommand("distance " + distName + ", " + 
-					firstSelObj  + " and ( resi " + firstResString  + " ) and name ca, " + 
-					secondSelObj + " and ( resi " + secondResString + " ) and name ca");
-	}
-
-	/** 
-	 * Create a selection of the given residues in pymol.
-	 * @param selObjName
-	 * @param chainObjName
-	 * @param residues
-	 */
-	private void createSelectionObject(String selObjName, String chainObjName, ArrayList<Integer> residues) {
-		String resString = "";
-		int start, last;
-
-		// TODO: use NodeSet instead of ArrayList and replace the following by NodeSet.getIntervals()
-		Collections.sort(residues);
-		last = residues.get(0);
-		start = last;
-		for(int i:residues) {
-			if(i > last+1) {
-				resString += "resi " + (last-start == 0?last:(start + "-" + last)) + " or ";
-				start = i;
-				last = i;
-			} else
-				if(i == last) {
-					// skip
-				} else
-					if(i == last+1) {
-						last = i;
-					}
-		}
-		resString += "resi " + (last-start == 0?last:(start + "-" + last));
-		resString = "(" + resString + ")";
-		//System.out.println(resString);
-
-		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
-			sendCommand("select "+selObjName+", "+chainObjName+" and "+resString);
-			
-			// flush the buffer and send commands to PyMol via log-file
-			this.flush();
-		} else {
-			System.err.println("Couldn't create pymol selection. Too many residues.");
-		}
-	}
-	
-	private void createSelectionObject(String selObjName, String chainObjName, TreeSet<Integer> residues) {
-		String resString = "";
-		int start, last;
-		last = residues.first();
-		start = last;
-		for(int i:residues) {
-			if(i > last+1) {
-				resString += "resi " + (last-start == 0?last:(start + "-" + last)) + " or ";
-				start = i;
-				last = i;
-			} else
-				if(i == last) {
-					// skip
-				} else
-					if(i == last+1) {
-						last = i;
-					}
-		}
-		resString += "resi " + (last-start == 0?last:(start + "-" + last));
-		resString = "(" + resString + ")";
-		//System.out.println(resString);
-
-		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
-			sendCommand("select " + selObjName + ", " + chainObjName + " and " + resString);
-			// flush the buffer and send commands to PyMol via log-file
-			this.flush();
-		} else {
-			System.err.println("Couldn't create pymol selection. Too many residues.");
-		}
+	private void drawSingleEdge(String distObjName, String structureId1, String structureId2, int i, int j) {
+		sendCommand("distance " + distObjName + ", "
+					+ structureId1  + " and resi " + i + " and name ca, " 
+					+ structureId2 + " and resi " + j + " and name ca"); 
 	}
 
 	/**
-	 * Adds a selection of residues of certain chain of a pymol object to 
-	 * a previously created selection. 
-	 * @param selObjName  the selection to be extended
-	 * @param chainObjName  chain object identifier
-	 * @param chainCode  chain identifier corresponding to 
-	 *  <code>chainObjName</code>
-	 * @param residues  set of residues in chain with 
-	 *  <code>chainCode</code> which belong to the chain object 
-	 *  <code>chainObjName</code>
+	 * Draws edges between the C-alpha atoms of the given residues in the given objects.
+	 * @param distObjName the name of the distance object to be created or to add to
+	 * @param structureId1 first structure object
+	 * @param structureId2 second structure object
+	 * @param firstResSet set of residue numbers in the first structure
+	 * @param secondResSet set of residue numbers in the second structure
 	 */
-	@SuppressWarnings("unused")
-	private void add2SelectionObject(String selObjName, String chainObjName, String chainCode, TreeSet<Integer> residues) {
-		String resString = "(";
-		IntervalSet intervals = Interval.getIntervals(residues);
-		for(Interval i : intervals) {
-			resString += "resi " + (i.end-i.beg == 0?i.beg:(i.beg + "-" + i.end)) + " or ";
-		}
-		// we put the last interval twice to encalulate the trailing 'or' 
-		// which has been added in the for-loop
-		Interval last = intervals.last();
-		resString += "resi " + (last.beg == 0?last.beg:(last.beg + "-" + last.end)) + ")";
-
-		if (resString.length() + 100 < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT) {
-			sendCommand("select " + selObjName + ", " + 
-					selObjName +                /* put previous selection in the selection string */
-					" or (" + chainObjName +    /* the chain object */
-					" and chain "+chainCode +   /* the chain identifier in the chain object */
-					" and " + resString + ")"); /* the interval sequence of residues to be considered */
-			
-			// flush the buffer and send commands to PyMol via log-file
-			this.flush();
-		} else {
-			System.err.println("Couldn't create pymol selection. Too many residues.");
-		}
+	private void drawMultipleEdges(String distObjName, String structureId1, String structureId2, 
+							TreeSet<Integer> firstResSet, TreeSet<Integer> secondResSet) {
+				
+		// prepare residue selection string
+		String firstResString  = Interval.createSelectionString(firstResSet); 
+		String secondResString = Interval.createSelectionString(secondResSet);
+		
+		// and send it to PyMol
+		sendCommand("distance " + distObjName + ", " + 
+					structureId1  + " and ( resi " + firstResString  + " ) and name ca, " + 
+					structureId2 + " and ( resi " + secondResString + " ) and name ca");
 	}
+
+	/** 
+	 * Create a selection from a set of residues.
+	 * @param selObjName the name of the selection to be created
+	 * @param structureId the structureId for which residues will be selected
+	 * @param residues the set of residues in the given structure
+	 */
+	private void createSelectionObject(String selObjName, String structureId, TreeSet<Integer> residues) {	
+		String cmdStr = "select " + selObjName + ", (" + structureId + " and resi " +  Interval.createSelectionString(residues) + ")";
+		sendCommand(cmdStr);
+	}
+	
+	/** 
+	 * Create a selection from two sets of residues in two structures.
+	 * @param selObjName the name of the selection to be created
+	 * @param structureId1 the first structureId for which residues will be selected
+	 * @param structureId2 the second structureId for which residues will be selected
+	 * @param residues1 the set of residues in structure1 to be selected
+	 * @param residues1 the set of residues in structure2 to be selected
+	 */
+	private void createSelectionObject(String selObjName, String structureId1, TreeSet<Integer> residues1, String structureId2, TreeSet<Integer> residues2) {	
+		String cmdStr = "select " + selObjName + ", (" + structureId1 + " and resi " + Interval.createSelectionString(residues1) + ")"
+											 + " or (" + structureId2 + " and resi " + Interval.createSelectionString(residues2) + ")";
+		sendCommand(cmdStr);
+	}
+	
 	
 	/**
 	 * Reads the given file until a line with tag is found before given timeOut 
@@ -273,22 +180,12 @@ public class PyMolAdaptor {
 		
 		cmdBuffer.write(cmd + "\n");
 	}
-
-	
-	/*---------------------------- public methods ---------------------------*/
-
-	/**
-	 * Increments the selection counter and returns it.
-	 */
-	public int getNextSelNum() {
-		return ++selCounter;
-	}
-	
 	
 	/**
-	 * Flushes the command buffer so that it is sent to PyMol
+	 * Flushes the command buffer so that it is sent to PyMol.
+	 * In command buffer mode, this has to be called so that sendCommands are actually executed.
 	 */
-	public void flush() {
+	private void flush() {
 		if(!this.connected) {
 			return;
 		}
@@ -332,6 +229,174 @@ public class PyMolAdaptor {
 	}
 
 	/**
+	 * Increments the selection counter and returns it.
+	 * This is used to make selection names unique.
+	 */
+	private int getNextSelNum() {
+		return ++selCounter;
+	}
+	
+	/**
+	 * Draws a set of edges in the 3D viewer and creates corresponding selections.
+	 * Edges are implemented as distances drawn between the residues of the 
+	 * first and the second selection. The given set of pairs of integers 
+	 * defines the residues to be connected, whereas <code>getFirst()</code> 
+	 * always yields the residue indices in the first selection and 
+	 * <code>getSecond()</code> those in the second.
+	 * @param structureID1  name of the first object selection
+	 * @param structureID2  name of the second object selection
+	 * @param edgeSelName  name of the edge selection to be created
+	 * @param nodeSelName  name of the node selection consisting of all 
+	 *  residues incident to the contacts 
+	 * @param edgeColor  name of the color of the edges
+	 * @param selContacts  set of pairs of residues to be connected
+	 * @param dash true for dashed edges, false for solid edges
+	 */
+	private void drawEdges(String structureID1, String structureID2, String edgeSelName, String nodeSelName, 
+								String edgeColor, IntPairSet selContacts, boolean dash) {
+
+		// if no contacts in selection do nothing
+		if (selContacts.size()== 0) {
+			return; 
+		}
+
+		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
+		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
+		
+		//TODO why not always pack the selections??
+		if( selContacts.size() > 400 ) {
+			// send packed selections to PyMol
+			TreeMap<Integer, TreeSet<Integer>> adjLists = new TreeMap<Integer, TreeSet<Integer>>();
+			int i,j;
+			
+			for(Pair<Integer> cont:selContacts) {
+				i = cont.getFirst();
+				j = cont.getSecond();
+				if( ! adjLists.containsKey(i) ) {
+					adjLists.put(i, new TreeSet<Integer>());
+					adjLists.get(i).add(j);
+					firstResidues.add(i);
+					secondResidues.add(j);
+				} else {
+					adjLists.get(i).add(j);
+					secondResidues.add(j);
+				}
+			}
+			
+			// check size TODO: Is this limit still necessary?
+			if( adjLists.size() > 500 ) {
+				System.err.println("Selection too big!");
+				return;
+			}
+			
+			// send each adjacency list separately
+			TreeSet<Integer> dummy = new TreeSet<Integer>();
+			for(Integer k : adjLists.keySet()) {
+				dummy.add(k);
+				this.drawMultipleEdges(edgeSelName, structureID1, structureID2, dummy, adjLists.get(k));
+				dummy.remove(k);
+			}			
+		} else {
+			// send each contact as a single command to PyMol
+			int i,j;
+			for (Pair<Integer> cont:selContacts){ 
+				i = cont.getFirst();
+				j = cont.getSecond();
+				// draws an edge between the selected residues
+				this.drawSingleEdge(edgeSelName,structureID1,structureID2,i,j);
+				firstResidues.add(i);
+				secondResidues.add(j);
+			}
+		}
+
+		// hide distance labels
+		sendCommand("hide labels, " + edgeSelName);
+
+		// color distances
+		this.sendCommand("color " + edgeColor + "," + edgeSelName);
+
+		if (dash ==true){
+			// setting the dashed lines for present and absent distinction
+			sendCommand("set dash_gap, 0.5, "    + edgeSelName);
+			sendCommand("set dash_length, 0.5, " + edgeSelName);
+		} else { 
+			// fixing the side chain problem
+			// side chains only occur in case of common contacts
+			sendCommand("hide lines,  " + edgeSelName);
+		}
+		
+		// create selection of nodes incident to the contacts
+		createSelectionObject(nodeSelName, structureID1, firstResidues, structureID2, secondResidues);
+		
+		sendCommand("disable " + nodeSelName);
+		
+	}
+	
+	/**
+	 * Creates or updates a group object.
+  	 * Note, that whenever an argument is null all subsequent arguments are 
+  	 * implicitely disregarded!
+	 * @param groupName  the name of the group
+	 * @param members  string of whitespace-separated list of objects to be 
+	 *  grouped together
+	 * @param action  grouping action (PyMol v1 supports: add, remove, open, 
+	 *  close, toggle, auto, ungroup, empty, purge, excise). See PyMol docu 
+	 *  for further details!
+	 */
+	private void group(String groupName, String members, String action) {
+		
+		// nothing to do if groupName is null!
+		if( groupName == null ) {
+			return;
+		}
+		
+		// send command to PyMol
+		if( members == null ) {
+			sendCommand("group " + groupName);
+		} else if ( action == null ) {
+			sendCommand("group " + groupName + ", " + members);
+		} else {
+			sendCommand("group " + groupName + ", " + members + ", " + action);
+		}
+		
+	}
+	
+	/*---------------------------- public methods ---------------------------*/
+
+	/**
+	 * Returns whether a connection of this Adaptor to the server had been already successfully established
+	 * (and was not subsequently lost).
+	 * @return true if a connection is established, false otherwise
+	 */
+	public boolean isConnected() {
+		return this.connected;
+	}
+
+	/**
+	 * Runs external pymol executable if possible.
+	 * @throws IOException if execution of PyMol fails
+	 */
+	public void startup() throws IOException {
+	
+			System.out.println("Starting PyMol...");
+			File f = new File(Start.PYMOL_EXECUTABLE);
+			if(!f.exists()) {
+				System.err.println(Start.PYMOL_EXECUTABLE + " does not exist.");
+				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
+			}
+			File pymolInternalLogFile = new File(Start.TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
+			pymolInternalLogFile.deleteOnExit();
+			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + Start.PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
+	
+			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
+			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
+			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
+			
+			this.Out = new PrintWriter(pymolProcess.getOutputStream());
+			this.connected = true;
+	}
+	
+	/**
 	 * Sends some inital set-up commands after a connection has been 
 	 * successfully established.
 	 */
@@ -351,7 +416,7 @@ public class PyMolAdaptor {
 		Out.println("quit");
 		Out.close();
 	}
-
+	
 	/**
 	 * Send command to the pymol server to load a structure with the given name
 	 * from the given temporary pdb file.
@@ -476,7 +541,7 @@ public class PyMolAdaptor {
 		
 		sendCommand("zoom");
 		
-		createSelectionObject(nodeSel, structureId, residues );
+		createSelectionObject(nodeSel, structureId, residues);
 		
 		String groupMembers = "";
 		for( String s : triangleSelNames ) {
@@ -503,7 +568,7 @@ public class PyMolAdaptor {
 		String edgeSel       = topLevelGroup + "_" + structureID1 + "_" + structureID2 + "_AliEdges";
 		String nodeSel       = edgeSel + "_Nodes";	
 		
-		edgeSelection(structureID1, structureID2, edgeSel, nodeSel, MATCHING_RESIDUES_COLOR, selContacts, false);
+		drawEdges(structureID1, structureID2, edgeSel, nodeSel, MATCHING_RESIDUES_COLOR, selContacts, false);
 		
 		// group selection in topLevelGroup
 		group(topLevelGroup, edgeSel + " " + nodeSel, null);
@@ -522,7 +587,7 @@ public class PyMolAdaptor {
 		String edgeSel        = topLevelGroup + "_" + structureId + "_Cont";
 		String nodeSel        = topLevelGroup + "_" + structureId + "_Nodes";
 		
-		edgeSelection(structureId, structureId, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, selContacts, false);
+		drawEdges(structureId, structureId, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, selContacts, false);
 		
 		// group selection in topLevelGroup
 		group(topLevelGroup,  edgeSel + " " + nodeSel, null);
@@ -590,13 +655,13 @@ public class PyMolAdaptor {
 		// same size.			
 		if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ) {				
 			// send common contacts to the object corresponding to the first model
-			edgeSelection(structureID1, structureID1, commonFirstEdgeSel, commonFirstNodeSel, 
+			drawEdges(structureID1, structureID1, commonFirstEdgeSel, commonFirstNodeSel, 
 					COMMON_EDGE_COLOR, 
 					selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST], 
 					false);
 
 			// send common contacts to the object corresponding to the second model
-			edgeSelection(structureID2, structureID2, commonSecondEdgeSel, commonSecondNodeSel,
+			drawEdges(structureID2, structureID2, commonSecondEdgeSel, commonSecondNodeSel,
 					COMMON_EDGE_COLOR, 
 					selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.SECOND], 
 					false);
@@ -620,7 +685,7 @@ public class PyMolAdaptor {
 
 			// draw true contacts being present in the first model between 
 			// the residues of the first model
-			edgeSelection(structureID1, structureID1, presFirstEdgeSel, presFirstNodeSel,
+			drawEdges(structureID1, structureID1, presFirstEdgeSel, presFirstNodeSel,
 					FIRST_STRUCTURE_EDGE_COLOR,
 					selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST], 
 					false);
@@ -634,7 +699,7 @@ public class PyMolAdaptor {
 				// draw "contact" being absent in the second model but 
 				// NOT in the first one between the residues of the second 
 				// model
-				edgeSelection(structureID2, structureID2, absSecondEdgeSel, absSecondNodeSel,
+				drawEdges(structureID2, structureID2, absSecondEdgeSel, absSecondNodeSel,
 						SECOND_STRUCTURE_EDGE_COLOR,
 						selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND], 
 						true);
@@ -653,7 +718,7 @@ public class PyMolAdaptor {
 
 			// draw true contacts being present in the second model between 
 			// the residues of the between model
-			edgeSelection(structureID2, structureID2, presSecondEdgeSel, presSecondNodeSel,
+			drawEdges(structureID2, structureID2, presSecondEdgeSel, presSecondNodeSel,
 					SECOND_STRUCTURE_EDGE_COLOR,
 					selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND],
 					false);
@@ -667,7 +732,7 @@ public class PyMolAdaptor {
 				// draw true contact being present in the second model but 
 				// NOT in the first one between the residues of the first 
 				// model
-				edgeSelection(structureID1, structureID1, absFirstEdgeSel, absFirstNodeSel, 
+				drawEdges(structureID1, structureID1, absFirstEdgeSel, absFirstNodeSel, 
 						FIRST_STRUCTURE_EDGE_COLOR,
 						selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST], 
 						true);
@@ -682,110 +747,13 @@ public class PyMolAdaptor {
 		
 		// call to flush() is not missing here!: for this case we flush separately after each block
 	}
-	
-	/**
-	 * Creates an edge selection.
-	 * Edges are implemented as distances drawn between the residues of the 
-	 * first and the second selection. The given set of pairs of integers 
-	 * defines the residues to be connected, whereas <code>getFirst()</code> 
-	 * always yields the residue indices in the first selection and 
-	 * <code>getSecond()</code> those in the second.
-	 * @param structureID1  name of the first object selection
-	 * @param structureID2  name of the second object selection
-	 * @param edgeSelName  name of the edge selection to be created
-	 * @param nodeSelName  name of the node selection consisting of all 
-	 *  residues incident to the contacts 
-	 * @param edgeColor  name of the color of the edges
-	 * @param selContacts  set of pairs of residues to be connected
-	 * @param dash true for dashed edges, false for solid edges
-	 */
-	private void edgeSelection(String structureID1, String structureID2, String edgeSelName, String nodeSelName, 
-								String edgeColor, IntPairSet selContacts, boolean dash) {
-
-		// if no contacts in selection do nothing
-		if (selContacts.size()== 0) {
-			return; 
-		}
-
-		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
-		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
 		
-		//TODO why not always pack the selections??
-		if( selContacts.size() > 400 ) {
-			// send packed selections to PyMol
-			TreeMap<Integer, TreeSet<Integer>> adjLists = new TreeMap<Integer, TreeSet<Integer>>();
-			int i,j;
-			
-			for(Pair<Integer> cont:selContacts) {
-				i = cont.getFirst();
-				j = cont.getSecond();
-				if( ! adjLists.containsKey(i) ) {
-					adjLists.put(i, new TreeSet<Integer>());
-					adjLists.get(i).add(j);
-					firstResidues.add(i);
-					secondResidues.add(j);
-				} else {
-					adjLists.get(i).add(j);
-					secondResidues.add(j);
-				}
-			}
-			
-			// check size TODO: Is this limit still necessary?
-			if( adjLists.size() > 500 ) {
-				System.err.println("Selection too big!");
-				return;
-			}
-			
-			// send each adjacency list separately
-			TreeSet<Integer> dummy = new TreeSet<Integer>();
-			for(Integer k : adjLists.keySet()) {
-				dummy.add(k);
-				this.setDistance(edgeSelName, structureID1, structureID2, dummy, adjLists.get(k));
-				dummy.remove(k);
-			}			
-		} else {
-			// send each contact as a single command to PyMol
-			int i,j;
-			for (Pair<Integer> cont:selContacts){ 
-				i = cont.getFirst();
-				j = cont.getSecond();
-				// draws an edge between the selected residues
-				this.setDistance(edgeSelName,structureID1,structureID2,i,j);
-				firstResidues.add(i);
-				secondResidues.add(j);
-			}
-		}
-
-		// hide distance labels
-		sendCommand("hide labels, " + edgeSelName);
-
-		// color distances
-		this.sendCommand("color " + edgeColor + "," + edgeSelName);
-
-		if (dash ==true){
-			// setting the dashed lines for present and absent distinction
-			setDashes(edgeSelName);
-		} else { 
-			// fixing the side chain problem
-			// side chains only occur in case of common contacts
-			sendCommand("hide lines,  " + edgeSelName);
-		}
-		
-		// create selection of nodes incident to the contacts
-		select(nodeSelName, "(" + structureID1  + " and resi " + Interval.createSelectionString(firstResidues) + ") or " +
-							"(" + structureID2 + " and resi " + Interval.createSelectionString(secondResidues)+ ")");
-		
-		sendCommand("disable " + nodeSelName);
-		
-	}
-	
-	
 	/** 
 	 * Show a single contact or non-contact as distance object in pymol
 	 * @param structureID
 	 * @param cont the pair of residues
 	 */
-	public void sendSingleEdge(String structureID, Pair<Integer> cont) {
+	public void showSingleDistance(String structureID, Pair<Integer> cont) {
 
 		int pymolSelSerial = getNextSelNum();
 		
@@ -793,28 +761,17 @@ public class PyMolAdaptor {
 		String edgeSel = topLevelGroup+"_"+structureID+"_Dist";
 		String nodeSel = topLevelGroup+"_"+structureID+"_Nodes";
 		
-		setDistance(cont.getFirst(), cont.getSecond(), pymolSelSerial, edgeSel, structureID, structureID);
-		ArrayList<Integer> residues = new ArrayList<Integer>();
+		// create edge selection
+		drawSingleEdge(edgeSel, structureID, structureID, cont.getFirst(), cont.getSecond());
+		sendCommand("color "+SINGLE_EDGE_COLOR+", " + edgeSel);		
+		
+		// create node selection
+		TreeSet<Integer> residues = new TreeSet<Integer>();
 		residues.add(cont.getFirst());
-		residues.add(cont.getSecond());
-		sendCommand("color "+SINGLE_EDGE_COLOR+", " + edgeSel);
-		
+		residues.add(cont.getSecond());		
 		createSelectionObject(nodeSel, structureID, residues);
-		
+	
 		group(topLevelGroup,  edgeSel + " " + nodeSel, null);
-		
-		// flush the buffer and send commands to PyMol via log-file
-		this.flush();
-	}
-
-	/**
-	 * Converts the lines of the given selection (e.g. a distance object) 
-	 * into dashed lines. 
-	 * @param edgeSelName  a selection identifier   
-	 */
-	private void setDashes(String edgeSelName) {
-		this.sendCommand("set dash_gap, 0.5, "    + edgeSelName);
-		this.sendCommand("set dash_length, 0.5, " + edgeSelName);
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
@@ -835,83 +792,6 @@ public class PyMolAdaptor {
 		this.flush();
 	}
 		
-	/**
-	 * Creates or updates a group object.
-  	 * Note, that whenever an argument is null all subsequent arguments are 
-  	 * implicitely disregarded!
-	 * @param groupName  the name of the group
-	 * @param members  string of whitespace-separated list of objects to be 
-	 *  grouped together
-	 * @param action  grouping action (PyMol v1 supports: add, remove, open, 
-	 *  close, toggle, auto, ungroup, empty, purge, excise). See PyMol docu 
-	 *  for further details!
-	 */
-	private void group(String groupName, String members, String action) {
-		
-		// nothing to do if groupName is null!
-		if( groupName == null ) {
-			return;
-		}
-		
-		// send command to PyMol
-		if( members == null ) {
-			sendCommand("group " + groupName);
-		} else if ( action == null ) {
-			sendCommand("group " + groupName + ", " + members);
-		} else {
-			sendCommand("group " + groupName + ", " + members + ", " + action);
-		}
-		
-	}
-	
-	/**
-	 * Create a new selection with the given name in PyMol.
-	 * @param selName the name of the new selection
-	 * @param selection the selection string (following PyMol's selection syntax)
-	 */
-	private void select(String selName, String selection) {
-		
-		String command = "select " + selName + "," + selection;
-		
-		if( command.length() < PymolServerOutputStream.PYMOLCOMMANDLENGTHLIMIT ) {
-			sendCommand(command);
-		} else {
-			System.err.println("Command too long to be sent to PyMol: " + command);
-		}
-	}
-	
-	/**
-	 * Returns whether a connection of this Adaptor to the server had been already successfully established
-	 * (and was not subsequently lost).
-	 * @return true if a connection is established, false otherwise
-	 */
-	public boolean isConnected() {
-		return this.connected;
-	}
-
-	/**
-	 * Runs external pymol executable if possible.
-	 * @throws IOException if execution of PyMol fails
-	 */
-	public void startup() throws IOException {
-	
-			System.out.println("Starting PyMol...");
-			File f = new File(Start.PYMOL_EXECUTABLE);
-			if(!f.exists()) {
-				System.err.println(Start.PYMOL_EXECUTABLE + " does not exist.");
-				// try to start pymol anyways because on Mac f.exists() returns false even though the file is there
-			}
-			File pymolInternalLogFile = new File(Start.TEMP_DIR,PYMOL_INTERNAL_LOGFILE);
-			pymolInternalLogFile.deleteOnExit();
-			Process pymolProcess = Runtime.getRuntime().exec(f.getCanonicalPath() + " " + Start.PYMOL_PARAMETERS + " -s " + pymolInternalLogFile.getAbsolutePath());			
-	
-			// we send the stdout/stderr stream to new threads to avoid hanging of pymol
-			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
-			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
-			
-			this.Out = new PrintWriter(pymolProcess.getOutputStream());
-			this.connected = true;
-	}
 }
 
 
