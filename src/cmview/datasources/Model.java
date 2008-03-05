@@ -307,23 +307,32 @@ public abstract class Model {
 	
 	/**
 	 * Returns the three letter residue type for the given residue serial.
-	 * If node is not present in RIGraph (unobserved or non-standard) then returns null
-	 * @param resser
+	 * Will always return the residue type from the sequence of the RIGraph, 
+	 * independently of whether a RIGNode exists in the RIGraph for this residue serial.
+	 * @param resser the residue serial
 	 * @return A string with the three letter residue type of the residue with serial resser
 	 */
 	public String getResType(int resser){
-		RIGNode node = graph.getNodeFromSerial(resser);
-		if (node==null) return null; 
-		return node.getResidueType();
+		return AAinfo.oneletter2threeletter(String.valueOf(this.getSequence().charAt(resser-1)));
+		
+		// NOTE, we used to take the residue type from the RIGNode, but this causes problems 
+		// when there are missing RIGNodes, which happens in 2 cases: 
+		// a) unobserved residues 
+		// b) in some contact types with no atoms for some residues (e.g. ALA in Cg contact type: 
+		//    there can't be any edges for ALA in Cg and thus also no RIGNode is added to the RIGraph) 
+		//RIGNode node = graph.getNodeFromSerial(resser);
+		//if (node==null) return null; 
+		//return node.getResidueType();
 	}
 	
 	/**
 	 * Returns the one letter residue type for the given residue serial.
-	 * @param resser
+	 * @param resser the residue serial
 	 * @return A string with the one letter residue type of the residue with serial resser
+	 * @see {@#getResType(int)}
 	 */	
 	public String getResType1Letter(int resser){
-		return AAinfo.threeletter2oneletter(this.getResType(resser));
+		return String.valueOf(this.getSequence().charAt(resser-1));
 	}
 	
 	/**

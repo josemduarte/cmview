@@ -730,11 +730,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// residue types
 		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (iSeqIdx>0) { // to skip gaps
-			i_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(iSeqIdx-1)));
+			i_res = mod.getResType(iSeqIdx);;
 		}
 		String j_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (jSeqIdx>0) { // to skip gaps
-			j_res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(jSeqIdx-1)));
+			j_res = mod.getResType(jSeqIdx);
 		}
 		
 		int extraX = 0;
@@ -819,7 +819,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		String res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (seqIdx>0) { // to skip gaps
-			res = AAinfo.oneletter2threeletter(String.valueOf(mod.getSequence().charAt(seqIdx-1)));
+			res = mod.getResType(seqIdx);
 		}
 
 		g2d.setColor(coordinatesColor);
