@@ -8,9 +8,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import java.util.*;
+import java.util.TreeSet;
+import java.util.Set;
+import java.util.TreeMap;
 
 import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
+
+import cmview.datasources.Model;
 
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -27,7 +31,7 @@ public class PyMolAdaptor {
 	public static final String		PYMOL_CALLBACK_FILE = 	"cmview.callback"; 	// file being written by pymol to send messages to this application
 	private static final int 		INITIAL_CMDBUFFER_LENGTH = 10000;	
 	private static final String 	CMD_END_MARKER = "#end";
-	private static final long 		TIMEOUT = 4000;
+	private static final long 		TIMEOUT = 60000;
 	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
 	private static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes (with -s on startup)
 	
@@ -46,6 +50,9 @@ public class PyMolAdaptor {
 	private static final String 	MATCHING_RESIDUES_COLOR = "blue";
 	// color for single edge between 2 residues (contact or not) as distance object
 	private static final String 	SINGLE_EDGE_COLOR = "orange";
+	
+	// the default atom for distance objects, it must be an atom of the backbone, i.e. only possible values one could use would be CA, C, N, O
+	private static final String 	DEFAULT_ATOM = "CA";
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -80,38 +87,53 @@ public class PyMolAdaptor {
 	/**
 	 * Draws a single edge between the CA atoms of the given residues in the given objects.
 	 * @param distObjName the name of the distance object to be created or to add to
-	 * @param structureId1  first structure object
-	 * @param structureId2  second structure object
-	 * @param i  index of residue in the first structure object 
-	 * @param j  index of residue in the second structure object
+	 * @param mod1  first structure
+	 * @param mod2  second structure
+	 * @param cont  the pair of residue serials for which we want to draw an edge 
 	 */
-	private void drawSingleEdge(String distObjName, String structureId1, String structureId2, int i, int j) {
-		sendCommand("distance " + distObjName + ", "
-					+ structureId1  + " and resi " + i + " and name ca, " 
-					+ structureId2 + " and resi " + j + " and name ca"); 
-	}
-
-	/**
-	 * Draws edges between the C-alpha atoms of the given residues in the given objects.
-	 * @param distObjName the name of the distance object to be created or to add to
-	 * @param structureId1 first structure object
-	 * @param structureId2 second structure object
-	 * @param firstResSet set of residue numbers in the first structure
-	 * @param secondResSet set of residue numbers in the second structure
-	 */
-	private void drawMultipleEdges(String distObjName, String structureId1, String structureId2, 
-							TreeSet<Integer> firstResSet, TreeSet<Integer> secondResSet) {
-				
-		// prepare residue selection string
-		String firstResString  = Interval.createSelectionString(firstResSet); 
-		String secondResString = Interval.createSelectionString(secondResSet);
+	private void drawSingleEdge(String distObjName, Model mod1, Model mod2, Pair<Integer> cont) {
+		String atom1 = getAtom(mod1, cont.getFirst());
+		String atom2 = getAtom(mod2, cont.getSecond());
 		
-		// and send it to PyMol
-		sendCommand("distance " + distObjName + ", " + 
-					structureId1  + " and ( resi " + firstResString  + " ) and name ca, " + 
-					structureId2 + " and ( resi " + secondResString + " ) and name ca");
+		if (atom1==null || atom2==null) { //see getAtom(Model,int)
+			return;
+		}
+		
+		sendCommand("distance " + distObjName + ", "
+					+ mod1.getLoadedGraphID() + " and resi " + cont.getFirst()  + " and name "+atom1+", " 
+					+ mod2.getLoadedGraphID() + " and resi " + cont.getSecond() + " and name "+atom2); 
 	}
-
+	
+	/**
+	 * Gets the atom from which edges will be drawn
+	 * @param mod
+	 * @param resser
+	 * @return the atom name or null if no atom corresponds to this contact 
+	 * definition and residue type 
+	 */
+	private String getAtom(Model mod, int resser) {
+		Set<String> atomSet = AAinfo.getAtomsForCTAndRes(mod.getContactType(),mod.getResType(resser));
+		if (atomSet.size()==0) { 
+			// This shouldn't happen: only will happen if a contact is assigned wrongly e.g. a Cg contact for a 
+			// GLY residue (and this happens for example in an average graph)
+			// It will also happen when drawing absent contacts, e.g. first CM is Cb and second Cg; 
+			// if we are drawing a contact present in first between ALA-ASP, then ALA has no Cg atoms and we would be 
+			// in this case: atomSet.size()==0
+			// Thus we return null so then we can catch this case in drawSingleEdge not to draw anything 
+			return null;
+		}
+		else if (atomSet.size()==1) { // cases Ca, Cb, C, Cg, SC for ALA, SC_CAGLY for GLY and ALA
+			return atomSet.iterator().next(); // we return the one and only member
+		} 
+		else { // remaining cases ALL, BB, SC, SC_CAGLY
+			if (mod.getContactType().startsWith("SC")) { // case SC or SC_CAGLY
+				return "CB";
+			} else { // i.e. for ALL, BB and any others
+				return DEFAULT_ATOM;
+			}
+		}
+	}
+	
 	/** 
 	 * Create a selection from a set of residues.
 	 * @param selObjName the name of the selection to be created
@@ -243,8 +265,8 @@ public class PyMolAdaptor {
 	 * defines the residues to be connected, whereas <code>getFirst()</code> 
 	 * always yields the residue indices in the first selection and 
 	 * <code>getSecond()</code> those in the second.
-	 * @param structureID1  name of the first object selection
-	 * @param structureID2  name of the second object selection
+	 * @param mod1 the first structure
+	 * @param mod2 the second structure
 	 * @param edgeSelName  name of the edge selection to be created
 	 * @param nodeSelName  name of the node selection consisting of all 
 	 *  residues incident to the contacts 
@@ -252,7 +274,7 @@ public class PyMolAdaptor {
 	 * @param selContacts  set of pairs of residues to be connected
 	 * @param dash true for dashed edges, false for solid edges
 	 */
-	private void drawEdges(String structureID1, String structureID2, String edgeSelName, String nodeSelName, 
+	private void drawEdges(Model mod1, Model mod2, String edgeSelName, String nodeSelName, 
 								String edgeColor, IntPairSet selContacts, boolean dash) {
 
 		// if no contacts in selection do nothing
@@ -263,51 +285,14 @@ public class PyMolAdaptor {
 		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
 		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
 		
-		//TODO why not always pack the selections??
-		if( selContacts.size() > 400 ) {
-			// send packed selections to PyMol
-			TreeMap<Integer, TreeSet<Integer>> adjLists = new TreeMap<Integer, TreeSet<Integer>>();
-			int i,j;
-			
-			for(Pair<Integer> cont:selContacts) {
-				i = cont.getFirst();
-				j = cont.getSecond();
-				if( ! adjLists.containsKey(i) ) {
-					adjLists.put(i, new TreeSet<Integer>());
-					adjLists.get(i).add(j);
-					firstResidues.add(i);
-					secondResidues.add(j);
-				} else {
-					adjLists.get(i).add(j);
-					secondResidues.add(j);
-				}
-			}
-			
-			// check size TODO: Is this limit still necessary?
-			if( adjLists.size() > 500 ) {
-				System.err.println("Selection too big!");
-				return;
-			}
-			
-			// send each adjacency list separately
-			TreeSet<Integer> dummy = new TreeSet<Integer>();
-			for(Integer k : adjLists.keySet()) {
-				dummy.add(k);
-				this.drawMultipleEdges(edgeSelName, structureID1, structureID2, dummy, adjLists.get(k));
-				dummy.remove(k);
-			}			
-		} else {
-			// send each contact as a single command to PyMol
-			int i,j;
-			for (Pair<Integer> cont:selContacts){ 
-				i = cont.getFirst();
-				j = cont.getSecond();
-				// draws an edge between the selected residues
-				this.drawSingleEdge(edgeSelName,structureID1,structureID2,i,j);
-				firstResidues.add(i);
-				secondResidues.add(j);
-			}
+		// send each contact as a single command to PyMol
+		for (Pair<Integer> cont:selContacts){ 
+			// draws an edge between the selected residues
+			this.drawSingleEdge(edgeSelName, mod1, mod2, cont);
+			firstResidues.add(cont.getFirst());
+			secondResidues.add(cont.getSecond());
 		}
+
 
 		// hide distance labels
 		sendCommand("hide labels, " + edgeSelName);
@@ -326,7 +311,7 @@ public class PyMolAdaptor {
 		}
 		
 		// create selection of nodes incident to the contacts
-		createSelectionObject(nodeSelName, structureID1, firstResidues, structureID2, secondResidues);
+		createSelectionObject(nodeSelName, mod1.getLoadedGraphID(), firstResidues, mod2.getLoadedGraphID(), secondResidues);
 		
 		sendCommand("disable " + nodeSelName);
 		
@@ -557,18 +542,18 @@ public class PyMolAdaptor {
 
 	/**
 	 * Shows matching residues from the 2 structures as blue edges
-	 * @param structureID1
-	 * @param structureID2
+	 * @param mod1
+	 * @param mod2
 	 * @param selContacts set of pairs: first member of the pair corresponds to 
 	 * residue in structure1, second member to residue in structure2
 	 */
-	public void showMatchingResidues(String structureID1, String structureID2, IntPairSet selContacts) {
+	public void showMatchingResidues(Model mod1, Model mod2, IntPairSet selContacts) {
 		// prepare selection names
 		String topLevelGroup = "Sel" + getNextSelNum();
-		String edgeSel       = topLevelGroup + "_" + structureID1 + "_" + structureID2 + "_AliEdges";
+		String edgeSel       = topLevelGroup + "_" + mod1.getLoadedGraphID() + "_" + mod2.getLoadedGraphID() + "_AliEdges";
 		String nodeSel       = edgeSel + "_Nodes";	
 		
-		drawEdges(structureID1, structureID2, edgeSel, nodeSel, MATCHING_RESIDUES_COLOR, selContacts, false);
+		drawEdges(mod1, mod2, edgeSel, nodeSel, MATCHING_RESIDUES_COLOR, selContacts, false);
 		
 		// group selection in topLevelGroup
 		group(topLevelGroup, edgeSel + " " + nodeSel, null);
@@ -579,15 +564,15 @@ public class PyMolAdaptor {
 	
 	/**
 	 * Shows edges from a selection in single contact map mode
-	 * @param structureId
+	 * @param mod
 	 * @param selContacts
 	 */
-	public void showEdgesSingleMode(String structureId, IntPairSet selContacts) {
+	public void showEdgesSingleMode(Model mod, IntPairSet selContacts) {
 		String topLevelGroup  = "Sel" + getNextSelNum();
-		String edgeSel        = topLevelGroup + "_" + structureId + "_Cont";
-		String nodeSel        = topLevelGroup + "_" + structureId + "_Nodes";
+		String edgeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Cont";
+		String nodeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes";
 		
-		drawEdges(structureId, structureId, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, selContacts, false);
+		drawEdges(mod, mod, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, selContacts, false);
 		
 		// group selection in topLevelGroup
 		group(topLevelGroup,  edgeSel + " " + nodeSel, null);
@@ -598,8 +583,8 @@ public class PyMolAdaptor {
 	
 	/**
 	 * Shows edges from selection in pairwise comparison mode
-	 * @param structureID1
-	 * @param structureID2
+	 * @param mod1
+	 * @param mod2
 	 * @param selMap a Map of ContactSelSet to an array of IntPairSet of size 2:
 	 * ContactSelSet.COMMON:
 	 *	 FIRST -> common contacts in first model 
@@ -611,7 +596,7 @@ public class PyMolAdaptor {
 	 *   SECOND -> contacts only pres. in sec. model 
 	 *   FIRST -> -> draw dashed red lines
 	 */
-	public void showEdgesPairwiseMode(String structureID1, String structureID2, TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap)	{
+	public void showEdgesPairwiseMode(Model mod1, Model mod2, TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap)	{
 		// COMMON:
 		//   FIRST -> common contacts in first model -> draw solid yellow lines
 		//   SECOND -> "" second ""                  -> draw solid yellow lines
@@ -633,6 +618,10 @@ public class PyMolAdaptor {
 		//    `-secondModGroup
 		//        |--...
 		//        ...
+		
+		String structureID1 = mod1.getLoadedGraphID();
+		String structureID2 = mod2.getLoadedGraphID();
+		
 		String topLevelGroup     = "Sel" + getNextSelNum();
 		String firstModGroup     = topLevelGroup + "_" + structureID1;			
 		String secondModGroup    = topLevelGroup + "_" + structureID2;
@@ -655,13 +644,13 @@ public class PyMolAdaptor {
 		// same size.			
 		if( selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST].size()  != 0 ) {				
 			// send common contacts to the object corresponding to the first model
-			drawEdges(structureID1, structureID1, commonFirstEdgeSel, commonFirstNodeSel, 
+			drawEdges(mod1, mod1, commonFirstEdgeSel, commonFirstNodeSel, 
 					COMMON_EDGE_COLOR, 
 					selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.FIRST], 
 					false);
 
 			// send common contacts to the object corresponding to the second model
-			drawEdges(structureID2, structureID2, commonSecondEdgeSel, commonSecondNodeSel,
+			drawEdges(mod2, mod2, commonSecondEdgeSel, commonSecondNodeSel,
 					COMMON_EDGE_COLOR, 
 					selMap.get(ContactMapPane.ContactSelSet.COMMON)[ContactMapPane.SECOND], 
 					false);
@@ -685,7 +674,7 @@ public class PyMolAdaptor {
 
 			// draw true contacts being present in the first model between 
 			// the residues of the first model
-			drawEdges(structureID1, structureID1, presFirstEdgeSel, presFirstNodeSel,
+			drawEdges(mod1, mod1, presFirstEdgeSel, presFirstNodeSel,
 					FIRST_STRUCTURE_EDGE_COLOR,
 					selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.FIRST], 
 					false);
@@ -695,11 +684,13 @@ public class PyMolAdaptor {
 			group(firstModGroup, presFirstNodeSel, null);
 			group(topLevelGroup, firstModGroup,    null);
 
+			this.flush();
+			
 			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND].size() != 0 ) {
 				// draw "contact" being absent in the second model but 
 				// NOT in the first one between the residues of the second 
 				// model
-				drawEdges(structureID2, structureID2, absSecondEdgeSel, absSecondNodeSel,
+				drawEdges(mod2, mod2, absSecondEdgeSel, absSecondNodeSel,
 						SECOND_STRUCTURE_EDGE_COLOR,
 						selMap.get(ContactMapPane.ContactSelSet.ONLY_FIRST)[ContactMapPane.SECOND], 
 						true);
@@ -718,7 +709,7 @@ public class PyMolAdaptor {
 
 			// draw true contacts being present in the second model between 
 			// the residues of the between model
-			drawEdges(structureID2, structureID2, presSecondEdgeSel, presSecondNodeSel,
+			drawEdges(mod2, mod2, presSecondEdgeSel, presSecondNodeSel,
 					SECOND_STRUCTURE_EDGE_COLOR,
 					selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.SECOND],
 					false);
@@ -728,11 +719,13 @@ public class PyMolAdaptor {
 			group(secondModGroup, presSecondNodeSel, null);
 			group(topLevelGroup,  secondModGroup,    null);
 			
+			this.flush();
+			
 			if( selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST].size() != 0 ) {
 				// draw true contact being present in the second model but 
 				// NOT in the first one between the residues of the first 
 				// model
-				drawEdges(structureID1, structureID1, absFirstEdgeSel, absFirstNodeSel, 
+				drawEdges(mod1, mod1, absFirstEdgeSel, absFirstNodeSel, 
 						FIRST_STRUCTURE_EDGE_COLOR,
 						selMap.get(ContactMapPane.ContactSelSet.ONLY_SECOND)[ContactMapPane.FIRST], 
 						true);
@@ -745,24 +738,26 @@ public class PyMolAdaptor {
 			this.flush();
 		}
 		
-		// call to flush() is not missing here!: for this case we flush separately after each block
+		// call to flush() is not missing here!: for this case we flush 5 times separately after each block
 	}
 		
 	/** 
 	 * Show a single contact or non-contact as distance object in pymol
-	 * @param structureID
+	 * @param mod
 	 * @param cont the pair of residues
 	 */
-	public void showSingleDistance(String structureID, Pair<Integer> cont) {
+	public void showSingleDistance(Model mod, Pair<Integer> cont) {
 
 		int pymolSelSerial = getNextSelNum();
+		
+		String structureID = mod.getLoadedGraphID();
 		
 		String topLevelGroup = "Sel" + pymolSelSerial; 
 		String edgeSel = topLevelGroup+"_"+structureID+"_Dist";
 		String nodeSel = topLevelGroup+"_"+structureID+"_Nodes";
 		
 		// create edge selection
-		drawSingleEdge(edgeSel, structureID, structureID, cont.getFirst(), cont.getSecond());
+		drawSingleEdge(edgeSel, mod, mod, cont);
 		sendCommand("color "+SINGLE_EDGE_COLOR+", " + edgeSel);		
 		
 		// create node selection

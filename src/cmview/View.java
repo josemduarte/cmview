@@ -2158,7 +2158,7 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		// send alignment edges to PyMol
-		pymol.showMatchingResidues(mod1.getLoadedGraphID(), mod2.getLoadedGraphID(), residuePairs);
+		pymol.showMatchingResidues(mod1, mod2, residuePairs);
 		
 	}
 
@@ -2569,8 +2569,8 @@ public class View extends JFrame implements ActionListener {
 				// nothing to do!
 				return;
 			}
-			
-			pymol.showEdgesPairwiseMode(mod.getLoadedGraphID(), mod2.getLoadedGraphID(), selMap);
+
+			pymol.showEdgesPairwiseMode(mod, mod2, selMap);
 			
 		} else {
 			IntPairSet contacts   = cmPane.getSelContacts();
@@ -2584,7 +2584,7 @@ public class View extends JFrame implements ActionListener {
 			pymol.showStructureHideOthers(structureId, structureId);
 
 			// send selection
-			pymol.showEdgesSingleMode(structureId, contacts);
+			pymol.showEdgesSingleMode(mod, contacts);
 
 		}
 	}
@@ -2602,7 +2602,7 @@ public class View extends JFrame implements ActionListener {
 			showNoPyMolConnectionWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			pymol.showSingleDistance(mod.getLoadedGraphID(), cmPane.getRightClickCont());
+			pymol.showSingleDistance(mod, cmPane.getRightClickCont());
 		}
 	}
 
