@@ -35,6 +35,18 @@ import edu.uci.ics.jung.graph.util.Pair;
 /**
  * The panel containing the contact map and associated event handling.
  */
+/**
+ * @author risbud
+ *
+ */
+/**
+ * @author risbud
+ *
+ */
+/**
+ * @author risbud
+ *
+ */
 public class ContactMapPane extends JPanel
 implements MouseListener, MouseMotionListener, ComponentListener {
 
@@ -95,6 +107,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Pair<Integer> rightClickCont;	 		// position in contact map where
 													// right mouse button was pressed to
 													// open context menu
+	//private IntPairSet leftClickCont;	 		// position in contact map where
+													// left mouse button was pressed
 	private RIGCommonNbhood currCommonNbh;	 		// common nbh that the user selected
 													// last (used to show it in 3D)
 	private int lastMouseButtonPressed;		// mouse button which was pressed
@@ -145,7 +159,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 													// selection
 	private TreeSet<Integer> selVertNodes;			// current vertical residue
 													// selection
-
 
 	// other displayable data
 	private Hashtable<Pair<Integer>,Color> userContactColors;  	// user defined colors
@@ -1981,7 +1994,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		System.out.println("Neighbours: " + nbh.getCommaSeparatedResSerials());
 		for (RIGNode j:nbh.getNeighbors()){
 			selContacts.add(new Pair<Integer>(Math.min(seqIdx, j.getResidueSerial()),Math.max(seqIdx, j.getResidueSerial())));
-		}
+		}		
 	}
 
 	/** Resets the current contact- and residue selections to the empty set */
@@ -2015,7 +2028,46 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * these methods are called by others to retrieve the state of the current
 	 * component
 	 */
-
+	
+	/**
+	 * @param Model mod and int residue = residue number, whose first shell neighbours are to be found out
+	 * @return A list of all first shell neighbours. When used iteratively on all the first shell nbrs, this same
+	 * method would give all the second shell neighbours; and so on for higher generation neighbours.
+	 */
+	public IntPairSet getfirstShellNbrs(Model mod, int residue){
+		IntPairSet firstShellNbrs = new IntPairSet();
+		
+		RIGNbhood nbh = mod.getNbhood(residue);
+		for(RIGNode j:nbh.getNeighbors()){
+			firstShellNbrs.add(new Pair<Integer> (Math.min(j.getResidueSerial(), residue),Math.max(j.getResidueSerial(), residue)));
+		}
+		
+		return firstShellNbrs;
+	}
+	
+	
+	/**
+	 * @param Model mod, int residue = residue number, whose first shell relationships are to be investigated
+	 * @return The pairs of first shell nbrs, which are nbrs of each other. In short, returns 'first-shell-relationships', and NOT 
+	 * a list of all neighbours
+	 */
+	public IntPairSet getfirstShellNbrRels(Model mod, int residue){
+		IntPairSet firstShellNbrRels = new IntPairSet();
+				
+		RIGNbhood nbh = mod.getNbhood(residue);
+		for(RIGNode j:nbh.getNeighbors()){
+				INNER1:for(RIGNode k:nbh.getNeighbors()){
+					if(k.equals(j)){
+						continue INNER1;
+					}
+					if(this.allContacts.contains((new Pair<Integer>(Math.min(j.getResidueSerial(), k.getResidueSerial()),Math.max(j.getResidueSerial(), k.getResidueSerial()))))){
+						firstShellNbrRels.add(new Pair<Integer> (Math.min(j.getResidueSerial(), k.getResidueSerial()),Math.max(j.getResidueSerial(), k.getResidueSerial())));
+					}		
+				}
+			}
+		
+		return firstShellNbrRels;
+	} 
 	/** Returns the currently selected common neighbourhood (to show it in 3D) */
 	public RIGCommonNbhood getCommonNbh(){
 		return currCommonNbh;
@@ -2028,7 +2080,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public Pair<Integer> getRightClickCont() {
 		return this.rightClickCont;
 	}
-
+	
+	/**
+	 * @return Left clicked pair of residues in the contact map pane.
+	 */
+	public Pair<Integer> getmousePos() {
+		Pair<Integer> currmousePos = screen2cm(this.mousePos);
+				
+		return currmousePos;
+	}
+	
 	/** Called by residueRuler to get the current output size for drawing */
 	protected int getOutputSize(){
 		return outputSize;
@@ -2267,6 +2328,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// we want to show sequence indices to the user, that's why we map here TODO at the moment will not work for compare mode because we use mod1 for the al2seq mapping
 		if(view.popupSendEdge != null) {
 			view.popupSendEdge.setText(String.format(View.LABEL_SHOW_PAIR_DIST_3D,mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getSecond())));
+		}if(view.sphereP != null) {
+			view.sphereP.setText(String.format(View.LABEL_SHOW_SPHERES_POPUP_3D,mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),rightClickCont.getSecond())));
 		}
 		view.popup.show(e.getComponent(), e.getX(), e.getY());
 	}

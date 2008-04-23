@@ -74,13 +74,17 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
+	private static final String LABEL_SHOW_SPHERES_3D = "Show threshold spheres for the selected contact in 3D";
+	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show threshold spheres for the residue pair (%s,%s) in 3D";
+	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
+	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
 	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
-
+	
 	/*--------------------------- member variables --------------------------*/
 	
 	// GUI components in the main frame
@@ -94,7 +98,7 @@ public class View extends JFrame implements ActionListener {
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 
 	// Tool bar buttons
-	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete;  
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 
@@ -113,9 +117,9 @@ public class View extends JFrame implements ActionListener {
 
 	// Menu items
 	// M -> "menu bar"
-	JMenuItem sendM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
+	JMenuItem sendM, sphereM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
 	// P -> "popup menu"
-	JMenuItem sendP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor;
+	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell;
 	// mm -> "main menu"
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadMsd, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadMsd2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
@@ -346,6 +350,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "diagonals.png"));
 		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "group.png"));
 		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square_go.png"));
+		ImageIcon icon_show_sph_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "spheres.png"));
 		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_flip_horizontal.png"));
 		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_rotate_clockwise.png"));
 		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));	
@@ -375,6 +380,7 @@ public class View extends JFrame implements ActionListener {
 		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
 		toolBar.addSeparator(separatorDim);		
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
+		tbShowSph3D = makeToolBarButton(icon_show_sph_3d, LABEL_SHOW_SPHERES_3D);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
@@ -418,10 +424,13 @@ public class View extends JFrame implements ActionListener {
 		if (Start.USE_PYMOL) {
 			popup.addSeparator();		
 			sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
+			sphereP = makePopupMenuItem(LABEL_SHOW_SPHERES_POPUP_3D, icon_show_sph_3d, popup);
 			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
 			}
+			pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
+			pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
 		}
 		popup.addSeparator();		
 		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
@@ -521,6 +530,7 @@ public class View extends JFrame implements ActionListener {
 		menu.setMnemonic(KeyEvent.VK_A);
 		if (Start.USE_PYMOL) {
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
+			sphereM = makeMenuItem(LABEL_SHOW_SPHERES_3D, icon_show_sph_3d, menu);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
 			}
@@ -632,7 +642,7 @@ public class View extends JFrame implements ActionListener {
 	 * <li>mapping from menu identifier (string value obtained by <code>menu.getText()</code>)</li>
 	 * <li>mapping from the menu's JPopupMenu to the menu</li>
 	 * </ul> 
-	 * @param menu  the menu to be added
+	 * @param menu  the menu to be added 
 	 */
 	public void addToJMenuBar(JMenu menu) {
 		getJMenuBar().add(menu);
@@ -1085,6 +1095,10 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == sendM || e.getSource() == sendP || e.getSource() == tbShowSel3D) {	
 			handleShowSelContacts3D();
 		}
+		// show spheres button clicked
+		if (e.getSource() == sphereM || e.getSource() == sphereP || e.getSource() == tbShowSph3D) {	
+			handleShowSpheres3D();
+		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP || e.getSource() == tbShowComNbh3D) {
 			handleShowTriangles3D();
@@ -1092,6 +1106,14 @@ public class View extends JFrame implements ActionListener {
 		// delete selected edges button clicked
 		if (e.getSource() == delEdgesM || e.getSource() == delEdgesP || e.getSource() == tbDelete) {
 			handleDeleteSelContacts();
+		}
+		// show nbd-relations button clicked
+		if(e.getSource()== pmShowShell) {
+			handleShowShellRels();
+		}
+		// show 2nd shell button clicked
+		if(e.getSource()== pmShowSecShell) {
+			handleShowSecShell();
 		}
 		// send current edge (only available in popup menu)
 		if(e.getSource() == popupSendEdge) {
@@ -2585,10 +2607,42 @@ public class View extends JFrame implements ActionListener {
 
 			// send selection
 			pymol.showEdgesSingleMode(mod, contacts);
-
 		}
 	}
-
+	/**
+	 * 
+	 */
+	private void handleShowSpheres3D() {
+		
+		//pymol adapter
+		PyMolAdaptor pymol = Start.getPyMolAdaptor();
+		
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
+		} else if(!Start.isPyMolConnectionAvailable()) {				
+			showNoPyMolConnectionWarning();
+		} else if(cmPane.getSelContacts().size() == 0) {//If no contacts are selected, spheres are shown for the current mouse position
+			Pair<Integer> residuePair = cmPane.getmousePos();
+			if( residuePair.isEmpty() ) {
+				showNoContactsSelectedWarning();//return; // nothing to do!
+			}
+			pymol.showSpheres(mod, residuePair);
+		} else {
+			
+			IntPairSet residuePair = cmPane.getSelContacts();	
+			showContactsSelectedWarningforSpheres();
+			if( residuePair.isEmpty() ) {
+				return; // nothing to do!
+			}
+			
+			//String structureId       = mod.getLoadedGraphID();
+			//disable all old objects and selections
+			//pymol.showStructureHideOthers(structureId, structureId);
+			pymol.showSpheres(mod, residuePair);
+		}
+	}
 
 	/**
 	 * 
@@ -2620,7 +2674,7 @@ public class View extends JFrame implements ActionListener {
 			showNoCommonNbhSelectedWarning();
 		} else {
 			PyMolAdaptor pymol = Start.getPyMolAdaptor();
-			pymol.showTriangles(mod.getLoadedGraphID(), cmPane.getCommonNbh());			
+			pymol.showTriangles(mod, cmPane.getCommonNbh());			
 		}
 	}
 
@@ -2654,7 +2708,117 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-
+	private void handleShowShellRels(){
+		//pymol adapter
+		PyMolAdaptor pymol = Start.getPyMolAdaptor();
+		
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
+		} else if(!Start.isPyMolConnectionAvailable()) {				
+			showNoPyMolConnectionWarning();
+		} else {
+			// Get first shell neighbours of involved residues
+			Pair<Integer> currentResPair = cmPane.getmousePos();
+			int first = currentResPair.getFirst();
+			int second = currentResPair.getSecond();
+			if(first==second){
+				IntPairSet firstShellNbrs1 = cmPane.getfirstShellNbrRels(mod, first);
+				
+				if( firstShellNbrs1.isEmpty() ) {
+					return; // nothing to do!
+				}				
+				pymol.showShellRels(mod, firstShellNbrs1);
+			} else{
+				IntPairSet firstShellNbrs1 = cmPane.getfirstShellNbrRels(mod, first);
+				IntPairSet firstShellNbrs2 = cmPane.getfirstShellNbrRels(mod, second);
+				
+				if( firstShellNbrs1.isEmpty() || firstShellNbrs2.isEmpty()) {
+					return; // nothing to do!
+				}
+				pymol.showShellRels(mod, firstShellNbrs1);
+				pymol.showShellRels(mod, firstShellNbrs2);
+			}
+		}
+	}
+	
+	private void handleShowSecShell(){
+		//pymol adapter
+		PyMolAdaptor pymol = Start.getPyMolAdaptor();
+		
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
+		} else if(!Start.isPyMolConnectionAvailable()) {				
+			showNoPyMolConnectionWarning();
+		} else {
+			IntPairSet completeSecShell = new IntPairSet();
+			int res;
+			
+			Pair<Integer> currentResPair = cmPane.getmousePos();
+			int first = currentResPair.getFirst();
+			int second = currentResPair.getSecond();
+			
+			if(first==second){
+				IntPairSet firstShellNbrs = cmPane.getfirstShellNbrs(mod, first);
+							
+				if( firstShellNbrs.isEmpty() ) {
+					return; // nothing to do!
+				}
+				for (Pair<Integer> pair:firstShellNbrs){
+					if(pair.getFirst()==first){
+						res = pair.getSecond();
+					} else {
+						res = pair.getFirst();
+					}
+					IntPairSet secondShellNbrs = cmPane.getfirstShellNbrs(mod, res);
+					// But these secondShellNbrs1 also include first shell contacts. We remove them here
+					if(pair.getFirst()==first || pair.getSecond()==first){
+						secondShellNbrs.remove(pair);
+					}
+					completeSecShell.addAll(secondShellNbrs);
+				}				
+			} else{
+				IntPairSet firstShellNbrs1 = cmPane.getfirstShellNbrs(mod, first);
+				IntPairSet firstShellNbrs2 = cmPane.getfirstShellNbrs(mod, second);
+							
+				if( firstShellNbrs1.isEmpty() || firstShellNbrs2.isEmpty()) {
+					return; // nothing to do!
+				}
+				for (Pair<Integer> pair:firstShellNbrs1){
+					if(pair.getFirst()==first){
+						res = pair.getSecond();
+					} else {
+						res = pair.getFirst();
+					}
+					IntPairSet secondShellNbrs1 = cmPane.getfirstShellNbrs(mod, res);
+					// But these secondShellNbrs1 also include first shell contacts. We remove them here
+					if(pair.getFirst()==first || pair.getSecond()==first){
+						secondShellNbrs1.remove(pair);
+					}					
+					completeSecShell.addAll(secondShellNbrs1);
+				}
+				for (Pair<Integer> pair:firstShellNbrs2){
+					if(pair.getFirst()==second){
+						res = pair.getSecond();
+					} else {
+						res = pair.getFirst();
+					}
+					IntPairSet secondShellNbrs2 = cmPane.getfirstShellNbrs(mod, res);
+					// But these secondShellNbrs1 also include first shell contacts. We remove them here
+					if(pair.getFirst()==second || pair.getSecond()==second){
+						secondShellNbrs2.remove(pair);
+					}
+					completeSecShell.addAll(secondShellNbrs2);
+				}
+			}
+			
+			pymol.showSecShell(mod, completeSecShell);
+			
+		}
+	}
 	/* -------------------- Compare menu -------------------- */
 
 	/**
@@ -2843,6 +3007,12 @@ public class View extends JFrame implements ActionListener {
 
 	private void showNoContactsSelectedWarning() {
 		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
+	}
+	
+	private void showContactsSelectedWarningforSpheres() {
+		JOptionPane.showMessageDialog(this, "Contacts are selected.\n The threshold-spheres for the selected contacts shall be displayed.\n To view " +
+				"the spheres for a general residue pair, which is not a contact,\n first de-select all the selected contacts, \n and use popup menu by right-clicking " +
+				"on the desired residue-pair", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
 	/**

@@ -49,7 +49,7 @@ public class PyMolAdaptor {
 	// color for matching residues from alignment 
 	private static final String 	MATCHING_RESIDUES_COLOR = "blue";
 	// color for single edge between 2 residues (contact or not) as distance object
-	private static final String 	SINGLE_EDGE_COLOR = "orange";
+	private static final String 	SINGLE_EDGE_COLOR = "orange";		
 	
 	// the default atom for distance objects, it must be an atom of the backbone, i.e. only possible values one could use would be CA, C, N, O
 	private static final String 	DEFAULT_ATOM = "CA";
@@ -63,7 +63,9 @@ public class PyMolAdaptor {
 	private int selCounter;			// auto-increment the selection number
 	private PrintWriter log;
 	private File callbackFile;
-	private int triangleColorCounter;   // auto-increment counter for the COLORS array (triangleColorCounter%COLORS.length)   
+	private int triangleColorCounter;   // auto-increment counter for the COLORS array (triangleColorCounter%COLORS.length)
+	// Sphere settings for PyMol:
+	//private int SPHERE_SCALE = 2; // sphere scale
 	
 	/*----------------------------- constructors ----------------------------*/
 
@@ -159,6 +161,29 @@ public class PyMolAdaptor {
 		sendCommand(cmdStr);
 	}
 	
+	/*
+	 * The following method has become useless, since the sphere are being drawn as CGOs. It's still kept for reference.
+	 *   
+	 /** 
+	 * Create a selection from a set of residues and alpha carbons within them.
+	 * @param selObjName the name of the selection to be created
+	 * @param structureId the structureId for which residues will be selected
+	 * @param residues the set of residues in the given structure
+	 * TODO: instead of only alpha-Cs, can this be extended to any atom within the residues?
+	 */
+	/*private void createSelectionObjectWithContactAtoms(String selObjName, Model mod1, TreeSet<Integer> residues1, Model mod2, TreeSet<Integer> residues2) {
+		
+		String atom1 = getAtom(mod1, residues1.first());
+		String atom2 = getAtom(mod2, residues2.first());
+		
+		if (atom1==null || atom2==null) { //see getAtom(Model,int)
+			return;
+		}
+		
+		String cmdStr = "select " + selObjName + ", (" + mod1.getLoadedGraphID() + " and resi " + Interval.createSelectionString(residues1) + " and name " 
+			+ atom1 + ")" + " or (" + mod2.getLoadedGraphID() + " and resi " + Interval.createSelectionString(residues2) + " and name " + atom2 + ")";
+		sendCommand(cmdStr);
+	}*/
 	
 	/**
 	 * Reads the given file until a line with tag is found before given timeOut 
@@ -317,6 +342,106 @@ public class PyMolAdaptor {
 		
 	}
 	
+	/**
+	 * Draws a set of spheres in the 3D viewer and creates corresponding selections.
+	 * The sphere centers are the atoms in contact, sphere radii are equal to the distance
+	 * cut-off in use. 
+	 * @param mod1
+	 * @param mod2
+	 * @param nodeCentralSelName
+	 * @param residuePair
+	 */
+	private void drawSpheres(Model mod1, Model mod2, String nodeCentralSelName, Pair<Integer> residuePair) {
+		
+		/*String SPHERE_COLOR = "magenta"; // sphere color
+		double SPHERE_TRANSPARENCY = 0.5; // sphere transparency
+		*/
+		
+		if (residuePair.isEmpty()){
+			return;
+		}
+		
+		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
+		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
+		
+		firstResidues.add(residuePair.getFirst());
+		secondResidues.add(residuePair.getSecond());
+		
+		String atom1 = getAtom(mod1, firstResidues.first());
+		String atom2 = getAtom(mod2, secondResidues.first());
+		
+		/*// create selection of nodes incident to the contacts
+		createSelectionObjectWithContactAtoms(nodeCentralSelName, mod1, firstResidues, mod2, secondResidues);
+		sendCommand("disable " + nodeCentralSelName);
+	
+		sendCommand("set sphere_color, " + SPHERE_COLOR + "\n"
+				+ "set sphere_transparency=" + SPHERE_TRANSPARENCY);
+		sendCommand("alter " + nodeCentralSelName + " , vdw=" + mod1.getDistanceCutoff() + "\n"
+				+ "rebuild");
+		sendCommand("show spheres, " + nodeCentralSelName);
+		*/
+		
+		String argumentforSphere1 = mod1.getLoadedGraphID() + " and resi " + Interval.createSelectionString(firstResidues) + " and name " + atom1 ;
+		String argumentforSphere2 = mod1.getLoadedGraphID() + " and resi " + Interval.createSelectionString(secondResidues) + " and name " + atom2 ;
+		sendCommand("sphere('" + nodeCentralSelName + "res1" + "', '" + argumentforSphere1 + "', " + mod1.getDistanceCutoff() + ", 'magenta', " + 0.5 + ")");
+		sendCommand("sphere('" + nodeCentralSelName + "res2" + "', '" + argumentforSphere2 + "', " + mod1.getDistanceCutoff() + ", 'magenta', " + 0.5 + ")");
+	}
+	/**
+	 * Same as above, only arguments are different
+	 * @param mod1
+	 * @param mod2
+	 * @param nodeCentralSelName
+	 * @param residuePair
+	 */
+	private void drawSpheres(Model mod1, Model mod2, String nodeCentralSelName, IntPairSet residuePair) {
+		
+		/*String SPHERE_COLOR = "magenta"; // sphere color
+		double SPHERE_TRANSPARENCY = 0.5; // sphere transparency*/
+
+		// if no contacts in selection do nothing
+		if (residuePair.size()== 0) {
+			return; 
+		}
+		
+		if (residuePair.isEmpty()){
+			return;
+		}
+
+		TreeSet<Integer> firstResidues  = new TreeSet<Integer>();
+		TreeSet<Integer> secondResidues = new TreeSet<Integer>();
+		
+		// send each contact as a single command to PyMol -> this has been directly copied from
+		// the method drawEdges, since it works. In case of spheres, there is actually a single
+		// contact being passed. No harm done in doing this, since the following loop will run only once.
+		int i,j;
+		
+		for (Pair<Integer> cont:residuePair){ 
+			i = cont.getFirst();
+			j = cont.getSecond();
+						
+			//Instead of writing a separate method for drawing spheres (which, at the moment seems
+			// unnecessary), sphere drawing code is directly written here.
+			firstResidues.add(i);
+			secondResidues.add(j);
+			
+			String atom1 = getAtom(mod1, firstResidues.first());
+			String atom2 = getAtom(mod2, secondResidues.first());
+			String argumentforSphere1 = mod1.getLoadedGraphID() + " and resi " + Interval.createSelectionString(firstResidues) + " and name " + atom1 ;
+			String argumentforSphere2 = mod1.getLoadedGraphID() + " and resi " + Interval.createSelectionString(secondResidues) + " and name " + atom2 ;
+			sendCommand("sphere('" + nodeCentralSelName + "res1" + "', '" + argumentforSphere1 + "', " + mod1.getDistanceCutoff() + ", 'magenta', " + 0.5 + ")");
+			sendCommand("sphere('" + nodeCentralSelName + "res2" + "', '" + argumentforSphere2 + "', " + mod1.getDistanceCutoff() + ", 'magenta', " + 0.5 + ")");
+		}
+		
+		/*// create selection of nodes incident to the contacts
+		createSelectionObjectWithContactAtoms(nodeCentralSelName, mod1, firstResidues, mod2, secondResidues);
+		sendCommand("disable " + nodeCentralSelName);
+	
+		sendCommand("set sphere_color, " + SPHERE_COLOR + "\n"
+				+ "set sphere_transparency=" + SPHERE_TRANSPARENCY);
+		sendCommand("alter " + nodeCentralSelName + " , vdw=" + mod1.getDistanceCutoff() + "\n"
+				+ "rebuild");
+		sendCommand("show spheres, " + nodeCentralSelName);*/	
+	}
 	/**
 	 * Creates or updates a group object.
   	 * Note, that whenever an argument is null all subsequent arguments are 
@@ -497,7 +622,9 @@ public class PyMolAdaptor {
 	 * @param structureId the structure id of the object in PyMol
 	 * @param commonNbh the common neighbourhood object for which triangles will be drawn
 	 */
-	public void showTriangles(String structureId, RIGCommonNbhood commonNbh){
+	public void showTriangles(Model mod, RIGCommonNbhood commonNbh){
+		
+		String structureId = mod.getLoadedGraphID(); 
 		
 		String topLevelGroup    = "Sel" + getNextSelNum();
 
@@ -510,14 +637,15 @@ public class PyMolAdaptor {
 		int j = commonNbh.getSecondNode().getResidueSerial();
 		residues.add(i);
 		residues.add(j);
-
+		
+		String contact_type = mod.getContactType();
 		String curTriangleName = "";
 		TreeSet<String>  triangleSelNames = new TreeSet<String>();
 
 		for (int k:commonNbh.keySet()){
 			int triangleColorIndex = triangleColorCounter%COLORS.length;
 			curTriangleName = triangleBaseName + trinum;
-			sendCommand("triangle('"+ curTriangleName + "', "+ i+ ", "+j +", "+k +", '" + COLORS[triangleColorIndex] +"', " + 0.7+")");
+			sendCommand("triangle('"+ curTriangleName + "', "+ i+ ", "+j +", "+k +", '" + contact_type + "', '" + COLORS[triangleColorIndex] +"', " + 0.7+")");
 			trinum++;
 			residues.add(k);
 			triangleSelNames.add(curTriangleName);
@@ -532,8 +660,9 @@ public class PyMolAdaptor {
 		for( String s : triangleSelNames ) {
 			groupMembers += s + " ";
 		}
-		groupMembers += nodeSel;
-		
+		groupMembers += nodeSel;		
+		sendCommand("show sticks, " + nodeSel);
+		sendCommand("spectrum count, rainbow_cycle, " + nodeSel);
 		group(topLevelGroup, groupMembers, null);
 		
 		// flush the buffer and send commands to PyMol via log-file
@@ -580,7 +709,82 @@ public class PyMolAdaptor {
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
 	}
-	
+
+	/**
+	 * Shows spheres which are the end-points of contacts
+	 * @param model
+	 * @param residuePair
+	 */
+	public void showSpheres(Model mod, Pair<Integer> residuePair) {
+		String topLevelGroup  = "Sel" + getNextSelNum();
+		//String edgeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Cont";
+		//String nodeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes";
+		String nodeCentralSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes_central";
+		
+		sendCommand("hide spheres");
+		
+		drawSpheres(mod, mod, nodeCentralSel, residuePair);
+		// group selection in topLevelGroup
+		group(topLevelGroup,  /*edgeSel + " " + nodeSel + " " +*/ nodeCentralSel + "res1 " + nodeCentralSel + "res2", null);
+				
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+	}
+	/**
+	 * Same as above, the arguments are different
+	 * @param mod
+	 * @param residuePair
+	 */
+	public void showSpheres(Model mod, IntPairSet residuePair) {
+		String topLevelGroup  = "Sel" + getNextSelNum();
+		//String edgeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Cont";
+		//String nodeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes";
+		String nodeCentralSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes_central";
+		
+		//sendCommand("hide spheres");
+		
+		drawSpheres(mod, mod, nodeCentralSel, residuePair);
+		// group selection in topLevelGroup
+		group(topLevelGroup,  /*edgeSel + " " + nodeSel + " " + */nodeCentralSel + "res1 " + nodeCentralSel + "res2", null);
+				
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+	}
+
+	/**
+	 * @param Model mod. List of all the second shell residues.
+	 * @return void. Ends up drawing sticks for all the second shell residues. 
+	 */
+	public void showSecShell(Model mod, IntPairSet secondshell){
+		String topLevelGroup  = "Sel" + getNextSelNum();
+		String edgeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Cont_SecondShell";
+		String nodeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes_SecondShell";
+		
+		drawEdges(mod, mod, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, secondshell, false);
+		
+		// group selection in topLevelGroup
+		group(topLevelGroup,  edgeSel + " " + nodeSel, null);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();		
+	}
+	/**
+	 * @param Model mod and List of all first shell nbrs.
+	 * @return void. Ends up depicting all those first shell nbrs of a residue, which are nbrs of each other
+	 */
+	public void showShellRels(Model mod, IntPairSet firstshellrels){
+		String topLevelGroup  = "Sel" + getNextSelNum();
+		String edgeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Cont_firstShell_Rels";
+		String nodeSel        = topLevelGroup + "_" + mod.getLoadedGraphID() + "_Nodes_firstShell_Rels";
+		
+		drawEdges(mod, mod, edgeSel, nodeSel, SINGLEMODE_EDGE_COLOR, firstshellrels, false);
+		
+		// group selection in topLevelGroup
+		group(topLevelGroup,  edgeSel + " " + nodeSel, null);
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+	}
 	/**
 	 * Shows edges from selection in pairwise comparison mode
 	 * @param mod1
@@ -747,7 +951,7 @@ public class PyMolAdaptor {
 	 * @param cont the pair of residues
 	 */
 	public void showSingleDistance(Model mod, Pair<Integer> cont) {
-
+		
 		int pymolSelSerial = getNextSelNum();
 		
 		String structureID = mod.getLoadedGraphID();

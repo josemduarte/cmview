@@ -56,7 +56,7 @@ public class Start {
 	 
 	  Initialization
 
-	  Initialization of these properties happends in the following order:
+	  Initialization of these properties happens in the following order:
 	  1a. 	Initialize most properties to hard-coded default values (in case that master config file is missing)
 	  1b.	Initialize some properties to values specified at runtime (e.g. temp dir, user name)
 	  2.	Load all properties except 1b from master config file (in resources), this defines the 'release configuration'
