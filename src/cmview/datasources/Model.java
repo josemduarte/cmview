@@ -486,7 +486,7 @@ public abstract class Model {
 		if(pdb != null && pdb.hasSecondaryStructure()) {
 			return pdb.getSecondaryStructure();
 		} else {
-			return new SecondaryStructure();
+			return new SecondaryStructure("");
 		}
 	}
 
