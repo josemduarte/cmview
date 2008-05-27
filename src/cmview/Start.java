@@ -638,8 +638,8 @@ public class Start {
 
 		String help = "Usage: \n" +
 		APP_NAME+" [-f <file>] [-p <pdb code>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] \n" +
-			"File can be a PDB text file, CMView contact map file, Casp TS file or Casp RR file.\n" +
-			"If a config file is given, the settings will override settings from system-wide or user's config file\n";
+			"File can be a PDB file, CMView contact map file, Casp TS file or Casp RR file.\n" +
+			"If the -o  option is used, the given config file will override settings from system-wide or user's config file\n";
 
 		String pdbCode = null;
 		String inFile = null;
@@ -648,9 +648,10 @@ public class Start {
 		String cmdLineConfigFile = null;
 		String debugConfigFile = null;
 		boolean doPreload = false;
+		boolean noPymol = false;
 		double cutoff = 0.0;
 
-		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vg:h?");
+		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vYg:h?");
 		int c;
 		while ((c = g.getopt()) != -1) {
 			switch(c){
@@ -677,10 +678,14 @@ public class Start {
 			case 'g':											// write current config parameters to a file (for debugging)
 				debugConfigFile = g.getOptarg();
 				break;
+			// undocumented options:
 			case 'v':
 				System.out.println(APP_NAME+" "+VERSION);
 				System.exit(0);
-				break;				
+				break;
+			case 'Y':
+				noPymol = true;	// don't load pymol on startup
+				break;
 			case 'h':
 			case '?':
 				System.out.println(help);
@@ -773,7 +778,7 @@ public class Start {
 		System.setProperty("java.util.logging.config.file",trashLogFile.getAbsolutePath());
 					
 		// connect to pymol
-		if(USE_PYMOL) {
+		if(USE_PYMOL && noPymol==false) {
 		
 			PrintWriter pymolLog = null; 
 			File pymolLogFile = new File(TEMP_DIR,PYMOL_LOGFILE);
