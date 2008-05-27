@@ -14,17 +14,14 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import proteinstructure.FileTypeGuesser;
 import proteinstructure.PdbCodeNotFoundError;
 import proteinstructure.Pdb;
 import proteinstructure.ProtStructGraph;
 
 import tools.MySQLConnection;
 
-import cmview.datasources.Model;
-import cmview.datasources.ModelConstructionError;
-import cmview.datasources.PdbFileModel;
-import cmview.datasources.PdbFtpModel;
-import cmview.datasources.PdbaseModel;
+import cmview.datasources.*;
 
 /**
  * Main class to start contact map viewer application.
@@ -475,7 +472,7 @@ public class Start {
 	 * Preload a model based on the command line parameters.
 	 * Returns the model or null on failure.
 	 */
-	private static Model preloadModel(String pdbCode, String pdbFile, String pdbChainCode, String contactType, double cutoff) {
+	private static Model preloadModel(String pdbCode, String inFile, String pdbChainCode, String contactType, double cutoff) {
 		Model mod = null;
 		if(pdbChainCode==null) {
 			pdbChainCode = Pdb.NULL_CHAIN_CODE;
@@ -492,12 +489,15 @@ public class Start {
 				} catch(ModelConstructionError e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
+					return null;
 				} catch (PdbCodeNotFoundError e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
+					return null;
 				} catch (SQLException e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
+					return null;
 				}			
 			} else {
 				// load from online pdb
@@ -507,19 +507,45 @@ public class Start {
 				} catch (IOException e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
+					return null;
 				} catch (ModelConstructionError e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
+					return null;
 				}				
 			}
-		} else if (pdbFile!=null) {
+		} else if (inFile!=null) {
 			try {
-				mod = new PdbFileModel(pdbFile,contactType,cutoff,DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
-				mod.load(pdbChainCode, 1);
+				int fileType = FileTypeGuesser.guessFileType(new File(inFile));
+				switch(fileType) {
+				case FileTypeGuesser.PDB_FILE:
+				case FileTypeGuesser.CASP_TS_FILE:
+					mod = new PdbFileModel(inFile,contactType,cutoff,DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
+					mod.load(pdbChainCode, 1);					
+					break;
+				case FileTypeGuesser.AGLAPPE_CM_FILE: 
+					mod = new ContactMapFileModel(inFile);
+					break;
+				case FileTypeGuesser.CASP_RR_FILE: 
+					mod = new CaspRRFileModel(inFile);
+					break;
+				default:
+					System.err.println("Could not recognize file type of " + inFile);
+					return null;
+				}
 			} catch (ModelConstructionError e) {
-				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println("Could not load structure or contact map for given command line parameters:");
 				System.err.println(e.getMessage());
+				return null;
+			} catch (FileNotFoundException e) {
+				System.err.println("File " + inFile + " not found.");
+				return null;
+			} catch (IOException e) {
+				System.err.println("Error reading from file " + inFile);
+				return null;
 			}
+		} else {
+			System.err.println("Unexpected error in preloadModel. Please submit a bug report.");
 		}
 		return mod;
 	}
@@ -611,15 +637,17 @@ public class Start {
 		
 
 		String help = "Usage: \n" +
-		APP_NAME+" [-p <pdb code>] [-f <pdb file>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] \n" +
-				"The given config file will override settings from system-wide or user's config file\n";
+		APP_NAME+" [-f <file>] [-p <pdb code>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] \n" +
+			"File can be a PDB text file, CMView contact map file, Casp TS file or Casp RR file.\n" +
+			"If a config file is given, the settings will override settings from system-wide or user's config file\n";
 
 		String pdbCode = null;
-		String pdbFile = null;
+		String inFile = null;
 		String pdbChainCode = null;
 		String contactType = null;
 		String cmdLineConfigFile = null;
 		String debugConfigFile = null;
+		boolean doPreload = false;
 		double cutoff = 0.0;
 
 		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vg:h?");
@@ -628,9 +656,11 @@ public class Start {
 			switch(c){
 			case 'p':
 				pdbCode = g.getOptarg();
+				doPreload = true;
 				break;
 			case 'f':
-				pdbFile = g.getOptarg();
+				inFile = g.getOptarg();
+				doPreload = true;
 				break;				
 			case 'c':
 				pdbChainCode = g.getOptarg();
@@ -659,6 +689,12 @@ public class Start {
 			}
 		}
 
+		// check command line parameters
+		if(pdbCode != null && inFile != null) {
+			System.err.println("Options -p and -f are exclusive. Exiting.");
+			System.exit(1);
+		}
+		
 		System.out.println("Starting " + APP_NAME + " " + VERSION);
 		
 		// load configuration
@@ -806,7 +842,13 @@ public class Start {
 		
 		// start gui without a model or preload contact map based on command line parameters
 		String wintitle = "Contact Map Viewer";
-		Model mod = preloadModel(pdbCode, pdbFile, pdbChainCode, contactType, cutoff);
+		Model mod = null;
+		if(doPreload) {
+			mod = preloadModel(pdbCode, inFile, pdbChainCode, contactType, cutoff);
+			if(mod == null) {
+				System.exit(1);
+			}
+		}
 		if (mod!=null) wintitle = "Contact Map of " + mod.getLoadedGraphID();
 		new View(mod, wintitle);
 		if (mod!=null && Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
