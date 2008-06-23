@@ -80,7 +80,7 @@ fi
 # copying from aglappetag to cmviewtag
 cp -R $aglappetag/proteinstructure $cmviewtag
 mkdir $cmviewtag/tools
-cp $aglappetag/tools/MySQLConnection.java $aglappetag/tools/PymolServerOutputStream.java $cmviewtag/tools
+cp $aglappetag/tools/MySQLConnection.java $cmviewtag/tools
 cp -R $aglappetag/sadp $cmviewtag
 cp -R $aglappetag/actionTools $cmviewtag
 rm -rf $aglappetag
