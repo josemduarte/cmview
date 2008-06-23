@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AWTTestScript desc="Load from Pdbase more tests">
+  <component class="javax.swing.JList" id="ComboBox.list" index="0" name="ComboBox.list" parent="JViewport Instance" window="Load from Pdbase" />
+  <component class="javax.swing.JScrollPane" id="ComboBox.scrollPane" index="0" name="ComboBox.scrollPane" parent="ComboPopup.popup" window="Load from Pdbase" />
+  <component class="javax.swing.JPopupMenu" id="ComboPopup.popup" index="0" invoker="JComboBox Instance" name="ComboPopup.popup" />
+  <component class="cmview.View" id="Contact Map Viewer" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 2" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 3" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 4" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 5" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 6" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map of 1tdrA" root="true" title="Contact Map of 1tdrA" />
+  <component class="cmview.ContactMapPane" id="ContactMapPane Instance" index="0" parent="JPanel Instance 3" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenu" id="File" index="0" parent="JMenuBar Instance" text="File" window="Contact Map Viewer 4" />
+  <component class="javax.swing.JButton" id="JButton Instance" index="0" parent="JComboBox Instance" text="" window="Load from Pdbase" />
+  <component class="javax.swing.JComboBox" id="JComboBox Instance" index="4" parent="JPanel Instance 3" window="Load from Pdbase" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance" index="1" parent="JRootPane Instance" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance 2" index="1" parent="JRootPane Instance 2" window="Load from Pdbase" />
+  <component class="javax.swing.JMenuBar" id="JMenuBar Instance" index="3" parent="JLayeredPane Instance" window="Contact Map Viewer 3" />
+  <component class="javax.swing.JPanel" id="JPanel Instance" index="0" parent="JLayeredPane Instance 2" window="Load from Pdbase" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 2" index="0" parent="JPanel Instance" window="Load from Pdbase" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 3" index="0" parent="JPanel Instance 2" window="Load from Pdbase" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 4" index="1" parent="JPanel Instance" window="Load from Pdbase" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 5" index="1" parent="JPanel Instance 3" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 6" index="2" parent="JPanel Instance 3" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JPopupMenu" id="JPopupMenu Instance" index="0" invoker="File" />
+  <component class="javax.swing.JPopupMenu" id="JPopupMenu Instance 2" index="0" invoker="Load from" />
+  <component class="javax.swing.JPopupMenu" id="JPopupMenu Instance 3" index="0" invoker="View" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance" index="0" parent="Contact Map Viewer" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance 2" index="0" parent="Load from Pdbase" />
+  <component class="javax.swing.JTextField" id="JTextField Instance" index="1" parent="JPanel Instance 3" window="Load from Pdbase" />
+  <component class="javax.swing.JToolBar" id="JToolBar Instance" index="0" parent="JPanel Instance 2" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JViewport" id="JViewport Instance" index="0" parent="ComboBox.scrollPane" window="Load from Pdbase" />
+  <component class="javax.swing.JMenu" id="Load from" index="1" parent="JPopupMenu Instance" text="Load from" window="Contact Map Viewer 5" />
+  <component class="cmview.LoadDialog" id="Load from Pdbase" parent="Contact Map Viewer 3" title="Load from Pdbase" />
+  <component class="javax.swing.JButton" id="Ok" index="1" parent="JPanel Instance 4" text="Ok" window="Load from Pdbase" />
+  <component class="javax.swing.JMenuItem" id="Pdbase..." index="1" parent="JPopupMenu Instance 2" text="Pdbase..." window="Contact Map Viewer 6" />
+  <component class="cmview.ResidueRuler" id="ResidueRuler Instance" index="0" parent="JPanel Instance 5" window="Contact Map Viewer 2" />
+  <component class="cmview.ResidueRuler" id="ResidueRuler Instance 2" index="0" parent="JPanel Instance 6" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show Common Neighbourhood Sizes" index="4" parent="JPopupMenu Instance 3" text="Show Common Neighbourhood Sizes" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show Contact Density" index="5" parent="JPopupMenu Instance 3" text="Show Contact Density" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show Distance Map" index="6" parent="JPopupMenu Instance 3" text="Show Distance Map" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show Icon Bar" index="2" parent="JPopupMenu Instance 3" text="Show Icon Bar" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show PDB Residue Numbers" index="0" parent="JPopupMenu Instance 3" text="Show PDB Residue Numbers" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenuItem" icon="bullet_blue.png" id="Show Rulers" index="1" parent="JPopupMenu Instance 3" text="Show Rulers" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JMenu" id="View" index="1" parent="JMenuBar Instance" text="View" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JButton" icon="cross.png" id="cross.png" index="13" parent="JToolBar Instance" text="" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JToggleButton" icon="diagonals.png" id="diagonals.png" index="6" parent="JToolBar Instance" text="" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JToggleButton" icon="group.png" id="group.png" index="7" parent="JToolBar Instance" text="" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JToggleButton" icon="paintcan.png" id="paintcan.png" index="5" parent="JToolBar Instance" text="" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JToggleButton" icon="shape_square.png" id="shape_square.png" index="4" parent="JToolBar Instance" text="" window="Contact Map Viewer 2" />
+  <launch args="[]" class="cmview.Start" desc="CMView" method="main" />
+  <sequence>
+    <action args="Pdbase..." method="actionSelectMenuItem" />
+    <wait args="Load from Pdbase" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
+    <action args="JTextField Instance,2id1" method="actionKeyString" />
+    <action args="JComboBox Instance" class="javax.swing.JComboBox" method="actionClick" />
+    <action args="ComboBox.list,&quot;A&quot;" class="javax.swing.JList" method="actionSelectRow" />
+    <action args="Ok" class="javax.swing.AbstractButton" method="actionClick" />
+    <wait args="Contact Map of 1tdrA" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
+  </sequence>
+  <sequence>
+    <action args="ContactMapPane Instance,(352%2c185)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(652%2c436)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(762%2c721)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(338%2c198)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(61%2c11)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(23%2c68)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(335%2c534)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(737%2c743)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(794%2c775)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ResidueRuler Instance,(715%2c6)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(589%2c0)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(409%2c6)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(291%2c8)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(196%2c8)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(154%2c3)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(100%2c5)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance,(5%2c3)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(3%2c27)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(3%2c147)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(3%2c227)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(6%2c311)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(4%2c428)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(6%2c552)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ResidueRuler Instance 2,(7%2c669)" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="ContactMapPane Instance,(253%2c424)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(253%2c424),POPUP_MASK" class="cmview.ResidueRuler" method="actionClick" />
+    <action args="Show Rulers" method="actionSelectMenuItem" />
+    <action args="Contact Map Viewer 2,806,885" class="java.awt.Frame" method="actionResize" />
+    <action args="Contact Map Viewer 2,806,885" class="java.awt.Frame" method="actionResize" />
+    <action args="Show Rulers" method="actionSelectMenuItem" />
+    <action args="Contact Map Viewer 2,816,895" class="java.awt.Frame" method="actionResize" />
+    <action args="Contact Map Viewer 2,816,895" class="java.awt.Frame" method="actionResize" />
+    <action args="Show PDB Residue Numbers" method="actionSelectMenuItem" />
+    <action args="Show Icon Bar" method="actionSelectMenuItem" />
+    <action args="Show Icon Bar" method="actionSelectMenuItem" />
+    <action args="Show Common Neighbourhood Sizes" method="actionSelectMenuItem" />
+    <action args="Show Common Neighbourhood Sizes" method="actionSelectMenuItem" />
+    <action args="Show Contact Density" method="actionSelectMenuItem" />
+    <action args="Show Contact Density" method="actionSelectMenuItem" />
+    <action args="Show Distance Map" method="actionSelectMenuItem" />
+    <action args="Show Distance Map" method="actionSelectMenuItem" />
+    <action args="paintcan.png" class="javax.swing.AbstractButton" method="actionClick" />
+    <action args="ContactMapPane Instance,(86%2c57)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(340%2c325)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(560%2c251)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="diagonals.png" class="javax.swing.AbstractButton" method="actionClick" />
+    <action args="ContactMapPane Instance,(207%2c185)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(257%2c156)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(349%2c94)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(236%2c223)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="ContactMapPane Instance,(235%2c228)" class="cmview.ContactMapPane" method="actionClick" />
+    <action args="cross.png" class="javax.swing.AbstractButton" method="actionClick" />
+  </sequence>
+  <terminate />
+</AWTTestScript>
+

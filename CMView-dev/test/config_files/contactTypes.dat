@@ -1,0 +1,131 @@
+# Contact types definitions: 
+#   contact types names in lines starting with '>', then the contact type name and last the type: either "multi" or "single"
+#   then list of space separated atom names after each three letter aminoacid code
+#   lines starting with # are comments
+> ALL multi
+TRP: CE2 CA C O CB CG CD1 CD2 CH2 CZ3 CZ2 CE3 NE1 N
+CYS: SG CB O CA C N
+GLN: CA CG N NE2 OE1 CD C O CB
+ALA: CA C N CB O
+VAL: CG1 CB O C CA N CG2
+LEU: N CA C O CB CG CD2 CD1
+ASP: N CB OD2 CG CA C O OD1
+SER: C N CA O CB OG
+PRO: O C CB CG CA CD N
+THR: CA N C CG2 OG1 CB O
+PHE: O CE2 CE1 CG C N CA CB CD2 CD1 CZ
+ARG: NH2 CZ NE CD CG C CA N NH1 CB O
+LYS: C CA N O CB CG CD CE NZ
+MET: CA O C CB CE N CG SD
+HIS: CE1 CD2 ND1 CG CB O C CA N NE2
+GLY: N CA C O
+ILE: CG2 CD1 O N CA C CB CG1
+GLU: C N CA OE2 OE1 CD CG CB O
+ASN: ND2 OD1 CB O CG C CA N
+TYR: CD2 CD1 OH CZ CE2 N CA C O CB CG CE1
+> BB multi
+TRP: CA N C O
+CYS: CA N C O
+GLN: CA N C O
+ALA: CA N C O
+VAL: CA N C O
+LEU: CA N C O
+ASP: CA N C O
+SER: CA N C O
+PRO: CA N C O
+THR: CA N C O
+PHE: CA N C O
+ARG: CA N C O
+LYS: CA N C O
+MET: CA N C O
+HIS: CA N C O
+GLY: CA N C O
+ILE: CA N C O
+GLU: CA N C O
+ASN: CA N C O
+TYR: CA N C O
+> SC multi
+TRP: CE2 CB CG CD1 CD2 CH2 CZ3 CZ2 CE3 NE1
+CYS: SG CB
+GLN: CG NE2 OE1 CD CB
+ALA: CB
+VAL: CG1 CB CG2
+LEU: CB CG CD2 CD1
+ASP: CB OD2 CG OD1
+SER: CB OG
+PRO: CB CG CD
+THR: CG2 OG1 CB
+PHE: CE2 CE1 CG CB CD2 CD1 CZ
+ARG: NH2 CZ NE CD CG NH1 CB
+LYS: CB CG CD CE NZ
+MET: CB CE CG SD
+HIS: CE1 CD2 ND1 CG CB NE2
+GLY:
+ILE: CG2 CD1 CB CG1
+GLU: OE2 OE1 CD CG CB
+ASN: ND2 OD1 CB CG
+TYR: CD2 CD1 OH CZ CE2 CB CG CE1
+> Ca single
+TRP: CA
+CYS: CA
+GLN: CA
+ALA: CA
+VAL: CA
+LEU: CA
+ASP: CA
+SER: CA
+PRO: CA
+THR: CA
+PHE: CA
+ARG: CA
+LYS: CA
+MET: CA
+HIS: CA
+GLY: CA
+ILE: CA
+GLU: CA
+ASN: CA
+TYR: CA
+> Cb single
+TRP: CB
+CYS: CB
+GLN: CB
+ALA: CB
+VAL: CB
+LEU: CB
+ASP: CB
+SER: CB
+PRO: CB
+THR: CB
+PHE: CB
+ARG: CB
+LYS: CB
+MET: CB
+HIS: CB
+GLY: CA
+ILE: CB
+GLU: CB
+ASN: CB
+TYR: CB
+> C single
+TRP: C
+CYS: C
+GLN: C
+ALA: C
+VAL: C
+LEU: C
+ASP: C
+SER: C
+PRO: C
+THR: C
+PHE: C
+ARG: C
+LYS: C
+MET: C
+HIS: C
+GLY: C
+ILE: C
+GLU: C
+ASN: C
+TYR: C
+

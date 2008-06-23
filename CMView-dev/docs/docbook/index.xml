@@ -1,0 +1,101 @@
+<?xml version='1.0'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="en">
+
+  <title>Overview</title>
+
+  <para>CMView is an intervative contact map visualization and analysis 
+  tool. It will be available for download soon. If you are interested 
+  in a preview version, please contact 
+  stehr@molgen.mpg.de.</para>
+
+  <para>Current version: 1.0-rc1</para>
+
+  <para />
+
+  <itemizedlist>
+
+    <title>Main features:</title>
+
+    <listitem>
+
+      <para>Combined contact map and 3D structure view (using 
+      PyMol)</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Various im- and export options: PDB files, Online PDB, 
+      Image export, CASP prediction format and others</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Calculation of contact maps with user-defined contact 
+      definitions</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Integration with PyMol for feature-rich 3D molecular 
+      visualization</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Structure and contact map comparison using built-in 
+      sequence or structural alignments</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Distance map, difference map, contact density 
+      analysis</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Available for Unix, Windows, MacOS and other platforms 
+      supporting Java</para>
+
+    </listitem>
+
+  </itemizedlist>
+
+  <para />
+
+  <itemizedlist>
+
+    <title>Example uses:</title>
+
+    <listitem>
+
+      <para>Assessing similarites and differences between structure- or 
+      contact predictions</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Studying interaction patterns between secondary structure 
+      elements</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Visualization of conformational changes in 3D and contact 
+      map space</para>
+
+    </listitem>
+
+  </itemizedlist>
+
+</article>
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AWTTestScript desc="Load from contact map file">
+  <component class="javax.swing.JMenuItem" id="Contact Map File..." index="5" parent="JPopupMenu Instance 2" text="Contact Map File..." window="Contact Map Viewer 6" />
+  <component class="cmview.View" id="Contact Map Viewer" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 2" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 3" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 4" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 5" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map Viewer 6" root="true" title="Contact Map Viewer" />
+  <component class="cmview.View" id="Contact Map of 2id1A" root="true" title="Contact Map of 2id1A" />
+  <component class="javax.swing.JMenu" id="File" index="0" parent="JMenuBar Instance" text="File" window="Contact Map Viewer 4" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance" index="1" parent="JRootPane Instance" window="Contact Map Viewer 2" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance 2" index="1" parent="JRootPane Instance 2" window="Load from CM file" />
+  <component class="javax.swing.JMenuBar" id="JMenuBar Instance" index="3" parent="JLayeredPane Instance" window="Contact Map Viewer 3" />
+  <component class="javax.swing.JPanel" id="JPanel Instance" index="0" parent="JLayeredPane Instance 2" window="Load from CM file" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 2" index="0" parent="JPanel Instance" window="Load from CM file" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 3" index="0" parent="JPanel Instance 2" window="Load from CM file" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 4" index="1" parent="JPanel Instance" window="Load from CM file" />
+  <component class="javax.swing.JPopupMenu" id="JPopupMenu Instance" index="0" invoker="File" />
+  <component class="javax.swing.JPopupMenu" id="JPopupMenu Instance 2" index="0" invoker="Load from" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance" index="0" parent="Contact Map Viewer" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance 2" index="0" parent="Load from CM file" />
+  <component class="javax.swing.JTextField" id="JTextField Instance" index="1" parent="JPanel Instance 3" window="Load from CM file" />
+  <component class="javax.swing.JMenu" id="Load from" index="1" parent="JPopupMenu Instance" text="Load from" window="Contact Map Viewer 5" />
+  <component class="cmview.LoadDialog" id="Load from CM file" parent="Contact Map Viewer 3" title="Load from CM file" />
+  <component class="javax.swing.JButton" id="Ok" index="1" parent="JPanel Instance 4" text="Ok" window="Load from CM file" />
+  <launch args="[]" class="cmview.Start" desc="CMView" method="main" />
+  <sequence>
+    <action args="Contact Map File..." method="actionSelectMenuItem" />
+    <wait args="Load from CM file" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
+    <action args="JTextField Instance,test/sample_files/2id1A.cm" method="actionKeyString" />
+    <action args="Ok" class="javax.swing.AbstractButton" method="actionClick" />
+    <wait args="Contact Map of 2id1A" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
+  </sequence>
+  <terminate />
+</AWTTestScript>
+

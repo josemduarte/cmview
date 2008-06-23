@@ -1,0 +1,47 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>Configuration</title><meta name="generator" content="DocBook XSL Stylesheets V1.73.2"><link rel="start" href="index.html" title="Manual"><link rel="up" href="index.html" title="Manual"><link rel="prev" href="ar01s03.html" title="Command line parameters"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="config"></a>Configuration</h2></div></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2583000"></a>Overview</h3></div></div></div><p>CMView can be customized using key-value pairs in a 
+      configuration file (<code class="filename">cmview.cfg</code>). The example 
+      file contains some commonly used settings. CMView is looking for 
+      configuration files:</p><div class="orderedlist"><ol type="1"><li><p>In the current directory</p></li><li><p>In the user's home directory</p></li><li><p>At the location specified with the 
+          <a class="link" href="ar01s03.html" title="Command line parameters">command line 
+          parameter</a> <span class="command"><strong>-o</strong></span></p></li></ol></div><p>If the same variable is set in more than one file, the 
+      latest value takes precedence according to the above order.</p></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2583068"></a>Available configuration parameters:</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><em class="parameter"><code>DEFAULT_CONTACT_TYPE</code></em></span></dt><dd><p>The contact type shown in the load dialog by default 
+            and used for graph generation when loading structures with 
+            <a class="link" href="ar01s03.html" title="Command line parameters">command line 
+            parameters</a> <span class="command"><strong>-p</strong></span> or <span class="command"><strong>
+            -f</strong></span></p><p>Default: Cb</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_DISTANCE_CUTOFF</code></em></span></dt><dd><p>The distance cutoff shown in the load dialog by 
+            default and used for graph generation when loading 
+            structures with <a class="link" href="ar01s03.html" title="Command line parameters">
+            command line parameters</a> <span class="command"><strong>-p</strong></span> or 
+            <span class="command"><strong>-f</strong></span></p><p>Default: 8.0</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_MIN_SEQSEP</code></em></span></dt><dd><p>The minimum sequence separation shown in the load 
+            dialog by default, negative values meaning no 
+            restraint</p><p>Default: -1</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_MAX_SEQSEP</code></em></span></dt><dd><p>The maximum sequence separation shown in the load 
+            dialog by default, negative values meaning no 
+            restraint</p><p>Default: -1</p></dd><dt><span class="term"><em class="parameter"><code>CONFIG_FILE_NAME</code></em></span></dt><dd><p>The name of the configuration file</p><p>Default: cmview.cfg</p></dd><dt><span class="term"><em class="parameter"><code>DIST_MAP_CONTACT_TYPE</code></em></span></dt><dd><p>The contact type being used to calculate the distance 
+            map</p><p>Allowed values: Ca, Cb</p><p>Default: Ca</p></dd><dt><span class="term"><em class="parameter"><code>PDB_FTP_URL</code></em></span></dt><dd><p>A URL where PDB structures are being loaded from. 
+            (See <a class="link" href="ar01s02.html#menu.file.load.onlinepdb" title="Load from online PDB">Load from 
+            Online PDB</a>) This can be used to load structures from 
+            a local mirrored copy of the PDB</p><p>Default: 
+            ftp\://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/</p></dd><dt><span class="term"><em class="parameter"><code>TEMP_DIR</code></em></span></dt><dd><p>The directory for storing temporary files</p><p>Default: The default system temp dir (e.g. <code class="filename">
+            /tmp</code> or <code class="filename">
+            C:\Windows\Temp</code>)</p></dd><dt><span class="term"><em class="parameter"><code>INITIAL_SCREEN_SIZE</code></em></span></dt><dd><p>The initial size in pixels of the main window on 
+            startup</p><p>Default: 650</p></dd><dt><span class="term"><em class="parameter"><code>SHOW_ICON_BAR</code></em></span></dt><dd><p>Whether the toolbar with command shortcut icons is 
+            shown</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>SHOW_PDB_RES_NUMS</code></em></span></dt><dd><p>Whether legacy PDB residue numbers are shown in the 
+            lower left corner of the contact map below the secondary 
+            structure</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>SHOW_RULERS</code></em></span></dt><dd><p>Whether secondary structure rulers are shown (above 
+            and to the left of the contact map)</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>SHOW_ALIGNMENT_COORDS</code></em></span></dt><dd><p>Whether residue numbers in the alignment are shown in 
+            the lower left corner of the contact map (in brackets after 
+            the default residue numbers)</p><p>Default: false</p></dd><dt><span class="term"><em class="parameter"><code>USE_PYMOL</code></em></span></dt><dd><p>Whether PyMol specific features should be shown in 
+            the menus.</p><p>See also: PYMOL_EXECUTABLE</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>USE_DSSP</code></em></span></dt><dd><p>Whether DSSP is used for secondary structure 
+            assigment from 3D coordinates.</p><p>See also: DSSP_EXECUTABLE</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>DSSP_EXECUTABLE</code></em></span></dt><dd><p>The path to the local DSSP executable</p></dd><dt><span class="term"><em class="parameter"><code>DSSP_PARAMETERS</code></em></span></dt><dd><p>Parameters passed to DSSP when called by CMView</p><p>Default: --</p></dd><dt><span class="term"><em class="parameter"><code>PYMOL_EXECUTABLE</code></em></span></dt><dd><p>The path to the local PyMol executable</p></dd><dt><span class="term"><em class="parameter"><code>PYMOL_PORT</code></em></span></dt><dd><p>The port on which the PyMol server is listening to 
+            commands</p><p>Default: 9123</p></dd><dt><span class="term"><em class="parameter"><code>PYMOL_SHUTDOWN_ON_EXIT</code></em></span></dt><dd><p>Whether PyMol will be shutdown when CMView is 
+            closed</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>PYMOL_LOAD_ON_START</code></em></span></dt><dd><p>Whether CMView will try to start PyMol on 
+            startup</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>PYMOL_CONN_TIMEOUT</code></em></span></dt><dd><p>The time in milliseconds that CMView will wait for 
+            PyMol to startup before reporting a time out error</p><p>Default: 15000</p></dd></dl></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2583618"></a>Parameters affecting experimental features:</h4></div></div></div><div class="variablelist"><dl><dt><span class="term">
+            <em class="parameter"><code>USE_EXPERIMENTAL_FEATURES</code></em></span></dt><dd><p>Whether experimental features will be enabled. 
+              Experimental features are unsupported, probably not 
+              tested and are to be used on your own risk.</p><p>Default: false</p></dd><dt><span class="term"><em class="parameter"><code>SHOW_WEIGHTED_CONTACTS</code></em></span></dt><dd><p>Whether contacts with weights between 0 and 1 are 
+              shown as shades of grey in the contact map</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>USE_DATABASE</code></em></span></dt><dd><p>Whether database specific features should appear in 
+              the menus</p><p>Default: true</p></dd><dt><span class="term"><em class="parameter"><code>DB_HOST</code></em></span></dt><dd><p>The database server for structure/graph 
+              databases</p></dd><dt><span class="term"><em class="parameter"><code>DB_PWD</code></em></span></dt><dd><p>The password for accessing the database</p></dd><dt><span class="term"><em class="parameter"><code>DB_USER</code></em></span></dt><dd><p>The username for accessing the database</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_PDB_DB</code></em></span></dt><dd><p>The default database for loading structures in 
+              PDBASE format</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_GRAPH_DB</code></em></span></dt><dd><p>The default database for loading contact maps</p></dd><dt><span class="term"><em class="parameter"><code>DEFAULT_MSDSD_DB</code></em></span></dt><dd><p>The default database for loading structures in 
+              MSDSD format</p></dd></dl></div></div></div></div></body></html>
