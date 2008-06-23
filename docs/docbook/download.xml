@@ -4,25 +4,19 @@
 
   <title>Download</title>
 
-  <para>Coming soon...</para>
-
   <itemizedlist>
 
     <listitem>
 
-      <para>Current version: CMView 1.0-rc1 (zip archive)</para>
+      <para>
+       Current version: <ulink url="downloads/CMView-0.9.5.zip">CMView-0.9.5.zip</ulink>
+      </para>
 
     </listitem>
 
     <listitem>
 
-      <para>PDF manual</para>
-
-    </listitem>
-
-    <listitem>
-
-      <para>Feature comparison with similar software</para>
+      <para><ulink url="downloads/manual.pdf">PDF manual</ulink></para>
 
     </listitem>
 
