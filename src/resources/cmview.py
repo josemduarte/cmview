@@ -193,7 +193,7 @@ cmd.extend("edge",edge)
 # Draw a triangle
 #---------------------------------
 
-def triangle(name, i_node, j_node, k_node, color, tr): 
+def triangle(name, i_node, j_node, k_node, contact_type, color, tr): 
 	
 	'''
 	DESCRIPTION
@@ -222,7 +222,8 @@ def triangle(name, i_node, j_node, k_node, color, tr):
 	res_str = string.join(str_list, '+')
 	str_list[0] = "resi"
 	str_list[1] = res_str
-	str_list[2] = "and name Ca"
+	str_list[2] = "and name"
+	str_list.append(str(contact_type))
 	sel_str = string.join(str_list, ' ')
 	#print sel_str
 
@@ -269,3 +270,61 @@ def triangle(name, i_node, j_node, k_node, color, tr):
 
 # Add to PyMOL API
 cmd.extend("triangle",triangle)
+
+#-------------------------------------------------
+# Draw a sphere
+#---------------------------------
+
+def sphere(name, model_and_center_atom, radius, color, tr): 
+	
+	'''
+	DESCRIPTION
+
+	"sphere" creates a sphere with the given center-coordinates and radius
+
+	USAGE
+
+	sphere name, x_center, y_center, z_center, radius, color, tr
+
+	name = name of sphere
+	center_atom = center of sphere
+	radius = radius of sphere
+	color = color name
+	tr = transparency value
+	'''
+	
+	color_rgb =  cmd.get_color_tuple(cmd.get_color_index(color))
+	r = color_rgb[0]
+	g = color_rgb[1]
+	b = color_rgb[2]
+	
+	str_list = []
+	#str_list.append(str(center_atom))
+	#res_str = str(center_atom)
+	#str_list.append(str(model))
+	#str_list.append(str("and resi"))
+	#str_list.append(str(res_str))
+	#str_list.append(str("and name Ca"))
+	sel_str = model_and_center_atom #string.join(str_list, ' ')
+	print sel_str
+
+	stored.xyz = []
+	#stored.xyz.append([x_center,y_center,z_center])
+	cmd.create("sphere", sel_str)
+	cmd.iterate_state(1,"sphere","stored.xyz.append([x,y,z])")
+	cmd.delete("sphere")
+	print stored.xyz
+
+	obj = []
+	obj.extend([cgo.ALPHA, tr])
+	obj.extend([
+	   BEGIN, SPHERE,
+	   COLOR, r, g, b,
+	   SPHERE, stored.xyz[0][0], stored.xyz[0][1], stored.xyz[0][2], radius,	   
+	   END
+	  ])
+	cmd.load_cgo(obj, name)
+	
+
+# Add to PyMOL API
+cmd.extend("sphere",sphere)
