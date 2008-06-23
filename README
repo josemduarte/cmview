@@ -16,7 +16,7 @@ INSTALLATION
 	   Free executables for academic use are available from:
 	   http://delsci.com/rel/099/ (Linux, Win, Mac)
 	   http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
-	   Please note the individual terms of a license for these programs.
+	   Please note the individual terms of license for these programs.
    
 	2. To start CMView 
 	   on Windows: run cmview.bat
@@ -34,38 +34,31 @@ THIRD PARTY LICENSE INFORMATION
 		URL: 	 http://math.nist.gov/javanumerics/jama/
 		License: Public Domain
 		
-	2.  Files: 	 commons-codec-1.3.jar
-			   	 ws-commons-util-1.0.1.jar
-			   	 xmlrpc-client-3.0.jar
-		URL: 	 http://commons.apache.org/
-		License: Apache License 2.0
-				 http://www.apache.org/licenses/LICENSE-2.0.html
-		
-	3.	File: 	 jaligner.jar
+	2.	File: 	 jaligner.jar
 		URL:	 http://jaligner.sourceforge.net/
 		License: GPL (http://www.gnu.org/copyleft/gpl.html)
 		
-	4.	File:	 mysql-connector-java-5.0.5-bin.jar
+	3.	File:	 mysql-connector-java-5.0.5-bin.jar
 		URL:	 http://dev.mysql.com/downloads/connector/j/5.1.html
 		License: GPL (http://www.gnu.org/copyleft/gpl.html)
 		
-	5.	File:	 vecmath.jar
+	4.	File:	 vecmath.jar
 		URL:	 https://java3d.dev.java.net/binary-builds.html
 		License: GPL with Classpath exception
 				 http://www.gnu.org/software/classpath/license.html
 		
-	6.	Files:   collections-generic-4.01.jar
+	5.	Files:   collections-generic-4.01.jar
  				 jung-api-2.0-alpha2.jar
  				 jung-graph-impl-2.0-alpha2.jar
  		URL: 	 http://jung.sourceforge.net/
  		License: JUNG license (BSD)
  				 http://jung.sourceforge.net/license.txt
  		
- 	7.	File:	 java-getopt-1.0.13.jar
+ 	6.	File:	 java-getopt-1.0.13.jar
  		URL:	 http://www.urbanophile.com/arenn/hacking/download.html
  		License: LGPL (http://www.gnu.org/licenses/lgpl.html)
  		
- 	8.	File:	 jh.jar
+ 	7.	File:	 jh.jar
  		URL:	 https://javahelp.dev.java.net/
  		License: GPL with Classpath exception
  				 http://www.gnu.org/software/classpath/license.html
