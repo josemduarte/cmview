@@ -25,3 +25,5 @@ But now really!
 Now it really is me
 
 No, it's me!
+
+final test, with old eclipse and keyring option
