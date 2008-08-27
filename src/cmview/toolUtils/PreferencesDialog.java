@@ -31,7 +31,8 @@ import javax.swing.event.ChangeListener;
  */
 public abstract class PreferencesDialog extends JDialog implements ActionListener,ChangeListener {
 
-    protected JButton     okButton;
+	private static final long serialVersionUID = 1L;
+	protected JButton     okButton;
     protected JButton     cancelButton;
     protected JButton     applyButton;
     protected JTabbedPane tabbedPane;
