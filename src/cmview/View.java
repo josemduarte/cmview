@@ -1670,9 +1670,7 @@ public class View extends JFrame implements ActionListener {
 				error = e.getMessage();
 			} catch (FileNotFoundException e) {
 				error = e.getMessage();
-			} catch (PirFileFormatError e) {
-				error = e.getMessage();
-			} catch (FastaFileFormatError e) {
+			} catch (FileFormatError e) {
 				error = e.getMessage();
 			} catch (IOException e) {
 				error = e.getMessage();
@@ -1714,7 +1712,7 @@ public class View extends JFrame implements ActionListener {
 	 * Loads the pairwise alignment for the given model from a external source.
 	 */
 	public void doLoadPairwiseAlignment()
-	throws IOException, PirFileFormatError, FastaFileFormatError, 
+	throws IOException, FileFormatError, 
 	AlignmentConstructionError {
 
 		// open global file-chooser and get the name the alignment file
@@ -1730,7 +1728,7 @@ public class View extends JFrame implements ActionListener {
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		// load alignment
-		ali = new Alignment(source.getPath(),"FASTA");
+		ali = new Alignment(source.getPath(),Alignment.FASTAFORMAT);
 
 		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 'ali'
 		String name1 = mod.getLoadedGraphID();
