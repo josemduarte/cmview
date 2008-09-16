@@ -11,6 +11,9 @@ tempdir=$1
 cmviewtag=$2
 aglappetag=$3
 
+# compile with Java5 to keep it backward compatible
+JAVAVERSION=1.5.0 
+
 CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:\
 /project/StruPPi/jars/vecmath.jar:\
 /project/StruPPi/jars/Jama-1.0.2.jar:\
