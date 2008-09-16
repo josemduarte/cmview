@@ -161,13 +161,25 @@ public class View extends JFrame implements ActionListener {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		this.guiState = new GUIState(this);
-		this.initGUI(); 							// build gui tree and show window
+		this.initGUI(); 							// build gui tree and pack
+		setVisible(true);							// show GUI									
+		
 		final JFrame parent = this;					// need a final to refer to in the thread below
 		EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
 			public void run() {
 				parent.toFront();					// bring new window to front
 			}
 		});
+	}
+	
+	/** 
+	 * Create a 'silent' view object, i.e. one that is not visible (to be used for batch processing)
+	 */
+	public View(Model mod) {
+		super("Batch mode");
+		this.mod = mod;
+		this.guiState = new GUIState(this);
+		this.initGUI();
 	}
 	
 	/**
@@ -631,9 +643,8 @@ public class View extends JFrame implements ActionListener {
 		setAccessibility(initMenuBarAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
 		setAccessibility(initButtonAccessibility(mod!=null),true,getJMenuBar(),disregardedTypes);
 
-		// Show GUI
 		pack();
-		setVisible(true);
+		
 	}
 
 	/**
@@ -3081,6 +3092,36 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	/**
+	 * Writes the current contact map view to a png file and exits CMView (to be used from command line).
+	 * @param imageFileName the name of the file to be written
+	 */
+	public void writeImageAndExit(String imageFileName) {
+		System.out.println("Writing image file...");
+		if(this.mod == null) {
+			System.err.println("Failed to write image. No contact map loaded.");
+			System.exit(1);
+		} else {
+			File imageFile = new File(imageFileName);
+			// Create a buffered image in which to draw
+			BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+			// Create a graphics contents on the buffered image
+			Graphics2D g2d = bufferedImage.createGraphics();
+
+			// Draw the current contact map window to Image
+			cmPane.paintComponent(g2d);
+
+			try {
+				ImageIO.write(bufferedImage, "png", imageFile);
+				System.out.println("Image written to " + imageFile.getAbsolutePath());
+			} catch (IOException e) {
+				System.err.println("Error while trying to write to PNG file " + imageFile.getPath());
+			}
+		}
+		System.exit(1);
+	}
+	
 	/* -------------------- getter methods -------------------- */
 	
 	/**

@@ -637,9 +637,11 @@ public class Start {
 		
 
 		String help = "Usage: \n" +
-		APP_NAME+" [-f <file>] [-p <pdb code>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] \n" +
+		APP_NAME+" [-f <file>] [-p <pdb code>] [-c <pdb chain code>] [-t <contact type>] [-d <distance cutoff>] [-o <config file>] [-I <image file>] [-Y]\n" +
 			"File can be a PDB file, CMView contact map file, Casp TS file or Casp RR file.\n" +
-			"If the -o  option is used, the given config file will override settings from system-wide or user's config file\n";
+			"If the -o  option is used, the given config file will override settings from system-wide or user's config file\n" +
+			"If the -I option is given, a png image with the current contact map will be written instead of starting CMView.\n"+
+			"With the -Y option, pymol will not be started.";
 
 		String pdbCode = null;
 		String inFile = null;
@@ -647,11 +649,12 @@ public class Start {
 		String contactType = null;
 		String cmdLineConfigFile = null;
 		String debugConfigFile = null;
+		String imageFile = null;
 		boolean doPreload = false;
 		boolean noPymol = false;
 		double cutoff = 0.0;
 
-		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:vYg:h?");
+		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:I:vYg:h?");
 		int c;
 		while ((c = g.getopt()) != -1) {
 			switch(c){
@@ -678,13 +681,17 @@ public class Start {
 			case 'g':											// write current config parameters to a file (for debugging)
 				debugConfigFile = g.getOptarg();
 				break;
-			// undocumented options:
+			// undocumented or new options:
 			case 'v':
 				System.out.println(APP_NAME+" "+VERSION);
 				System.exit(0);
 				break;
 			case 'Y':
 				noPymol = true;	// don't load pymol on startup
+				break;
+			case 'I':
+				imageFile = g.getOptarg();
+				noPymol = true; // don't need pymol for image writing
 				break;
 			case 'h':
 			case '?':
@@ -697,6 +704,10 @@ public class Start {
 		// check command line parameters
 		if(pdbCode != null && inFile != null) {
 			System.err.println("Options -p and -f are exclusive. Exiting.");
+			System.exit(1);
+		}
+		if(pdbCode == null && inFile == null) {
+			System.err.println("-I options requires -p or -f");
 			System.exit(1);
 		}
 		
@@ -855,7 +866,12 @@ public class Start {
 			}
 		}
 		if (mod!=null) wintitle = "Contact Map of " + mod.getLoadedGraphID();
-		new View(mod, wintitle);
+		if(imageFile != null) {
+			View view = new View(mod);
+			view.writeImageAndExit(imageFile);
+		} else {
+			new View(mod, wintitle);
+		}
 		if (mod!=null && Start.isPyMolConnectionAvailable() && mod.has3DCoordinates()) {
 			// load structure in PyMol
 			Start.getPyMolAdaptor().loadStructure(mod.getTempPdbFileName(), mod.getLoadedGraphID(), false);
