@@ -678,10 +678,10 @@ public class Start {
 			case 'o':
 				cmdLineConfigFile = g.getOptarg();
 				break;
+			// undocumented or new options:
 			case 'g':											// write current config parameters to a file (for debugging)
 				debugConfigFile = g.getOptarg();
 				break;
-			// undocumented or new options:
 			case 'v':
 				System.out.println(APP_NAME+" "+VERSION);
 				System.exit(0);
@@ -706,7 +706,7 @@ public class Start {
 			System.err.println("Options -p and -f are exclusive. Exiting.");
 			System.exit(1);
 		}
-		if(pdbCode == null && inFile == null) {
+		if(imageFile != null && pdbCode == null && inFile == null) {
 			System.err.println("-I options requires -p or -f");
 			System.exit(1);
 		}
