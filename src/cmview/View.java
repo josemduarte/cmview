@@ -5,8 +5,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.sql.SQLException;
@@ -2303,7 +2303,7 @@ public class View extends JFrame implements ActionListener {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
 				if (confirmOverwrite(chosenFile)) {
 					try {
-						ali.writeFasta(new FileOutputStream(chosenFile), 80, true);
+						ali.writeFasta(new PrintStream(chosenFile), 80, true);
 					} catch (IOException e) {
 						System.err.println("Error while trying to write to FASTA file " + chosenFile.getPath());
 					}
