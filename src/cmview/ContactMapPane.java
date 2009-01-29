@@ -35,18 +35,6 @@ import edu.uci.ics.jung.graph.util.Pair;
 /**
  * The panel containing the contact map and associated event handling.
  */
-/**
- * @author risbud
- *
- */
-/**
- * @author risbud
- *
- */
-/**
- * @author risbud
- *
- */
 public class ContactMapPane extends JPanel
 implements MouseListener, MouseMotionListener, ComponentListener {
 

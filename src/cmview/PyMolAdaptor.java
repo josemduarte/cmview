@@ -115,12 +115,15 @@ public class PyMolAdaptor {
 	 */
 	private String getAtom(Model mod, int resser) {
 		Set<String> atomSet = AAinfo.getAtomsForCTAndRes(mod.getContactType(),mod.getResType(resser));
-		if (atomSet.size()==0) { 
-			// This shouldn't happen: only will happen if a contact is assigned wrongly e.g. a Cg contact for a 
-			// GLY residue (and this happens for example in an average graph)
-			// It will also happen when drawing absent contacts, e.g. first CM is Cb and second Cg; 
-			// if we are drawing a contact present in first between ALA-ASP, then ALA has no Cg atoms and we would be 
-			// in this case: atomSet.size()==0
+		if (atomSet==null || atomSet.size()==0) { 
+			// This happens in some strange cases: 
+			// a) if a contact is assigned wrongly e.g. a Cg contact for a 
+			//    GLY residue (and this can happen for example in an average graph)
+			// b) when drawing absent contacts, 2 subcases:
+			//    b.1) first CM is Cb and second Cg, if we are drawing a contact present in first between 
+			//         ALA-ASP, then ALA has no Cg atoms and so: atomSet.size()==0
+			//    b.2) first CM has contact that is absent in second because it falls on an
+			//         unobserved residue, then atomSet==null
 			// Thus we return null so then we can catch this case in drawSingleEdge not to draw anything 
 			return null;
 		}
