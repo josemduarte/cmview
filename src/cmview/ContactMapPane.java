@@ -584,8 +584,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					g2d.setColor(contactColor);
 					if (Start.USE_EXPERIMENTAL_FEATURES && Start.SHOW_WEIGHTED_CONTACTS) {
 						double weight = mod.getGraph().getEdgeFromSerials(cont.getFirst(), cont.getSecond()).getWeight();
-						float colorWeight = 1.0f - (float) Math.max(0, Math.min(1, weight));
-						g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));
+						float truncWeight = (float) Math.max(0, Math.min(1, weight)); // truncated weight (if weights are off the (0,1) interval)
+						if (Start.SHOW_WEIGHTS_IN_COLOR) {
+							g2d.setColor(colorMapHeatmap(truncWeight));
+						} else { // gray shades
+							float colorWeight = 1.0f - truncWeight;
+							g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));
+						}
+
 					}
 				}
 				drawContact(g2d, cont);

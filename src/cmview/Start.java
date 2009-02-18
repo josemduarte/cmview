@@ -80,7 +80,8 @@ public class Start {
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map
 	public static boolean 			SHOW_PDB_RES_NUMS = true;			// if true, pdb residue numbers also shown in bottom left corner of contact map
-	public static boolean 			SHOW_WEIGHTED_CONTACTS = true; 		// if true, weighted contacts will be shown as shades of grey (experimental feature)
+	public static boolean 			SHOW_WEIGHTED_CONTACTS = true; 		// if true, weighted contacts will be shown as shades of grey/color graded (experimental feature)
+	public static boolean			SHOW_WEIGHTS_IN_COLOR = false;		// if true, weighted contacts will be shown in colors, otherwise as shades of grey (experimental feature)
 	
 	/* enable/disable features */
 	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
@@ -275,6 +276,7 @@ public class Start {
 			SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
 			SHOW_PDB_RES_NUMS = Boolean.valueOf(p.getProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS)));
 			SHOW_WEIGHTED_CONTACTS = Boolean.valueOf(p.getProperty("SHOW_WEIGHTED_CONTACTS",Boolean.toString(SHOW_WEIGHTED_CONTACTS)));
+			SHOW_WEIGHTS_IN_COLOR = Boolean.valueOf(p.getProperty("SHOW_WEIGHTS_IN_COLOR",Boolean.toString(SHOW_WEIGHTS_IN_COLOR)));
 
 			// enabling/disabling features
 			USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
@@ -332,6 +334,7 @@ public class Start {
 		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
 		p.setProperty("SHOW_PDB_RES_NUMS",Boolean.toString(SHOW_PDB_RES_NUMS));					// doc?
 		p.setProperty("SHOW_WEIGHTED_CONTACTS",Boolean.toString(SHOW_WEIGHTED_CONTACTS));		// doc?
+		p.setProperty("SHOW_WEIGHTS_IN_COLOR",Boolean.toString(SHOW_WEIGHTS_IN_COLOR));			// doc?
 
 		// feature settings
 		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
