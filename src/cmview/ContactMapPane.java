@@ -586,7 +586,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						double weight = mod.getGraph().getEdgeFromSerials(cont.getFirst(), cont.getSecond()).getWeight();
 						float truncWeight = (float) Math.max(0, Math.min(1, weight)); // truncated weight (if weights are off the (0,1) interval)
 						if (Start.SHOW_WEIGHTS_IN_COLOR) {
-							g2d.setColor(colorMapHeatmap(truncWeight));
+							g2d.setColor(colorMapHeatmap(1.0f - truncWeight));
 						} else { // gray shades
 							float colorWeight = 1.0f - truncWeight;
 							g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));
