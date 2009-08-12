@@ -187,7 +187,7 @@ public abstract class Model {
 	/** 
 	 * Returns the internal chain code of the underlying structure.
 	 * Note that the internal chain code may be different from the pdb chain code given when loading the structure.
-	 * For a database model, the internal chain code is the one given by the database (Pdbase or MSD). When loading
+	 * For a database model, the internal chain code is the one given by the database (Pdbase). When loading
 	 * from pdb file, the internal chain code is the same as the pdb chain code or 'A' if the pdb chain code is empty.
 	 */
 	public String getChainCode() {

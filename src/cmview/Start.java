@@ -106,7 +106,6 @@ public class Start {
 	/* default values for loading contact maps */
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"";					// for loading from command line
-	public static String			DEFAULT_MSDSD_DB =			"";					// used when loading structures for cm file graphs
 	
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 								// dito
@@ -302,7 +301,6 @@ public class Start {
 			// default setting for loading contact maps
 			DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
 			DEFAULT_PDB_DB = p.getProperty("DEFAULT_PDB_DB", DEFAULT_PDB_DB);
-			DEFAULT_MSDSD_DB = p.getProperty("DEFAULT_MSDSD_DB", DEFAULT_MSDSD_DB);
 
 			DEFAULT_CONTACT_TYPE = p.getProperty("DEFAULT_CONTACT_TYPE", DEFAULT_CONTACT_TYPE);
 			DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
@@ -360,7 +358,6 @@ public class Start {
 		// default values for loading contact maps
 		p.setProperty("DEFAULT_GRAPH_DB",DEFAULT_GRAPH_DB);										// doc?
 		p.setProperty("DEFAULT_PDB_DB",DEFAULT_PDB_DB);											// doc?
-		p.setProperty("DEFAULT_MSDSD_DB",DEFAULT_MSDSD_DB);										// doc?
 		
 		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);								// doc!
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",Double.toString(DEFAULT_DISTANCE_CUTOFF));		// doc!

@@ -33,11 +33,11 @@ public class GraphDbModel extends Model {
 			} 
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
-			// load structure from pdbase (to display in Pymol) (we used to load from MSD)
+			// load structure from pdbase (to display in Pymol)
 			try {
 				this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection());
 				this.pdb.load(pdbChainCode,modelSerial);
-				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from MSD database "+Start.DEFAULT_MSDSD_DB);
+				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from pdbase database "+Start.DEFAULT_PDB_DB);
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 			} catch (PdbLoadError e) {
 				System.err.println("Failed to load structure: "+e.getMessage());
