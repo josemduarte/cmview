@@ -98,7 +98,10 @@ public class Start {
 	public static String			PYMOL_LOGFILE = 		 "CMView_pymol.log";
 	public static String			PYMOL_PARAMETERS =  	 "-q -p"; 	  // listen to standard input and skip splash screen (plus -s in main())
 	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
-
+	
+	/* external programs: DALI */
+	public static String			DALI_EXECUTABLE = 		"";
+	
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
 	public static String			DB_PWD = "tiger";
@@ -247,6 +250,7 @@ public class Start {
 		
 		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
 		p.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
+		p.setProperty("DALI_EXECUTABLE", DALI_EXECUTABLE);
 		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
 		
@@ -292,7 +296,10 @@ public class Start {
 			// external programs: dssp
 			DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
 			DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
-
+			
+			//external programs: DALI
+			DALI_EXECUTABLE = p.getProperty("DALI_EXECUTABLE",DALI_EXECUTABLE);
+			
 			// database connection		
 			DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 			DB_USER = p.getProperty("DB_USER", DB_USER);
@@ -349,6 +356,9 @@ public class Start {
 		// external programs: dssp
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!
 		p.setProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);										// doc
+		
+		//external programs: DALI
+		p.setProperty("DALI_EXECUTABLE",DALI_EXECUTABLE);										// doc?
 		
 		// database connection
 		p.setProperty("DB_HOST",DB_HOST);														// doc?
@@ -551,7 +561,7 @@ public class Start {
 	}
 	
 	/**
-	 * Returns true iff the given path is a directory which is writable.
+	 * Returns true if the given path is a directory which is writable.
 	 */
 	private static boolean isWritableDir(String path) {
 		File f = new File(path);

@@ -1573,7 +1573,7 @@ public class View extends JFrame implements ActionListener {
 
 		actLoadDialog.dispose();	
 		//Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping","compute Needleman-Wunsch sequence alignment"};
-		Object[] possibilities = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment","load alignment from FASTA file"};		
+		Object[] possibilities = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment","compute DALI structural alignment", "load alignment from FASTA file"};		
 		String source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
 
 		if( source != null ) {
@@ -1584,9 +1584,13 @@ public class View extends JFrame implements ActionListener {
 				} else if( source == possibilities[1] ) {
 					// compute contact map alignment using SADP
 					doPairwiseSadpAlignment();
-				} else if( source == possibilities[2] ) {
+				} else if( source == possibilities[2]) {
+					doDALIAlignment();
+				} else if( source == possibilities[3] ) {
 					// load a user provided alignment from an external source
-					doLoadPairwiseAlignment();
+					doLoadPairwiseAlignment(Alignment.FASTAFORMAT);
+				//} else if( source == possibilities[4]) {
+				//	doLoadPairwiseAlignment(Alignment.DALIFORMAT);
 //					} else if( source == possibilities[3] ) {
 //					// do a greedy residue-residue alignment
 //					doGreedyPairwiseAlignment();	
@@ -1635,14 +1639,9 @@ public class View extends JFrame implements ActionListener {
 		}
 
 	}
-
-	/**
-	 * Loads the pairwise alignment for the given model from a external source.
-	 */
-	public void doLoadPairwiseAlignment()
-	throws IOException, FileFormatError, 
-	AlignmentConstructionError {
-
+	
+	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionError {
+		
 		// open global file-chooser and get the name the alignment file
 		JFileChooser fileChooser = Start.getFileChooser();
 		int ret = fileChooser.showOpenDialog(this);
@@ -1652,11 +1651,24 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			return;
 		}
+		
+		doLoadPairwiseAlignment(format, source.getPath());
+	}
+	
+	/**
+	 * Loads the pairwise alignment for the given model from an external source.
+	 */
+	
+	public void doLoadPairwiseAlignment(String format, String source)
+	throws IOException, FileFormatError, 
+	AlignmentConstructionError {
+
+		
 
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		// load alignment
-		ali = new Alignment(source.getPath(),Alignment.FASTAFORMAT);
+		ali = new Alignment(source,format);
 
 		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 'ali'
 		String name1 = mod.getLoadedGraphID();
@@ -1731,6 +1743,32 @@ public class View extends JFrame implements ActionListener {
 		sadpDiag.createGUI();
 	}
 
+	
+	/**
+	 * Performs a DALI structural alignment. 
+	 * Unfortunately, DALI only produces html output. We create a temporary folder, write/copy the
+	 * PDBs there, perform the alignment, parse the html output and delete everything.
+	 * @throws IOException
+	 * @throws AlignmentConstructionError 
+	 * @throws FileFormatError 
+	 */
+	
+	private void doDALIAlignment() throws IOException, FileFormatError, AlignmentConstructionError {
+		
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+		
+		try {
+			String htmlFileName = DaliRunner.doDALI(mod.getPdb(), mod2.getPdb(),Start.DALI_EXECUTABLE);
+			doLoadPairwiseAlignment(Alignment.DALIFORMAT,htmlFileName);
+		} catch (InterruptedException e) {
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			throw new AlignmentConstructionError("Could not construct alignment: Execution Interrupted");
+		}
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+		
+	}
+	
+	
 	/**
 	 * Constructs a pairwise sequence alignment using the Needleman-Wunsch algorithm with default parameters.
 	 * @throws AlignmentConstructionError

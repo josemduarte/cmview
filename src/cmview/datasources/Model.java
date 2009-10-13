@@ -141,6 +141,15 @@ public abstract class Model {
 		return pdb.getModels(); 
 	}
 	
+	/** 
+	 * Get pdb
+	 * @return pdb
+	 */
+	
+	public Pdb getPdb() {
+		return pdb;
+	}
+	
 	/** Returns the size of the data matrix */
 	public int getMatrixSize() {
 		return this.graph.getFullLength();
@@ -264,7 +273,7 @@ public abstract class Model {
 	protected File getTempPdbFile() {
 		if(tempPdbFile == null) {
 			tempPdbFile = new File(Start.TEMP_DIR, getLoadedGraphID() + ".pdb");
-			tempPdbFile.deleteOnExit(); // will delete the file when the VM is closed
+			tempPdbFile.deleteOnExit(); // will delete the file when the VM is closed. Unless it crashes
 		}
 		return tempPdbFile;
 	}
@@ -275,7 +284,7 @@ public abstract class Model {
 	}
 
 	/** 
-	 * Returns the number of unsoberved or non-standard residues
+	 * Returns the number of unobserved or non-standard residues
 	 * in the structure. The contacts of these residues are ignored. */
 	public int getNumberOfUnobservedResidues() {
 		return (graph.getFullLength() - graph.getObsLength());

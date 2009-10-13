@@ -21,6 +21,7 @@ java-getopt-1.0.13.jar                  http://www.urbanophile.com/arenn/hacking
 
 PyMol http://delsci.com/rel/099/ (Linux, Win, Mac)
 DSSP http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
+DALI http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html (Linux, Win, Mac)
 Tinker (eventually) http://dasher.wustl.edu/tinker/ (Linux, Win, Mac)
 CSU (maybe) http://ligin.weizmann.ac.il/space/programs/index.html (Linux)
 
