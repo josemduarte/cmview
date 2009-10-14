@@ -1609,6 +1609,7 @@ public class View extends JFrame implements ActionListener {
 			}
 			finally{
 				if(error != null) {
+					setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 					// reset all fields connected to the compare mode and clean up the scene
 					mod2 = null; ali = null;
 					JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);		    	
@@ -1682,11 +1683,12 @@ public class View extends JFrame implements ActionListener {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			System.err.println("First sequence in given alignment file and sequence of contact map "+name1+" differ");
 			try {
-				// we try to align the 2 missmatching sequences (from the file and the loaded contact map), 
+				// we try to align the 2 mismatching sequences (from the file and the loaded contact map), 
 				// so that at least the user gets hopefully a better feeling of what's wrong
 				PairwiseSequenceAlignment psa = new PairwiseSequenceAlignment(ali.getSequenceNoGaps(name1),mod.getSequence(),"from file","from CMView");
 				System.err.println("This is an alignment of the non-matching sequences: ");
 				psa.printAlignment();
+
 			} catch (PairwiseSequenceAlignmentException e) {
 				// pairwise alignment didn't succeed, we do nothing 
 			}
@@ -1696,7 +1698,7 @@ public class View extends JFrame implements ActionListener {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			System.err.println("Second sequence in given alignment file and sequence of contact map "+name2+" differ");
 			try {
-				// we try to align the 2 missmatching sequences (from the file and the loaded contact map), 
+				// we try to align the 2 mismatching sequences (from the file and the loaded contact map), 
 				// so that at least the user gets hopefully a better feeling of what's wrong
 				PairwiseSequenceAlignment psa = new PairwiseSequenceAlignment(ali.getSequenceNoGaps(name2),mod2.getSequence(),"from file","from CMView");
 				System.err.println("This is an alignment of the non-matching sequences: ");
@@ -1715,7 +1717,7 @@ public class View extends JFrame implements ActionListener {
 		
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 	}
-
+	
 	/**
 	 * Computes the pairwise contact map alignment of the two passed models in 
 	 * a new thread.
@@ -1758,8 +1760,8 @@ public class View extends JFrame implements ActionListener {
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		try {
-			String htmlFileName = DaliRunner.doDALI(mod.getPdb(), mod2.getPdb(),Start.DALI_EXECUTABLE);
-			doLoadPairwiseAlignment(Alignment.DALIFORMAT,htmlFileName);
+			DaliRunner dali = new DaliRunner(mod.getPdb(), mod2.getPdb(),Start.DALI_EXECUTABLE,Start.TEMP_DIR);
+			doLoadPairwiseAlignment(Alignment.CLUSTALFORMAT,dali.getClustalFile());
 		} catch (InterruptedException e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("Could not construct alignment: Execution Interrupted");
