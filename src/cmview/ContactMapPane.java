@@ -55,7 +55,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected static final int SECOND = 1;
 	
 	/*--------------------------- member variables --------------------------*/
-
+	
+	private int hitcounter = 0;
 	// underlying data
 	private Model mod;
 	private Model mod2;						// optional second model for cm
@@ -1026,6 +1027,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void mouseReleased(MouseEvent evt) {
 		// Called whenever the user releases the mouse button.
 		// TODO: Move much of this to MouseClicked and pull up Contact cont = screen2cm...
+		hitcounter++;
 		if (evt.isPopupTrigger()) {
 			showPopup(evt);
 			dragging = false;
@@ -1165,6 +1167,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 				}
 				dragging = false;			
+				return;
+			case TOGGLE:
+
+				Pair<Integer> clicked = screen2cm(mousePressedPos);
+				toggleContact(clicked);
 				return;
 
 			}
@@ -1832,6 +1839,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		reloadContacts();	// will update screen buffer and repaint
 	}
 
+	public void toggleContact(Pair<Integer> cont) {
+		if (mod.containsEdge(mapContactAl2Seq(mod.getLoadedGraphID(),cont))) {
+			mod.removeEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+		} else {
+			mod.addEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+		}
+		resetSelections();
+		reloadContacts();
+	}
+	
+	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by
 	 * the upperLeft and lowerRight.

@@ -176,25 +176,12 @@ public class SADPDialog extends ToolDialog {
 			return;
 		}
 
-//		JFrame frame = new JFrame();
-//		frame.setVisible(true);
-//		frame.pack();
+
 		SADPResult result     = new SADPResult();
 		SADPRunner runner     = new SADPRunner(mod1,mod2,result);
 		SADPDialog sadpDialog = new SADPDialog(new View(null,"bla"),"Pairwise Protein Alignment",runner,result,SADPDialog.CONSTRUCT_EVERYTHING);
 		sadpDialog.createGUI();
-//		Future<Integer> futureDialog = Start.threadPool.submit((Callable<Integer>) sadpDialog);
-//		Integer exitStatus = 0;
-//		try {
-//			exitStatus = futureDialog.get();
-//		} catch(InterruptedException e) {
-//			System.err.println("Thread running sadpDialog has been interrupted:"+e.getMessage());
-//		} catch(ExecutionException e) {
-//			System.err.println("Execution of sadpDialog raise a ExecutionException:"+e.getMessage());
-//
-//		}
-//		System.out.println("exitStatus"+exitStatus);
-//		frame.dispose();
+
 	}
 
 }

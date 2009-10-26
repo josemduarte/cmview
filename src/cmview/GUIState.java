@@ -15,7 +15,7 @@ public class GUIState {
 	/*--------------------------- type definitions --------------------------*/
 	
 	// the selection mode
-	protected enum SelMode {RECT, FILL, NBH, COMNBH, DIAG, COLOR};
+	protected enum SelMode {RECT, FILL, NBH, COMNBH, DIAG, COLOR, TOGGLE};
 	
 	/*--------------------------- member variables --------------------------*/
 	
@@ -175,6 +175,7 @@ public class GUIState {
 		case COMNBH: view.tbShowComNbh.setSelected(true); break;
 		case DIAG: view.tbDiagSel.setSelected(true); break;
 		case COLOR : view.tbSelModeColor.setSelected(true); break;
+		case TOGGLE: view.tbToggleContacts.setSelected(true); break;
 		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
 		}
 		this.selectionMode = mode;

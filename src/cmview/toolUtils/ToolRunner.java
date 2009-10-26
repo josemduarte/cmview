@@ -49,21 +49,5 @@ public abstract class ToolRunner<V> implements Callable<V>{
 	actionWhenDone = toBePerformedWhenDone;
     }
     
-    /**
-     * Checks whether tool runner has finished his work.
-     * @return true if so, else false
-     * @deprecated
-     */
-    public boolean isDone() {
-	return done;
-    }
-    
-    /**
-     * Set state of tool runner.
-     * @param b  true if he has finished his work, else false.
-     * @deprecated
-     */
-    public void isDone( boolean b ) {
-	done = b;
-    }
+   
 }

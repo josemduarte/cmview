@@ -8,14 +8,7 @@ import proteinstructure.*;
  */
 public class PdbFileModel extends Model {
 
-	/* These members' only purpose is to temporarily store some values passed to the constructor and use them in load().
-	   Eventually these should be parameters of load directly, but for the moment we keep them here in order to keep
-	   the interface unchanged.
-	*/
-	private String edgeType;
-	private double distCutoff;
-	private int minSeqSep;
-	private int maxSeqSep;
+
 	
 	/**
 	 * Overloaded constructor to load the data.

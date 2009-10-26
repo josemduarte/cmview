@@ -28,10 +28,14 @@ import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
 import cmview.sadpAdapter.SADPResult;
 import cmview.sadpAdapter.SADPRunner;
+import cmview.tinkerAdapter.TinkerAction;
+import cmview.tinkerAdapter.TinkerPreferencesDialog;
+import cmview.tinkerAdapter.TinkerRunAction;
 import cmview.toolUtils.ToolDialog;
 import edu.uci.ics.jung.graph.util.Pair;
 import proteinstructure.*;
 import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
+import tinker.TinkerRunner;
 
 /**
  * Main GUI window and associated event handling.
@@ -69,6 +73,8 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_SEL_MODE_COLOR = "Select By Color Mode";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";	
+	private static final String LABEL_TOGGLE_CONTENTS = "Toggle Contacts";
+	
 	// Action
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
@@ -77,6 +83,7 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show threshold spheres for the residue pair (%s,%s) in 3D";
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
+	private static final String LABEL_RUN_TINKER = "Run Tinker";
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
@@ -95,10 +102,10 @@ public class View extends JFrame implements ActionListener {
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
 	JPopupMenu popup; 			// right-click context menu
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
-
+	
 	// Tool bar buttons
-	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D;  
-	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor;
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker;  
+	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 
 	// indices of the all main menus in the frame's menu bar
@@ -145,7 +152,8 @@ public class View extends JFrame implements ActionListener {
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
 
 	LoadDialog actLoadDialog;
-
+	TinkerPreferencesDialog tinkerDialog;
+	TinkerRunAction tinkerRunner;
 	// invisible notifiers
 	SADPDialogDoneNotifier sadpNotifier;
 
@@ -354,7 +362,7 @@ public class View extends JFrame implements ActionListener {
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
 		statusPane = new JPanel(); 					// pane holding the status bar, TODO: Create a class StatusBar
 		statusBar = new JLabel(" ");				// a primitive status bar for testing
-
+		
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "paintcan.png"));
@@ -372,6 +380,8 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_add.png"));
 		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_swatch.png"));
+		ImageIcon icon_toggle_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
+		ImageIcon icon_run_tinker = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "plugin_go.png"));
 		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
 		Icon icon_black = getBlackSquareIcon();		// black square icon
 
@@ -385,6 +395,8 @@ public class View extends JFrame implements ActionListener {
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
 		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
+		
+		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
 		}
@@ -395,12 +407,17 @@ public class View extends JFrame implements ActionListener {
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
-		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
+		
 		toolBar.addSeparator(separatorDim);
 		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
 		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, guiState.getShowFirst(), false, false);
 		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, guiState.getShowSecond(), false, false);
-
+		
+		toolBar.addSeparator(separatorDim);
+		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
+		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
+		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
+		
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
@@ -416,10 +433,13 @@ public class View extends JFrame implements ActionListener {
 		selectionModeButtons.add(tbDiagSel);
 		selectionModeButtons.add(tbSelModeColor);
 		selectionModeButtons.add(tbNbhSel);
+		selectionModeButtons.add(tbToggleContacts);
+		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			selectionModeButtons.add(tbShowComNbh);
 		}
-
+		
+		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
@@ -625,6 +645,7 @@ public class View extends JFrame implements ActionListener {
 		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
 		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
+		
 		if(guiState.getShowRulers()) {
 			cmp.add(topRul, BorderLayout.NORTH);
 			cmp.add(leftRul, BorderLayout.WEST);
@@ -1081,7 +1102,7 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == rangeM || e.getSource() == rangeP || e.getSource() == tbDiagSel) {
 			guiState.setSelectionMode(GUIState.SelMode.DIAG);
 		}
-		// node neihbourhood selection button clicked 
+		// node neighbourhood selection button clicked 
 		if (e.getSource() == nodeNbhSelM || e.getSource() == nodeNbhSelP || e.getSource() == tbNbhSel) {
 			guiState.setSelectionMode(GUIState.SelMode.NBH);
 		}		
@@ -1093,7 +1114,17 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == mmSelModeColor || e.getSource() == pmSelModeColor || e.getSource() == tbSelModeColor) {
 			guiState.setSelectionMode(GUIState.SelMode.COLOR);
 		}		
-
+		
+		// toggle contacts selection mode button clicked
+		if (e.getSource() == tbToggleContacts) {
+			guiState.setSelectionMode(GUIState.SelMode.TOGGLE);
+		}
+		
+		// Start Tinker Run
+		if (e.getSource() == tbRunTinker) {
+			handleRunTinker();
+		}
+		
 		// Actions
 
 		// send selection button clicked
@@ -1397,7 +1428,21 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		}
 	}	
+	
+	public void doLoadSecondModelFromPdbFile(String string) {
+		try {
+			Model newmod = new PdbFileModel(string,mod.edgeType,mod.distCutoff,mod.minSeqSep,mod.maxSeqSep);
+			newmod.load("A", 1);
+			mod2 = newmod;
+			doPairwiseSequenceAlignment();
+			
+		} catch(ModelConstructionError e) {
 
+		} catch (AlignmentConstructionError e) {
+		showLoadError(e.getMessage());
+		}
+	}
+	
 	private void handleLoadFromCmFile(boolean secondModel) {
 
 		if (secondModel == SECOND_MODEL && mod == null){
@@ -2520,6 +2565,19 @@ public class View extends JFrame implements ActionListener {
 
 	/* -------------------- Action menu -------------------- */
 
+	private void handleRunTinker() {
+		
+		final View v = this;
+		 tinkerDialog = new TinkerPreferencesDialog(this, new TinkerAction() {
+				public void doit(TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models) {
+					tinkerDialog.dispose();
+					tinkerRunner = new TinkerRunAction(v,mod,parallel,refinement,models);
+				}
+			});
+		 
+		 tinkerDialog.createGUI();
+	}
+
 	/**
 	 * 
 	 */
@@ -3049,6 +3107,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	
 	/**
 	 * Writes the current contact map view to a png file and exits CMView (to be used from command line).
 	 * @param imageFileName the name of the file to be written
@@ -3088,6 +3147,8 @@ public class View extends JFrame implements ActionListener {
 	protected GUIState getGUIState() {
 		return this.guiState;
 	}
+
+	
 	
 }
 

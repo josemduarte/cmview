@@ -102,6 +102,9 @@ public class Start {
 	/* external programs: DALI */
 	public static String			DALI_EXECUTABLE = 		"";
 	
+	/* external programs: TINKER */
+	public static String			TINKER_BINPATH = 		"";
+	public static String			TINKER_TEMP_DIR =		null;
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
 	public static String			DB_PWD = "tiger";
@@ -251,6 +254,8 @@ public class Start {
 		p.setProperty("PYMOL_EXECUTABLE",PYMOL_EXECUTABLE);
 		p.setProperty("DSSP_EXECUTABLE", DSSP_EXECUTABLE);
 		p.setProperty("DALI_EXECUTABLE", DALI_EXECUTABLE);
+		p.setProperty("TINKER_BINPATH",TINKER_BINPATH);
+		p.setProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
 		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
 		
@@ -300,6 +305,9 @@ public class Start {
 			//external programs: DALI
 			DALI_EXECUTABLE = p.getProperty("DALI_EXECUTABLE",DALI_EXECUTABLE);
 			
+			// external programs: TINKER
+			TINKER_BINPATH = p.getProperty("TINKER_BINPATH",TINKER_BINPATH);
+			TINKER_TEMP_DIR = p.getProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
 			// database connection		
 			DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 			DB_USER = p.getProperty("DB_USER", DB_USER);
@@ -359,6 +367,9 @@ public class Start {
 		
 		//external programs: DALI
 		p.setProperty("DALI_EXECUTABLE",DALI_EXECUTABLE);										// doc?
+		
+		// external programs: TINKER
+		p.setProperty("TINKER_TEMP",TINKER_TEMP_DIR);
 		
 		// database connection
 		p.setProperty("DB_HOST",DB_HOST);														// doc?
