@@ -133,7 +133,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		switch (parallelCB.getSelectedIndex()) {
 		//case 0:
 		//	return TinkerRunner.PARALLEL.MULTITHREADED;
-		case 0:
+		case 1:
 			return TinkerRunner.PARALLEL.CLUSTER;
 		default:
 			return TinkerRunner.PARALLEL.NONE;

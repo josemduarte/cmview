@@ -105,6 +105,7 @@ public class Start {
 	/* external programs: TINKER */
 	public static String			TINKER_BINPATH = 		"";
 	public static String			TINKER_TEMP_DIR =		null;
+	public static String			TINKER_FORCEFIELD = 	"";
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
 	public static String			DB_PWD = "tiger";
@@ -256,6 +257,7 @@ public class Start {
 		p.setProperty("DALI_EXECUTABLE", DALI_EXECUTABLE);
 		p.setProperty("TINKER_BINPATH",TINKER_BINPATH);
 		p.setProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
+		p.setProperty("TINKER_FORCEFIELD",TINKER_FORCEFIELD);
 		p.setProperty("DEFAULT_CONTACT_TYPE",DEFAULT_CONTACT_TYPE);
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",new Double(DEFAULT_DISTANCE_CUTOFF).toString());
 		
@@ -308,6 +310,7 @@ public class Start {
 			// external programs: TINKER
 			TINKER_BINPATH = p.getProperty("TINKER_BINPATH",TINKER_BINPATH);
 			TINKER_TEMP_DIR = p.getProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
+			TINKER_FORCEFIELD = p.getProperty("TINKER_FORCEFIELD",TINKER_FORCEFIELD);
 			// database connection		
 			DB_HOST = p.getProperty("DB_HOST", DB_HOST);
 			DB_USER = p.getProperty("DB_USER", DB_USER);
@@ -369,8 +372,9 @@ public class Start {
 		p.setProperty("DALI_EXECUTABLE",DALI_EXECUTABLE);										// doc?
 		
 		// external programs: TINKER
-		p.setProperty("TINKER_TEMP",TINKER_TEMP_DIR);
-		
+		p.setProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
+		p.setProperty("TINKER_BINPATH",TINKER_BINPATH);
+		p.setProperty("TINKER_FORCEFIELD",TINKER_FORCEFIELD);
 		// database connection
 		p.setProperty("DB_HOST",DB_HOST);														// doc?
 		p.setProperty("DB_USER",DB_USER);														// doc?

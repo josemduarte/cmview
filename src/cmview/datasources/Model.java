@@ -715,10 +715,10 @@ public abstract class Model {
 		TinkerRunner tinker = null;
 		try {
 			tinker = new TinkerRunner(Start.TINKER_BINPATH,
-					"/project/StruPPi/Software/tinker/amber99.prm");
+					Start.TINKER_FORCEFIELD);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			System.out.println("Error starting tinker run: "+e1.getMessage());
 		}
 
 		try {
@@ -729,7 +729,7 @@ public abstract class Model {
 				tinker.setTmpDir(Start.TEMP_DIR);
 			}
 			return tinker.reconstruct(getSequence(), new RIGraph[] { graph },
-					null, false, models, true);
+					null, false, models, parallel==TinkerRunner.PARALLEL.CLUSTER);
 		} catch (TinkerError e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
