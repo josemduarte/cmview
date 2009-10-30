@@ -21,6 +21,13 @@ import javax.swing.SpinnerNumberModel;
 
 import tinker.TinkerRunner;
 
+/**
+ * A Dialog to specify preferences for running tinker with the currently loaded first Model
+ * @author Matthias Winkelmann
+ *
+ */
+
+
 public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 
 	static final long serialVersionUID = 1l;
@@ -107,7 +114,6 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 
-		/* load button */
 		if (e.getSource() == runButton) {
 			this.go();
 		}
@@ -131,8 +137,6 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	private TinkerRunner.PARALLEL getParallel() {
 	
 		switch (parallelCB.getSelectedIndex()) {
-		//case 0:
-		//	return TinkerRunner.PARALLEL.MULTITHREADED;
 		case 1:
 			return TinkerRunner.PARALLEL.CLUSTER;
 		default:
@@ -156,6 +160,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		setVisible(true);
 	}
 
+	
 	public static void main(String[] args) {
 		JFrame frame = new JFrame();
 		frame.setTitle("Debugging frame");

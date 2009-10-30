@@ -23,6 +23,11 @@ import cmview.Start;
 import tinker.TinkerRunner;
 
 
+/**
+ * A dialog giving feedback to the user while Tinker is doing its thing.
+ * @author Matthias Winkelmann
+ */
+
 public class TinkerProgressDialog extends JDialog implements ActionListener {
 
 	static final long serialVersionUID = 1l;

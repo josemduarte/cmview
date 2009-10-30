@@ -9,6 +9,11 @@ import actionTools.TinkerStatusNotifier;
 import tinker.TinkerRunner;
 import cmview.datasources.Model;
 
+/**
+ * A Runnable class to run Tinker asynchronously.
+ * @author Matthias Winkelmann
+ *
+ */
 
 public class TinkerRun implements Runnable {
 
