@@ -1,9 +1,5 @@
 package cmview.tinkerAdapter;
 
-
-import java.io.IOException;
-
-import proteinstructure.Pdb;
 import actionTools.TinkerStatusNotifier;
 
 import tinker.TinkerRunner;
@@ -17,13 +13,15 @@ import cmview.datasources.Model;
 
 public class TinkerRun implements Runnable {
 
-	TinkerRunAction action;
-	Model mod;
-	TinkerRunner.PARALLEL parallel;
-	TinkerRunner.REFINEMENT refinement;
-	int models;
-	TinkerRunner runner;
-	String tmpDir;
+	private TinkerRunAction action;
+	private Model mod;
+	private TinkerRunner.PARALLEL parallel;
+	private TinkerRunner.REFINEMENT refinement;
+	private int models;
+	private TinkerRunner runner;
+	private String tmpDir;
+
+	
 	public TinkerRun(TinkerRunAction action, Model mod,
 			TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, String tmpDir) {
 			this.action = action;
@@ -41,26 +39,23 @@ public class TinkerRun implements Runnable {
 		} 
 	}
 	
+	
 	public void run() {
-		Pdb pdb = mod.runTinker(new TinkerStatusNotifier(this) { 
+		TinkerRunner run = mod.runTinker(new TinkerStatusNotifier(this) { 
 			public void sendStatus(tinker.TinkerRunner.STATE s) {
 				action.sendStatus(s);
 			}
 			public void filesDone(int i) {
 				action.filesDone(i);
 			}
+			
 			},
 			
 			parallel, refinement, models,tmpDir);
 		
 		action.sendStatus(TinkerRunner.STATE.LOADING);
 		
-			try {
-				pdb.dump2pdbfile(tmpDir+"/selected");
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-			}
-			action.returnResult(tmpDir+"/selected");
+		action.returnResults(run);
 		
 		
 		

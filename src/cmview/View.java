@@ -1430,14 +1430,15 @@ public class View extends JFrame implements ActionListener {
 	}	
 	
 	public void doLoadSecondModelFromPdbFile(String string) {
+		
 		try {
 			Model newmod = new PdbFileModel(string,mod.edgeType,mod.distCutoff,mod.minSeqSep,mod.maxSeqSep);
-			newmod.load("A", 1);
+			newmod.load("NULL", 1);
 			mod2 = newmod;
 			doPairwiseSequenceAlignment();
 			
 		} catch(ModelConstructionError e) {
-
+			showLoadError(e.getMessage());
 		} catch (AlignmentConstructionError e) {
 		showLoadError(e.getMessage());
 		}

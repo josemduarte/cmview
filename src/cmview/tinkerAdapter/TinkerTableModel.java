@@ -2,6 +2,8 @@ package cmview.tinkerAdapter;
 
 import javax.swing.table.AbstractTableModel;
 
+import tinker.TinkerRunner;
+
 /**
  * The table model for TinkerTable.
  * @author Matthias Winkelmann
@@ -11,13 +13,14 @@ import javax.swing.table.AbstractTableModel;
 public class TinkerTableModel extends AbstractTableModel {
 
 	
+	
 	private String[] columnNames = { "Structure #", "Constraints violated", "RMSD" };
 
-	private Number[][] data = { { 1, 15, 3.4 }, { 2, 3, 1.4 }, { 3, 12, 0.4 },
-			{ 4, 7, 3.3 }, { 5, 4, 6.6 }, { 6, 7, 5.1 }, { 7, 12, 4.9 },
-			{ 8, 6, 2.0 } };
+	private TinkerRunner run;
 
-	
+	public TinkerTableModel(TinkerRunner run) {
+		this.run = run;
+	}
 	
 	private static final long serialVersionUID = 1L;
 
@@ -28,12 +31,18 @@ public class TinkerTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return data.length;
+		return run.getLastNumberOfModels();
 	}
 
 	@Override
-	public Object getValueAt(int rowIndex, int columnIndex) {
-		return data[rowIndex][columnIndex];
+	public Number getValueAt(int rowIndex, int columnIndex) {
+		switch (columnIndex) {
+		case 0: 
+			return rowIndex+1;
+		case 1:
+			return run.getBoundViols(rowIndex+1);
+		}
+		return 0;
 	}
 	
 	@Override

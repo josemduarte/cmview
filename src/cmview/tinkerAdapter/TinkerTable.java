@@ -2,36 +2,63 @@ package cmview.tinkerAdapter;
 
 import java.awt.BorderLayout;
 
-import javax.swing.table.TableModel;
-
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.*;
+
+import cmview.View;
+
+import tinker.TinkerRunner;
 
 /**
  * A window with a table to select the second model to load from a list 
  * of Tinker reconstruction results
- * @author matt
+ * @author Matthias Winkelmann
  *
  */
 
 public class TinkerTable extends JFrame {
 
 	static final long serialVersionUID = 1l;
-	JScrollPane scrollPane;
-	JTable table;
-
-	
-
-	public TinkerTable() {
-
+	private JScrollPane scrollPane;
+	private JTable table;
+	private int lastSelectedStructure = -1;
+	private TinkerTableModel tableModel;
+	private TinkerRunAction runAction;
+	private View view;
+	private TinkerRunner run;
+	private class TinkerTableSelectionListener implements ListSelectionListener {
 		
-		TableModel model = new TinkerTableModel();
-		table = new JTable(model);
+		TinkerTable table;
+		
+		public TinkerTableSelectionListener(TinkerTable tab) {
+			table= tab;
+		}
+		
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+		
+			table.selectionChanged(e.getFirstIndex(),e.getLastIndex());
+			
+		}
+		
+		
+	}
+
+	public TinkerTable(TinkerRunner run, TinkerRunAction action, View view) {
+
+		this.view = view;
+		runAction = action;
+		this.run = run;
+		tableModel = new TinkerTableModel(run);
+		table = new JTable(tableModel);
 		table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		table.setAutoCreateRowSorter(true);
-		
+		table.getSelectionModel().addListSelectionListener(new TinkerTableSelectionListener(this));
 		scrollPane = new JScrollPane(table);
 		this.setLayout(new BorderLayout());
 		this.add(scrollPane);
+		this.showIt();
 
 	}
 
@@ -41,10 +68,47 @@ public class TinkerTable extends JFrame {
 		setVisible(true);
 	}
 
+	
+	
+	public void selectionChanged(int firstChangedRow, int secondChangedRow) {
+		// the event always fires twice, so we cache the last value and do nothing if
+		// the selection didn't effectively change
+		//int firstStructure = table.convertRowIndexToModel(firstChangedRow)+1;
+		//int secondStructure = table.convertRowIndexToModel(secondChangedRow)+1;
+		//int last = lastSelectedStructure;
+		//int newStruct = firstStructure;
+		//if (firstStructure == lastSelectedStructure) {
+		//	newStruct = secondStructure;
+		//}
+		
+		//lastSelectedStructure = newStruct;
+		
+		// row order might have changed. Get selected structure id
+		
+		int sel = table.getSelectedRow();
+		if (sel == -1) {
+			return;
+		}
+		
+		sel = table.convertRowIndexToModel(sel)+1;
+		if (sel == lastSelectedStructure) {
+			System.out.println(sel+"ignored");
+			return;
+		}
+		lastSelectedStructure= sel;
+		
+		view.doLoadSecondModelFromPdbFile(run.getOutPdbFile(sel).getAbsolutePath());
+		System.out.println("Now selected:"+sel);
+	}
+	
 	public static void main(String[] args) {
-
-		TinkerTable a = new TinkerTable();
-		a.showIt();
+		//Number[][] test = { { 1, 15, 3.4 }, { 2, 3, 1.4 }, { 3, 12, 0.4 },
+		//		{ 4, 7, 3.3 }, { 5, 4, 6.6 }, { 6, 7, 5.1 }, { 7, 12, 4.9 },
+		//		{ 8, 6, 2.0 } };
+		
+		
+		//TinkerTable a = new TinkerTable(test);
+		//a.showIt();
 	}
 
 }

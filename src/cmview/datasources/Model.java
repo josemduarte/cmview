@@ -710,14 +710,13 @@ public abstract class Model {
 		return d;
 	}
 
-	public Pdb runTinker(TinkerStatusNotifier tinkerStatusNotifier, TinkerRunner.PARALLEL parallel,
+	public TinkerRunner runTinker(TinkerStatusNotifier tinkerStatusNotifier, TinkerRunner.PARALLEL parallel,
 			TinkerRunner.REFINEMENT refinement, int models, String tmpDir) {
 		TinkerRunner tinker = null;
 		try {
 			tinker = new TinkerRunner(Start.TINKER_BINPATH,
 					Start.TINKER_FORCEFIELD);
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			System.out.println("Error starting tinker run: "+e1.getMessage());
 		}
 
@@ -728,14 +727,13 @@ public abstract class Model {
 			} else {
 				tinker.setTmpDir(Start.TEMP_DIR);
 			}
-			return tinker.reconstruct(getSequence(), new RIGraph[] { graph },
+			tinker.reconstruct(getSequence(), new RIGraph[] { graph },
 					null, false, models, parallel==TinkerRunner.PARALLEL.CLUSTER);
+			return tinker;
 		} catch (TinkerError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 		return null;
 

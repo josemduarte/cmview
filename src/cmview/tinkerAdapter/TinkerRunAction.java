@@ -22,10 +22,10 @@ public class TinkerRunAction {
 	private TinkerProgressDialog dialog;
 	private TinkerRun tinkerRun;
 	private Thread thread;
-	private View view;
 	private TinkerWatcher watcher;
 	private Thread watcherThread;
-
+	private View view;
+	private TinkerTable tableView;
 	public TinkerRunAction(View view, Model mod,
 			TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement,
 			int models) {
@@ -58,9 +58,19 @@ public class TinkerRunAction {
 		watcher.stop();
 	}
 
-	public void returnResult(String string) {
-		view.doLoadSecondModelFromPdbFile(string);
+	
+	private Model[] loadModels(TinkerRun run) {
+		
+		return null;
+	}
+	
+	
+	public void returnResults(TinkerRunner run) {
 		dialog.dispose();
+		tableView = new TinkerTable(run,this,view);
+		tableView.setLocationRelativeTo(view);
+	
+		
 	}
 
 	public void filesDone(int done) {
