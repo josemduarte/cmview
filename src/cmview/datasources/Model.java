@@ -26,7 +26,7 @@ import tinker.TinkerRunner;
 
 import cmview.Start;
 import edu.uci.ics.jung.graph.util.Pair;
-
+import deltaRank.DeltaRank;
 /**
  * A contact map data model. Derived classes have to implement the constructor
  * in which the structure is loaded, the member variables are set appropriately
@@ -737,6 +737,10 @@ public abstract class Model {
 		}
 		return null;
 
+	}
+
+	public double[][] getDeltaRankMatrix() {
+		return DeltaRank.computeMatrix(Start.getDeltaRankDbConnection(), graph);
 	}
 
 	

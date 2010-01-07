@@ -130,7 +130,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
@@ -523,6 +523,7 @@ public class View extends JFrame implements ActionListener {
 		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
 		mmViewShowDistMatrix = makeMenuItem("Show Distance Map", icon_deselected, menu);
 		addToJMenuBar(menu);
+		mmViewShowDeltaRank = makeMenuItem("Show Delta Rank Map",icon_deselected,menu);
 
 		// Select menu
 		menu = new JMenu("Select");
@@ -825,6 +826,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmViewRulers, hasMod);
 		map.put(mmViewHighlightComNbh, hasMod);
 		map.put(mmViewShowDensity, hasMod);
+		map.put(mmViewShowDeltaRank, hasMod);
 		map.put(mmViewShowDistMatrix, hasMod);
 		// menu -> Select
 		map.put(mmSelectAll, hasMod);
@@ -918,6 +920,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmViewRulers,false);
 		map.put(mmViewHighlightComNbh,false);
 		map.put(mmViewShowDensity,false);
+		map.put(mmViewShowDeltaRank,false);
 		map.put(mmViewShowDistMatrix,false);
 		// menu -> Select
 		map.put(mmSelectByResNum,false);
@@ -1048,6 +1051,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmViewShowDensity) {
 			handleShowDensityMap();
+		}
+		if(e.getSource() == mmViewShowDeltaRank) {
+			handleShowDeltaRankMap();
 		}
 		if(e.getSource() == mmViewShowDistMatrix) {
 			handleShowDistanceMap();
@@ -2432,6 +2438,23 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	private void handleShowDeltaRankMap() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {
+			guiState.setShowDeltaRankMap(!guiState.getShowDeltaRankMap());
+			cmPane.toggleDeltaRankMap(guiState.getShowDeltaRankMap());
+			if(guiState.getShowDeltaRankMap()) {
+				mmViewShowDeltaRank.setIcon(icon_selected);
+			} else {
+				mmViewShowDeltaRank.setIcon(icon_deselected);
+			}
+		}
+	}
+	
 	/**
 	 * 
 	 */

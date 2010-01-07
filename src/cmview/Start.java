@@ -109,6 +109,7 @@ public class Start {
 	/* database connection */
 	public static String			DB_HOST = "localhost";							
 	public static String			DB_PWD = "tiger";
+	public static String			DELTA_RANK_DB = "mw";
 	
 	/* default values for loading contact maps */
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
@@ -126,6 +127,7 @@ public class Start {
 	private static boolean			dssp_found = false;
 	
 	private static MySQLConnection 	conn;
+	private static MySQLConnection	deltaRankConn; // delta rank data is probably in a different database
 	private static JFileChooser 	fileChooser;
 	private static JColorChooser 	colorChooser;
 	private static PyMolAdaptor 	pymolAdaptor;
@@ -486,6 +488,7 @@ public class Start {
 	private static boolean tryConnectingToDb() {
 		try {
 			conn = new MySQLConnection(DB_HOST, DB_USER, DB_PWD);
+			deltaRankConn = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,DELTA_RANK_DB);
 		}
 		catch(Exception e) {
 			return false;
@@ -618,6 +621,10 @@ public class Start {
 	 */
 	public static MySQLConnection getDbConnection() {
 		return conn;
+	}
+	
+	public static MySQLConnection getDeltaRankDbConnection() {
+		return deltaRankConn;
 	}
 	
 	/**

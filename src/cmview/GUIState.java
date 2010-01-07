@@ -35,7 +35,7 @@ public class GUIState {
 	private boolean showFirst; 			// when true, contacts unique to first structure displayed in compare mode (and selections are only for first)
 	private boolean showSecond; 		// when true, contacts unique to second structure displayed in compare mode (and selections are only for second)
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
-	
+	private boolean showDeltaRankMap; 	// whether showing the delta rank map is switched on
 	/*----------------------------- constructors ----------------------------*/
 	
 	/**
@@ -111,7 +111,9 @@ public class GUIState {
 	protected boolean getShowDensityMap() {
 		return showDensityMap;
 	}
-
+	public boolean getShowDeltaRankMap() {
+		return showDeltaRankMap;
+	}
 	/**
 	 * @return the showDistanceMap
 	 */
@@ -264,5 +266,12 @@ public class GUIState {
 	protected void setShowDiffDistMap(boolean showDiffDistMap) {
 		this.showDiffDistMap = showDiffDistMap;
 	}
+
+	public void setShowDeltaRankMap(boolean b) {
+		this.showDeltaRankMap= b;
+		
+	}
+
+
 	
 }

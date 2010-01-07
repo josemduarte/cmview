@@ -155,6 +155,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 																// contacts
 	private double[][] densityMatrix; 					 // matrix of contact
 														// density
+	private double[][] deltaRankMatrix;					// delta rank matrix (0-1)
+	
 	private HashMap<Pair<Integer>,Integer> comNbhSizes;		// matrix of common
 															// neighbourhood sizes
 	private HashMap<Pair<Integer>,Double> diffDistMap;		// difference distance map (in comparison mode)
@@ -502,15 +504,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				drawRulerCrosshair(g2d);
 			}			
 		} else
-			if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second
-				// term
-				// needed
-				// if
-				// window
-				// is
-				// not
-				// square
-				// shape
+			if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
 				drawCoordinates(g2d);
 				drawCrosshair(g2d);
 			} 
@@ -549,7 +543,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawContact(g2d, cont);
 		}
 	}
-
+	
+	
 	/**
 	 * @param g2d
 	 */
@@ -570,7 +565,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawContact(g2d, cont);
 		}
 	}
-
+	
 	/**
 	 * Draws the contact map (or the 2 contact maps in compare mode)
 	 * @param g2d
@@ -680,6 +675,33 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 
+	
+	
+	/**
+	 * @param g2d
+	 */
+	private void drawDeltaRankMap(Graphics2D g2d) {
+		// assuming that delta Rank matrix has values from [-38,38], -100 indicates no data 
+		Color c;
+		int size = deltaRankMatrix.length;
+		for(int i = 0; i < size; i++) {
+			for(int j = i; j < size; j++) {
+				if (deltaRankMatrix[i][j] < -80) {
+					c = Color.LIGHT_GRAY;
+				} else {
+					c = colorMapScaledHeatmap(-(((double)deltaRankMatrix[i][j])/76)+0.5,0.5);
+					System.out.println(deltaRankMatrix[i][j]+": "+(((-(double)deltaRankMatrix[i][j])/76)+0.5));
+				}
+				
+				if(!c.equals(backgroundColor)) {
+					g2d.setColor(c);
+					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
+					drawContact(g2d, cont);
+				}
+			}
+		}
+	}
+	
 	private void drawDiffDistMap(Graphics2D g2d) {
 		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
@@ -1278,7 +1300,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(view.getGUIState().getShowDensityMap()) {
 			drawDensityMap(g2d);
 		}
-
+		
+		// Delta Rank Map
+		if(view.getGUIState().getShowDeltaRankMap()) {
+			drawDeltaRankMap(g2d);
+		}
+		
 		// common nbh sizes or contact map
 		if (view.getGUIState().getShowNbhSizeMap()){
 			drawNbhSizeMap(g2d);
@@ -1387,7 +1414,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public synchronized void updateDensityMap() {
 		densityMatrix = mod.getDensityMatrix();
 	}
-
+	
+	/**
+	 * Update the Delta Rank Map
+	 */
+	
+	public synchronized void updateDeltaRankMap() {
+		deltaRankMatrix = mod.getDeltaRankMatrix();
+	}
+	
 	/**
 	 * Triggers the distance map to be updated
 	 */
@@ -1756,6 +1791,23 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			updateScreenBuffer();			// will repaint
 		}
 	}
+
+	public void toggleDeltaRankMap(boolean state) {
+		if(state) {
+			if(densityMatrix == null) {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+					updateDeltaRankMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			} else {
+				updateScreenBuffer();
+			}
+		} else {
+			updateScreenBuffer();			// will repaint
+		}
+		
+	}
+
 
 	/**
 	 * Show/hide distance map TODO: Make this work the same as density map/nbh
@@ -2435,9 +2487,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	protected boolean isControlDown(MouseEvent evt) {
 		int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();		
-		if(mask==Event.META_MASK) return evt.isMetaDown();	// we are on a Mac!
+		if(mask==Event.META_MASK) return evt.isMetaDown();	// we are on a Mac! Yipiie!
 		else return evt.isControlDown();
 	}
+
 
 } 
 
