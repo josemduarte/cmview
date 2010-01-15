@@ -29,6 +29,15 @@ public class GUIState {
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
 	private boolean showDensityMap;		// whether showing the density map is switched on
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
+	
+	// Maps for the bottom-left contact map background
+	
+	private boolean showBottomNbhSizeMap;
+	private boolean showBottomDensityMap;
+	private boolean showBottomDistanceMap;
+	private boolean showBottomDiffDistMap;
+	private boolean showBottomDeltaRankMap;
+	
 	private boolean compareMode;		// whether we are in pairwise comparison mode (i.e. a second structure has been loaded)
 	private Color paintingColor;		// current color for coloring contacts selected by the user
 	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)
@@ -57,6 +66,14 @@ public class GUIState {
 		this.showFirst= true;
 		this.showSecond= true;
 		this.showDiffDistMap = false;
+		this.showDeltaRankMap = false;
+		
+		this.showBottomNbhSizeMap = false;
+		this.showBottomDensityMap = false;
+		this.showBottomDistanceMap = false;
+		this.showBottomDiffDistMap = false;
+		this.showBottomDeltaRankMap = false;
+		
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -104,23 +121,41 @@ public class GUIState {
 	protected boolean getShowNbhSizeMap() {
 		return showNbhSizeMap;
 	}
-
+	
+	protected boolean getShowBottomNbhSizeMap() {
+		return showBottomNbhSizeMap;
+	}
+	
 	/**
 	 * @return the showDensityMap
 	 */
 	protected boolean getShowDensityMap() {
 		return showDensityMap;
 	}
-	public boolean getShowDeltaRankMap() {
+	
+	protected boolean getShowBottomDensityMap() {
+		return showBottomDensityMap;
+	}
+	
+	protected boolean getShowDeltaRankMap() {
 		return showDeltaRankMap;
 	}
+	
+	protected boolean getShowBottomDeltaRankMap() {
+		return showBottomDeltaRankMap;
+	}
+	
 	/**
 	 * @return the showDistanceMap
 	 */
 	protected boolean getShowDistanceMap() {
 		return showDistanceMap;
 	}
-
+	
+	protected boolean getShowBottomDistanceMap() {
+		return showBottomDistanceMap;
+	}
+	
 	/**
 	 * @return the compareMode
 	 */
@@ -162,7 +197,11 @@ public class GUIState {
 	protected boolean getShowDiffDistMap() {
 		return showDiffDistMap;
 	}
-
+	
+	protected boolean getShowBottomDiffDistMap() {
+		return showBottomDiffDistMap;
+	}
+	
 	/*---------------- setters ---------------*/
 	
 	/**
@@ -210,14 +249,22 @@ public class GUIState {
 	protected void setShowNbhSizeMap(boolean showNbhSizeMap) {
 		this.showNbhSizeMap = showNbhSizeMap;
 	}
-
+	
+	protected void setShowBottomNbhSizeMap(boolean b) {
+		this.showBottomNbhSizeMap = b;
+	}
+	
 	/**
 	 * @param showDensityMap the showDensityMap to set
 	 */
 	protected void setShowDensityMap(boolean showDensityMap) {
 		this.showDensityMap = showDensityMap;
 	}
-
+	
+	protected void setShowBottomDensityMap(boolean b) {
+		this.showBottomDensityMap = b;
+	}
+	
 	/**
 	 * @param showDistanceMap the showDistanceMap to set
 	 */
@@ -225,6 +272,10 @@ public class GUIState {
 		this.showDistanceMap = showDistanceMap;
 	}
 
+	protected void setShowBottomDistanceMap(boolean b) {
+		this.showBottomDistanceMap= b;
+	}
+	
 	/**
 	 * @param compareMode the compareMode to set
 	 */
@@ -266,12 +317,20 @@ public class GUIState {
 	protected void setShowDiffDistMap(boolean showDiffDistMap) {
 		this.showDiffDistMap = showDiffDistMap;
 	}
+	
+	protected void setShowBottomDiffDistMap(boolean showDiffDistMap) {
+		this.showBottomDiffDistMap = showDiffDistMap;
+	}
 
+	
 	public void setShowDeltaRankMap(boolean b) {
 		this.showDeltaRankMap= b;
 		
 	}
 
-
+	public void setShowBottomDeltaRankMap(boolean b) {
+		this.showBottomDeltaRankMap = b;
+	}
+	
 	
 }

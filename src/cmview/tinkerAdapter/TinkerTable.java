@@ -24,21 +24,20 @@ public class TinkerTable extends JFrame {
 	private JTable table;
 	private int lastSelectedStructure = -1;
 	private TinkerTableModel tableModel;
-	private TinkerRunAction runAction;
 	private View view;
 	private TinkerRunner run;
 	private class TinkerTableSelectionListener implements ListSelectionListener {
 		
-		TinkerTable table;
+		TinkerTable table1;
 		
 		public TinkerTableSelectionListener(TinkerTable tab) {
-			table= tab;
+			table1= tab;
 		}
 		
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 		
-			table.selectionChanged(e.getFirstIndex(),e.getLastIndex());
+			table1.selectionChanged(e.getFirstIndex(),e.getLastIndex());
 			
 		}
 		
@@ -48,7 +47,6 @@ public class TinkerTable extends JFrame {
 	public TinkerTable(TinkerRunner run, TinkerRunAction action, View view) {
 
 		this.view = view;
-		runAction = action;
 		this.run = run;
 		tableModel = new TinkerTableModel(run);
 		table = new JTable(tableModel);

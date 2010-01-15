@@ -58,12 +58,7 @@ public class TinkerRunAction {
 		watcher.stop();
 	}
 
-	
-	private Model[] loadModels(TinkerRun run) {
-		
-		return null;
-	}
-	
+
 	
 	public void returnResults(TinkerRunner run) {
 		dialog.dispose();

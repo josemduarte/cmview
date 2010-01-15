@@ -42,9 +42,11 @@ public class TinkerRun implements Runnable {
 	
 	public void run() {
 		TinkerRunner run = mod.runTinker(new TinkerStatusNotifier(this) { 
+			@Override
 			public void sendStatus(tinker.TinkerRunner.STATE s) {
 				action.sendStatus(s);
 			}
+			@Override
 			public void filesDone(int i) {
 				action.filesDone(i);
 			}

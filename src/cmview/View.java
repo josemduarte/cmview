@@ -94,20 +94,25 @@ public class View extends JFrame implements ActionListener {
 	/*--------------------------- member variables --------------------------*/
 	
 	// GUI components in the main frame
-	JPanel statusPane; 			// panel holding the status bar (currently not used)
-	JLabel statusBar; 			// TODO: Create a class StatusBar
-	JToolBar toolBar;			// icon tool bar 
+	JToolBar toolBar;			// icon tool bar
+	JToolBar viewToolBar;		// tool bar holding the view options
 	JPanel cmp; 				// Main panel holding the Contact map pane
 	JPanel topRul;				// Panel for top ruler	// TODO: Move this to ContactMapPane?
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
-	JPopupMenu popup; 			// right-click context menu
+	JPopupMenu popup; 		 	// right-click context menu
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
+	StatusBar statusBar;		// A status bar with metainformation on the right
 	
 	// Tool bar buttons
 	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
-
+	
+	// View Tool Bar items
+	
+	JLabel firstViewDdLabel, secondViewDdLabel;
+	JComboBox firstViewCB, secondViewCB;
+	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
 
@@ -130,7 +135,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
-	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewRulers, mmViewIconBar, mmViewShowDistMatrix;
+	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
@@ -239,24 +244,7 @@ public class View extends JFrame implements ActionListener {
 			hb.enableHelpKey(this.getRootPane(), "top", hs);
 			newItem.addActionListener(new CSH.DisplayHelpFromSource(hb));
 			
-//			// define help ids (couldn't get this to work properly)
-//			CSH.setHelpIDString(this.getRootPane(), "top");
-//			CSH.setHelpIDString(tbFileInfo, "menu.file.info");
-//			
-//			CSH.setHelpIDString(tbSquareSel, "menu.select.mode.rect");
-//			CSH.setHelpIDString(tbFillSel, "menu.select.mode.fill");
-//			CSH.setHelpIDString(tbDiagSel, "menu.select.mode.diag");
-//			CSH.setHelpIDString(tbNbhSel, "menu.select.mode.nbh");
-//			CSH.setHelpIDString(tbShowComNbh, "menu.select.mode.nbh");
-//			CSH.setHelpIDString(tbSelModeColor, "menu.select.mode.color");
-//			
-//			CSH.setHelpIDString(tbShowSel3D, "menu.action.show3d");
-//			CSH.setHelpIDString(tbDelete, "menu.action.delete");
-//
-//			CSH.setHelpIDString(tbShowCommon, "menu.compare.showcommon");
-//			CSH.setHelpIDString(tbShowFirst, "menu.compare.showfirst");
-//			CSH.setHelpIDString(tbShowSecond, "menu.compare.showsecond");
-			
+	
 		} catch(HelpSetException e) {
 			System.err.println("Severe error. Could not initialize inline help: " + e.getMessage());
 		}
@@ -360,8 +348,7 @@ public class View extends JFrame implements ActionListener {
 		cmp = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
 		topRul = new JPanel(new BorderLayout()); 	// pane holding the top ruler
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
-		statusPane = new JPanel(); 					// pane holding the status bar, TODO: Create a class StatusBar
-		statusBar = new JLabel(" ");				// a primitive status bar for testing
+		statusBar= new StatusBar(new BorderLayout());
 		
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
@@ -388,6 +375,7 @@ public class View extends JFrame implements ActionListener {
 		// Tool bar
 		toolBar = new JToolBar();
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
+
 		Dimension separatorDim = new Dimension(30,toolBar.getHeight());
 		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
 		toolBar.addSeparator(separatorDim);
@@ -417,6 +405,30 @@ public class View extends JFrame implements ActionListener {
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
+		
+		// views tool bar
+		
+		viewToolBar= new JToolBar();
+		viewToolBar.setVisible(Start.SHOW_ICON_BAR);
+		viewToolBar.addSeparator(separatorDim);
+		firstViewCB = new JComboBox();
+		secondViewCB = new JComboBox();
+		firstViewCB.addItem((Object)"Select top-right background ");
+		secondViewCB.addItem((Object)"Select bottom-left background");
+		Object[] viewOptions = {"Common Neighbourhood Sizes", "Contact Density", "Distance Map","Delta Rank Map"};
+		for (Object o : viewOptions) {
+			firstViewCB.addItem(o);
+			secondViewCB.addItem(o);
+
+		}
+		firstViewCB.setEditable(true);
+		secondViewCB.setEditable(true);
+		firstViewCB.addActionListener(this);
+		secondViewCB.addActionListener(this);
+		viewToolBar.add(firstViewCB);
+		viewToolBar.add(secondViewCB);
+		
+		viewToolBar.setFloatable(false);
 		
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -510,21 +522,7 @@ public class View extends JFrame implements ActionListener {
 		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		addToJMenuBar(menu);
 
-		// View menu
-		menu = new JMenu("View");
-		menu.setMnemonic(KeyEvent.VK_V);		
-		mmViewShowPdbResSers = makeMenuItem("Show PDB Residue Numbers", icon_deselected, null);  // function disabled
-		mmViewRulers = makeMenuItem("Show Rulers", icon_deselected, null);		// function disabled
-		mmViewIconBar = makeMenuItem("Show Icon Bar", icon_deselected, null);	// function disabled
-		//menu.addSeparator(); // not needed since all functions above are disabled
-		if (Start.USE_EXPERIMENTAL_FEATURES) {
-			mmViewHighlightComNbh = makeMenuItem("Show Common Neighbourhood Sizes", icon_deselected, menu);
-		} 
-		mmViewShowDensity = makeMenuItem("Show Contact Density", icon_deselected, menu);
-		mmViewShowDistMatrix = makeMenuItem("Show Distance Map", icon_deselected, menu);
-		addToJMenuBar(menu);
-		mmViewShowDeltaRank = makeMenuItem("Show Delta Rank Map",icon_deselected,menu);
-
+		
 		// Select menu
 		menu = new JMenu("Select");
 		menu.setMnemonic(KeyEvent.VK_S);
@@ -581,6 +579,7 @@ public class View extends JFrame implements ActionListener {
 			mmLoadGraph2 = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
 			mmLoadPdbase2 = makeMenuItem(LABEL_PDBASE,null,submenu);
 		}		
+		
 		mmLoadFtp2 = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
 		mmLoadPdb2 = makeMenuItem(LABEL_PDB_FILE, null, submenu);
 		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
@@ -607,20 +606,6 @@ public class View extends JFrame implements ActionListener {
 		mmHelpAbout = makeMenuItem("About", null, menu);
 		addToJMenuBar(menu);
 
-		// Status bar
-//		if (mod!= null){
-//		int[] statusRuler = new int[3];
-//		statusRuler = cmPane.getRulerCoordinates();
-//		String r1 = "" + statusRuler[0] + "";
-//		String r2 = "" + statusRuler[1] + "";
-//		String r3 = "" + statusRuler[2] + "";
-
-
-//		statusBar.setText(r1 +" , " + r2 + " , " +r3);
-//		statusPane.setLayout(new BorderLayout());
-//		statusPane.add(statusBar, BorderLayout.CENTER);
-//		statusPane.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
-//		}
 
 		// Creating contact map pane if model loaded
 		if(mod != null) {
@@ -635,6 +620,7 @@ public class View extends JFrame implements ActionListener {
 				System.err.println("Unexpected error, something wrong in alignment construction: "+e.getMessage());
 			}
 			cmPane = new ContactMapPane(mod, al , this);
+			cmPane.setStatusBar(statusBar);
 			cmp.add(cmPane, BorderLayout.CENTER);
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
@@ -644,7 +630,9 @@ public class View extends JFrame implements ActionListener {
 
 		// Add everything to the content pane		
 		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
+		this.tbPane.add(viewToolBar,BorderLayout.SOUTH);
 		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
+		this.tbPane.add(statusBar,BorderLayout.EAST);
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
 		
 		if(guiState.getShowRulers()) {
@@ -715,12 +703,6 @@ public class View extends JFrame implements ActionListener {
 	 */
 	public void setAccessibility(Component comp, boolean visible, boolean parentCheck, Component topLevelComponent, Collection<Class<?>> disregardedTypes) {
 
-//		try {
-//		System.out.println("set:"+((AbstractButton) comp).getText());
-//		} catch(Exception e) {
-//		System.out.println("not an abstract button:"+comp.getClass());
-//		System.out.println("comp==popup:"+(comp==this.popup));
-//		}
 
 		if( comp == topLevelComponent ) {
 			return;
@@ -823,7 +805,6 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmInfo,hasMod);
 		// menu -> View
 		map.put(mmViewShowPdbResSers, hasMod);
-		map.put(mmViewRulers, hasMod);
 		map.put(mmViewHighlightComNbh, hasMod);
 		map.put(mmViewShowDensity, hasMod);
 		map.put(mmViewShowDeltaRank, hasMod);
@@ -917,7 +898,6 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSaveAli, true);
 		// menu -> View
 		map.put(mmViewShowPdbResSers,true);
-		map.put(mmViewRulers,false);
 		map.put(mmViewHighlightComNbh,false);
 		map.put(mmViewShowDensity,false);
 		map.put(mmViewShowDeltaRank,false);
@@ -1040,24 +1020,13 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewShowPdbResSers) {
 			handleShowPdbResSers();
 		}		  
-		if(e.getSource() == mmViewRulers) {
-			handleShowRulers();
-		}	
-		if(e.getSource() == mmViewIconBar) {
-			handleShowIconBar();
-		}	
-		if(e.getSource() == mmViewHighlightComNbh) {
-			handleShowNbhSizeMap();
+		if(e.getSource() == firstViewCB) {
+			handleViewChange(false);
 		}
-		if(e.getSource() == mmViewShowDensity) {
-			handleShowDensityMap();
+		if(e.getSource() == secondViewCB) {
+			handleViewChange(true);
 		}
-		if(e.getSource() == mmViewShowDeltaRank) {
-			handleShowDeltaRankMap();
-		}
-		if(e.getSource() == mmViewShowDistMatrix) {
-			handleShowDistanceMap();
-		}
+		
 
 		/* ---------- Select menu ---------- */
 
@@ -1686,11 +1655,6 @@ public class View extends JFrame implements ActionListener {
 		setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
 		setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
 
-		// disable rulers
-		if(guiState.getShowRulers()) {
-			handleShowRulers();
-		}
-
 	}
 	
 	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionError {
@@ -2064,7 +2028,12 @@ public class View extends JFrame implements ActionListener {
 	 *  loadedGraphID of each Model
 	 */
 	private void doLoadSecondModel(Model mod2, Alignment ali) {
-
+		
+		// this has to come first, as it triggers the background to be redrawn, which trigger the error it is supposed to avoid if the second
+		// model is already loaded
+		
+		disableAllBackgroundMaps();
+		
 		// re-setting window title
 		System.out.println("Second contact map loaded.");
 		String title = "Comparing " + mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
@@ -2073,6 +2042,7 @@ public class View extends JFrame implements ActionListener {
 		// add the second model and update the image buffer
 		cmPane.setSecondModel(mod2, ali);
 		guiState.setCompareMode(true);
+
 		cmPane.updateScreenBuffer();
 		guiState.setSelectionMode(GUIState.INITIAL_SEL_MODE);	// we reset to SQUARE_SEL in case another one (possibly not allowed in compare mode) was switched on
 		// finally repaint the whole thing to display the whole set of contacts
@@ -2099,6 +2069,36 @@ public class View extends JFrame implements ActionListener {
 		
 	}
 
+	private void disableAllBackgroundMaps() {
+	
+		if (guiState.getShowDeltaRankMap()) {
+			handleShowDeltaRankMap(false);
+		}
+		if(guiState.getShowBottomDeltaRankMap()) {
+			handleShowDeltaRankMap(true);
+		}
+		if(guiState.getShowDensityMap()) {
+			handleShowDensityMap(false);
+		}
+		if(guiState.getShowBottomDensityMap()) {
+			handleShowDensityMap(true);
+		}
+		if(guiState.getShowDistanceMap()) {
+			handleShowDistanceMap(false);
+		}
+		if(guiState.getShowBottomDistanceMap()) {
+			handleShowDistanceMap(true);
+		}
+		if(guiState.getShowNbhSizeMap()) {
+			handleShowNbhSizeMap(false);
+		}
+		if(guiState.getShowBottomNbhSizeMap()) {
+			handleShowNbhSizeMap(true);
+		}
+		
+	}
+	
+	
 	private void handleSuperposition3D() {
 		if (!Start.isPyMolConnectionAvailable()){
 			showNoPyMolConnectionWarning();
@@ -2370,106 +2370,74 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * 
 	 */
-	private void handleShowRulers() {
+	private void handleShowNbhSizeMap(boolean secondView) {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			guiState.setShowRulers(!guiState.getShowRulers());
-			if(guiState.getShowRulers()) {
-				cmp.add(topRul, BorderLayout.NORTH);
-				cmp.add(leftRul, BorderLayout.WEST);
-				mmViewRulers.setIcon(icon_selected);
+			if (secondView) {
+				guiState.setShowBottomNbhSizeMap(!guiState.getShowBottomNbhSizeMap());
+				cmPane.toggleNbhSizeMap(guiState.getShowBottomNbhSizeMap());
 			} else {
-				cmp.remove(topRul);
-				cmp.remove(leftRul);
-				mmViewRulers.setIcon(icon_deselected);
+				guiState.setShowNbhSizeMap(!guiState.getShowNbhSizeMap());
+				cmPane.toggleNbhSizeMap(guiState.getShowNbhSizeMap());
 			}
-			this.pack();
-			this.repaint();
+
+	
 		}
 	}
 
 	/**
 	 * 
 	 */
-	private void handleShowIconBar() {
-		guiState.setShowIconBar(!guiState.getShowIconBar());
-		if(guiState.getShowIconBar()) {
-			toolBar.setVisible(true);
-			mmViewIconBar.setIcon(icon_selected);
-		} else {
-			toolBar.setVisible(false);
-			mmViewIconBar.setIcon(icon_deselected);
-		}
-		this.repaint();		
-	}	
-
-	/**
-	 * 
-	 */
-	private void handleShowNbhSizeMap() {
+	private void handleShowDensityMap(boolean secondView) {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			guiState.setShowNbhSizeMap(!guiState.getShowNbhSizeMap());
-			cmPane.toggleNbhSizeMap(guiState.getShowNbhSizeMap());
-			if (guiState.getShowNbhSizeMap()) {
-				mmViewHighlightComNbh.setIcon(icon_selected);
+			if (secondView) {
+				guiState.setShowBottomDensityMap(!guiState.getShowBottomDensityMap());
+				cmPane.toggleDensityMap(guiState.getShowBottomDensityMap());
 			} else {
-				mmViewHighlightComNbh.setIcon(icon_deselected);
+				guiState.setShowDensityMap(!guiState.getShowDensityMap());
+				cmPane.toggleDensityMap(guiState.getShowDensityMap());
 			}
+
+			
 		}
 	}
 
 	/**
 	 * 
 	 */
-	private void handleShowDensityMap() {
+	private void handleShowDeltaRankMap(boolean secondView) {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
-			guiState.setShowDensityMap(!guiState.getShowDensityMap());
-			cmPane.toggleDensityMap(guiState.getShowDensityMap());
-			if(guiState.getShowDensityMap()) {
-				mmViewShowDensity.setIcon(icon_selected);
+			if (secondView) {
+				guiState.setShowBottomDeltaRankMap(!guiState.getShowBottomDeltaRankMap());
+				cmPane.toggleDeltaRankMap(guiState.getShowBottomDeltaRankMap());
 			} else {
-				mmViewShowDensity.setIcon(icon_deselected);
+				guiState.setShowDeltaRankMap(!guiState.getShowDeltaRankMap());
+				cmPane.toggleDeltaRankMap(guiState.getShowDeltaRankMap());
 			}
-		}
-	}
-
-	/**
-	 * 
-	 */
-	private void handleShowDeltaRankMap() {
-		if(mod==null) {
-			showNoContactMapWarning();
-		} else {
-			guiState.setShowDeltaRankMap(!guiState.getShowDeltaRankMap());
-			cmPane.toggleDeltaRankMap(guiState.getShowDeltaRankMap());
-			if(guiState.getShowDeltaRankMap()) {
-				mmViewShowDeltaRank.setIcon(icon_selected);
-			} else {
-				mmViewShowDeltaRank.setIcon(icon_deselected);
-			}
+			
 		}
 	}
 	
 	/**
 	 * 
 	 */
-	private void handleShowDistanceMap() {
+	private void handleShowDistanceMap(boolean secondView) {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning(mod);
 		} else {
-			guiState.setShowDistanceMap(!guiState.getShowDistanceMap());
-			cmPane.toggleDistanceMap(guiState.getShowDistanceMap());
-			if(guiState.getShowDistanceMap()) {
-				mmViewShowDistMatrix.setIcon(icon_selected);
+			if (secondView) {
+				guiState.setShowBottomDistanceMap(!guiState.getShowBottomDistanceMap());
+				cmPane.toggleDistanceMap(guiState.getShowBottomDistanceMap());
 			} else {
-				mmViewShowDistMatrix.setIcon(icon_deselected);
+				guiState.setShowDistanceMap(!guiState.getShowDistanceMap());
+				cmPane.toggleDistanceMap(guiState.getShowDistanceMap());
 			}
 		}
 	}
@@ -3160,6 +3128,63 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 		System.exit(1);
+	}
+	
+	/**
+	 * 
+	 */
+	
+	private void handleViewChange(boolean secondView) {
+		JComboBox viewCB;
+		
+		if(secondView) {
+			viewCB = secondViewCB;	
+		} else {
+			viewCB = firstViewCB;
+		}
+		
+		clearBackgrounds(secondView);
+		
+		if (viewCB.getSelectedIndex() == 1) {
+			handleShowNbhSizeMap(secondView);
+		} else if (viewCB.getSelectedIndex() == 2) {
+			handleShowDensityMap(secondView);
+		} else if (viewCB.getSelectedIndex() == 3) {
+			handleShowDistanceMap(secondView);
+		} else if (viewCB.getSelectedIndex() == 4) {
+			handleShowDeltaRankMap(secondView);
+		}
+	}
+	
+	private void clearBackgrounds(boolean secondView) {
+		if (secondView) {
+			if(guiState.getShowBottomNbhSizeMap()) {
+				handleShowNbhSizeMap(secondView);
+			}
+			if (guiState.getShowBottomDeltaRankMap()) {
+				handleShowDeltaRankMap(secondView);
+			}
+			if (guiState.getShowBottomDistanceMap()) {
+				handleShowDistanceMap(secondView);
+			}
+			if (guiState.getShowBottomDensityMap()) {
+				handleShowDensityMap(secondView);
+			}
+		} else {
+			if(guiState.getShowNbhSizeMap()) {
+				handleShowNbhSizeMap(secondView);
+			}
+			if (guiState.getShowDeltaRankMap()) {
+				handleShowDeltaRankMap(secondView);
+			}
+			if (guiState.getShowDistanceMap()) {
+				handleShowDistanceMap(secondView);
+			}
+			if (guiState.getShowDensityMap()) {
+				handleShowDensityMap(secondView);
+			}
+		}
+		
 	}
 	
 	/* -------------------- getter methods -------------------- */

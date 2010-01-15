@@ -75,7 +75,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Point mousePressedPos;   		// position where mouse where last
 											// pressed, used for start of square
 											// selection and for common
-											// neighbours
+											// Neighbors
 	private Point mouseDraggingPos;  		// current position of mouse
 											// dragging, used for end point of
 											// square selection
@@ -196,6 +196,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	// status variables for concurrency
 	private int threadCounter;				// counts how many background
+
+	private StatusBar statusBar;
 											// threads are currently active
 
 	/*----------------------------- constructors ----------------------------*/
@@ -242,8 +244,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.commonContactsColor = Color.black;
 		this.uniqueToFirstContactsColor = Color.magenta;
 		this.uniqueToSecondContactsColor = Color.green;
-
-		setBackground(backgroundColor);
+		setOpaque(true);
 	}
 
 	/**
@@ -347,6 +348,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.densityMatrix = null;
 		this.comNbhSizes = null;
 		this.diffDistMap = null;
+		this.deltaRankMatrix = null;
+		
 
 	}
 
@@ -465,7 +468,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 
-			drawContacts(g2d,tmpContacts,selContactsColor);
+			drawContacts(g2d,tmpContacts,selContactsColor,true);
+			drawContacts(g2d,tmpContacts,selContactsColor,false);
 		} 
 
 		// drawing temp selection in red while dragging in range selection mode
@@ -474,12 +478,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.setColor(diagCrosshairColor);
 			g2d.drawLine(mousePressedPos.x-mousePressedPos.y, 0, outputSize, outputSize-(mousePressedPos.x-mousePressedPos.y));
 
-			drawContacts(g2d,tmpContacts,selContactsColor);
+			drawContacts(g2d,tmpContacts,selContactsColor,true);
+			drawContacts(g2d,tmpContacts,selContactsColor,false);
+			
 		}
 
 		// draw permanent selection in red
-		drawContacts(g2d,selContacts,selContactsColor);
-
+		drawContacts(g2d,selContacts,selContactsColor,true);
+		drawContacts(g2d,selContacts,selContactsColor,false);
 		// draw node selections
 		if(selHorNodes.size() > 0 || selVertNodes.size() > 0)
 			g2d.setColor(Color.white);
@@ -505,7 +511,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}			
 		} else
 			if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
-				drawCoordinates(g2d);
+				drawCoordinates();
 				drawCrosshair(g2d);
 			} 
 
@@ -532,7 +538,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * @param g2d
 	 */
-	private void drawDistanceMap(Graphics2D g2d) {
+	private void drawDistanceMap(Graphics2D g2d,boolean secondMap) {
 		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
 		//TODO indices here refer to sequence, while on screen we have alignment indices. This is fine for single mode, but needs to be changed if we allow distance map in compare mode
@@ -540,7 +546,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		for (Pair<Integer> cont:distMatrix.keySet()){
 			Color c = colorMapScaledHeatmap(distMatrix.get(cont), scaledDistCutoff);
 			g2d.setColor(c);
-			drawContact(g2d, cont);
+			drawContact(g2d, cont,secondMap);
 		}
 	}
 	
@@ -548,7 +554,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * @param g2d
 	 */
-	private void drawNbhSizeMap(Graphics2D g2d) {
+	private void drawNbhSizeMap(Graphics2D g2d, boolean secondMap) {
 		// showing common neighbourhood sizes
 		for (Pair<Integer> cont:comNbhSizes.keySet()){
 			int size = comNbhSizes.get(cont);
@@ -562,7 +568,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				// higher size
 				g2d.setColor(new Color(0.0f, 1.0f/size,0.0f));
 			}
-			drawContact(g2d, cont);
+			drawContact(g2d, cont,secondMap);
 		}
 	}
 	
@@ -590,41 +596,55 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 					}
 				}
-				drawContact(g2d, cont);
+
+				drawContact(g2d, cont,false);
+				drawContact(g2d, cont,true);
 			}
 		} else { // compare mode
 			// 1) common=0, first=0, second=1
 			if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
 			}
 			// 2) common=0, first=1, second=0 
 			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
 			}
 			// 3) common=0, first=1, second=1
 			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
 			}
 			// 4) common=1, first=0, second=0
 			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,commonContacts,commonContactsColor);
+				drawContacts(g2d,commonContacts,commonContactsColor,false);
+				drawContacts(g2d,commonContacts,commonContactsColor,true);
 			}
 			// 5) common=1, first=0, second=1
 			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,commonContacts,commonContactsColor);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
+				drawContacts(g2d,commonContacts,commonContactsColor,false);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+				drawContacts(g2d,commonContacts,commonContactsColor,true);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
 			}
 			// 6) common=1, first=1, second=0
 			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,commonContacts,commonContactsColor);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
+				drawContacts(g2d,commonContacts,commonContactsColor,false);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+				drawContacts(g2d,commonContacts,commonContactsColor,true);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
 			}
 			// 7) common=1, first=1, second=1
 			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true) {
-				drawContacts(g2d,commonContacts,commonContactsColor);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor);
+				drawContacts(g2d,commonContacts,commonContactsColor,false);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+				drawContacts(g2d,commonContacts,commonContactsColor,true);
+				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
 			// 8) common=0, first=0, second=0
 			} else { 
 				// do nothing
@@ -639,10 +659,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param contactSet
 	 * @param color
 	 */
-	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color) {
+	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color, boolean secondMap) {
 		g2d.setColor(color);
 		for(Pair<Integer> cont:contactSet){
-			drawContact(g2d, cont);
+			drawContact(g2d, cont, secondMap);
 		}	
 	}
 	
@@ -650,17 +670,25 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Draws the given contact cont to the given graphics object g2d using the
 	 * global contactSquareSize and g2d current painting color.
 	 */
-	private void drawContact(Graphics2D g2d, Pair<Integer> cont) {
-		int x = getCellUpperLeft(cont).x;
-		int y = getCellUpperLeft(cont).y;
+	private void drawContact(Graphics2D g2d, Pair<Integer> cont, boolean secondMap) {
+		int x,y;
+		if (secondMap) {
+			x = getCellUpperLeft(cont).y;
+			y = getCellUpperLeft(cont).x;
+		} else {
+			x = getCellUpperLeft(cont).x;
+			y = getCellUpperLeft(cont).y;
+		}
 		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 		g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
+		
+
 	}
 
 	/**
 	 * @param g2d
 	 */
-	private void drawDensityMap(Graphics2D g2d) {
+	private void drawDensityMap(Graphics2D g2d, boolean secondMap) {
 		// assuming that density matrix has values from [0,1]
 		int size = densityMatrix.length;
 		for(int i = 0; i < size; i++) {
@@ -669,7 +697,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				if(!c.equals(backgroundColor)) {
 					g2d.setColor(c);
 					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
-					drawContact(g2d, cont);
+					drawContact(g2d, cont,secondMap);
 				}
 			}
 		}
@@ -680,7 +708,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * @param g2d
 	 */
-	private void drawDeltaRankMap(Graphics2D g2d) {
+	private void drawDeltaRankMap(Graphics2D g2d, boolean secondMap) {
 		// assuming that delta Rank matrix has values from [-38,38], -100 indicates no data 
 		Color c;
 		int size = deltaRankMatrix.length;
@@ -690,25 +718,24 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					c = Color.LIGHT_GRAY;
 				} else {
 					c = colorMapScaledHeatmap(-(((double)deltaRankMatrix[i][j])/76)+0.5,0.5);
-					System.out.println(deltaRankMatrix[i][j]+": "+(((-(double)deltaRankMatrix[i][j])/76)+0.5));
 				}
 				
 				if(!c.equals(backgroundColor)) {
 					g2d.setColor(c);
 					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
-					drawContact(g2d, cont);
+					drawContact(g2d, cont, secondMap);
 				}
 			}
 		}
 	}
 	
-	private void drawDiffDistMap(Graphics2D g2d) {
+	private void drawDiffDistMap(Graphics2D g2d, boolean secondMap) {
 		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
 		for (Pair<Integer> cont:diffDistMap.keySet()){
 			Color c = colorMapHeatmap(1-diffDistMap.get(cont));
 			g2d.setColor(c);
-			drawContact(g2d, cont);
+			drawContact(g2d, cont, secondMap);
 		}
 	}
 
@@ -716,20 +743,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Draws coordinates for all registered models.
 	 * @param g2d  the graphic onto which the coordinate are supposed to be printed
 	 */
-	protected void drawCoordinates(Graphics2D g2d){
+	protected void drawCoordinates(){
 		if( !this.hasSecondModel() ) {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-70,false);
+			drawCoordinates(mod,allContacts,20,outputSize-70,false);
 		} else {
-			drawCoordinates(g2d,mod,allContacts,20,outputSize-90,view.getGUIState().getShowAlignmentCoords());
-			drawCoordinates(g2d,mod2,allSecondContacts,180,outputSize-90,view.getGUIState().getShowAlignmentCoords());
+			drawCoordinates(mod,allContacts,20,outputSize-90,view.getGUIState().getShowAlignmentCoords());
+			drawCoordinates(mod2,allSecondContacts,180,outputSize-90,view.getGUIState().getShowAlignmentCoords());
 		}
 	}
 
 	/**
-	 * Draws coordinates for the given model onto the given graphic. Please 
+	 * Passes coordinates for the given model to the status bar on the right. Please 
 	 * note, that whenever an ordinate of the current mouse position in the 
 	 * graphic equals zero the coordinates will not be printed. 
-	 * @param g2d  the graphic
 	 * @param mod  the model
 	 * @param modContacts  all contacts of mod
 	 * @param x  offset position in the x dimension of the upper left corner
@@ -738,7 +764,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 *  true -> show alignment as well as sequence positions, false -> show 
 	 *  sequence position only
 	 */
-	protected void drawCoordinates(Graphics2D g2d, Model mod, IntPairSet modContacts, int x, int y, boolean showAliAndSeqPos) {
+	protected void drawCoordinates(Model mod, IntPairSet modContacts, int x, int y, boolean showAliAndSeqPos) {
 		Pair<Integer> currentCell = screen2cm(mousePos);
 
 		// alignment indices
@@ -746,11 +772,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		int jAliIdx = currentCell.getSecond();
 		
 		// return if any position equals zero
-		if( currentCell.getFirst() == 0 || currentCell.getSecond() == 0 ) {
+		if( currentCell.getFirst() == 0 || currentCell.getSecond() == 0 || currentCell.getFirst() > mod.getMatrixSize() || currentCell.getSecond() > mod.getMatrixSize() ) {
 			return;
 		}
-
-		String title = mod.getLoadedGraphID()+":";
+		
 		String aliTag = mod.getLoadedGraphID();
 		
 		// converting to sequence indices
@@ -767,34 +792,28 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			j_res = mod.getResType(jSeqIdx);
 		}
 		
-		int extraX = 0;
-		if( showAliAndSeqPos ) {
-			extraX = 30;
-		}
-
-		g2d.setColor(coordinatesColor);
-
-		int extraTitleY = 0;
+		statusBar.setHasSecondModel(hasSecondModel());
+		
 		if(hasSecondModel()) {
-			extraTitleY = 20;	
-			g2d.drawString(title, x, y);
+			statusBar.setTitle(mod.getLoadedGraphID()+":");
 		}
 		
-		// writing i and j
-		//g2d.drawString("i", x,           y+extraTitleY);
-		//g2d.drawString("j", x+extraX+40, y+extraTitleY);
-
+		
 		// writing coordinates and optionally alignment coordinates
-		g2d.drawString(iSeqIdx<0?"":iSeqIdx+"", x,           y+extraTitleY);
-		g2d.drawString(jSeqIdx<0?"":jSeqIdx+"", x+extraX+40, y+extraTitleY);
-		if( hasSecondModel() && showAliAndSeqPos ) {
-			g2d.drawString("(" + iAliIdx + ")", x+extraX,      y+extraTitleY);
-			g2d.drawString("(" + jAliIdx + ")", x+2*extraX+40, y+extraTitleY);
-		}		 
+		
+		statusBar.setISeq(iSeqIdx<0?"":iSeqIdx+"");
+		statusBar.setJSeq(jSeqIdx<0?"":jSeqIdx+"");
+		
+		statusBar.setShowAliAndSeqPos(showAliAndSeqPos);
+		statusBar.setIAli("(" + iAliIdx + ")");
+		statusBar.setJAli("(" + jAliIdx + ")");
 
+		statusBar.setIRes(i_res);
+		statusBar.setJRes(j_res);
+		
 		// writing residue types
-		g2d.drawString(i_res, x,           y+extraTitleY+20);
-		g2d.drawString(j_res, x+extraX+40, y+extraTitleY+20);
+		
+		statusBar.setHasSecondaryStructure(mod.hasSecondaryStructure());
 		
 		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
@@ -812,30 +831,34 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case 'S': jSSType = '\u03b2'; break;
 			default: jSSType = ' ';
 			}
-			g2d.drawString(Character.toString(iSSType), x,           y+extraTitleY+40);
-			g2d.drawString(Character.toString(jSSType), x+extraX+40, y+extraTitleY+40);
+			statusBar.setISSType(Character.toString(iSSType));
+			statusBar.setJSSType(Character.toString(jSSType));
+			
 		}
 
 		// draw hyphen if (i,j) is a contact
-		if(modContacts.contains(currentCell) ) {
-			g2d.drawLine(x+28, y+extraTitleY+15, x+extraX+35, y+extraTitleY+15);		
-		}
+		statusBar.setDrawHyphen(modContacts.contains(currentCell));
+
 
 		// write sequence separation in diagonal selection mode
+		statusBar.setIsDiagSecMode(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG);
+		
 		if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
 			if(!hasSecondModel()) { // we don't show seq separation in compare mode
-				g2d.drawString("SeqSep", x+80, y+extraTitleY);
-				g2d.drawString(getRange(currentCell)+"", x+extraX+80, y+extraTitleY+20);		
+				statusBar.setSeqSep(getRange(currentCell)+"");
 			}
 		}
-
+		
+		statusBar.setWritePDBResNum(view.getGUIState().getShowPdbSers() && mod.has3DCoordinates());
+		
 		// write pdb residue numbers (if available)
 		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
-			g2d.drawString(i_pdbresser==null?"?":i_pdbresser, x,           y+extraTitleY+60);
-			g2d.drawString(j_pdbresser==null?"?":j_pdbresser, x+extraX+40, y+extraTitleY+60);
+			statusBar.setIResNum(i_pdbresser==null?"?":i_pdbresser);
+			statusBar.setJResNum(j_pdbresser==null?"?":j_pdbresser);
 		}
+		statusBar.repaint();
 	}
 
 	// TODO: a) Merge this with above function? b) missing second model display, if we allow ruler in compare mode, we must fix this
@@ -878,12 +901,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if (view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG){
 			g2d.setColor(diagCrosshairColor);			
 			g2d.drawLine(mousePos.x-mousePos.y, 0, getOutputSize(), getOutputSize()-(mousePos.x-mousePos.y));
+			//g2d.drawLine(0, getOutputSize()-mousePos.y,mousePos.x,getOutputSize());
+			
 			// all other cases cursor is a cross-hair
 		} else {
 			// drawing the cross-hair
 			g2d.setColor(crosshairColor);
 			g2d.drawLine(mousePos.x, 0, mousePos.x, outputSize);
 			g2d.drawLine(0, mousePos.y, outputSize, mousePos.y);
+			int bcenterx = mousePos.y;
+			int bcentery = mousePos.x;
+			
+			g2d.drawLine(bcenterx-30,bcentery, bcenterx+30,bcentery);
+			g2d.drawLine(bcenterx,bcentery-30, bcenterx,bcentery+30);
+			g2d.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
+			
 		}
 	}
 
@@ -1293,34 +1325,61 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		// distance map
 		if (view.getGUIState().getShowDistanceMap()){
-			drawDistanceMap(g2d);
+			drawDistanceMap(g2d, false);
 		}
 
 		// density map
 		if(view.getGUIState().getShowDensityMap()) {
-			drawDensityMap(g2d);
+			drawDensityMap(g2d, false);
 		}
 		
 		// Delta Rank Map
 		if(view.getGUIState().getShowDeltaRankMap()) {
-			drawDeltaRankMap(g2d);
+			drawDeltaRankMap(g2d, false);
 		}
 		
 		// common nbh sizes or contact map
 		if (view.getGUIState().getShowNbhSizeMap()){
-			drawNbhSizeMap(g2d);
+			drawNbhSizeMap(g2d, false);
 		}
 
 		// draw difference distance map (in comparison mode)
 		if(view.getGUIState().getCompareMode() && view.getGUIState().getShowDiffDistMap()) {
-			drawDiffDistMap(g2d);
+			drawDiffDistMap(g2d, false);
+		}
+		
+		// distance map
+		if (view.getGUIState().getShowBottomDistanceMap()){
+			drawDistanceMap(g2d, true);
+		}
+
+		// density map
+		if(view.getGUIState().getShowBottomDensityMap()) {
+			drawDensityMap(g2d, true);
+		}
+		
+		// Delta Rank Map
+		if(view.getGUIState().getShowBottomDeltaRankMap()) {
+			drawDeltaRankMap(g2d, true);
+		}
+		
+		// common nbh sizes or contact map
+		if (view.getGUIState().getShowBottomNbhSizeMap()){
+			drawNbhSizeMap(g2d, true);
+		}
+
+		// draw difference distance map (in comparison mode)
+		if(view.getGUIState().getCompareMode() && view.getGUIState().getShowDiffDistMap()) {
+			drawDiffDistMap(g2d, false);
 		}
 		
 		// draw contact map if necessary (single or comparison)
-		if(!view.getGUIState().getShowNbhSizeMap() && !view.getGUIState().getShowDistanceMap()) {
+		//if(!view.getGUIState().getShowNbhSizeMap() && !view.getGUIState().getShowDistanceMap()) {
 			drawContactMap(g2d);			
+		//}
+		if (view.getGUIState().getShowBottomDeltaRankMap() || view.getGUIState().getShowDeltaRankMap()) {
+			statusBar.setDeltaRank((int)mod.getDeltaRankScore());
 		}
-
 		repaint();
 	}
 
@@ -1423,6 +1482,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		deltaRankMatrix = mod.getDeltaRankMatrix();
 	}
 	
+	
 	/**
 	 * Triggers the distance map to be updated
 	 */
@@ -1518,6 +1578,13 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				markDensityMapAsDirty();
 			}
 		}
+		if(view.getGUIState().getShowDeltaRankMap()) {
+				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				updateDeltaRankMap();
+				doResetCursor = true;
+			
+		} 
+
 		updateScreenBuffer();		// always repaint to show new contact map
 		if(doResetCursor) {
 			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -1794,14 +1861,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	public void toggleDeltaRankMap(boolean state) {
 		if(state) {
-			if(densityMatrix == null) {
 					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 					updateDeltaRankMap();
 					updateScreenBuffer();		// will repaint
 					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			} else {
-				updateScreenBuffer();
-			}
 		} else {
 			updateScreenBuffer();			// will repaint
 		}
@@ -2403,6 +2466,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * coordinates
 	 */
 	private Pair<Integer> screen2cm(Point point){
+	
+		if (point.y > point.x) { // check if we're in the bottom left CM
+			return new Pair<Integer>((int) Math.ceil(point.x/ratio),(int) Math.ceil(point.y/ratio));
+		}
 		return new Pair<Integer>((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
 	}
 
@@ -2489,6 +2556,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();		
 		if(mask==Event.META_MASK) return evt.isMetaDown();	// we are on a Mac! Yipiie!
 		else return evt.isControlDown();
+	}
+
+	public void setStatusBar(StatusBar statusBar) {
+		this.statusBar = statusBar;
+		
 	}
 
 

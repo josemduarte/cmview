@@ -67,6 +67,9 @@ public abstract class Model {
 	protected String loadedGraphID; // the unique identifier of a user-loaded
 									// graph, we assign this whenever the user
 
+	
+	private DeltaRank deltaRank; // Our deltaRank calculation object, providing delta Rank background maps
+	
 	// loads a graph/structure into the viewer, this is being used to identify
 	// the
 	// graph in an alignment object and in pymol
@@ -454,13 +457,20 @@ public abstract class Model {
 
 	public void addEdge(Pair<Integer> cont) {
 		graph.addEdgeIJ(cont.getFirst(), cont.getSecond());
-
+		if (deltaRank != null) {
+			updateDeltaRankMap(cont);
+		}
 	}
 
 	public void removeEdge(Pair<Integer> cont) {
 		graph.removeEdge(this.graph.findEdge(graph.getNodeFromSerial(cont
 				.getFirst()), graph.getNodeFromSerial(cont.getSecond())));
+		if (deltaRank != null) {
+			updateDeltaRankMap(cont);
+		}
 	}
+
+	
 
 	/**
 	 * Initialises the distMatrix member. The matrix is scaled to doubles from
@@ -739,9 +749,22 @@ public abstract class Model {
 
 	}
 
+	public void initDeltaRankMatrix() {
+		deltaRank = new DeltaRank(Start.getDeltaRankDbConnection(),graph);
+	}
 	public double[][] getDeltaRankMatrix() {
-		return DeltaRank.computeMatrix(Start.getDeltaRankDbConnection(), graph);
+		if (deltaRank == null) {
+			initDeltaRankMatrix();
+		}
+		return deltaRank.getMatrix();
 	}
 
-	
+	private void updateDeltaRankMap(Pair<Integer> cont) {
+		deltaRank.setGraph(graph);
+		deltaRank.updateMap(cont);
+	}
+
+	public double getDeltaRankScore() {
+		return deltaRank.getScore();
+	}
 }

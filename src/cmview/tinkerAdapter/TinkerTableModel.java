@@ -24,17 +24,15 @@ public class TinkerTableModel extends AbstractTableModel {
 	
 	private static final long serialVersionUID = 1L;
 
-	@Override
 	public int getColumnCount() {
 		return 3;
 	}
 
-	@Override
+
 	public int getRowCount() {
 		return run.getLastNumberOfModels();
 	}
 
-	@Override
 	public Number getValueAt(int rowIndex, int columnIndex) {
 		switch (columnIndex) {
 		case 0: 
