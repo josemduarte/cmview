@@ -34,7 +34,6 @@ public class TinkerTable extends JFrame {
 			table1= tab;
 		}
 		
-		@Override
 		public void valueChanged(ListSelectionEvent e) {
 		
 			table1.selectionChanged(e.getFirstIndex(),e.getLastIndex());
