@@ -12,11 +12,13 @@ public class DeltaRankBar extends JPanel{
 	private static final long serialVersionUID = 1L;
 	private int height = 80;
 	private int leftMargin = 10;
-	private int rightMargin = 170;
+	//private int rightMargin = 170;
 	private boolean isActive = false;
 	private HashMap<Character, Color> background;
 	private String[] vectors;
 	private ContactMapPane contactMapPane;
+	private String sequence;
+	
 	
 	public DeltaRankBar() {
 		this.setBackground(Color.WHITE);
@@ -29,6 +31,10 @@ public class DeltaRankBar extends JPanel{
 	
 	public void setCMPane(ContactMapPane cmp) {
 		contactMapPane = cmp;
+	}
+	
+	public void setSequence(String seq) {
+		sequence = seq;
 	}
 	
 	/** Method called by this component to determine its minimum size */
@@ -70,11 +76,18 @@ public class DeltaRankBar extends JPanel{
 				} else {
 					g.setColor(Color.gray);
 				}
-				//g.drawRect((int)(i*ratio)+leftMargin, cHeight*j, cWidth, cHeight);
-				g.fillRect((int)(i*ratio)+leftMargin, cHeight*j, cWidth, cHeight);
+				
+				g.fillRect((int)(i*ratio)+leftMargin, cHeight*j+1, cWidth, cHeight-1);
+				g.drawRect((int)(i*ratio)+leftMargin, cHeight*j, cWidth, cHeight);
 			}
 		}
 		
+		// white frame around real contacts
+		
+		g.setColor(Color.WHITE);
+		for (int i=0; i < vectors.length; i++) {
+			g.drawRect((int)(i*ratio)+leftMargin, cHeight*vectors[i].indexOf(sequence.charAt(i)), cWidth, cHeight);
+		}
 		
 	}
 	
