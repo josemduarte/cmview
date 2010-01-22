@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 public class DeltaRankBar extends JPanel{
 
 	private static final long serialVersionUID = 1L;
-	private int height = 80;
+	private int height = 160;
 	private int leftMargin = 10;
 	//private int rightMargin = 170;
 	private boolean isActive = false;

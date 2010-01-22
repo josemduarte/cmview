@@ -718,7 +718,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				if (deltaRankMatrix[i][j] < -80) {
 					c = Color.LIGHT_GRAY;
 				} else {
-					c = colorMapScaledHeatmap(-(((double)deltaRankMatrix[i][j])/76)+0.5,0.5);
+					c = colorMapScaledHeatmap((((double)deltaRankMatrix[i][j])/76)+0.5,0.5);
 				}
 				
 				if(!c.equals(backgroundColor)) {

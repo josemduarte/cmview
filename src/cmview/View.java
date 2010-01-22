@@ -95,7 +95,6 @@ public class View extends JFrame implements ActionListener {
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
-	JToolBar viewToolBar;		// tool bar holding the view options
 	JPanel cmp; 				// Main panel holding the Contact map pane
 	JPanel topRul;				// Panel for top ruler	// TODO: Move this to ContactMapPane?
 	JPanel leftRul;				// Panel for left ruler	// TODO: Move this to ContactMapPane?
@@ -410,9 +409,6 @@ public class View extends JFrame implements ActionListener {
 		
 		// views tool bar
 		
-		viewToolBar= new JToolBar();
-		viewToolBar.setVisible(Start.SHOW_ICON_BAR);
-		viewToolBar.addSeparator(separatorDim);
 		firstViewCB = new JComboBox();
 		secondViewCB = new JComboBox();
 		firstViewCB.addItem((Object)"Top-Right BG");
@@ -438,8 +434,6 @@ public class View extends JFrame implements ActionListener {
 		statusBar.add(secondViewCB);
 		statusBar.add(firstViewCB);
 		statusBar.initDeltaRankLable();
-		
-		viewToolBar.setFloatable(false);
 		
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -642,7 +636,7 @@ public class View extends JFrame implements ActionListener {
 
 		// Add everything to the content pane		
 		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
-		this.tbPane.add(deltaRankBar,BorderLayout.SOUTH);
+		
 		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
 		this.tbPane.add(statusBar,BorderLayout.EAST);
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
@@ -2433,8 +2427,10 @@ public class View extends JFrame implements ActionListener {
 			}
 			if(guiState.getShowBottomDeltaRankMap() || guiState.getShowDeltaRankMap()) {
 				deltaRankBar.setActive(true);
+				this.tbPane.add(deltaRankBar,BorderLayout.SOUTH);
 			} else {
 				deltaRankBar.setActive(false);
+				this.tbPane.remove(deltaRankBar);
 			}
 			
 		}
