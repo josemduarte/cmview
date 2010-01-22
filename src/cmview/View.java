@@ -36,7 +36,7 @@ import edu.uci.ics.jung.graph.util.Pair;
 import proteinstructure.*;
 import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import tinker.TinkerRunner;
-
+import javax.swing.BoxLayout;
 /**
  * Main GUI window and associated event handling.
  * Multiple instances of this will be shown in separate windows.
@@ -102,6 +102,7 @@ public class View extends JFrame implements ActionListener {
 	JPopupMenu popup; 		 	// right-click context menu
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	StatusBar statusBar;		// A status bar with metainformation on the right
+	DeltaRankBar deltaRankBar;	// A Bar at the bottom of the contact map showing delta rank information for the sequence
 	
 	// Tool bar buttons
 	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker;  
@@ -151,7 +152,7 @@ public class View extends JFrame implements ActionListener {
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
-
+	
 	// global icons TODO: replace these by tickboxes?
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "tick.png"));
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
@@ -348,7 +349,8 @@ public class View extends JFrame implements ActionListener {
 		cmp = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
 		topRul = new JPanel(new BorderLayout()); 	// pane holding the top ruler
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
-		statusBar= new StatusBar(new BorderLayout());
+		statusBar= new StatusBar(new BoxLayout(statusBar,BoxLayout.PAGE_AXIS));
+		deltaRankBar = new DeltaRankBar();
 		
 		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
@@ -413,9 +415,9 @@ public class View extends JFrame implements ActionListener {
 		viewToolBar.addSeparator(separatorDim);
 		firstViewCB = new JComboBox();
 		secondViewCB = new JComboBox();
-		firstViewCB.addItem((Object)"Select top-right background ");
-		secondViewCB.addItem((Object)"Select bottom-left background");
-		Object[] viewOptions = {"Common Neighbourhood Sizes", "Contact Density", "Distance Map","Delta Rank Map"};
+		firstViewCB.addItem((Object)"Top-Right BG");
+		secondViewCB.addItem((Object)"Bottom-Left BG");
+		Object[] viewOptions = {"Common Neighb.", "Contact Density", "Distance","Delta Rank"};
 		for (Object o : viewOptions) {
 			firstViewCB.addItem(o);
 			secondViewCB.addItem(o);
@@ -423,10 +425,19 @@ public class View extends JFrame implements ActionListener {
 		}
 		firstViewCB.setEditable(true);
 		secondViewCB.setEditable(true);
+		firstViewCB.setSize(150, 20);
+		secondViewCB.setSize(120, 20);
+		firstViewCB.setMaximumSize(new Dimension(150,20));
+		secondViewCB.setMaximumSize(new Dimension(150,20));
+		secondViewCB.setMinimumSize(new Dimension(150,20));
+		firstViewCB.setMinimumSize(new Dimension(150,20));
 		firstViewCB.addActionListener(this);
+		firstViewCB.setAlignmentX(LEFT_ALIGNMENT);
+		secondViewCB.setAlignmentX(LEFT_ALIGNMENT);
 		secondViewCB.addActionListener(this);
-		viewToolBar.add(firstViewCB);
-		viewToolBar.add(secondViewCB);
+		statusBar.add(secondViewCB);
+		statusBar.add(firstViewCB);
+		statusBar.initDeltaRankLable();
 		
 		viewToolBar.setFloatable(false);
 		
@@ -621,6 +632,7 @@ public class View extends JFrame implements ActionListener {
 			}
 			cmPane = new ContactMapPane(mod, al , this);
 			cmPane.setStatusBar(statusBar);
+			cmPane.setDeltaRankBar(deltaRankBar);
 			cmp.add(cmPane, BorderLayout.CENTER);
 			topRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.TOP);
 			leftRuler = new ResidueRuler(cmPane,mod,this,ResidueRuler.LEFT);
@@ -630,7 +642,7 @@ public class View extends JFrame implements ActionListener {
 
 		// Add everything to the content pane		
 		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
-		this.tbPane.add(viewToolBar,BorderLayout.SOUTH);
+		this.tbPane.add(deltaRankBar,BorderLayout.SOUTH);
 		this.tbPane.add(cmp,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
 		this.tbPane.add(statusBar,BorderLayout.EAST);
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
@@ -2418,6 +2430,11 @@ public class View extends JFrame implements ActionListener {
 			} else {
 				guiState.setShowDeltaRankMap(!guiState.getShowDeltaRankMap());
 				cmPane.toggleDeltaRankMap(guiState.getShowDeltaRankMap());
+			}
+			if(guiState.getShowBottomDeltaRankMap() || guiState.getShowDeltaRankMap()) {
+				deltaRankBar.setActive(true);
+			} else {
+				deltaRankBar.setActive(false);
 			}
 			
 		}

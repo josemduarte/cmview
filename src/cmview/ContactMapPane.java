@@ -198,6 +198,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private int threadCounter;				// counts how many background
 
 	private StatusBar statusBar;
+	private DeltaRankBar deltaRankBar;
 											// threads are currently active
 
 	/*----------------------------- constructors ----------------------------*/
@@ -679,7 +680,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			x = getCellUpperLeft(cont).x;
 			y = getCellUpperLeft(cont).y;
 		}
-		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+		//g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 		g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
 		
 
@@ -1378,7 +1379,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawContactMap(g2d);			
 		//}
 		if (view.getGUIState().getShowBottomDeltaRankMap() || view.getGUIState().getShowDeltaRankMap()) {
-			statusBar.setDeltaRank((int)mod.getDeltaRankScore());
+			statusBar.setDeltaRank(ContactMapPane.Round((float)mod.getDeltaRankScore(),2));
+			deltaRankBar.setVectors(mod.getDeltaRankVectors());
+			deltaRankBar.repaint();
 		}
 		repaint();
 	}
@@ -2135,7 +2138,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void resetContactSelection() {
 		this.selContacts = new IntPairSet();
 	}
-
+	public double getRatio() {
+		return ratio;
+	}
+	
 	/**
 	 * Sets the output size and updates the ratio and contact square size. This
 	 * will affect all drawing operations. Used by print() method to change the
@@ -2561,6 +2567,25 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void setStatusBar(StatusBar statusBar) {
 		this.statusBar = statusBar;
 		
+	}
+	
+	public void setDeltaRankBar(DeltaRankBar bar) {
+		deltaRankBar = bar;
+		deltaRankBar.setCMPane(this);
+	}
+	
+	/**
+	 *  Rounds to x significant digits 
+	 * @param Rval
+	 * @param Rpl
+	 * @return
+	 */
+	
+	public static float Round(float Rval, int Rpl) {
+		  float p = (float)Math.pow(10,Rpl);
+		  Rval = Rval * p;
+		  float tmp = Math.round(Rval);
+		  return (float)tmp/p;
 	}
 
 

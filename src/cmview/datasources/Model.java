@@ -767,4 +767,8 @@ public abstract class Model {
 	public double getDeltaRankScore() {
 		return deltaRank.getScore();
 	}
+
+	public String[] getDeltaRankVectors() {
+		return deltaRank.getVectors();
+	}
 }

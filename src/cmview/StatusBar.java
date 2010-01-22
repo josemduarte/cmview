@@ -1,11 +1,12 @@
 package cmview;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import javax.swing.BoxLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -55,13 +56,15 @@ public class StatusBar extends JPanel {
 	
 	private JLabel deltaRankLable;
 	
-	public StatusBar(BorderLayout borderLayout) {
-		super(borderLayout);
-		deltaRankLable = new JLabel();
-		deltaRankLable.setSize(100, 20);
-		this.add(deltaRankLable);
+	public StatusBar(BoxLayout boxLayout) {
 		
-		//this.setBackground(Color.darkGray);
+		
+	}
+	public void initDeltaRankLable() {
+		this.add(Box.createRigidArea(new Dimension(150,200)));
+		deltaRankLable = new JLabel();
+		deltaRankLable.setBounds(5, 5, 100, 20);
+		this.add(deltaRankLable,2);
 	}
 	
 	/** Method called by this component to determine its minimum size */
@@ -96,7 +99,7 @@ public class StatusBar extends JPanel {
 	protected synchronized void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g.create();
-		drawCoordinates(g2d,5,getHeight()-90);
+		drawCoordinates(g2d,5,getHeight()-75);
 	}
 	
 	protected void drawCoordinates(Graphics2D g2d, int x, int y) {
@@ -108,7 +111,7 @@ public class StatusBar extends JPanel {
 		
 		g2d.setColor(Color.BLACK);
 		if (iSeq != "") {
-			g2d.drawLine(2, y, getWidth()-2, y);
+			g2d.drawLine(5, y-12, getWidth()-6, y-12);
 		}
 		int extraTitleY = 0;
 		if(hasSecondModel) {
@@ -240,11 +243,9 @@ public class StatusBar extends JPanel {
 		
 	}
 
-	public void setDeltaRank(int dr) {
-		if (dr != 0) {
-		deltaRankLable.setText("Ærank: "+dr);
-		} else {
-			deltaRankLable.setText("");
+	public void setDeltaRank(float f) {
+		{
+		deltaRankLable.setText("Ærank: "+f);
 		}
 	}
 	
