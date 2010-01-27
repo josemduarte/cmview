@@ -65,7 +65,6 @@ public class Start {
 	
 	/* environment (should be set at runtime and not in master config file but can be overwritten in user config file) */
 	public static String			TEMP_DIR = System.getProperty("java.io.tmpdir");
-	public static String			DB_USER = getUserName();						// guess user name
 
 	/* internal settings */
 	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file
@@ -107,8 +106,6 @@ public class Start {
 	public static String			TINKER_TEMP_DIR =		null;
 	public static String			TINKER_FORCEFIELD = 	"";
 	/* database connection */
-	public static String			DB_HOST = "localhost";							
-	public static String			DB_PWD = "tiger";
 	public static String			DELTA_RANK_DB = "mw";
 	
 	/* default values for loading contact maps */
@@ -127,7 +124,6 @@ public class Start {
 	private static boolean			dssp_found = false;
 	
 	private static MySQLConnection 	conn;
-	private static MySQLConnection	deltaRankConn; // delta rank data is probably in a different database
 	private static JFileChooser 	fileChooser;
 	private static JColorChooser 	colorChooser;
 	private static PyMolAdaptor 	pymolAdaptor;
@@ -206,19 +202,7 @@ public class Start {
 	public static void setFilename2PdbCode(String pdbCode, File file) {
 		pdbCode2file.put(pdbCode.toLowerCase(), file);
 	}	
-	
-	/** 
-	 * Get user name from operating system (for use as database username). 
-	 * */
-	private static String getUserName() {
-		String user = null;
-		user = System.getProperty("user.name");
-		if(user == null) {
-			System.err.println("Could not get user name from operating system.");
-		}
-		return user;
-	}
-	
+		
 	/*-------------- properties and config files --------------*/
 	
 	/**
@@ -313,10 +297,6 @@ public class Start {
 			TINKER_BINPATH = p.getProperty("TINKER_BINPATH",TINKER_BINPATH);
 			TINKER_TEMP_DIR = p.getProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
 			TINKER_FORCEFIELD = p.getProperty("TINKER_FORCEFIELD",TINKER_FORCEFIELD);
-			// database connection		
-			DB_HOST = p.getProperty("DB_HOST", DB_HOST);
-			DB_USER = p.getProperty("DB_USER", DB_USER);
-			DB_PWD = p.getProperty("DB_PWD", DB_PWD);
 
 			// default setting for loading contact maps
 			DEFAULT_GRAPH_DB = p.getProperty("DEFAULT_GRAPH_DB", DEFAULT_GRAPH_DB);
@@ -377,10 +357,6 @@ public class Start {
 		p.setProperty("TINKER_TEMP_DIR",TINKER_TEMP_DIR);
 		p.setProperty("TINKER_BINPATH",TINKER_BINPATH);
 		p.setProperty("TINKER_FORCEFIELD",TINKER_FORCEFIELD);
-		// database connection
-		p.setProperty("DB_HOST",DB_HOST);														// doc?
-		p.setProperty("DB_USER",DB_USER);														// doc?
-		p.setProperty("DB_PWD",DB_PWD);															// doc?
 		
 		// default values for loading contact maps
 		p.setProperty("DEFAULT_GRAPH_DB",DEFAULT_GRAPH_DB);										// doc?
@@ -487,8 +463,7 @@ public class Start {
 	 */
 	private static boolean tryConnectingToDb() {
 		try {
-			conn = new MySQLConnection(DB_HOST, DB_USER, DB_PWD);
-			deltaRankConn = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,DELTA_RANK_DB);
+			conn = new MySQLConnection();
 		}
 		catch(Exception e) {
 			return false;
@@ -621,10 +596,6 @@ public class Start {
 	 */
 	public static MySQLConnection getDbConnection() {
 		return conn;
-	}
-	
-	public static MySQLConnection getDeltaRankDbConnection() {
-		return deltaRankConn;
 	}
 	
 	/**

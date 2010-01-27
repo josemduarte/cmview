@@ -750,7 +750,7 @@ public abstract class Model {
 	}
 
 	public void initDeltaRankMatrix() {
-		deltaRank = new DeltaRank(Start.getDeltaRankDbConnection(),graph);
+		deltaRank = new DeltaRank(Start.getDbConnection(),graph,Start.DELTA_RANK_DB);
 	}
 	public double[][] getDeltaRankMatrix() {
 		if (deltaRank == null) {
