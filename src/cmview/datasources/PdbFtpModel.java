@@ -60,7 +60,7 @@ public class PdbFtpModel extends Model {
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
 			super.checkAndAssignSecondaryStructure();
-			this.graph = pdb.get_graph(edgeType, distCutoff);
+			this.graph = pdb.getRIGraph(edgeType, distCutoff);
 
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();

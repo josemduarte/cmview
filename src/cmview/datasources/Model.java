@@ -117,7 +117,7 @@ public abstract class Model {
 	 */
 	protected void writeTempPdbFile() {
 		try {
-			pdb.dump2pdbfile(getTempPdbFileName());
+			pdb.writeToPDBFile(getTempPdbFileName());
 		} catch (IOException e) {
 			System.err.println("Error writing temporary PDB file "
 					+ getTempPdbFileName());
@@ -443,7 +443,7 @@ public abstract class Model {
 	 * @return
 	 */
 	public String getPdbResSerial(int resser) {
-		return pdb.get_pdbresser_from_resser(resser);
+		return pdb.getPdbResSerFromResSer(resser);
 	}
 
 	public HashMap<Pair<Integer>, Integer> getAllCommonNbhSizes() {
@@ -479,7 +479,7 @@ public abstract class Model {
 	 */
 	public double initDistMatrix() {
 		HashMap<Pair<Integer>, Double> distMatrixRes = this.pdb
-				.calculate_dist_matrix(Start.DIST_MAP_CONTACT_TYPE);
+				.calcDistMatrix(Start.DIST_MAP_CONTACT_TYPE);
 		double max = Collections.max(distMatrixRes.values());
 		double min = Collections.min(distMatrixRes.values());
 		distMatrix = new HashMap<Pair<Integer>, Double>(); // TODO: Use old

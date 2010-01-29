@@ -81,7 +81,7 @@ public class ContactMapFileModel extends Model {
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from contact map file.");
 			throw new ModelConstructionError(e.getMessage());
-		} catch (GraphFileFormatError e){
+		} catch (FileFormatError e){
 			System.err.println("Error while trying to load graph from contact map file. Wrong graph file format.");
 			throw new ModelConstructionError(e.getMessage());			
 		}
