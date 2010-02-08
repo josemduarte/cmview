@@ -354,7 +354,7 @@ public abstract class Model {
 	/** Write the current contact map to a contact map file */
 	public void writeToContactMapFile(String fileName) throws IOException {
 		try {
-			this.graph.write_graph_to_file(fileName);
+			this.graph.writeToFile(fileName);
 		} catch (IOException e) {
 			System.err.println("Error when trying to write contact map file");
 			throw e;
@@ -372,7 +372,7 @@ public abstract class Model {
 
 	/** Write the current contact map to a graph database */
 	public void writeToGraphDb(String dbName) throws SQLException {
-		graph.write_graph_to_db(Start.getDbConnection(), dbName);
+		graph.writeToDb(Start.getDbConnection(), dbName);
 	}
 
 	/**
