@@ -11,8 +11,8 @@ import java.util.Iterator;
 
 import javax.swing.JPanel;
 
-import proteinstructure.Interval;
 import proteinstructure.SecStrucElement;
+import tools.Interval;
 
 import cmview.datasources.Model;
 

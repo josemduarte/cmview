@@ -19,6 +19,9 @@ import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
 import proteinstructure.*;
+import tools.IntPairSet;
+import tools.Interval;
+import tools.IntervalSet;
 
 /**
  * Encapsulates the code for communication with a PyMol server.   	 

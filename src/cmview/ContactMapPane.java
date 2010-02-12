@@ -23,12 +23,12 @@ import javax.swing.border.Border;
 
 import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
-import proteinstructure.IntPairSet;
 import proteinstructure.RIGCommonNbhood;
-import proteinstructure.Interval;
 import proteinstructure.RIGNbhood;
 import proteinstructure.RIGNode;
 import proteinstructure.SecStrucElement;
+import tools.IntPairSet;
+import tools.Interval;
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 

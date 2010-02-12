@@ -36,6 +36,10 @@ import edu.uci.ics.jung.graph.util.Pair;
 import proteinstructure.*;
 import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import tinker.TinkerRunner;
+import tools.IntPairSet;
+import tools.Interval;
+import tools.IntervalSet;
+
 import javax.swing.BoxLayout;
 /**
  * Main GUI window and associated event handling.

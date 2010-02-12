@@ -12,7 +12,6 @@ import actionTools.TinkerStatusNotifier;
 
 import proteinstructure.AAinfo;
 import proteinstructure.Alignment;
-import proteinstructure.IntPairSet;
 import proteinstructure.Pdb;
 import proteinstructure.PdbLoadError;
 import proteinstructure.RIGCommonNbhood;
@@ -23,6 +22,7 @@ import proteinstructure.RIGraph;
 import proteinstructure.SecondaryStructure;
 import tinker.TinkerError;
 import tinker.TinkerRunner;
+import tools.IntPairSet;
 
 import cmview.Start;
 import edu.uci.ics.jung.graph.util.Pair;
