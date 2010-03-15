@@ -18,12 +18,12 @@ public class DeltaRankBar extends JPanel{
 	private String[] vectors;
 	private ContactMapPane contactMapPane;
 	private String sequence;
-	
+	private double[][] probabilities;
+	private String xVector = "LAGVEDSKTIRPNFQYHMWC";
 	
 	public DeltaRankBar() {
 		this.setBackground(Color.WHITE);
 		background = new HashMap<Character, Color>();
-		String xVector = "LAGVEDSKTIRPNFQYHMWC";
 		for (int i = 0; i<20; i++) {
 			background.put(xVector.charAt(i),colorMapScaledHeatmap((double)i/20,0.5));
 		}
@@ -68,27 +68,27 @@ public class DeltaRankBar extends JPanel{
 		}
 		double ratio = contactMapPane.getRatio();
 		int cWidth = (int)ratio;
-		int cHeight = height/20;
+		int cHeight;
 		for (int i = 0; i < vectors.length; i++) {
+			int yPos= 0;
 			for (int j = 0; j < 20; j++) {
 				if (vectors[i].length() == 20) {
+					cHeight = (int)Math.round((height*probabilities[i][xVector.indexOf(vectors[i].charAt(j))]));
 					g.setColor(background.get(vectors[i].charAt(j)));
 				} else {
+					cHeight = height/20;
 					g.setColor(Color.gray);
 				}
 				
-				g.fillRect((int)(i*ratio)+leftMargin, cHeight*j+1, cWidth, cHeight-1);
-				g.drawRect((int)(i*ratio)+leftMargin, cHeight*j, cWidth, cHeight);
+				g.fillRect((int)(i*ratio)+leftMargin, yPos, cWidth+1, cHeight+1);
+
+				if (vectors[i].length() == 20 && vectors[i].charAt(j) == sequence.charAt(i)) {
+					g.setColor(Color.WHITE);
+					g.drawRect((int)(i*ratio)+leftMargin, yPos, cWidth-1, cHeight-1);
+				}
+				yPos += cHeight;
 			}
 		}
-		
-		// white frame around real contacts
-		
-		g.setColor(Color.WHITE);
-		for (int i=0; i < vectors.length; i++) {
-			g.drawRect((int)(i*ratio)+leftMargin, cHeight*vectors[i].indexOf(sequence.charAt(i)), cWidth, cHeight);
-		}
-		
 	}
 	
 	public void setActive(boolean active) {
@@ -98,6 +98,11 @@ public class DeltaRankBar extends JPanel{
 	public void setVectors(String[] vec) {
 		vectors = vec;
 	}
+	
+	public void setProbabilities(double[][] probabilities) {
+		this.probabilities = probabilities;
+	}
+	
 	
 	/**
 	 * Given a number between zero and one, returns a color from a scaled heatmap-style colormap.

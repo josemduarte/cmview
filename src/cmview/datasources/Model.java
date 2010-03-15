@@ -771,4 +771,7 @@ public abstract class Model {
 	public String[] getDeltaRankVectors() {
 		return deltaRank.getVectors();
 	}
+	public double[][] getDeltaRankProbabilities() {
+		return deltaRank.getProbabilities();
+	}
 }

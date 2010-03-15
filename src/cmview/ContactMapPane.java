@@ -1382,6 +1382,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			statusBar.setDeltaRank(ContactMapPane.Round((float)mod.getDeltaRankScore(),2));
 			deltaRankBar.setSequence(mod.getSequence());
 			deltaRankBar.setVectors(mod.getDeltaRankVectors());
+			deltaRankBar.setProbabilities(mod.getDeltaRankProbabilities());
 			deltaRankBar.repaint();
 		}
 		repaint();
