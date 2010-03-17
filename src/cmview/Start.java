@@ -526,7 +526,7 @@ public class Start {
 					mod = new PdbFileModel(inFile,contactType,cutoff,DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
 					mod.load(pdbChainCode, 1);					
 					break;
-				case FileTypeGuesser.AGLAPPE_CM_FILE: 
+				case FileTypeGuesser.OWL_CM_FILE: 
 					mod = new ContactMapFileModel(inFile);
 					break;
 				case FileTypeGuesser.CASP_RR_FILE: 
