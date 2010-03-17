@@ -52,7 +52,7 @@ import javax.swing.BoxLayout;
 public class View extends JFrame implements ActionListener {
 
 	/*------------------------------ constants ------------------------------*/
-	
+	 
 	static final long serialVersionUID = 1l;
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
