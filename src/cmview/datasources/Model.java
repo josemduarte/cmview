@@ -20,6 +20,7 @@ import proteinstructure.RIGNbhood;
 import proteinstructure.RIGNode;
 import proteinstructure.RIGraph;
 import proteinstructure.SecondaryStructure;
+import runners.DsspRunner;
 import tinker.TinkerError;
 import tinker.TinkerRunner;
 import tools.IntPairSet;
@@ -157,7 +158,8 @@ public abstract class Model {
 				System.out
 						.println("(Re)assigning secondary structure using DSSP");
 				try {
-					pdb.runDssp(Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
+					DsspRunner dsspRunner = new DsspRunner();
+					pdb.setSecondaryStructure(dsspRunner.runDssp(pdb,Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS));
 				} catch (IOException e) {
 					System.err.println("Failed to assign secondary structure: "
 							+ e.getMessage());
