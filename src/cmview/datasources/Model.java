@@ -159,8 +159,7 @@ public abstract class Model {
 				System.out
 						.println("(Re)assigning secondary structure using DSSP");
 				try {
-					DsspRunner dsspRunner = new DsspRunner();
-					pdb.setSecondaryStructure(dsspRunner.runDssp(pdb,Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS));
+					pdb.setSecondaryStructure(DsspRunner.runDssp(pdb,Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS));
 				} catch (IOException e) {
 					System.err.println("Failed to assign secondary structure: "
 							+ e.getMessage());
