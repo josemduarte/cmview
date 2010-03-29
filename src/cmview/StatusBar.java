@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import javax.swing.BoxLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -99,7 +100,7 @@ public class StatusBar extends JPanel {
 	protected synchronized void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g.create();
-		drawCoordinates(g2d,5,getHeight()-75);
+		drawCoordinates(g2d,20,getHeight()-75);
 	}
 	
 	protected void drawCoordinates(Graphics2D g2d, int x, int y) {
@@ -109,14 +110,19 @@ public class StatusBar extends JPanel {
 			extraX = 30;
 		}
 		
-		g2d.setColor(Color.BLACK);
-		if (iSeq != "") {
-			g2d.drawLine(5, y-12, getWidth()-6, y-12);
-		}
 		int extraTitleY = 0;
 		if(hasSecondModel) {
-			extraTitleY = 20;	
+			//extraTitleY = 20;	
 			g2d.drawString(title, x, y);
+		}
+		
+		// draw background rectangle
+		g2d.setColor(Color.BLACK);
+		if (iSeq != "") {
+			//g2d.drawLine(5, y-12, getWidth()-6, y-12);
+			g2d.setColor(Color.WHITE);
+			g2d.fill(new RoundRectangle2D.Float(7, y-23, getWidth()-12, 93, 12, 12));
+			g2d.setColor(Color.BLUE);
 		}
 		
 			

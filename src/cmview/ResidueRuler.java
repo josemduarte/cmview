@@ -35,8 +35,9 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	private static final Color TURN_COLOR = new Color(115, 244, 81);
 	//private static final Color SHEET_COLOR = new Color(25,162,223);
 	private static final Color SHEET_COLOR = new Color(255, 0, 51);
-	private static final Color OTHER_COLOR = Color.WHITE;
+	private static final Color OTHER_COLOR = new Color(0,0,0,0);	// transparent (should match background if opaque)
 	private static final Color UNEXPECTED_SS_COLOR = Color.gray;
+	private static final Color BACKGROUND_COLOR = Color.white;		// if opaque, otherwise transparent
 	
 	private ContactMapPane cmPane;
 	private Model mod;
@@ -69,6 +70,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		this.mousePressedPos = new Point();
 		//this.mouseDraggingPos = new Point();
 		//this.dragging = false;
+		this.setOpaque(false);
 	}
 	
 	protected void paintComponent(Graphics g) {
@@ -92,7 +94,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 		
 		ratio = (double)rulerLength/contactMapSize;
 
-		setBackground(Color.white);
+		setBackground(BACKGROUND_COLOR);
 
 		// painting secondary structure elements
 		if (mod.hasSecondaryStructure()){
