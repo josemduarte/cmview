@@ -245,7 +245,7 @@ public class StatusBar extends JPanel {
 
 	public void setDeltaRank(float f) {
 		{
-		deltaRankLable.setText("Ærank: "+f);
+		deltaRankLable.setText("\u0394" + "rank: "+f);
 		}
 	}
 	
