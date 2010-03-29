@@ -1553,7 +1553,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// updating maps
-		if(view.getGUIState().getShowNbhSizeMap()) {
+		if(view.getGUIState().getShowNbhSizeMap() || view.getGUIState().getShowBottomNbhSizeMap()) {
 			if(BACKGROUND_LOADING) {
 				updateNbhSizeMapBg();	// will repaint when done
 			} else {
@@ -1568,7 +1568,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				markComNbhSizeMapAsDirty();
 			}
 		}
-		if(view.getGUIState().getShowDensityMap()) {
+		if(view.getGUIState().getShowDensityMap() || view.getGUIState().getShowBottomDensityMap()) {
 			if(BACKGROUND_LOADING) {
 				updateDensityMapBg();	// will repaint when done
 			} else {
@@ -1583,7 +1583,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				markDensityMapAsDirty();
 			}
 		}
-		if(view.getGUIState().getShowDeltaRankMap()) {
+		if(view.getGUIState().getShowDeltaRankMap() || view.getGUIState().getShowBottomDeltaRankMap()) {
 				getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 				updateDeltaRankMap();
 				doResetCursor = true;
@@ -1951,9 +1951,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	public void deleteSelectedContacts() {
 		for (Pair<Integer> cont:selContacts){
 			mod.removeEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
-			if (hasSecondModel()) {
-				mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
-			}
+			//if (hasSecondModel()) {
+			//	mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
+			//}
 		}
 		resetSelections();
 		reloadContacts();	// will update screen buffer and repaint

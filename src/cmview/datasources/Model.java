@@ -19,6 +19,7 @@ import proteinstructure.RIGEdge;
 import proteinstructure.RIGNbhood;
 import proteinstructure.RIGNode;
 import proteinstructure.RIGraph;
+import proteinstructure.SecStrucElement;
 import proteinstructure.SecondaryStructure;
 import runners.DsspRunner;
 import tinker.TinkerError;

@@ -952,14 +952,14 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbShowComNbh, false);
 		map.put(tbSelModeColor, false);
 		map.put(tbShowComNbh3D, false);
-		map.put(tbDelete, false);
+		map.put(tbDelete, true);
 
 		map.put(tbShowCommon, true);
 		map.put(tbShowFirst, true);
 		map.put(tbShowSecond, true);
 
 		// the show common/first/second buttons are a special case: 
-		// they've ben inatialised invisible, we need also to make them visible
+		// they've been initialized invisible, we need also to make them visible
 		tbShowCommon.setVisible(true);
 		tbShowFirst.setVisible(true);
 		tbShowSecond.setVisible(true);
