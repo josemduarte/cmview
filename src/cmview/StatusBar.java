@@ -22,7 +22,7 @@ import javax.swing.JPanel;
  * - single contact map : show i and j sequence coordinates of current mouse position
  * - single contact map, diagonal selection mode : show additionally the sequence separation 
  * - compare mode : show i and j coordinates of both contact maps side-by-side (plus titles)
- * - residue ruler mode : if mouse is over residue ruler, show only i or j coordinate
+ * - residue ruler mode : if mouse is over residue ruler, indicated by iNum="" or jNum="", show only i or j coordinate
  * Additionally there are some flags to toggle extra information:
  * - hasSecondaryStructure : display secondary structure type of current i and j
  * - writePDBResNum : in addition to canonic sequence coordinates show PDB residue numbers below
@@ -120,7 +120,7 @@ public class StatusBar extends JPanel {
 		
 		int leftMargin = 7;			// margin between bg rectangle and edge
 		int rightMargin = 12;		// margin between bg rectangle and edge
-		int bottomMargin = 13;		// margin between bg rectable and edge
+		int bottomMargin = 5;		// margin between bg rectable and edge
 		int textYOffset = 23;		// top margin between rectangle and first text
 		int firstColumnX = leftMargin + 13;		// from edge
 		int secondColumnX = leftMargin + 55;	// from edge
@@ -131,7 +131,7 @@ public class StatusBar extends JPanel {
 		int hyphenLength = 7;
 		int lineHeight = 20;		// offset between lines
 				
-		int totalHeight = 3 * lineHeight + bottomMargin;		// height for basic information and background
+		int totalHeight = 3 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
 		
 		if(writePDBResNum) {
 			totalHeight += lineHeight;		// for pdb res numbers
@@ -147,7 +147,7 @@ public class StatusBar extends JPanel {
 		
 		// draw background rectangle
 		g2d.setColor(coordinatesBgColor);
-		g2d.fill(new RoundRectangle2D.Float(leftMargin, baseLineY, getWidth()-rightMargin, totalHeight, 12, 12));		
+		g2d.fill(new RoundRectangle2D.Float(leftMargin, baseLineY, getWidth()-rightMargin, totalHeight-bottomMargin, 12, 12));		
 		g2d.setColor(coordinatesColor);
 				
 		// first contact map
@@ -181,10 +181,11 @@ public class StatusBar extends JPanel {
 		
 		// coordinates for j
 		
-		x = secondColumnX;
-		y = baseLineY + textYOffset;
-		
 		if(jNum.length() > 0) {
+			
+			x = secondColumnX;
+			y = baseLineY + textYOffset;
+			
 			if(compareMode) {
 				y += 20;								// skip title
 			} 
@@ -217,15 +218,17 @@ public class StatusBar extends JPanel {
 		// second contact map
 		
 		if(compareMode) {
-		
+					
+			// coordinates for i
+
 			x = thirdColumnX;			// where first text will be written
 			y = baseLineY+textYOffset;	// where first text will be written
 			
-			// coordinates for i
+			g2d.drawString(title2, x, y);			// name of contact map
+			y += 20;
 			
 			if(iNum2.length() > 0) {
-				g2d.drawString(title2, x, y);			// name of contact map
-				y += 20;
+				
 				g2d.drawString(iNum2, x,y);					// sequence coordinates
 				hyphenY = y;
 				y += 20;
@@ -243,10 +246,11 @@ public class StatusBar extends JPanel {
 			
 			// coordinates for j
 			
-			x = fourthColumnX;
-			y = baseLineY + textYOffset;
-			
 			if(jNum2.length() > 0) {
+				
+				x = fourthColumnX;
+				y = baseLineY + textYOffset;
+				
 				y += 20;									// skip title
 				g2d.drawString(jNum2, x, y);				// sequence coordinates	
 				y += 20;
@@ -270,9 +274,8 @@ public class StatusBar extends JPanel {
 			// optionally draw alignment coordinates
 			if(showAliAndSeqPos) {
 				g2d.drawString("Alignm Pos:", firstColumnX, y);
-				g2d.drawString(iAli, thirdColumnX, y);			// alignment coordinates
-				g2d.drawString(jAli, fourthColumnX, y);			// alignment coordinates
-				y += 20;
+				if(iNum.length() > 0) g2d.drawString(iAli, thirdColumnX, y);			// alignment coordinates
+				if(jNum.length() > 0) g2d.drawString(jAli, fourthColumnX, y);			// alignment coordinates
 			}
 		
 		}
@@ -345,16 +348,14 @@ public class StatusBar extends JPanel {
 
 	public void setJAli(String string) {
 		jAli = string;
-		
 	}
 
 	public void setIAli(String string) {
 		iAli = string;
-		
 	}
 
 	public void setShowAliAndSeqPos(boolean b) {
-		showAliAndSeqPos = true;
+		showAliAndSeqPos = b;
 		
 	}
 

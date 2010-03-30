@@ -172,7 +172,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Color squareSelColor;	  		// color of selection rectangle
 	private Color crosshairColor;     		// color of crosshair
 	private Color diagCrosshairColor; 		// color of diagonal "crosshair"
-	private Color coordinatesColor;	  		// color of coordinates
 	private Color inBoxTriangleColor; 		// color for common nbh triangles
 	private Color outBoxTriangleColor;		// color for common nbh triangles
 	private Color crossOnContactColor;		// color for crosses on common nbh
@@ -234,7 +233,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.squareSelColor = Color.black;	
 		this.crosshairColor = Color.green;
 		this.diagCrosshairColor = Color.lightGray;
-		this.coordinatesColor = Color.blue;
 		this.inBoxTriangleColor = Color.cyan;
 		this.outBoxTriangleColor = Color.red;
 		this.crossOnContactColor = Color.yellow;
@@ -505,7 +503,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// draw crosshair and coordinates
 		if((showRulerCoord || showRulerCrosshair) && (currentRulerCoord > 0 && currentRulerCoord <= contactMapSize)) {
 			if(showRulerCoord) {
-				drawRulerCoord(g2d);
+				drawRulerCoord();	// drawn in status bar
 			}
 			if(showRulerCrosshair) {
 				drawRulerCrosshair(g2d);
@@ -742,15 +740,26 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/**
 	 * Draws coordinates for all registered models.
-	 * @param g2d  the graphic onto which the coordinate are supposed to be printed
 	 */
 	protected void drawCoordinates(){
 		if( this.hasSecondModel() ) {
-			drawCoordinates(mod,mod2,allContacts,allSecondContacts,view.getGUIState().getShowAlignmentCoords());
+			drawCoordinates(mod,mod2,allContacts,allSecondContacts,false);
 		} else {
 			drawCoordinates(mod,null,allContacts,null,false);
 		}
 	}
+
+	/**
+	 * Draws coordinates when mouse is over residue ruler.
+	 */
+	private void drawRulerCoord() {
+		if( this.hasSecondModel() ) {
+			drawCoordinates(mod,mod2,allContacts,allSecondContacts,true);
+		} else {
+			drawCoordinates(mod,null,allContacts,null,true);
+		}
+	}		
+
 
 	/**
 	 * Passes coordinates for the given model to the status bar on the right. Please 
@@ -760,25 +769,43 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param mod2 the second model or null if not in compare mode
 	 * @param modContacts  all contacts of mod
 	 * @param modContacts  all contacts of mod2 or null if not in compare mode 
-	 * @param showALiAndSeqPos  toggles between to different position modes: 
-	 *  true -> show alignment as well as sequence positions, false -> show 
-	 *  sequence position only
+	 * @param rulerMode if in ruler mode, show only coordinate(s) of either i or j
 	 */
-	protected void drawCoordinates(Model mod, Model mod2, IntPairSet modContacts, IntPairSet mod2Contacts, boolean showAliAndSeqPos) {
+	protected void drawCoordinates(Model mod, Model mod2, IntPairSet modContacts, IntPairSet mod2Contacts, boolean rulerMode) {
 		Pair<Integer> currentCell = screen2cm(mousePos);
 
 		// alignment indices
-		int iAliIdx = currentCell.getFirst();
-		int jAliIdx = currentCell.getSecond();
+		int iAliIdx = 0;
+		int jAliIdx = 0;
 		
-		// return if any position equals zero
-		if( currentCell.getFirst() == 0 || currentCell.getSecond() == 0 || currentCell.getFirst() > mod.getMatrixSize() || currentCell.getSecond() > mod.getMatrixSize() ) {
+		// initialize position to be shown
+		if(rulerMode) {
+			if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
+				jAliIdx = currentRulerCoord;
+				iAliIdx = 1;					// don't care
+			} else {
+				jAliIdx = 1;					// don't care
+				iAliIdx = currentRulerCoord;
+			}						
+		} else {
+			iAliIdx = currentCell.getFirst();
+			jAliIdx = currentCell.getSecond();			
+		}
+		
+		// return if mouse position is out of bounds
+		//if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > mod.getMatrixSize() || jAliIdx > mod.getMatrixSize() ) {
+		if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > ali.getAlignmentLength() || jAliIdx > ali.getAlignmentLength() ) {
+			// TODO: reset all fields in StatusBar?
 			return;
 		}
 		
-		statusBar.setShowAliAndSeqPos(showAliAndSeqPos);
 		statusBar.setIAli(iAliIdx + "");
 		statusBar.setJAli(jAliIdx + "");
+		if(hasSecondModel() && view.getGUIState().getShowAlignmentCoords()) {
+			statusBar.setShowAliAndSeqPos(true);
+		} else {
+			statusBar.setShowAliAndSeqPos(false);			
+		}
 		
 		// first contact map
 		
@@ -789,8 +816,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
 			
 		// coordinates, residue types and optionally alignment coordinates		
-		statusBar.setINum(iSeqIdx<0?"":iSeqIdx+"");
-		statusBar.setJNum(jSeqIdx<0?"":jSeqIdx+"");
+		statusBar.setINum(iSeqIdx<0?"-":iSeqIdx+"");
+		statusBar.setJNum(jSeqIdx<0?"-":jSeqIdx+"");
 
 		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (iSeqIdx>0) { // to skip gaps
@@ -838,7 +865,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 		// draw hyphen if (i,j) is a contact
-		statusBar.setIsContact(modContacts.contains(currentCell));
+		if(!rulerMode) {
+			statusBar.setIsContact(modContacts.contains(currentCell));
+		}
 		
 		// second contact map
 		
@@ -847,15 +876,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			statusBar.setTitle(mod.getLoadedGraphID()+":");
 			statusBar.setTitle2(mod2.getLoadedGraphID()+":");
 			
-			String aliTag2 = mod.getLoadedGraphID();
+			String aliTag2 = mod2.getLoadedGraphID();
 			
 			// converting to sequence indices
 			int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
 			int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
 				
 			// coordinates, residue types and optionally alignment coordinates		
-			statusBar.setINum2(iSeqIdx2<0?"":iSeqIdx2+"");
-			statusBar.setJNum2(jSeqIdx2<0?"":jSeqIdx2+"");
+			statusBar.setINum2(iSeqIdx2<0?"-":iSeqIdx2+"");
+			statusBar.setJNum2(jSeqIdx2<0?"-":jSeqIdx2+"");
 
 			String i_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
 			if (iSeqIdx2>0) { // to skip gaps
@@ -903,53 +932,30 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 			
 			// draw hyphen if (i,j) is a contact
-			statusBar.setIsContact2(mod2Contacts.contains(currentCell));
-			
-			
+			if(!rulerMode) {
+				statusBar.setIsContact2(mod2Contacts.contains(currentCell));
+			}
 		} else {
 			// write sequence separation in diagonal selection mode
-			if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
+			if(!rulerMode && view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
 				statusBar.setSeqSep(getRange(currentCell)+"");
 				statusBar.setIsDiagSecMode(true);				
-			}	
+			} else {
+				statusBar.setIsDiagSecMode(false);
+			}
+		}
+		
+		if(rulerMode) {
+			if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
+				statusBar.setINum("");		// switch off display of other coordinate
+				statusBar.setINum2("");		// switch off display of other coordinate				
+			} else {
+				statusBar.setJNum("");
+				statusBar.setJNum2("");
+			}						
 		}
 		
 		statusBar.repaint();
-	}
-
-	// TODO: a) Merge this with above function? b) missing second model display, if we allow ruler in compare mode, we must fix this
-	private void drawRulerCoord(Graphics2D g2d) {
-		int xOffset = 20;
-		if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
-			xOffset = xOffset + 40;
-		}
-		
-		int seqIdx = mapAl2Seq(mod.getLoadedGraphID(),currentRulerCoord);
-
-		String res = String.valueOf(AAinfo.getGapCharacterOneLetter());
-		if (seqIdx>0) { // to skip gaps
-			res = mod.getResType(seqIdx);
-		}
-
-		g2d.setColor(coordinatesColor);
-		//g2d.drawString("i", xOffset, outputSize-90);
-		g2d.drawString(seqIdx+"", xOffset, outputSize-70);
-
-		g2d.drawString(res, xOffset, outputSize-50);
-		if (mod.hasSecondaryStructure()){
-			SecStrucElement ssElem = mod.getSecondaryStructure().getSecStrucElement(seqIdx);
-			Character ssType = ssElem==null?' ':ssElem.getType();
-			switch(ssType) {
-			case 'H': ssType = '\u03b1'; break;	// alpha
-			case 'S': ssType = '\u03b2'; break;	// beta
-			default: ssType = ' ';
-			}			
-			g2d.drawString(Character.toString(ssType), xOffset, outputSize-30);
-		}
-		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
-			String pdbresser = mod.getPdbResSerial(seqIdx);
-			g2d.drawString(pdbresser==null?"?":pdbresser, xOffset, outputSize-10);
-		}
 	}
 
 	protected void drawCrosshair(Graphics2D g2d){
