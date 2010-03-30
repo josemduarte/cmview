@@ -745,11 +745,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param g2d  the graphic onto which the coordinate are supposed to be printed
 	 */
 	protected void drawCoordinates(){
-		if( !this.hasSecondModel() ) {
-			drawCoordinates(mod,allContacts,20,outputSize-70,false);
+		if( this.hasSecondModel() ) {
+			drawCoordinates(mod,mod2,allContacts,allSecondContacts,view.getGUIState().getShowAlignmentCoords());
 		} else {
-			drawCoordinates(mod,allContacts,20,outputSize-90,view.getGUIState().getShowAlignmentCoords());
-			drawCoordinates(mod2,allSecondContacts,180,outputSize-90,view.getGUIState().getShowAlignmentCoords());
+			drawCoordinates(mod,null,allContacts,null,false);
 		}
 	}
 
@@ -758,14 +757,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * note, that whenever an ordinate of the current mouse position in the 
 	 * graphic equals zero the coordinates will not be printed. 
 	 * @param mod  the model
+	 * @param mod2 the second model or null if not in compare mode
 	 * @param modContacts  all contacts of mod
-	 * @param x  offset position in the x dimension of the upper left corner
-	 * @param y  offset position in the y dimension of the upper left corner
+	 * @param modContacts  all contacts of mod2 or null if not in compare mode 
 	 * @param showALiAndSeqPos  toggles between to different position modes: 
 	 *  true -> show alignment as well as sequence positions, false -> show 
 	 *  sequence position only
 	 */
-	protected void drawCoordinates(Model mod, IntPairSet modContacts, int x, int y, boolean showAliAndSeqPos) {
+	protected void drawCoordinates(Model mod, Model mod2, IntPairSet modContacts, IntPairSet mod2Contacts, boolean showAliAndSeqPos) {
 		Pair<Integer> currentCell = screen2cm(mousePos);
 
 		// alignment indices
@@ -777,13 +776,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			return;
 		}
 		
+		statusBar.setShowAliAndSeqPos(showAliAndSeqPos);
+		statusBar.setIAli(iAliIdx + "");
+		statusBar.setJAli(jAliIdx + "");
+		
+		// first contact map
+		
 		String aliTag = mod.getLoadedGraphID();
 		
 		// converting to sequence indices
 		int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
 		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+			
+		// coordinates, residue types and optionally alignment coordinates		
+		statusBar.setINum(iSeqIdx<0?"":iSeqIdx+"");
+		statusBar.setJNum(jSeqIdx<0?"":jSeqIdx+"");
 
-		// residue types
 		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (iSeqIdx>0) { // to skip gaps
 			i_res = mod.getResType(iSeqIdx);;
@@ -792,30 +800,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if (jSeqIdx>0) { // to skip gaps
 			j_res = mod.getResType(jSeqIdx);
 		}
-		
-		statusBar.setHasSecondModel(hasSecondModel());
-		
-		if(hasSecondModel()) {
-			statusBar.setTitle(mod.getLoadedGraphID()+":");
-		}
-		
-		
-		// writing coordinates and optionally alignment coordinates
-		
-		statusBar.setISeq(iSeqIdx<0?"":iSeqIdx+"");
-		statusBar.setJSeq(jSeqIdx<0?"":jSeqIdx+"");
-		
-		statusBar.setShowAliAndSeqPos(showAliAndSeqPos);
-		statusBar.setIAli("(" + iAliIdx + ")");
-		statusBar.setJAli("(" + jAliIdx + ")");
-
 		statusBar.setIRes(i_res);
 		statusBar.setJRes(j_res);
-		
-		// writing residue types
-		
-		statusBar.setHasSecondaryStructure(mod.hasSecondaryStructure());
-		
+			
 		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
 			SecStrucElement iSSElem = mod.getSecondaryStructure().getSecStrucElement(iSeqIdx);
@@ -834,31 +821,99 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 			statusBar.setISSType(Character.toString(iSSType));
 			statusBar.setJSSType(Character.toString(jSSType));
-			
-		}
-
-		// draw hyphen if (i,j) is a contact
-		statusBar.setDrawHyphen(modContacts.contains(currentCell));
-
-
-		// write sequence separation in diagonal selection mode
-		statusBar.setIsDiagSecMode(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG);
-		
-		if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
-			if(!hasSecondModel()) { // we don't show seq separation in compare mode
-				statusBar.setSeqSep(getRange(currentCell)+"");
-			}
+			statusBar.setHasSecondaryStructure(true);
+		} else {
+			statusBar.setHasSecondaryStructure(false);
 		}
 		
-		statusBar.setWritePDBResNum(view.getGUIState().getShowPdbSers() && mod.has3DCoordinates());
-		
-		// write pdb residue numbers (if available)
+		// write pdb residue numbers (if enabled & available)
 		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
-			statusBar.setIResNum(i_pdbresser==null?"?":i_pdbresser);
-			statusBar.setJResNum(j_pdbresser==null?"?":j_pdbresser);
+			statusBar.setIPdbNum(i_pdbresser==null?"?":i_pdbresser);
+			statusBar.setJPdbNum(j_pdbresser==null?"?":j_pdbresser);
+			statusBar.setWritePDBResNum(true);		
+		} else {
+			statusBar.setWritePDBResNum(false);
 		}
+		
+		// draw hyphen if (i,j) is a contact
+		statusBar.setIsContact(modContacts.contains(currentCell));
+		
+		// second contact map
+		
+		if(hasSecondModel()) {
+			statusBar.setCompareMode(true);
+			statusBar.setTitle(mod.getLoadedGraphID()+":");
+			statusBar.setTitle2(mod2.getLoadedGraphID()+":");
+			
+			String aliTag2 = mod.getLoadedGraphID();
+			
+			// converting to sequence indices
+			int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
+			int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
+				
+			// coordinates, residue types and optionally alignment coordinates		
+			statusBar.setINum2(iSeqIdx2<0?"":iSeqIdx2+"");
+			statusBar.setJNum2(jSeqIdx2<0?"":jSeqIdx2+"");
+
+			String i_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
+			if (iSeqIdx2>0) { // to skip gaps
+				i_res2 = mod.getResType(iSeqIdx2);;
+			}
+			String j_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
+			if (jSeqIdx2>0) { // to skip gaps
+				j_res2 = mod.getResType(jSeqIdx2);
+			}
+			statusBar.setIRes2(i_res2);
+			statusBar.setJRes2(j_res2);
+							
+			// writing secondary structure
+			if (mod2.hasSecondaryStructure()){
+				SecStrucElement iSSElem2 = mod2.getSecondaryStructure().getSecStrucElement(iSeqIdx2);
+				SecStrucElement jSSElem2 = mod2.getSecondaryStructure().getSecStrucElement(jSeqIdx2);
+				Character iSSType2 = iSSElem2==null?' ':iSSElem2.getType();
+				Character jSSType2 = jSSElem2==null?' ':jSSElem2.getType();
+				switch(iSSType2) {
+				case 'H': iSSType2 = '\u03b1'; break;	// alpha
+				case 'S': iSSType2 = '\u03b2'; break;	// beta
+				default: iSSType2 = ' ';
+				}
+				switch(jSSType2) {
+				case 'H': jSSType2 = '\u03b1'; break;
+				case 'S': jSSType2 = '\u03b2'; break;
+				default: jSSType2 = ' ';
+				}
+				statusBar.setISSType2(Character.toString(iSSType2));
+				statusBar.setJSSType2(Character.toString(jSSType2));
+				statusBar.setHasSecondaryStructure(true);
+			} else {
+				statusBar.setHasSecondaryStructure(false);
+			}
+			
+			// write pdb residue numbers (if enabled & available)
+			if (view.getGUIState().getShowPdbSers() && mod2.has3DCoordinates()){
+				String i_pdbresser2 = mod2.getPdbResSerial(iSeqIdx2);
+				String j_pdbresser2 = mod2.getPdbResSerial(jSeqIdx2);
+				statusBar.setIPdbNum(i_pdbresser2==null?"?":i_pdbresser2);
+				statusBar.setJPdbNum(j_pdbresser2==null?"?":j_pdbresser2);
+				statusBar.setWritePDBResNum(true);		
+			} else {
+				statusBar.setWritePDBResNum(false);
+			}
+			
+			// draw hyphen if (i,j) is a contact
+			statusBar.setIsContact2(mod2Contacts.contains(currentCell));
+			
+			
+		} else {
+			// write sequence separation in diagonal selection mode
+			if(view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
+				statusBar.setSeqSep(getRange(currentCell)+"");
+				statusBar.setIsDiagSecMode(true);				
+			}	
+		}
+		
 		statusBar.repaint();
 	}
 

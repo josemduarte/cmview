@@ -12,55 +12,72 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 
+/**
+ * Status bar component to the right of the contact map. Displays (from top to bottom):
+ * - drop down menus for choosing overlays
+ * - delta rank score (if in delta rank mode)
+ * - sequence coordinates of current mouse position
+ * 
+ * The display of sequent coordinates depends on the mode and some flags. The modes are
+ * - single contact map : show i and j sequence coordinates of current mouse position
+ * - single contact map, diagonal selection mode : show additionally the sequence separation 
+ * - compare mode : show i and j coordinates of both contact maps side-by-side (plus titles)
+ * - residue ruler mode : if mouse is over residue ruler, show only i or j coordinate
+ * Additionally there are some flags to toggle extra information:
+ * - hasSecondaryStructure : display secondary structure type of current i and j
+ * - writePDBResNum : in addition to canonic sequence coordinates show PDB residue numbers below
+ * - showAliAndSeqPos : in addition to sequence coordinates show alingment coordinates (only in compare mode)
+ * @author stehr
+ *
+ */
 public class StatusBar extends JPanel {
-
 	
 	private static final long serialVersionUID = 1L;
-
-	private int width = 170;
-
-	private boolean hasSecondModel = true;
-
-	private String jSeq = "";
-
-	private boolean showAliAndSeqPos = false;
-
-	private String iAli = "";
-
+	
+	// settings
+	private int width = 182;						// width of this component, size matches contact map size
+	private Color coordinatesColor = Color.blue;
+	private Color coordinatesBgColor = Color.white;
+	// different modes for coordinate display (TODO: replace by enum)
+	private boolean compareMode = false;			// if true, display in compare mode, otherwise single contact map mode
+	private boolean seqSepMode = false;				// if true and in single contact map mode, show sequence separation
+	//private boolean residueRulerMode = false;		// now toggled by setting iNum="" or jNum="" 
+	// optional display flags
+	private boolean showAliAndSeqPos = false;		// additionally show alignment coordinates
+	private boolean hasSecondaryStructure = false;	// show secondary structure of i/j
+	private boolean writePDBResNum = false;			// additionally show PDB residue numbers
+	// data to be shown
+	private boolean isContact = false;				// if true, a hyphen is drawn between the coordinates to indicate contact
+	private String iNum = "";						// sequence coordinate
+	private String jNum = "";
+	private String iAli = "";						// alignment coordinate
 	private String jAli = "";
-
-	private String iRes = "";
-
+	private String iRes = "";						// residue type
 	private String jRes = "";
-
-	private boolean hasSecondaryStructure = false;
-
-	private String iSSType = "";
-
+	private String iSSType = "";					// secondary structure type (alpha/beta)
 	private String jSSType = "";
+	private String iPdbNum = "";					// PDB residue number (incl. ggf. insertion code)
+	private String jPdbNum = "";
+	private String title = "";						// name of contact map
+	// data for second contact map in compare mode
+	private boolean isContact2 = false;				// if true, a hyphen is drawn between the coordinates to indicate contact
+	private String iNum2 = "";						// sequence coordinate
+	private String jNum2 = "";
+	private String iRes2 = "";						// residue type
+	private String jRes2 = "";
+	private String iSSType2 = "";					// secondary structure type (alpha/beta)
+	private String jSSType2 = "";
+	private String iPdbNum2 = "";					// PDB residue number (incl. ggf. insertion code)
+	private String jPdbNum2 = "";
+	private String title2 = "";						// name of contact map
 
-	private boolean drawHyphen = false;
-
-	private boolean isDiagSecMode = false;
-
-	private String seqSep = "";
-
-	private boolean writePDBResNum = false;
-
-	private String iResNum = "";
-
-	private String jResNum = "";
-
-	private String iSeq = "";
-
-	private String title = "";
+	private String seqSep = "";						// sequence separation (can't this be calculated from iNum and jNum?)
+	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
 	
-	private JLabel deltaRankLable;
-	
+	// default constructor
 	public StatusBar(BoxLayout boxLayout) {
-		
-		
 	}
+	
 	public void initDeltaRankLable() {
 		this.add(Box.createRigidArea(new Dimension(150,200)));
 		deltaRankLable = new JLabel();
@@ -85,11 +102,7 @@ public class StatusBar extends JPanel {
 	public Dimension getMaximumSize() {
 		return new Dimension(width,super.getMaximumSize().height);
 	}
-	
-	public void setTitle(String string) {
-		// TODO Auto-generated method stub
-		
-	}
+
 	
 	/**
 	 * Main method to draw the component on screen. This method is called each
@@ -100,88 +113,194 @@ public class StatusBar extends JPanel {
 	protected synchronized void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g.create();
-		drawCoordinates(g2d,20,getHeight()-75);
+		drawCoordinates(g2d);
 	}
 	
-	protected void drawCoordinates(Graphics2D g2d, int x, int y) {
-			
-		int extraX = 0;
-		if( showAliAndSeqPos ) {
-			extraX = 30;
-		}
+	protected void drawCoordinates(Graphics2D g2d) {
 		
-		int extraTitleY = 0;
-		if(hasSecondModel) {
-			//extraTitleY = 20;	
-			g2d.drawString(title, x, y);
+		int leftMargin = 7;			// margin between bg rectangle and edge
+		int rightMargin = 12;		// margin between bg rectangle and edge
+		int bottomMargin = 13;		// margin between bg rectable and edge
+		int textYOffset = 23;		// top margin between rectangle and first text
+		int firstColumnX = leftMargin + 13;		// from edge
+		int secondColumnX = leftMargin + 55;	// from edge
+		int thirdColumnX = leftMargin + 90;		// second contact map or seq sep
+		int fourthColumnX = leftMargin + 133;	// leftMargin + 80 + (55-13)
+		int hyphenXOffset = 28;
+		int hyphenYOffset = 15;
+		int hyphenLength = 7;
+		int lineHeight = 20;		// offset between lines
+				
+		int totalHeight = 3 * lineHeight + bottomMargin;		// height for basic information and background
+		
+		if(writePDBResNum) {
+			totalHeight += lineHeight;		// for pdb res numbers
+		}	
+		if(compareMode) {
+			totalHeight += lineHeight;		// for title
 		}
+		if(compareMode && showAliAndSeqPos ) {
+			totalHeight += lineHeight;		// for alignment coordinates
+		}	
+		
+		int baseLineY = getHeight() - totalHeight;	// top of bg rectangle in local coordinates of this component
 		
 		// draw background rectangle
-		g2d.setColor(Color.BLACK);
-		if (iSeq != "") {
-			//g2d.drawLine(5, y-12, getWidth()-6, y-12);
-			g2d.setColor(Color.WHITE);
-			g2d.fill(new RoundRectangle2D.Float(7, y-23, getWidth()-12, 93, 12, 12));
-			g2d.setColor(Color.BLUE);
-		}
+		g2d.setColor(coordinatesBgColor);
+		g2d.fill(new RoundRectangle2D.Float(leftMargin, baseLineY, getWidth()-rightMargin, totalHeight, 12, 12));		
+		g2d.setColor(coordinatesColor);
+				
+		// first contact map
 		
-			
-		// writing coordinates and optionally alignment coordinates
-		g2d.drawString(iSeq, x,y+extraTitleY);
-		g2d.drawString(jSeq, x+extraX+40, y+extraTitleY);
-		if( hasSecondModel && showAliAndSeqPos ) {
-			g2d.drawString(iAli, x+extraX,      y+extraTitleY);
-			g2d.drawString(jAli, x+2*extraX+40, y+extraTitleY);
-		}		 
-
-		// writing residue types
-		g2d.drawString(iRes, x,           y+extraTitleY+20);
-		g2d.drawString(jRes, x+extraX+40, y+extraTitleY+20);
+		int x = firstColumnX;			// where first text will be written
+		int y = baseLineY+textYOffset;	// where first text will be written
+		int hyphenY = 0;				// remember where to draw the hyphen
 		
-		// writing secondary structure
-		if (hasSecondaryStructure){
-			g2d.drawString(iSSType, x,           y+extraTitleY+40);
-			g2d.drawString(jSSType, x+extraX+40, y+extraTitleY+40);
-		}
-
-		// draw hyphen if (i,j) is a contact
-		if(drawHyphen) {
-			g2d.drawLine(x+28, y+extraTitleY+15, x+extraX+35, y+extraTitleY+15);		
-		}
-
-		// write sequence separation in diagonal selection mode
+		// coordinates for i
 		
-		if(isDiagSecMode) {
-			if(!hasSecondModel) { // we don't show seq separation in compare mode
-				g2d.drawString("SeqSep", x+80, y+extraTitleY);
-				g2d.drawString(seqSep, x+extraX+80, y+extraTitleY+20);		
+		if(compareMode) {
+			g2d.drawString(title, x, y);			// name of contact map
+			y += 20;
+		} 
+		
+		if(iNum.length() > 0) {
+			g2d.drawString(iNum, x,y);					// sequence coordinates
+			hyphenY = y;
+			y += 20;
+			g2d.drawString(iRes, x, y);					// residue type
+			y += 20;
+			if (hasSecondaryStructure){
+				g2d.drawString(iSSType, x, y);			// secondary structure
+				y += 20;
+			}
+			if (writePDBResNum) {
+				g2d.drawString(iPdbNum, x, y);			// PDB residue number
+				y += 20;
 			}
 		}
-
-		// write pdb residue numbers (if available)
-		if (writePDBResNum){
-			g2d.drawString(iResNum, x,           y+extraTitleY+60);
-			g2d.drawString(jResNum, x+extraX+40, y+extraTitleY+60);
+		
+		// coordinates for j
+		
+		x = secondColumnX;
+		y = baseLineY + textYOffset;
+		
+		if(jNum.length() > 0) {
+			if(compareMode) {
+				y += 20;								// skip title
+			} 
+			g2d.drawString(jNum, x, y);					// sequence coordinates	
+			y += 20;
+			g2d.drawString(jRes, x, y);					// residue type
+			y += 20;
+			if (hasSecondaryStructure){
+				g2d.drawString(jSSType, x, y);			// secondary structure
+				y += 20;
+			}
+			if (writePDBResNum) {
+				g2d.drawString(jPdbNum, x, y);			// PDB residue number
+				y += 20;
+			}
 		}
-	}
+		
+		// draw hyphen if (i,j) is a contact
+		if(iNum.length() > 0 && jNum.length() > 0 && isContact) {
+			g2d.drawLine(firstColumnX+hyphenXOffset, hyphenY+hyphenYOffset, firstColumnX+hyphenXOffset+hyphenLength, hyphenY+hyphenYOffset);		
+		}
+		
+		// write sequence separation in diagonal select mode
+		if(seqSepMode && !compareMode) { 						// we don't show seq separation in compare mode
+			g2d.drawString("SeqSep", thirdColumnX, baseLineY+textYOffset);
+			g2d.drawString(seqSep, thirdColumnX, baseLineY+textYOffset+lineHeight);		
+			
+		}
 
-	public void setISeq(String string) {
-		iSeq = string;
+		// second contact map
+		
+		if(compareMode) {
+		
+			x = thirdColumnX;			// where first text will be written
+			y = baseLineY+textYOffset;	// where first text will be written
+			
+			// coordinates for i
+			
+			if(iNum2.length() > 0) {
+				g2d.drawString(title2, x, y);			// name of contact map
+				y += 20;
+				g2d.drawString(iNum2, x,y);					// sequence coordinates
+				hyphenY = y;
+				y += 20;
+				g2d.drawString(iRes2, x, y);				// residue type
+				y += 20;
+				if (hasSecondaryStructure){
+					g2d.drawString(iSSType2, x, y);			// secondary structure
+					y += 20;
+				}
+				if (writePDBResNum) {
+					g2d.drawString(iPdbNum2, x, y);			// PDB residue number
+					y += 20;
+				}
+			}
+			
+			// coordinates for j
+			
+			x = fourthColumnX;
+			y = baseLineY + textYOffset;
+			
+			if(jNum2.length() > 0) {
+				y += 20;									// skip title
+				g2d.drawString(jNum2, x, y);				// sequence coordinates	
+				y += 20;
+				g2d.drawString(jRes2, x, y);				// residue type
+				y += 20;
+				if (hasSecondaryStructure){
+					g2d.drawString(jSSType2, x, y);			// secondary structure
+					y += 20;
+				}
+				if (writePDBResNum) {
+					g2d.drawString(jPdbNum2, x, y);			// PDB residue number
+					y += 20;
+				}
+			}
+			
+			// draw hyphen if (i,j) is a contact
+			if(iNum2.length() > 0 && jNum2.length() > 0 && isContact2) {
+				g2d.drawLine(thirdColumnX+hyphenXOffset, hyphenY+hyphenYOffset, thirdColumnX+hyphenXOffset+hyphenLength, hyphenY+hyphenYOffset);		
+			}
+			
+			// optionally draw alignment coordinates
+			if(showAliAndSeqPos) {
+				g2d.drawString("Alignm Pos:", firstColumnX, y);
+				g2d.drawString(iAli, thirdColumnX, y);			// alignment coordinates
+				g2d.drawString(jAli, fourthColumnX, y);			// alignment coordinates
+				y += 20;
+			}
+		
+		}
 		
 	}
 
-	public void setJResNum(String string) {
-		jResNum = string;
+	/*-------------------------- getters and setters -----------------------*/
+	
+	public void setINum(String string) {
+		iNum = string;
 		
 	}
 
-	public void setIResNum(String string) {
-		iResNum = string;
+	public void setJPdbNum(String string) {
+		jPdbNum = string;
 		
 	}
 
+	public void setIPdbNum(String string) {
+		iPdbNum = string;
+	}
+	
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
 	public void setWritePDBResNum(boolean b) {
-		writePDBResNum = b;
+		writePDBResNum = false;
 		
 	}
 
@@ -191,12 +310,12 @@ public class StatusBar extends JPanel {
 	}
 
 	public void setIsDiagSecMode(boolean b) {
-		isDiagSecMode = b;
+		seqSepMode = b;
 		
 	}
 
-	public void setDrawHyphen(boolean b) {
-		drawHyphen = b;
+	public void setIsContact(boolean b) {
+		isContact = b;
 		
 	}
 
@@ -235,17 +354,17 @@ public class StatusBar extends JPanel {
 	}
 
 	public void setShowAliAndSeqPos(boolean b) {
-		showAliAndSeqPos = b;
+		showAliAndSeqPos = true;
 		
 	}
 
-	public void setJSeq(String string) {
-		jSeq = string;
+	public void setJNum(String string) {
+		jNum = string;
 		
 	}
 
-	public void setHasSecondModel(boolean b) {
-		hasSecondModel = b;
+	public void setCompareMode(boolean b) {
+		compareMode = b;
 		
 	}
 
@@ -253,6 +372,46 @@ public class StatusBar extends JPanel {
 		{
 		deltaRankLable.setText("\u0394" + "rank: "+f);
 		}
+	}
+
+	public void setIsContact2(boolean isContact2) {
+		this.isContact2 = isContact2;
+	}
+
+	public void setINum2(String num2) {
+		iNum2 = num2;
+	}
+
+	public void setJNum2(String num2) {
+		jNum2 = num2;
+	}
+
+	public void setIRes2(String res2) {
+		iRes2 = res2;
+	}
+
+	public void setJRes2(String res2) {
+		jRes2 = res2;
+	}
+
+	public void setISSType2(String type2) {
+		iSSType2 = type2;
+	}
+
+	public void setJSSType2(String type2) {
+		jSSType2 = type2;
+	}
+
+	public void setIPdbNum2(String pdbNum2) {
+		iPdbNum2 = pdbNum2;
+	}
+
+	public void setJPdbNum2(String pdbNum2) {
+		jPdbNum2 = pdbNum2;
+	}
+
+	public void setTitle2(String title2) {
+		this.title2 = title2;
 	}
 	
 }
