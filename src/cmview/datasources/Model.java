@@ -7,27 +7,28 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 
-import actionTools.GetterError;
-import actionTools.TinkerStatusNotifier;
+import owl.core.runners.DsspRunner;
+import owl.core.runners.tinker.TinkerError;
+import owl.core.runners.tinker.TinkerRunner;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+import owl.core.structure.AAinfo;
+import owl.core.structure.Pdb;
+import owl.core.structure.PdbLoadError;
+import owl.core.structure.features.SecondaryStructure;
+import owl.core.structure.graphs.RIGCommonNbhood;
+import owl.core.structure.graphs.RIGEdge;
+import owl.core.structure.graphs.RIGNbhood;
+import owl.core.structure.graphs.RIGNode;
+import owl.core.structure.graphs.RIGraph;
+import owl.core.util.IntPairSet;
+import owl.core.util.actionTools.GetterError;
+import owl.core.util.actionTools.TinkerStatusNotifier;
+import owl.deltaRank.DeltaRank;
 
-import proteinstructure.AAinfo;
-import proteinstructure.Alignment;
-import proteinstructure.Pdb;
-import proteinstructure.PdbLoadError;
-import proteinstructure.RIGCommonNbhood;
-import proteinstructure.RIGEdge;
-import proteinstructure.RIGNbhood;
-import proteinstructure.RIGNode;
-import proteinstructure.RIGraph;
-import proteinstructure.SecondaryStructure;
-import runners.DsspRunner;
-import tinker.TinkerError;
-import tinker.TinkerRunner;
-import tools.IntPairSet;
+
 
 import cmview.Start;
 import edu.uci.ics.jung.graph.util.Pair;
-import deltaRank.DeltaRank;
 /**
  * A contact map data model. Derived classes have to implement the constructor
  * in which the structure is loaded, the member variables are set appropriately
@@ -516,7 +517,7 @@ public abstract class Model {
 	 * @return A map assigning to each edge the corresponding value in the
 	 *         difference distance matrix or null on error.
 	 */
-	public HashMap<Pair<Integer>, Double> getDiffDistMatrix(Alignment ali,
+	public HashMap<Pair<Integer>, Double> getDiffDistMatrix(MultipleSequenceAlignment ali,
 			Model secondModel) {
 		/*
 		 * TODO: Also force c-alpha for simple distance maps? Throw proper

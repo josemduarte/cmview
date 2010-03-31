@@ -14,14 +14,16 @@ import java.util.TreeMap;
 
 import javax.naming.TimeLimitExceededException; //we are using this for our own purposes here (to mark a timeout)
 
+import owl.core.structure.*;
+import owl.core.structure.graphs.RIGCommonNbhood;
+import owl.core.util.IntPairSet;
+import owl.core.util.Interval;
+import owl.core.util.IntervalSet;
+
 import cmview.datasources.Model;
 
 import edu.uci.ics.jung.graph.util.Pair;
 
-import proteinstructure.*;
-import tools.IntPairSet;
-import tools.Interval;
-import tools.IntervalSet;
 
 /**
  * Encapsulates the code for communication with a PyMol server.   	 

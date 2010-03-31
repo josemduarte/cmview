@@ -14,12 +14,13 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import proteinstructure.FileTypeGuesser;
-import proteinstructure.PdbCodeNotFoundError;
-import proteinstructure.Pdb;
-import proteinstructure.ProtStructGraph;
+import owl.core.structure.Pdb;
+import owl.core.structure.PdbCodeNotFoundError;
+import owl.core.structure.graphs.ProtStructGraph;
+import owl.core.util.FileTypeGuesser;
+import owl.core.util.MySQLConnection;
 
-import tools.MySQLConnection;
+
 
 import cmview.datasources.*;
 

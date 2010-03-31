@@ -1,7 +1,9 @@
 package cmview.datasources;
-import proteinstructure.*;
 
 import java.io.IOException;
+
+import owl.core.structure.graphs.CaspRRFileRIGraph;
+import owl.core.util.FileFormatError;
 
 import cmview.Start;
 

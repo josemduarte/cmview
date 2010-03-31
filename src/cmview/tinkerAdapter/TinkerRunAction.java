@@ -3,7 +3,8 @@ package cmview.tinkerAdapter;
 import java.io.File;
 import java.io.IOException;
 
-import tinker.TinkerRunner;
+import owl.core.runners.tinker.TinkerRunner;
+
 import cmview.Start;
 import cmview.View;
 import cmview.datasources.Model;

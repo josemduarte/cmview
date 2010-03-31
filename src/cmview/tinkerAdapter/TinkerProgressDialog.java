@@ -18,9 +18,10 @@ import javax.swing.JLabel;
 
 import javax.swing.JPanel;
 
+import owl.core.runners.tinker.TinkerRunner;
+
 import cmview.Start;
 
-import tinker.TinkerRunner;
 
 
 /**

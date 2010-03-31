@@ -1,6 +1,6 @@
 package cmview.tinkerAdapter;
 
-import tinker.TinkerRunner;
+import owl.core.runners.tinker.TinkerRunner;
 
 public abstract class TinkerAction {
 	

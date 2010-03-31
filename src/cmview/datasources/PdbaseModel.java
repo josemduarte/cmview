@@ -1,9 +1,10 @@
 package cmview.datasources;
 import java.sql.SQLException;
 
+import owl.core.structure.*;
+
 import cmview.Start;
 
-import proteinstructure.*;
 
 /** 
  * A contact map data model based on a structure loaded from Pdbase.

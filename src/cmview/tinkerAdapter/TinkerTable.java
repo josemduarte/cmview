@@ -6,9 +6,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.*;
 
+import owl.core.runners.tinker.TinkerRunner;
+
 import cmview.View;
 
-import tinker.TinkerRunner;
 
 /**
  * A window with a table to select the second model to load from a list 

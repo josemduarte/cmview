@@ -1,17 +1,17 @@
 package cmview.toolUtils;
 
-import proteinstructure.Alignment;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
 
 public class AlignmentToolResult extends ToolResult {
 
-	Alignment ali;
+	MultipleSequenceAlignment ali;
 	double    score;
 	
-	public Alignment getAlignment() {
+	public MultipleSequenceAlignment getAlignment() {
 		return ali;
 	}
 	
-	public void setAlignment(Alignment ali) {
+	public void setAlignment(MultipleSequenceAlignment ali) {
 		this.ali = ali;
 	}
 	

@@ -2,7 +2,8 @@ package cmview.tinkerAdapter;
 
 import javax.swing.table.AbstractTableModel;
 
-import tinker.TinkerRunner;
+import owl.core.runners.tinker.TinkerRunner;
+
 
 /**
  * The table model for TinkerTable.

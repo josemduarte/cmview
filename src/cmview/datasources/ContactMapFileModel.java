@@ -1,9 +1,12 @@
 package cmview.datasources;
-import proteinstructure.*;
 import cmview.Start;
 
 import java.io.IOException;
 import java.sql.SQLException;
+
+import owl.core.structure.*;
+import owl.core.structure.graphs.FileRIGraph;
+import owl.core.util.FileFormatError;
 
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.

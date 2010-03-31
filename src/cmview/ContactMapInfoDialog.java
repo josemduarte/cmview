@@ -16,7 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import proteinstructure.Alignment;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+
 
 import cmview.datasources.Model;
 
@@ -34,11 +35,11 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 	JButton showSeqButton;
 	JFrame parent;
 	Model mod, mod2;
-	Alignment alignment;
+	MultipleSequenceAlignment alignment;
 	ContactMapPane cmPane;
 	
 	/*----------------------------- constructors ----------------------------*/
-	ContactMapInfoDialog(JFrame f, Model mod, Model mod2, Alignment alignment, ContactMapPane cmPane) {
+	ContactMapInfoDialog(JFrame f, Model mod, Model mod2, MultipleSequenceAlignment alignment, ContactMapPane cmPane) {
 		
 		// initialize this dialog
 		super(f, true);

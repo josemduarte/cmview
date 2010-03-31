@@ -21,14 +21,15 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
-import proteinstructure.AAinfo;
-import proteinstructure.Alignment;
-import proteinstructure.RIGCommonNbhood;
-import proteinstructure.RIGNbhood;
-import proteinstructure.RIGNode;
-import proteinstructure.SecStrucElement;
-import tools.IntPairSet;
-import tools.Interval;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+import owl.core.structure.AAinfo;
+import owl.core.structure.features.SecStrucElement;
+import owl.core.structure.graphs.RIGCommonNbhood;
+import owl.core.structure.graphs.RIGNbhood;
+import owl.core.structure.graphs.RIGNode;
+import owl.core.util.IntPairSet;
+import owl.core.util.Interval;
+
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -61,7 +62,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private Model mod;
 	private Model mod2;						// optional second model for cm
 											// comparison
-	private Alignment ali; 					// alignment between mod and mod2
+	private MultipleSequenceAlignment ali; 					// alignment between mod and mod2
 	private View view;
 	private int contactMapSize;				// size of the contact map stored in
 											// the underlying model, set once in
@@ -208,7 +209,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param mod
 	 * @param view
 	 */
-	public ContactMapPane(Model mod, Alignment ali, View view){
+	public ContactMapPane(Model mod, MultipleSequenceAlignment ali, View view){
 		//this.mod = mod;  // outsourced the setting of the model to function setModel which is invoked further below
 		this.mod2 = null;
 		this.view = view;
@@ -251,7 +252,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * 
 	 * @param mod  the model to be set
 	 */
-	public void setModel(Model mod, Alignment ali) {
+	public void setModel(Model mod, MultipleSequenceAlignment ali) {
 		this.mod = mod;
 		this.ali = ali;
 		this.allContacts = mapContactSetToAlignment(mod.getLoadedGraphID(),mod.getContacts());
@@ -283,7 +284,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param mod2  the second model
 	 * @param ali	the alignment of first and second model
 	 */
-	public void setSecondModel(Model mod2, Alignment ali) {
+	public void setSecondModel(Model mod2, MultipleSequenceAlignment ali) {
 
 		this.mod2 = mod2;
 		this.ali = ali;
@@ -402,7 +403,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * Returns the alignment. Used to get the alignment from ResidueRuler
 	 * @return
 	 */
-	protected Alignment getAlignment() {
+	protected MultipleSequenceAlignment getAlignment() {
 		return ali;
 	}
 	

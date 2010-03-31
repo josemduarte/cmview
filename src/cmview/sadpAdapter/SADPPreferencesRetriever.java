@@ -3,7 +3,8 @@ package cmview.sadpAdapter;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import sadp.SADP;
+import owl.sadp.SADP;
+
 
 
 /**

@@ -11,8 +11,9 @@ import java.util.Iterator;
 
 import javax.swing.JPanel;
 
-import proteinstructure.SecStrucElement;
-import tools.Interval;
+import owl.core.structure.features.SecStrucElement;
+import owl.core.util.Interval;
+
 
 import cmview.datasources.Model;
 

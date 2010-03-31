@@ -1,6 +1,6 @@
 package cmview.datasources;
+import owl.core.structure.*;
 import cmview.Start;
-import proteinstructure.*;
 
 
 /** 

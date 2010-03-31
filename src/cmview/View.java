@@ -20,8 +20,6 @@ import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import javax.help.*;
 
-import actionTools.Getter;
-import actionTools.GetterError;
 
 import cmview.datasources.*;
 import cmview.sadpAdapter.SADPDialog;
@@ -33,14 +31,22 @@ import cmview.tinkerAdapter.TinkerPreferencesDialog;
 import cmview.tinkerAdapter.TinkerRunAction;
 import cmview.toolUtils.ToolDialog;
 import edu.uci.ics.jung.graph.util.Pair;
-import proteinstructure.*;
-import proteinstructure.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
-import tinker.TinkerRunner;
-import tools.IntPairSet;
-import tools.Interval;
-import tools.IntervalSet;
 
 import javax.swing.BoxLayout;
+
+import owl.core.runners.DaliRunner;
+import owl.core.runners.tinker.TinkerRunner;
+import owl.core.sequence.alignment.AlignmentConstructionError;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+import owl.core.sequence.alignment.PairwiseSequenceAlignment;
+import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
+import owl.core.structure.*;
+import owl.core.util.FileFormatError;
+import owl.core.util.IntPairSet;
+import owl.core.util.Interval;
+import owl.core.util.IntervalSet;
+import owl.core.util.actionTools.Getter;
+import owl.core.util.actionTools.GetterError;
 /**
  * Main GUI window and associated event handling.
  * Multiple instances of this will be shown in separate windows.
@@ -151,7 +157,7 @@ public class View extends JFrame implements ActionListener {
 	private GUIState guiState;
 	private Model mod;
 	private Model mod2;
-	private Alignment ali;
+	private MultipleSequenceAlignment ali;
 	public ContactMapPane cmPane;
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
@@ -621,9 +627,9 @@ public class View extends JFrame implements ActionListener {
 			
 			String[] tags = {mod.getLoadedGraphID()};
 			String[] seqs = {mod.getSequence()};
-			Alignment al = null;
+			MultipleSequenceAlignment al = null;
 			try {
-				al = new Alignment(tags,seqs);
+				al = new MultipleSequenceAlignment(tags,seqs);
 			} catch(AlignmentConstructionError e) {
 				//should be safe to ignore the error because it shouldn't happen, if it does we print anyway an error
 				System.err.println("Unexpected error, something wrong in alignment construction: "+e.getMessage());
@@ -1619,7 +1625,7 @@ public class View extends JFrame implements ActionListener {
 					doDALIAlignment();
 				} else if( source == possibilities[3] ) {
 					// load a user provided alignment from an external source
-					doLoadPairwiseAlignment(Alignment.FASTAFORMAT);
+					doLoadPairwiseAlignment(MultipleSequenceAlignment.FASTAFORMAT);
 				//} else if( source == possibilities[4]) {
 				//	doLoadPairwiseAlignment(Alignment.DALIFORMAT);
 //					} else if( source == possibilities[3] ) {
@@ -1695,7 +1701,7 @@ public class View extends JFrame implements ActionListener {
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		// load alignment
-		ali = new Alignment(source,format);
+		ali = new MultipleSequenceAlignment(source,format);
 
 		// prepare expected sequence identifiers of 'mod1' and 'mod2' in 'ali'
 		String name1 = mod.getLoadedGraphID();
@@ -1787,7 +1793,7 @@ public class View extends JFrame implements ActionListener {
 		
 		try {
 			DaliRunner dali = new DaliRunner(mod.getPdb(), mod2.getPdb(),Start.DALI_EXECUTABLE,Start.TEMP_DIR);
-			doLoadPairwiseAlignment(Alignment.CLUSTALFORMAT,dali.getClustalFile());
+			doLoadPairwiseAlignment(MultipleSequenceAlignment.CLUSTALFORMAT,dali.getClustalFile());
 		} catch (InterruptedException e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 			throw new AlignmentConstructionError("Could not construct alignment: Execution Interrupted");
@@ -1831,7 +1837,7 @@ public class View extends JFrame implements ActionListener {
 		// create alignement
 		String[] names = {name1, name2};
 		String[] seqs = {alignedSeq1, alignedSeq2};
-		ali = new Alignment(names, seqs);
+		ali = new MultipleSequenceAlignment(names, seqs);
 		//ali.printSimple();
 
 
@@ -1862,7 +1868,7 @@ public class View extends JFrame implements ActionListener {
 		String alignedSeq2 = mod2.getSequence();
 		int len1,len2,cap;
 		StringBuffer s = null;
-		char gap = Alignment.getGapCharacter();
+		char gap = MultipleSequenceAlignment.getGapCharacter();
 
 		if( alignedSeq1 == null || alignedSeq1.length() == 0 ) {		// changed by HS, hope this is safer
 
@@ -1993,7 +1999,7 @@ public class View extends JFrame implements ActionListener {
 		String name2 = mod2.getLoadedGraphID();
 		String[] names = {name1, name2};
 		String[] seqs = {alignedSeq1, alignedSeq2};
-		ali = new Alignment(names, seqs);
+		ali = new MultipleSequenceAlignment(names, seqs);
 
 		// load stuff onto the contact map pane and the 3D visualizer
 		doLoadSecondModel(mod2, ali);
@@ -2037,7 +2043,7 @@ public class View extends JFrame implements ActionListener {
 	 *  in <code>mod2</code>. Tags of the sequences are the 
 	 *  loadedGraphID of each Model
 	 */
-	private void doLoadSecondModel(Model mod2, Alignment ali) {
+	private void doLoadSecondModel(Model mod2, MultipleSequenceAlignment ali) {
 		
 		// this has to come first, as it triggers the background to be redrawn, which trigger the error it is supposed to avoid if the second
 		// model is already loaded
@@ -2137,7 +2143,7 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doSuperposition3D(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
+	public void doSuperposition3D(Model mod1, Model mod2, MultipleSequenceAlignment ali, TreeSet<Integer> columns) {
 		TreeSet<String> projectionTags = new TreeSet<String>();
 
 		// get consecutive sequence chunks in mod1 from positions
@@ -2178,7 +2184,7 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>mod2</code>
 	 * @param columns  set of alignment columns to be considered
 	 */
-	public void doShowAlignedResidues3D(Model mod1, Model mod2, Alignment ali, TreeSet<Integer> columns) {
+	public void doShowAlignedResidues3D(Model mod1, Model mod2, MultipleSequenceAlignment ali, TreeSet<Integer> columns) {
 		// extract the residue sequence indices from the 'columns', do not only 
 		// consider (mis)matches
 		IntPairSet residuePairs = new IntPairSet();
@@ -2312,7 +2318,7 @@ public class View extends JFrame implements ActionListener {
 		doSaveAlignment(ali);
 	}
 
-	public void doSaveAlignment(Alignment ali) {
+	public void doSaveAlignment(MultipleSequenceAlignment ali) {
 		if(ali == null) {
 			//System.out.println("No contact map loaded yet.");
 			showCannotSaveEmptyAlignment();

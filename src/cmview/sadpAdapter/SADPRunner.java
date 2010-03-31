@@ -2,22 +2,23 @@ package cmview.sadpAdapter;
 
 import java.util.TreeSet;
 
+import owl.core.sequence.alignment.AlignmentConstructionError;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+import owl.core.sequence.alignment.PairwiseAlignmentConverter;
+import owl.core.structure.graphs.RIGraph;
+import owl.core.util.actionTools.Doer;
+import owl.core.util.actionTools.Retriever;
+import owl.core.util.actionTools.Runner;
+import owl.sadp.ContactMap;
+import owl.sadp.ContactMapConstructorError;
+import owl.sadp.SADP;
+
 import cmview.Start;
 import cmview.datasources.Model;
 import cmview.toolUtils.ToolRunner;
 import edu.uci.ics.jung.graph.util.Pair;
-import actionTools.Doer;
-import actionTools.Retriever;
-import actionTools.Runner;
 
-import proteinstructure.Alignment;
-import proteinstructure.AlignmentConstructionError;
-import proteinstructure.RIGraph;
-import proteinstructure.PairwiseAlignmentConverter;
 
-import sadp.ContactMap;
-import sadp.ContactMapConstructorError;
-import sadp.SADP;
 
 public class SADPRunner extends ToolRunner<SADPResult> {
 
@@ -26,7 +27,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	RIGraph     inG1;
 	RIGraph     inG2;
 	TreeSet<Pair<Integer>>  matching;
-	Alignment ali;
+	MultipleSequenceAlignment ali;
 	String    name1;
 	String    name2;
 	Retriever progressRetriever;
@@ -134,7 +135,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	 * tag "1_" if both PDB-code and chain-ID is missing.
 	 * @return a pairwise sequence alignment
 	 * */
-	private Alignment getAlignment() {
+	private MultipleSequenceAlignment getAlignment() {
 		return ali;
 	}
 
@@ -159,8 +160,8 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	/**
 	 * Makes the alignment based an a set of alignment edges.
 	 * */
-	private Alignment makeAlignment( TreeSet<Pair<Integer>> matching ) throws AlignmentConstructionError {
-		Alignment ali;
+	private MultipleSequenceAlignment makeAlignment( TreeSet<Pair<Integer>> matching ) throws AlignmentConstructionError {
+		MultipleSequenceAlignment ali;
 		if( inG1.getSequence() == null ) {
 			if( inG2.getSequence() == null ) {
 				ali = new PairwiseAlignmentConverter(matching.iterator(),

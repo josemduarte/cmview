@@ -12,11 +12,12 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.text.Document;
 
-import actionTools.Getter;
-import actionTools.GetterError;
+import owl.core.structure.AAinfo;
+import owl.core.structure.Pdb;
+import owl.core.util.actionTools.Getter;
+import owl.core.util.actionTools.GetterError;
 
-import proteinstructure.AAinfo;
-import proteinstructure.Pdb;
+
 
 /**
  * A dialog to load a contact map. This dialog is used by several load commands

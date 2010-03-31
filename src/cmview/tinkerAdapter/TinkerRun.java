@@ -1,8 +1,8 @@
 package cmview.tinkerAdapter;
 
-import actionTools.TinkerStatusNotifier;
+import owl.core.runners.tinker.TinkerRunner;
+import owl.core.util.actionTools.TinkerStatusNotifier;
 
-import tinker.TinkerRunner;
 import cmview.datasources.Model;
 
 /**
@@ -43,7 +43,7 @@ public class TinkerRun implements Runnable {
 	public void run() {
 		TinkerRunner run = mod.runTinker(new TinkerStatusNotifier(this) { 
 			@Override
-			public void sendStatus(tinker.TinkerRunner.STATE s) {
+			public void sendStatus(owl.core.runners.tinker.TinkerRunner.STATE s) {
 				action.sendStatus(s);
 			}
 			@Override

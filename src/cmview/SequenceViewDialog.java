@@ -15,7 +15,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import proteinstructure.Alignment;
+import owl.core.sequence.alignment.MultipleSequenceAlignment;
+
 
 /**
  * A JDialog to show a single sequence or an alignment of sequences in a scrollpane.
@@ -37,7 +38,7 @@ public class SequenceViewDialog extends JDialog implements ActionListener {
 	/**
 	 * Create a new sequence view dialog from an alignment. Currently only tested for alignments with exactly two sequences.
 	 */
-	SequenceViewDialog(JFrame f, Alignment alignment, ContactMapPane cmPane) {
+	SequenceViewDialog(JFrame f, MultipleSequenceAlignment alignment, ContactMapPane cmPane) {
 		super(f, true);
 		// pack sequences into array
 		String[] names = new String[alignment.getNumberOfSequences()];

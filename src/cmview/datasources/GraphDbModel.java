@@ -1,7 +1,10 @@
 package cmview.datasources;
-import proteinstructure.*;
 
 import java.sql.SQLException;
+
+import owl.core.structure.*;
+import owl.core.structure.graphs.DbRIGraph;
+import owl.core.structure.graphs.GraphIdNotFoundError;
 
 import cmview.Start;
 

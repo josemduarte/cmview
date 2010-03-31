@@ -11,13 +11,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
+import owl.core.util.actionTools.Doer;
+import owl.core.util.actionTools.Retriever;
+
 import cmview.Start;
 import cmview.View;
 import cmview.datasources.ModelConstructionError;
 import cmview.datasources.PdbFileModel;
 import cmview.toolUtils.ToolDialog;
-import actionTools.Doer;
-import actionTools.Retriever;
 
 public class SADPDialog extends ToolDialog {
 

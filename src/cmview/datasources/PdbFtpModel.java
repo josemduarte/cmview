@@ -2,7 +2,8 @@ package cmview.datasources;
 import java.io.File;
 import java.io.IOException;
 
-import proteinstructure.*;
+import owl.core.structure.*;
+
 
 import cmview.Start;
 

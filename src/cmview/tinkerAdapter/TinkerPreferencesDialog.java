@@ -19,7 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import tinker.TinkerRunner;
+import owl.core.runners.tinker.TinkerRunner;
+
 
 /**
  * A Dialog to specify preferences for running tinker with the currently loaded first Model

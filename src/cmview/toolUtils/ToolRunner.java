@@ -2,7 +2,8 @@ package cmview.toolUtils;
 
 import java.util.concurrent.Callable;
 
-import actionTools.Action;
+import owl.core.util.actionTools.Action;
+
 
 /**
  * Basic class for any tool that should run in a separate thread.
