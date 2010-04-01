@@ -597,8 +597,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 				}
 
-				drawContact(g2d, cont,false);
-				drawContact(g2d, cont,true);
+				drawContact(g2d, cont,false,view.getGUIState().getShowBackground());
+				drawContact(g2d, cont,true,view.getGUIState().getShowBottomBackground());
 			}
 		} else { // compare mode
 			// 1) common=0, first=0, second=1
@@ -662,10 +662,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color, boolean secondMap) {
 		g2d.setColor(color);
 		for(Pair<Integer> cont:contactSet){
-			drawContact(g2d, cont, secondMap);
+			drawContact(g2d, cont, secondMap,(view.getGUIState().getShowBackground() && !secondMap) || (view.getGUIState().getShowBottomBackground() && secondMap) );
 		}	
 	}
-	
+
 	/**
 	 * Draws the given contact cont to the given graphics object g2d using the
 	 * global contactSquareSize and g2d current painting color.
@@ -681,10 +681,33 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
 		g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
-		
 
 	}
 
+	/**
+	 * Draws the given contact cont to the given graphics object g2d using the
+	 * global contactSquareSize and g2d current painting color.
+	 */
+	private void drawContact(Graphics2D g2d, Pair<Integer> cont, boolean secondMap,boolean small) {
+		int x,y;
+		if (secondMap) {
+			x = getCellUpperLeft(cont).y;
+			y = getCellUpperLeft(cont).x;
+		} else {
+			x = getCellUpperLeft(cont).x;
+			y = getCellUpperLeft(cont).y;
+		}
+		if (small) {
+			g2d.drawRect(1+x+contactSquareSize/3,1+y+contactSquareSize/3,contactSquareSize/3,contactSquareSize/3);
+			g2d.fillRect(1+x+contactSquareSize/3,1+y+contactSquareSize/3,contactSquareSize/3,contactSquareSize/3);
+		} else {
+			g2d.drawRect(x,y,contactSquareSize,contactSquareSize);
+			g2d.fillRect(x,y,contactSquareSize,contactSquareSize);
+		}
+
+	}
+
+	
 	/**
 	 * @param g2d
 	 */
@@ -2216,8 +2239,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		ratio = (double) outputSize/contactMapSize;		// scale factor, = size
 		// of one contact
 		contactSquareSize = (int) (ratio*1); 			// the size of the
-		// square representing a
-		// contact
+		// square representing a contact
 	}
 
 	/*---------------------------- public information methods ---------------------------*/

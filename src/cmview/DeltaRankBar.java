@@ -19,7 +19,7 @@ public class DeltaRankBar extends JPanel{
 	private ContactMapPane contactMapPane;
 	private String sequence;
 	private double[][] probabilities;
-	private String xVector = "LAGVEDSKTIRPNFQYHMWC";
+	private String xVector = "GAKESDNTQRVLHIPMFYCW";
 	
 	public DeltaRankBar() {
 		this.setBackground(Color.WHITE);

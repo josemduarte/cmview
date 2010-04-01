@@ -20,8 +20,6 @@ import owl.core.structure.graphs.ProtStructGraph;
 import owl.core.util.FileTypeGuesser;
 import owl.core.util.MySQLConnection;
 
-
-
 import cmview.datasources.*;
 
 /**
@@ -646,7 +644,6 @@ public class Start {
 			"If the -o  option is used, the given config file will override settings from system-wide or user's config file\n" +
 			"If the -I option is given, a png image with the current contact map will be written instead of starting CMView.\n"+
 			"With the -Y option, pymol will not be started.";
-
 		String pdbCode = null;
 		String inFile = null;
 		String pdbChainCode = null;
@@ -657,7 +654,6 @@ public class Start {
 		boolean doPreload = false;
 		boolean noPymol = false;
 		double cutoff = 0.0;
-
 		Getopt g = new Getopt(APP_NAME, args, "p:f:c:t:d:o:I:vYg:h?");
 		int c;
 		while ((c = g.getopt()) != -1) {

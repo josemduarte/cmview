@@ -331,6 +331,12 @@ public class GUIState {
 	public void setShowBottomDeltaRankMap(boolean b) {
 		this.showBottomDeltaRankMap = b;
 	}
-	
+
+	public boolean getShowBackground() {
+		return showDeltaRankMap || showDensityMap || showDiffDistMap || showDistanceMap;
+	}
+	public boolean getShowBottomBackground() {
+		return showBottomDeltaRankMap || showBottomDensityMap || showBottomDiffDistMap || showBottomDistanceMap;
+	}
 	
 }

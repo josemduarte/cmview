@@ -10,6 +10,7 @@ import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -99,7 +100,9 @@ public class StatusBar extends JPanel {
 	
 	// data rank label
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
-	
+	private JButton addBestDRContact;
+	private JButton removeWorstDRContact;
+
 	/**
 	 * Initializes the status bar
 	 * @param listener the listener which handles the GUI actions in the status bar
@@ -169,6 +172,12 @@ public class StatusBar extends JPanel {
 		deltaRankLable = new JLabel();
 		deltaRankLable.setBounds(5, 5, 100, 20);
 		this.add(deltaRankLable,2);
+		initDeltaRankStrategyButtons();
+	}
+	
+	private void initDeltaRankStrategyButtons() {
+		addBestDRContact = new JButton("add best");
+		removeWorstDRContact = new JButton("remove worst");
 	}
 	
 	/** Method called by this component to determine its minimum size */
