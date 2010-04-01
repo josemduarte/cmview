@@ -16,10 +16,23 @@ import javax.swing.JPanel;
 
 
 /**
- * Status bar component to the right of the contact map. Displays (from top to bottom):
+ * Status bar component to the right of the contact map. The status bar holds several
+ * JPanels which show information and controls depending on the type of data currently
+ * shown in the main view (single contact map, two contact maps, fuzzy map, delta rank).
+ * For information components (e.g. the coordinate display) , the data to be shown is
+ * passed to setter methods. For interactive components (e.g. the overlay dropdown lists)
+ * the action is handled by the view object whose reference is passed in the constructor. 
+ * 
+ * The groups currently shown are (from top to bottom):
  * - drop down menus for choosing overlays
  * - delta rank score (if in delta rank mode)
  * - sequence coordinates of current mouse position
+ * 
+ * Planned groups for future versions:
+ * - delta rank information
+ * - information and controls for compare mode
+ * - controls for fuzzy contact maps (discretization slider)
+ * - evtl. controls for contact maps which have 3D information (e.g. send to PyMol)
  * 
  * The display of sequent coordinates depends on the mode and some flags. The modes are
  * - single contact map : show i and j sequence coordinates of current mouse position
@@ -43,7 +56,7 @@ public class StatusBar extends JPanel {
 	// general members
 	private ActionListener listener; 				// listener for gui actions (parent view object)
 	
-	// background overlays
+	// groups
 	private JPanel overlaysGroup;
 	
 	// coordinate display
@@ -57,7 +70,7 @@ public class StatusBar extends JPanel {
 	private boolean showAliAndSeqPos = false;		// additionally show alignment coordinates
 	private boolean hasSecondaryStructure = false;	// show secondary structure of i/j
 	private boolean writePDBResNum = false;			// additionally show PDB residue numbers
-	// data to be shown
+	// data for first contact map
 	private boolean isContact = false;				// if true, a hyphen is drawn between the coordinates to indicate contact
 	private String iNum = "";						// sequence coordinate
 	private String jNum = "";
@@ -83,20 +96,26 @@ public class StatusBar extends JPanel {
 	private String title2 = "";						// name of contact map
 
 	private String seqSep = "";						// sequence separation (can't this be calculated from iNum and jNum?)
+	
+	// data rank label
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
 	
-	// default constructor
+	/**
+	 * Initializes the status bar
+	 * @param listener the listener which handles the GUI actions in the status bar
+	 */
 	public StatusBar(ActionListener listener) {
 		this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
 		this.listener = listener;
+		this.add(Box.createRigidArea(new Dimension(width, 2)));
 	}
 	
 	/**
 	 * Initialize the group of controls for showing background overlays (distance map, contact density etc.)
 	 */
 	public void initOverlayGroup(JComboBox firstViewCB, JComboBox secondViewCB) {
-		String title = "Overlays";
 		overlaysGroup = new JPanel();
+		String title = "Overlays";
 		firstViewCB.addItem((Object)"Top-Right BG");
 		secondViewCB.addItem((Object)"Bottom-Left BG");
 		Object[] viewOptions = {"Common Nbhd", "Contact Density", "Distance","Delta Rank"};
@@ -125,6 +144,21 @@ public class StatusBar extends JPanel {
 		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
 		this.add(overlaysGroup);
 		this.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
+	}
+	
+	/**
+	 * Toggles the visibility of the overlay group on or off.
+	 * @param show whether to show or hide the overlay group
+	 */
+	public void showOverlayGroup(boolean show) {
+		this.overlaysGroup.setVisible(show);
+	}
+	
+	/**
+	 * Initializes the group for showing coordinates
+	 */
+	public void initCoordinatesGroup() {
+		
 	}
 	
 	/**

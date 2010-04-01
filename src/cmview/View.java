@@ -116,7 +116,7 @@ public class View extends JFrame implements ActionListener {
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 	
-	// GUI components in StatusBar (need to be defined here for handling the action)
+	// GUI components in StatusBar (need to be defined here for handling the gui actions)
 	private JComboBox firstViewCB, secondViewCB;
 	// JLabel firstViewDdLabel, secondViewDdLabel; // not needed anymore? TODO: delete
 	
