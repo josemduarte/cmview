@@ -5,9 +5,12 @@ import java.awt.Dimension;
 import javax.swing.BoxLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -35,7 +38,15 @@ public class StatusBar extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	// settings
-	private int width = 182;						// width of this component, size matches contact map size
+	private int width = 182;						// width of this component, height matches contact map size
+	
+	// general members
+	private ActionListener listener; 				// listener for gui actions (parent view object)
+	
+	// background overlays
+	private JPanel overlaysGroup;
+	
+	// coordinate display
 	private Color coordinatesColor = Color.blue;
 	private Color coordinatesBgColor = Color.white;
 	// different modes for coordinate display (TODO: replace by enum)
@@ -75,9 +86,50 @@ public class StatusBar extends JPanel {
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
 	
 	// default constructor
-	public StatusBar(BoxLayout boxLayout) {
+	public StatusBar(ActionListener listener) {
+		this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
+		this.listener = listener;
 	}
 	
+	/**
+	 * Initialize the group of controls for showing background overlays (distance map, contact density etc.)
+	 */
+	public void initOverlayGroup(JComboBox firstViewCB, JComboBox secondViewCB) {
+		String title = "Overlays";
+		overlaysGroup = new JPanel();
+		firstViewCB.addItem((Object)"Top-Right BG");
+		secondViewCB.addItem((Object)"Bottom-Left BG");
+		Object[] viewOptions = {"Common Nbhd", "Contact Density", "Distance","Delta Rank"};
+		for (Object o : viewOptions) {
+			firstViewCB.addItem(o);
+			secondViewCB.addItem(o);
+		}
+		firstViewCB.setEditable(true);
+		secondViewCB.setEditable(true);
+		firstViewCB.setSize(150, 20);
+		secondViewCB.setSize(150, 20);
+		firstViewCB.setMaximumSize(new Dimension(150,20));
+		secondViewCB.setMaximumSize(new Dimension(150,20));
+		secondViewCB.setMinimumSize(new Dimension(150,20));
+		firstViewCB.setMinimumSize(new Dimension(150,20));
+		firstViewCB.addActionListener(listener);
+		firstViewCB.setAlignmentX(CENTER_ALIGNMENT);
+		secondViewCB.setAlignmentX(CENTER_ALIGNMENT);
+		secondViewCB.addActionListener(listener);
+		overlaysGroup.setLayout(new BoxLayout(overlaysGroup,BoxLayout.PAGE_AXIS));
+		overlaysGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		overlaysGroup.add(Box.createRigidArea(new Dimension(163,10)));
+		overlaysGroup.add(secondViewCB);
+		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		overlaysGroup.add(firstViewCB);
+		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		this.add(overlaysGroup);
+		this.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
+	}
+	
+	/**
+	 * Initialize the label for showing the delta rank score
+	 */
 	public void initDeltaRankLable() {
 		this.add(Box.createRigidArea(new Dimension(150,200)));
 		deltaRankLable = new JLabel();

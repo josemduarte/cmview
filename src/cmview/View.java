@@ -32,8 +32,6 @@ import cmview.tinkerAdapter.TinkerRunAction;
 import cmview.toolUtils.ToolDialog;
 import edu.uci.ics.jung.graph.util.Pair;
 
-import javax.swing.BoxLayout;
-
 import owl.core.runners.DaliRunner;
 import owl.core.runners.tinker.TinkerRunner;
 import owl.core.sequence.alignment.AlignmentConstructionError;
@@ -118,10 +116,9 @@ public class View extends JFrame implements ActionListener {
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 	
-	// View Tool Bar items
-	
-	JLabel firstViewDdLabel, secondViewDdLabel;
-	JComboBox firstViewCB, secondViewCB;
+	// GUI components in StatusBar (need to be defined here for handling the action)
+	private JComboBox firstViewCB, secondViewCB;
+	// JLabel firstViewDdLabel, secondViewDdLabel; // not needed anymore? TODO: delete
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -358,7 +355,7 @@ public class View extends JFrame implements ActionListener {
 		cmp = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
 		topRul = new JPanel(new BorderLayout()); 	// pane holding the top ruler
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
-		statusBar= new StatusBar(new BoxLayout(statusBar,BoxLayout.PAGE_AXIS));
+		statusBar= new StatusBar(this);				// pass reference for handling gui actions
 		deltaRankBar = new DeltaRankBar();
 		
 		// Icons
@@ -417,32 +414,9 @@ public class View extends JFrame implements ActionListener {
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
 		
-		// views tool bar
-		
-		firstViewCB = new JComboBox();
+		firstViewCB = new JComboBox();	// need to be defined here so that source for event can be identified
 		secondViewCB = new JComboBox();
-		firstViewCB.addItem((Object)"Top-Right BG");
-		secondViewCB.addItem((Object)"Bottom-Left BG");
-		Object[] viewOptions = {"Common Neighb.", "Contact Density", "Distance","Delta Rank"};
-		for (Object o : viewOptions) {
-			firstViewCB.addItem(o);
-			secondViewCB.addItem(o);
-
-		}
-		firstViewCB.setEditable(true);
-		secondViewCB.setEditable(true);
-		firstViewCB.setSize(150, 20);
-		secondViewCB.setSize(120, 20);
-		firstViewCB.setMaximumSize(new Dimension(150,20));
-		secondViewCB.setMaximumSize(new Dimension(150,20));
-		secondViewCB.setMinimumSize(new Dimension(150,20));
-		firstViewCB.setMinimumSize(new Dimension(150,20));
-		firstViewCB.addActionListener(this);
-		firstViewCB.setAlignmentX(LEFT_ALIGNMENT);
-		secondViewCB.setAlignmentX(LEFT_ALIGNMENT);
-		secondViewCB.addActionListener(this);
-		statusBar.add(secondViewCB);
-		statusBar.add(firstViewCB);
+		statusBar.initOverlayGroup(firstViewCB, secondViewCB);	// passing gui components which require action handling
 		statusBar.initDeltaRankLable();
 		
 		// Toggle buttons in view menu (not being used yet)
