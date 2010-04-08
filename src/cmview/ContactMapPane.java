@@ -60,7 +60,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private int hitcounter = 0;
 	// underlying data
 	private Model mod;
-	private Model mod2;						// optional second model for cm
+	private Model mod2;						// optional second model for cm, is null for single model mode
 											// comparison
 	private MultipleSequenceAlignment ali; 					// alignment between mod and mod2
 	private View view;
@@ -823,12 +823,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			return;
 		}
 		
-		statusBar.setIAli(iAliIdx + "");
-		statusBar.setJAli(jAliIdx + "");
+		statusBar.getCoordinatesPanel().setIAli(iAliIdx + "");
+		statusBar.getCoordinatesPanel().setJAli(jAliIdx + "");
 		if(hasSecondModel() && view.getGUIState().getShowAlignmentCoords()) {
-			statusBar.setShowAliAndSeqPos(true);
+			statusBar.getCoordinatesPanel().setShowAliAndSeqPos(true);
 		} else {
-			statusBar.setShowAliAndSeqPos(false);			
+			statusBar.getCoordinatesPanel().setShowAliAndSeqPos(false);			
 		}
 		
 		// first contact map
@@ -840,8 +840,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
 			
 		// coordinates, residue types and optionally alignment coordinates		
-		statusBar.setINum(iSeqIdx<0?"-":iSeqIdx+"");
-		statusBar.setJNum(jSeqIdx<0?"-":jSeqIdx+"");
+		statusBar.getCoordinatesPanel().setINum(iSeqIdx<0?"-":iSeqIdx+"");
+		statusBar.getCoordinatesPanel().setJNum(jSeqIdx<0?"-":jSeqIdx+"");
 
 		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
 		if (iSeqIdx>0) { // to skip gaps
@@ -851,8 +851,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if (jSeqIdx>0) { // to skip gaps
 			j_res = mod.getResType(jSeqIdx);
 		}
-		statusBar.setIRes(i_res);
-		statusBar.setJRes(j_res);
+		statusBar.getCoordinatesPanel().setIRes(i_res);
+		statusBar.getCoordinatesPanel().setJRes(j_res);
 			
 		// writing secondary structure
 		if (mod.hasSecondaryStructure()){
@@ -870,35 +870,35 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case 'S': jSSType = '\u03b2'; break;
 			default: jSSType = ' ';
 			}
-			statusBar.setISSType(Character.toString(iSSType));
-			statusBar.setJSSType(Character.toString(jSSType));
-			statusBar.setHasSecondaryStructure(true);
+			statusBar.getCoordinatesPanel().setISSType(Character.toString(iSSType));
+			statusBar.getCoordinatesPanel().setJSSType(Character.toString(jSSType));
+			statusBar.getCoordinatesPanel().setHasSecondaryStructure(true);
 		} else {
-			statusBar.setHasSecondaryStructure(false);
+			statusBar.getCoordinatesPanel().setHasSecondaryStructure(false);
 		}
 		
 		// write pdb residue numbers (if enabled & available)
 		if (view.getGUIState().getShowPdbSers() && mod.has3DCoordinates()){
 			String i_pdbresser = mod.getPdbResSerial(iSeqIdx);
 			String j_pdbresser = mod.getPdbResSerial(jSeqIdx);
-			statusBar.setIPdbNum(i_pdbresser==null?"?":i_pdbresser);
-			statusBar.setJPdbNum(j_pdbresser==null?"?":j_pdbresser);
-			statusBar.setWritePDBResNum(true);		
+			statusBar.getCoordinatesPanel().setIPdbNum(i_pdbresser==null?"?":i_pdbresser);
+			statusBar.getCoordinatesPanel().setJPdbNum(j_pdbresser==null?"?":j_pdbresser);
+			statusBar.getCoordinatesPanel().setWritePDBResNum(true);		
 		} else {
-			statusBar.setWritePDBResNum(false);
+			statusBar.getCoordinatesPanel().setWritePDBResNum(false);
 		}
 		
 		// draw hyphen if (i,j) is a contact
 		if(!rulerMode) {
-			statusBar.setIsContact(modContacts.contains(currentCell));
+			statusBar.getCoordinatesPanel().setIsContact(modContacts.contains(currentCell));
 		}
 		
 		// second contact map
 		
 		if(hasSecondModel()) {
-			statusBar.setCompareMode(true);
-			statusBar.setTitle(mod.getLoadedGraphID()+":");
-			statusBar.setTitle2(mod2.getLoadedGraphID()+":");
+			statusBar.getCoordinatesPanel().setCompareMode(true);
+			statusBar.getCoordinatesPanel().setTitle(mod.getLoadedGraphID()+":");
+			statusBar.getCoordinatesPanel().setTitle2(mod2.getLoadedGraphID()+":");
 			
 			String aliTag2 = mod2.getLoadedGraphID();
 			
@@ -907,8 +907,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
 				
 			// coordinates, residue types and optionally alignment coordinates		
-			statusBar.setINum2(iSeqIdx2<0?"-":iSeqIdx2+"");
-			statusBar.setJNum2(jSeqIdx2<0?"-":jSeqIdx2+"");
+			statusBar.getCoordinatesPanel().setINum2(iSeqIdx2<0?"-":iSeqIdx2+"");
+			statusBar.getCoordinatesPanel().setJNum2(jSeqIdx2<0?"-":jSeqIdx2+"");
 
 			String i_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
 			if (iSeqIdx2>0) { // to skip gaps
@@ -918,8 +918,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if (jSeqIdx2>0) { // to skip gaps
 				j_res2 = mod.getResType(jSeqIdx2);
 			}
-			statusBar.setIRes2(i_res2);
-			statusBar.setJRes2(j_res2);
+			statusBar.getCoordinatesPanel().setIRes2(i_res2);
+			statusBar.getCoordinatesPanel().setJRes2(j_res2);
 							
 			// writing secondary structure
 			if (mod2.hasSecondaryStructure()){
@@ -937,45 +937,45 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				case 'S': jSSType2 = '\u03b2'; break;
 				default: jSSType2 = ' ';
 				}
-				statusBar.setISSType2(Character.toString(iSSType2));
-				statusBar.setJSSType2(Character.toString(jSSType2));
-				statusBar.setHasSecondaryStructure(true);
+				statusBar.getCoordinatesPanel().setISSType2(Character.toString(iSSType2));
+				statusBar.getCoordinatesPanel().setJSSType2(Character.toString(jSSType2));
+				statusBar.getCoordinatesPanel().setHasSecondaryStructure(true);
 			} else {
-				statusBar.setHasSecondaryStructure(false);
+				statusBar.getCoordinatesPanel().setHasSecondaryStructure(false);
 			}
 			
 			// write pdb residue numbers (if enabled & available)
 			if (view.getGUIState().getShowPdbSers() && mod2.has3DCoordinates()){
 				String i_pdbresser2 = mod2.getPdbResSerial(iSeqIdx2);
 				String j_pdbresser2 = mod2.getPdbResSerial(jSeqIdx2);
-				statusBar.setIPdbNum(i_pdbresser2==null?"?":i_pdbresser2);
-				statusBar.setJPdbNum(j_pdbresser2==null?"?":j_pdbresser2);
-				statusBar.setWritePDBResNum(true);		
+				statusBar.getCoordinatesPanel().setIPdbNum(i_pdbresser2==null?"?":i_pdbresser2);
+				statusBar.getCoordinatesPanel().setJPdbNum(j_pdbresser2==null?"?":j_pdbresser2);
+				statusBar.getCoordinatesPanel().setWritePDBResNum(true);		
 			} else {
-				statusBar.setWritePDBResNum(false);
+				statusBar.getCoordinatesPanel().setWritePDBResNum(false);
 			}
 			
 			// draw hyphen if (i,j) is a contact
 			if(!rulerMode) {
-				statusBar.setIsContact2(mod2Contacts.contains(currentCell));
+				statusBar.getCoordinatesPanel().setIsContact2(mod2Contacts.contains(currentCell));
 			}
 		} else {
 			// write sequence separation in diagonal selection mode
 			if(!rulerMode && view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG) {
-				statusBar.setSeqSep(getRange(currentCell)+"");
-				statusBar.setIsDiagSecMode(true);				
+				statusBar.getCoordinatesPanel().setSeqSep(getRange(currentCell)+"");
+				statusBar.getCoordinatesPanel().setIsDiagSecMode(true);				
 			} else {
-				statusBar.setIsDiagSecMode(false);
+				statusBar.getCoordinatesPanel().setIsDiagSecMode(false);
 			}
 		}
 		
 		if(rulerMode) {
 			if (currentRulerMouseLocation==ResidueRuler.TOP || currentRulerMouseLocation==ResidueRuler.BOTTOM) {
-				statusBar.setINum("");		// switch off display of other coordinate
-				statusBar.setINum2("");		// switch off display of other coordinate				
+				statusBar.getCoordinatesPanel().setINum("");		// switch off display of other coordinate
+				statusBar.getCoordinatesPanel().setINum2("");		// switch off display of other coordinate				
 			} else {
-				statusBar.setJNum("");
-				statusBar.setJNum2("");
+				statusBar.getCoordinatesPanel().setJNum("");
+				statusBar.getCoordinatesPanel().setJNum2("");
 			}						
 		}
 		

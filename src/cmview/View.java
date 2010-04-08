@@ -115,11 +115,7 @@ public class View extends JFrame implements ActionListener {
 	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
-	
-	// GUI components in StatusBar (need to be defined here for handling the gui actions)
-	private JComboBox firstViewCB, secondViewCB;
-	// JLabel firstViewDdLabel, secondViewDdLabel; // not needed anymore? TODO: delete
-	
+		
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
 
@@ -355,7 +351,7 @@ public class View extends JFrame implements ActionListener {
 		cmp = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
 		topRul = new JPanel(new BorderLayout()); 	// pane holding the top ruler
 		leftRul = new JPanel(new BorderLayout()); 	// pane holding the left ruler
-		statusBar= new StatusBar(this);				// pass reference for handling gui actions
+		statusBar= new StatusBar(this);				// pass reference to 'this' for handling gui actions
 		deltaRankBar = new DeltaRankBar();
 		
 		// Icons
@@ -414,11 +410,10 @@ public class View extends JFrame implements ActionListener {
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
 		
-		firstViewCB = new JComboBox();	// need to be defined here so that source for event can be identified
-		secondViewCB = new JComboBox();
-		statusBar.initOverlayGroup(firstViewCB, secondViewCB);	// passing gui components which require action handling
+		// init status bar
+		statusBar.initOverlayGroup();
 		statusBar.initDeltaRankLable();
-		
+	
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
@@ -1010,14 +1005,7 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmViewShowPdbResSers) {
 			handleShowPdbResSers();
 		}		  
-		if(e.getSource() == firstViewCB) {
-			handleViewChange(false);
-		}
-		if(e.getSource() == secondViewCB) {
-			handleViewChange(true);
-		}
 		
-
 		/* ---------- Select menu ---------- */
 
 		if(e.getSource() == mmSelectAll  ) {
@@ -1181,12 +1169,12 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmHelpWriteConfig) {
 			handleHelpWriteConfig();
 		}
-
+		
 		/* ---------------- Invisible Notifiers --------------- */
 		if( e.getSource() == sadpNotifier && sadpNotifier.notification() == SADPDialog.DONE ) {
 			handlePairwiseAlignmentResults(sadpNotifier);
 		}
-
+		
 	}
 
 
@@ -3132,27 +3120,22 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	/**
-	 * 
+	 * Handles the event that a new overlay in the overlays dropdown lists is chosen.
+	 * This method is called by StatusBar as a response to the gui action.
+	 * @param secondView whether the second drop down list was changed, otherwise the first
+	 * @param selectedIndex which index was selected from the drop down list
 	 */
-	
-	private void handleViewChange(boolean secondView) {
-		JComboBox viewCB;
-		
-		if(secondView) {
-			viewCB = secondViewCB;	
-		} else {
-			viewCB = firstViewCB;
-		}
+	protected void handleBgOverlayChange(boolean secondView, int selectedIndex) {
 		
 		clearBackgrounds(secondView);
 		
-		if (viewCB.getSelectedIndex() == 1) {
+		if (selectedIndex == 1) {
 			handleShowNbhSizeMap(secondView);
-		} else if (viewCB.getSelectedIndex() == 2) {
+		} else if (selectedIndex == 2) {
 			handleShowDensityMap(secondView);
-		} else if (viewCB.getSelectedIndex() == 3) {
+		} else if (selectedIndex == 3) {
 			handleShowDistanceMap(secondView);
-		} else if (viewCB.getSelectedIndex() == 4) {
+		} else if (selectedIndex == 4) {
 			handleShowDeltaRankMap(secondView);
 		}
 	}

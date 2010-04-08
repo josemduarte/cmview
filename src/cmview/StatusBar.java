@@ -1,33 +1,35 @@
 package cmview;
 
-import java.awt.Color;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.BoxLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 
 
 /**
  * Status bar component to the right of the contact map. The status bar holds several
  * JPanels which show information and controls depending on the type of data currently
- * shown in the main view (single contact map, two contact maps, fuzzy map, delta rank).
+ * displayed in the main view (single contact map, two contact maps, fuzzy map, delta rank).
  * For information components (e.g. the coordinate display) , the data to be shown is
  * passed to setter methods. For interactive components (e.g. the overlay dropdown lists)
- * the action is handled by the view object whose reference is passed in the constructor. 
+ * the actions are handled by the view object whose reference is passed in the constructor. 
  * 
  * The groups currently shown are (from top to bottom):
  * - drop down menus for choosing overlays
  * - delta rank score (if in delta rank mode)
- * - sequence coordinates of current mouse position
+ * - sequence coordinates of current mouse position (using CoordinatesPanel)
  * 
  * Planned groups for future versions:
  * - delta rank information
@@ -47,80 +49,75 @@ import javax.swing.JPanel;
  * @author stehr
  *
  */
-public class StatusBar extends JPanel {
+public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	
 	private static final long serialVersionUID = 1L;
 	
 	// settings
 	private int width = 182;						// width of this component, height matches contact map size
+	private int groupWidth = width - 20;			// width of information groups within StatusBar
 	
 	// general members
-	private ActionListener listener; 				// listener for gui actions (parent view object)
+	private View controller; 						// controller which is notified as a response to gui actions
 	
-	// groups
-	private JPanel overlaysGroup;
+	// subcomponents
+	private JPanel groupsPane;						// panel holding the subgroups
+	private CoordinatesPanel coordinatesPanel;		// panel showing coordinates
 	
-	// coordinate display
-	private Color coordinatesColor = Color.blue;
-	private Color coordinatesBgColor = Color.white;
-	// different modes for coordinate display (TODO: replace by enum)
-	private boolean compareMode = false;			// if true, display in compare mode, otherwise single contact map mode
-	private boolean seqSepMode = false;				// if true and in single contact map mode, show sequence separation
-	//private boolean residueRulerMode = false;		// now toggled by setting iNum="" or jNum="" 
-	// optional display flags
-	private boolean showAliAndSeqPos = false;		// additionally show alignment coordinates
-	private boolean hasSecondaryStructure = false;	// show secondary structure of i/j
-	private boolean writePDBResNum = false;			// additionally show PDB residue numbers
-	// data for first contact map
-	private boolean isContact = false;				// if true, a hyphen is drawn between the coordinates to indicate contact
-	private String iNum = "";						// sequence coordinate
-	private String jNum = "";
-	private String iAli = "";						// alignment coordinate
-	private String jAli = "";
-	private String iRes = "";						// residue type
-	private String jRes = "";
-	private String iSSType = "";					// secondary structure type (alpha/beta)
-	private String jSSType = "";
-	private String iPdbNum = "";					// PDB residue number (incl. ggf. insertion code)
-	private String jPdbNum = "";
-	private String title = "";						// name of contact map
-	// data for second contact map in compare mode
-	private boolean isContact2 = false;				// if true, a hyphen is drawn between the coordinates to indicate contact
-	private String iNum2 = "";						// sequence coordinate
-	private String jNum2 = "";
-	private String iRes2 = "";						// residue type
-	private String jRes2 = "";
-	private String iSSType2 = "";					// secondary structure type (alpha/beta)
-	private String jSSType2 = "";
-	private String iPdbNum2 = "";					// PDB residue number (incl. ggf. insertion code)
-	private String jPdbNum2 = "";
-	private String title2 = "";						// name of contact map
-
-	private String seqSep = "";						// sequence separation (can't this be calculated from iNum and jNum?)
-	
+	private JPanel overlaysGroup;					// background overlays
+	private JPanel coordinatesGroup;				// TODO: coordinates
+	private JPanel multiModelGroup; 				// TODO: discretization slider
+//	private JPanel compareGroup;					// TODO: controls for compare mode
+//	private JPanel filterGroup;						// TODO: contact filters (sequence separation, distance, ...)
+		
 	// data rank label
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
 	private JButton addBestDRContactButton;
 	private JButton removeWorstDRContactButton;
-
+	
+	// gui components in subgroups
+	private JComboBox firstViewCB, secondViewCB;			// drop down lists in overlaysGroup
+	private JCheckBox discretizeCheckBox;					// to switch discretization slider on/off
+	private JSlider discretizationSlider;					// to choose a cutoff for discretization
+	private JButton discretizeButton;						// to permanently apply discretization
+	
 	/**
 	 * Initializes the status bar
-	 * @param listener the listener which handles the GUI actions in the status bar
+	 * @param controller the controller which is notified on gui actions in the status bar
 	 */
-	public StatusBar(ActionListener listener) {
-		this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
-		this.listener = listener;
-		this.add(Box.createRigidArea(new Dimension(width, 2)));
+	public StatusBar(View controller) {
+		//this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
+		//this.add(Box.createRigidArea(new Dimension(width, 2)));
+		this.controller = controller;
+		
+		// init basic border layout
+		this.setLayout(new BorderLayout(0,0));
+		coordinatesPanel = new CoordinatesPanel();
+		groupsPane = new JPanel();
+		groupsPane.setLayout(new BoxLayout(groupsPane, BoxLayout.PAGE_AXIS));
+		//groupsPane.add(Box.createRigidArea(new Dimension(width, 2)));
+		groupsPane.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
+		this.add(groupsPane,BorderLayout.PAGE_START);
+		this.add(coordinatesPanel, BorderLayout.PAGE_END);
 		this.addBestDRContactButton = new JButton("add max DR");
 		this.removeWorstDRContactButton = new JButton("remove min DR");
+		
 	}
 	
 	/**
 	 * Initialize the group of controls for showing background overlays (distance map, contact density etc.)
+	 * TODO: Add overlay of difference map in compare mode.
 	 */
-	public void initOverlayGroup(JComboBox firstViewCB, JComboBox secondViewCB) {
+	public void initOverlayGroup() {
+		// init group
 		overlaysGroup = new JPanel();
 		String title = "Overlays";
+		overlaysGroup.setLayout(new BoxLayout(overlaysGroup,BoxLayout.PAGE_AXIS));
+		overlaysGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		
+		// init sub-components
+		firstViewCB = new JComboBox();
+		secondViewCB = new JComboBox();
 		firstViewCB.addItem((Object)"Top-Right BG");
 		secondViewCB.addItem((Object)"Bottom-Left BG");
 		Object[] viewOptions = {"Common Nbhd", "Contact Density", "Distance","Delta Rank"};
@@ -136,23 +133,27 @@ public class StatusBar extends JPanel {
 		secondViewCB.setMaximumSize(new Dimension(150,20));
 		secondViewCB.setMinimumSize(new Dimension(150,20));
 		firstViewCB.setMinimumSize(new Dimension(150,20));
-		firstViewCB.addActionListener(listener);
+		firstViewCB.addActionListener(this);
 		firstViewCB.setAlignmentX(CENTER_ALIGNMENT);
 		secondViewCB.setAlignmentX(CENTER_ALIGNMENT);
-		secondViewCB.addActionListener(listener);
-		overlaysGroup.setLayout(new BoxLayout(overlaysGroup,BoxLayout.PAGE_AXIS));
-		overlaysGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
-		overlaysGroup.add(Box.createRigidArea(new Dimension(163,10)));
+		secondViewCB.addActionListener(this);
+
+		// add sub-components to group
+		overlaysGroup.add(Box.createRigidArea(new Dimension(groupWidth,10)));
 		overlaysGroup.add(secondViewCB);
 		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
 		overlaysGroup.add(firstViewCB);
 		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
-		this.add(overlaysGroup);
-		this.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
+		
+		// add group to StatusBar
+		groupsPane.add(overlaysGroup);
+		groupsPane.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
 	}
 	
 	/**
-	 * Toggles the visibility of the overlay group on or off.
+	 * Toggles the visibility of the overlays group on or off.
+	 * The overlays group holds controls for selecting background
+	 * overlays for the lower/upper half of the contact map.
 	 * @param show whether to show or hide the overlay group
 	 */
 	public void showOverlayGroup(boolean show) {
@@ -163,7 +164,65 @@ public class StatusBar extends JPanel {
 	 * Initializes the group for showing coordinates
 	 */
 	public void initCoordinatesGroup() {
+		// init group
+		coordinatesGroup = new JPanel();
+		String title = "Coordinates";
+		coordinatesGroup.setLayout(new BoxLayout(coordinatesGroup,BoxLayout.PAGE_AXIS));
+		coordinatesGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		
+		// init sub-components
+		coordinatesGroup.add(Box.createRigidArea(new Dimension(groupWidth, 20)));
+		
+		// add group to StatusBar
+		groupsPane.add(coordinatesGroup);
+		//this.add(Box.createVerticalGlue());	 // to show next component just below this group		
+	}
+	
+	/**
+	 * Initialize the gui group for multi-model or fuzzy contact maps.
+	 */
+	public void initMultiModelGroup() {
+		// First function to implement is a slider for discretization.
+		// In the first iteration, multi model structures are simply converted
+		// to fuzzy contact maps. The Model needs to be updated to hold both
+		// the original fuzzy map and the (currently active) discretized one.
+		// Any edits made to the contact map (such as contact deletion or creation)
+		// will force a discretization and the current discretization will be fixed.
+		// (Show a warning message that discretization will be fixed).
+		// MultiModels/Fuzzy maps can come from: NMR ensembles, MD trajectories,
+		// distance map, fuzzy contact map file.
+		multiModelGroup = new JPanel();
+		multiModelGroup.setLayout(new BoxLayout(multiModelGroup,BoxLayout.PAGE_AXIS));
+		String title = "Discretization";
+		multiModelGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		discretizationSlider = new JSlider();
+		discretizationSlider.setMinorTickSpacing(10);
+		discretizationSlider.setMajorTickSpacing(50);
+		discretizationSlider.setMaximum(100);
+		discretizationSlider.setPaintTicks(true);
+		discretizationSlider.setEnabled(false);
+		discretizeCheckBox = new JCheckBox("discretize");
+		discretizeCheckBox.setSelected(false);
+		discretizeCheckBox.setAlignmentX(CENTER_ALIGNMENT);
+		discretizeCheckBox.addItemListener(this);	// events are handled by this class because the effects are strictly local
+		discretizeButton = new JButton("Apply permanently");
+		discretizeButton.setAlignmentX(CENTER_ALIGNMENT);
+		discretizeButton.setEnabled(false);
+		discretizeButton.addActionListener(this);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
+	    multiModelGroup.add(discretizeCheckBox);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));    
+	    multiModelGroup.add(discretizationSlider);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
+	    multiModelGroup.add(discretizeButton);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,10)));
+	    //this.add(Box.createVerticalGlue());
+	    groupsPane.add(multiModelGroup);
+	    //this.add(Box.createVerticalGlue());
+	}
+	
+	public void showMultiModelGroup(boolean show) {
+		this.multiModelGroup.setVisible(show);
 	}
 	
 	/**
@@ -173,8 +232,8 @@ public class StatusBar extends JPanel {
 		this.add(Box.createRigidArea(new Dimension(150,200)));
 		deltaRankLable = new JLabel();
 		deltaRankLable.setBounds(5, 5, 100, 20);
-		this.add(deltaRankLable,2);
-		initDeltaRankStrategyButtons();
+		groupsPane.add(deltaRankLable);
+		//this.add(deltaRankLable,2);
 	}
 	
 	private void initDeltaRankStrategyButtons() {
@@ -201,315 +260,49 @@ public class StatusBar extends JPanel {
 	}
 
 	
+
+	/*---------------------------- event listening -------------------------*/
+	
 	/**
-	 * Main method to draw the component on screen. This method is called each
-	 * time the component has to be (re) drawn on screen. It is called
-	 * automatically by Swing or by explicitly calling cmpane.repaint().
+	 * Handle local item events
 	 */
-	@Override
-	protected synchronized void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		Graphics2D g2d = (Graphics2D) g.create();
-		drawCoordinates(g2d);
+	public void itemStateChanged(ItemEvent e) {
+		if(e.getItemSelectable() == discretizeCheckBox) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				discretizationSlider.setEnabled(false);
+				discretizeButton.setEnabled(false);
+			} else {
+				discretizationSlider.setEnabled(true);
+				discretizeButton.setEnabled(true);
+			}
+		}
 	}
 	
-	protected void drawCoordinates(Graphics2D g2d) {
-		
-		int leftMargin = 7;			// margin between bg rectangle and edge
-		int rightMargin = 12;		// margin between bg rectangle and edge
-		int bottomMargin = 5;		// margin between bg rectable and edge
-		int textYOffset = 23;		// top margin between rectangle and first text
-		int firstColumnX = leftMargin + 13;		// from edge
-		int secondColumnX = leftMargin + 55;	// from edge
-		int thirdColumnX = leftMargin + 90;		// second contact map or seq sep
-		int fourthColumnX = leftMargin + 133;	// leftMargin + 80 + (55-13)
-		int hyphenXOffset = 28;
-		int hyphenYOffset = 15;
-		int hyphenLength = 7;
-		int lineHeight = 20;		// offset between lines
-				
-		int totalHeight = 3 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
-		
-		if(writePDBResNum) {
-			totalHeight += lineHeight;		// for pdb res numbers
-		}	
-		if(compareMode) {
-			totalHeight += lineHeight;		// for title
+	/**
+	 * Handle local button events
+	 */
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource() == discretizeButton) {
+			System.out.println("Discretize button was pressed. Threshold = " + discretizationSlider.getValue());
 		}
-		if(compareMode && showAliAndSeqPos ) {
-			totalHeight += lineHeight;		// for alignment coordinates
-		}	
-		
-		int baseLineY = getHeight() - totalHeight;	// top of bg rectangle in local coordinates of this component
-		
-		// draw background rectangle
-		g2d.setColor(coordinatesBgColor);
-		g2d.fill(new RoundRectangle2D.Float(leftMargin, baseLineY, getWidth()-rightMargin, totalHeight-bottomMargin, 12, 12));		
-		g2d.setColor(coordinatesColor);
-				
-		// first contact map
-		
-		int x = firstColumnX;			// where first text will be written
-		int y = baseLineY+textYOffset;	// where first text will be written
-		int hyphenY = 0;				// remember where to draw the hyphen
-		
-		// coordinates for i
-		
-		if(compareMode) {
-			g2d.drawString(title, x, y);			// name of contact map
-			y += 20;
-		} 
-		
-		if(iNum.length() > 0) {
-			g2d.drawString(iNum, x,y);					// sequence coordinates
-			hyphenY = y;
-			y += 20;
-			g2d.drawString(iRes, x, y);					// residue type
-			y += 20;
-			if (hasSecondaryStructure){
-				g2d.drawString(iSSType, x, y);			// secondary structure
-				y += 20;
-			}
-			if (writePDBResNum) {
-				g2d.drawString(iPdbNum, x, y);			// PDB residue number
-				y += 20;
-			}
+		if(e.getSource() == firstViewCB) {
+			controller.handleBgOverlayChange(false,firstViewCB.getSelectedIndex());
 		}
-		
-		// coordinates for j
-		
-		if(jNum.length() > 0) {
-			
-			x = secondColumnX;
-			y = baseLineY + textYOffset;
-			
-			if(compareMode) {
-				y += 20;								// skip title
-			} 
-			g2d.drawString(jNum, x, y);					// sequence coordinates	
-			y += 20;
-			g2d.drawString(jRes, x, y);					// residue type
-			y += 20;
-			if (hasSecondaryStructure){
-				g2d.drawString(jSSType, x, y);			// secondary structure
-				y += 20;
-			}
-			if (writePDBResNum) {
-				g2d.drawString(jPdbNum, x, y);			// PDB residue number
-				y += 20;
-			}
+		if(e.getSource() == secondViewCB) {
+			controller.handleBgOverlayChange(true,secondViewCB.getSelectedIndex());
 		}
-		
-		// draw hyphen if (i,j) is a contact
-		if(iNum.length() > 0 && jNum.length() > 0 && isContact) {
-			g2d.drawLine(firstColumnX+hyphenXOffset, hyphenY+hyphenYOffset, firstColumnX+hyphenXOffset+hyphenLength, hyphenY+hyphenYOffset);		
-		}
-		
-		// write sequence separation in diagonal select mode
-		if(seqSepMode && !compareMode) { 						// we don't show seq separation in compare mode
-			g2d.drawString("SeqSep", thirdColumnX, baseLineY+textYOffset);
-			g2d.drawString(seqSep, thirdColumnX, baseLineY+textYOffset+lineHeight);		
-			
-		}
-
-		// second contact map
-		
-		if(compareMode) {
-					
-			// coordinates for i
-
-			x = thirdColumnX;			// where first text will be written
-			y = baseLineY+textYOffset;	// where first text will be written
-			
-			g2d.drawString(title2, x, y);			// name of contact map
-			y += 20;
-			
-			if(iNum2.length() > 0) {
-				
-				g2d.drawString(iNum2, x,y);					// sequence coordinates
-				hyphenY = y;
-				y += 20;
-				g2d.drawString(iRes2, x, y);				// residue type
-				y += 20;
-				if (hasSecondaryStructure){
-					g2d.drawString(iSSType2, x, y);			// secondary structure
-					y += 20;
-				}
-				if (writePDBResNum) {
-					g2d.drawString(iPdbNum2, x, y);			// PDB residue number
-					y += 20;
-				}
-			}
-			
-			// coordinates for j
-			
-			if(jNum2.length() > 0) {
-				
-				x = fourthColumnX;
-				y = baseLineY + textYOffset;
-				
-				y += 20;									// skip title
-				g2d.drawString(jNum2, x, y);				// sequence coordinates	
-				y += 20;
-				g2d.drawString(jRes2, x, y);				// residue type
-				y += 20;
-				if (hasSecondaryStructure){
-					g2d.drawString(jSSType2, x, y);			// secondary structure
-					y += 20;
-				}
-				if (writePDBResNum) {
-					g2d.drawString(jPdbNum2, x, y);			// PDB residue number
-					y += 20;
-				}
-			}
-			
-			// draw hyphen if (i,j) is a contact
-			if(iNum2.length() > 0 && jNum2.length() > 0 && isContact2) {
-				g2d.drawLine(thirdColumnX+hyphenXOffset, hyphenY+hyphenYOffset, thirdColumnX+hyphenXOffset+hyphenLength, hyphenY+hyphenYOffset);		
-			}
-			
-			// optionally draw alignment coordinates
-			if(showAliAndSeqPos) {
-				g2d.drawString("Alignm Pos:", firstColumnX, y);
-				if(iNum.length() > 0) g2d.drawString(iAli, thirdColumnX, y);			// alignment coordinates
-				if(jNum.length() > 0) g2d.drawString(jAli, fourthColumnX, y);			// alignment coordinates
-			}
-		
-		}
-		
 	}
-
+	
 	/*-------------------------- getters and setters -----------------------*/
 	
-	public void setINum(String string) {
-		iNum = string;
-		
-	}
-
-	public void setJPdbNum(String string) {
-		jPdbNum = string;
-		
-	}
-
-	public void setIPdbNum(String string) {
-		iPdbNum = string;
+	public CoordinatesPanel getCoordinatesPanel() {
+		return this.coordinatesPanel;
 	}
 	
-	public void setTitle(String title) {
-		this.title = title;
-	}
-	
-	public void setWritePDBResNum(boolean b) {
-		writePDBResNum = false;
-		
-	}
-
-	public void setSeqSep(String string) {
-		seqSep = string;
-		
-	}
-
-	public void setIsDiagSecMode(boolean b) {
-		seqSepMode = b;
-		
-	}
-
-	public void setIsContact(boolean b) {
-		isContact = b;
-		
-	}
-
-	public void setJSSType(String string) {
-		jSSType = string;
-		
-	}
-
-	public void setISSType(String string) {
-		iSSType = string;
-		
-	}
-
-	public void setHasSecondaryStructure(boolean b) {
-		hasSecondaryStructure = b;
-		
-	}
-
-	public void setJRes(String string) {
-		jRes = string;
-		
-	}
-
-	public void setIRes(String string) {
-		iRes = string;
-	}
-
-	public void setJAli(String string) {
-		jAli = string;
-	}
-
-	public void setIAli(String string) {
-		iAli = string;
-	}
-
-	public void setShowAliAndSeqPos(boolean b) {
-		showAliAndSeqPos = b;
-		
-	}
-
-	public void setJNum(String string) {
-		jNum = string;
-		
-	}
-
-	public void setCompareMode(boolean b) {
-		compareMode = b;
-		
-	}
-
 	public void setDeltaRank(float f) {
 		{
 		deltaRankLable.setText("\u0394" + "rank: "+f);
 		}
-	}
-
-	public void setIsContact2(boolean isContact2) {
-		this.isContact2 = isContact2;
-	}
-
-	public void setINum2(String num2) {
-		iNum2 = num2;
-	}
-
-	public void setJNum2(String num2) {
-		jNum2 = num2;
-	}
-
-	public void setIRes2(String res2) {
-		iRes2 = res2;
-	}
-
-	public void setJRes2(String res2) {
-		jRes2 = res2;
-	}
-
-	public void setISSType2(String type2) {
-		iSSType2 = type2;
-	}
-
-	public void setJSSType2(String type2) {
-		jSSType2 = type2;
-	}
-
-	public void setIPdbNum2(String pdbNum2) {
-		iPdbNum2 = pdbNum2;
-	}
-
-	public void setJPdbNum2(String pdbNum2) {
-		jPdbNum2 = pdbNum2;
-	}
-
-	public void setTitle2(String title2) {
-		this.title2 = title2;
 	}
 	
 }
