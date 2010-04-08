@@ -2396,9 +2396,10 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
+	 * @throws InterruptedException 
 	 * 
 	 */
-	private void handleShowDeltaRankMap(boolean secondView) {
+	private void handleShowDeltaRankMap(boolean secondView){
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {
@@ -2412,10 +2413,12 @@ public class View extends JFrame implements ActionListener {
 			if(guiState.getShowBottomDeltaRankMap() || guiState.getShowDeltaRankMap()) {
 				deltaRankBar.setActive(true);
 				this.tbPane.add(deltaRankBar,BorderLayout.SOUTH);
+				this.cmPane.revalidate();
 			} else {
 				deltaRankBar.setActive(false);
 				this.tbPane.remove(deltaRankBar);
-				this.tbPane.repaint();
+				this.cmPane.revalidate();
+				
 			}
 			
 		}

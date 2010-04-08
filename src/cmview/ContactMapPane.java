@@ -1370,6 +1370,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		screenSize = new Dimension(getWidth(),getHeight());
 		setOutputSize(Math.min(screenSize.height, screenSize.width));
 		updateScreenBuffer();
+		this.view.topRul.repaint();
+		this.view.leftRul.repaint();
 	}
 
 	public void componentShown(ComponentEvent evt) {		
