@@ -412,7 +412,7 @@ public class View extends JFrame implements ActionListener {
 		
 		// init status bar
 		statusBar.initOverlayGroup();
-		statusBar.initDeltaRankLable();
+		statusBar.initDeltaRankGroup();
 	
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();

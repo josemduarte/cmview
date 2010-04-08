@@ -60,23 +60,27 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	// general members
 	private View controller; 						// controller which is notified as a response to gui actions
 	
-	// subcomponents
-	private JPanel groupsPane;						// panel holding the subgroups
+	// main panels
+	private JPanel groupsPanel;						// panel holding the subgroups
 	private CoordinatesPanel coordinatesPanel;		// panel showing coordinates
 	
+	// subgroups panels holding gui elements for specific purposes
 	private JPanel overlaysGroup;					// background overlays
+	private JPanel deltaRankGroup;					// controls for delta rank mode
+	private JPanel multiModelGroup; 				// discretization slider
 	private JPanel coordinatesGroup;				// TODO: coordinates
-	private JPanel multiModelGroup; 				// TODO: discretization slider
 //	private JPanel compareGroup;					// TODO: controls for compare mode
 //	private JPanel filterGroup;						// TODO: contact filters (sequence separation, distance, ...)
 		
-	// data rank label
+	// components for delta rank group
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
 	private JButton addBestDRContactButton;
 	private JButton removeWorstDRContactButton;
 	
-	// gui components in subgroups
+	// components for overlay group
 	private JComboBox firstViewCB, secondViewCB;			// drop down lists in overlaysGroup
+	
+	// components for multi model group
 	private JCheckBox discretizeCheckBox;					// to switch discretization slider on/off
 	private JSlider discretizationSlider;					// to choose a cutoff for discretization
 	private JButton discretizeButton;						// to permanently apply discretization
@@ -93,11 +97,11 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		// init basic border layout
 		this.setLayout(new BorderLayout(0,0));
 		coordinatesPanel = new CoordinatesPanel();
-		groupsPane = new JPanel();
-		groupsPane.setLayout(new BoxLayout(groupsPane, BoxLayout.PAGE_AXIS));
+		groupsPanel = new JPanel();
+		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.PAGE_AXIS));
 		//groupsPane.add(Box.createRigidArea(new Dimension(width, 2)));
-		groupsPane.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
-		this.add(groupsPane,BorderLayout.PAGE_START);
+		groupsPanel.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
+		this.add(groupsPanel,BorderLayout.PAGE_START);
 		this.add(coordinatesPanel, BorderLayout.PAGE_END);
 		this.addBestDRContactButton = new JButton("add max DR");
 		this.removeWorstDRContactButton = new JButton("remove min DR");
@@ -146,8 +150,8 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		overlaysGroup.add(Box.createRigidArea(new Dimension(0,5)));
 		
 		// add group to StatusBar
-		groupsPane.add(overlaysGroup);
-		groupsPane.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
+		groupsPanel.add(overlaysGroup);
+		groupsPanel.add(Box.createVerticalGlue());	 // to show delta rank label (added later) just below this group
 	}
 	
 	/**
@@ -174,7 +178,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		coordinatesGroup.add(Box.createRigidArea(new Dimension(groupWidth, 20)));
 		
 		// add group to StatusBar
-		groupsPane.add(coordinatesGroup);
+		groupsPanel.add(coordinatesGroup);
 		//this.add(Box.createVerticalGlue());	 // to show next component just below this group		
 	}
 	
@@ -217,29 +221,77 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	    multiModelGroup.add(discretizeButton);
 	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,10)));
 	    //this.add(Box.createVerticalGlue());
-	    groupsPane.add(multiModelGroup);
+	    groupsPanel.add(multiModelGroup);
 	    //this.add(Box.createVerticalGlue());
 	}
 	
+	/**
+	 * Toggles the visibility of the overlays group on or off.
+	 * @param show whether to show or hide the overlay group
+	 */
 	public void showMultiModelGroup(boolean show) {
 		this.multiModelGroup.setVisible(show);
 	}
 	
 	/**
-	 * Initialize the label for showing the delta rank score
+	 * Initialize controls for delta rank mode
 	 */
-	public void initDeltaRankLable() {
-		this.add(Box.createRigidArea(new Dimension(150,200)));
-		deltaRankLable = new JLabel();
-		deltaRankLable.setBounds(5, 5, 100, 20);
-		groupsPane.add(deltaRankLable);
-		//this.add(deltaRankLable,2);
+	public void initDeltaRankGroup() {
+		
+		// init group
+		deltaRankGroup = new JPanel();
+		deltaRankGroup.setLayout(new BoxLayout(deltaRankGroup,BoxLayout.PAGE_AXIS));
+		String title = "Delta Rank";
+		deltaRankGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		
+		// init gui components
+		deltaRankLable = new JLabel(" ");
+		//deltaRankLable.setBounds(5, 5, 100, 20);
+		deltaRankLable.setAlignmentX(CENTER_ALIGNMENT);
+		addBestDRContactButton = new JButton("add best");
+		addBestDRContactButton.setMaximumSize(new Dimension(120,50));
+		addBestDRContactButton.setAlignmentX(CENTER_ALIGNMENT);
+		removeWorstDRContactButton = new JButton("remove worst");
+		removeWorstDRContactButton.setMaximumSize(new Dimension(120,50));
+		removeWorstDRContactButton.setAlignmentX(CENTER_ALIGNMENT);
+
+		// add components to group
+		deltaRankGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));	// defines component width
+		deltaRankGroup.add(deltaRankLable);
+		deltaRankGroup.add(Box.createRigidArea(new Dimension(0,10)));
+		deltaRankGroup.add(addBestDRContactButton);
+		deltaRankGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		deltaRankGroup.add(removeWorstDRContactButton);
+		deltaRankGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		
+		// add group to StatusBar
+		deltaRankGroup.setVisible(false);
+		groupsPanel.add(deltaRankGroup);
 	}
 	
-	private void initDeltaRankStrategyButtons() {
-		addBestDRContactButton = new JButton("add best");
-		removeWorstDRContactButton = new JButton("remove worst");
+	/**
+	 * Toggles the visibility of the overlays group on or off.
+	 * @param show whether to show or hide the overlay group
+	 */
+	public void showDeltaRankGroup(boolean show) {
+		this.deltaRankGroup.setVisible(show);
 	}
+	
+//	/**
+//	 * Initialize the label for showing the delta rank score
+//	 */
+//	public void initDeltaRankLable() {
+//		this.add(Box.createRigidArea(new Dimension(150,200)));
+//		deltaRankLable = new JLabel();
+//		deltaRankLable.setBounds(5, 5, 100, 20);
+//		groupsPane.add(deltaRankLable);
+//		//this.add(deltaRankLable,2);
+//	}
+//	
+//	private void initDeltaRankStrategyButtons() {
+//		addBestDRContactButton = new JButton("add best");
+//		removeWorstDRContactButton = new JButton("remove worst");
+//	}
 	
 	/** Method called by this component to determine its minimum size */
 	@Override

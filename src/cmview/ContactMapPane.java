@@ -1467,6 +1467,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		//}
 		if (view.getGUIState().getShowBottomDeltaRankMap() || view.getGUIState().getShowDeltaRankMap()) {
 			statusBar.setDeltaRank(ContactMapPane.Round((float)mod.getDeltaRankScore(),2));
+			statusBar.showDeltaRankGroup(true);
 			deltaRankBar.setSequence(mod.getSequence());
 			deltaRankBar.setVectors(mod.getDeltaRankVectors());
 			deltaRankBar.setProbabilities(mod.getDeltaRankProbabilities());
