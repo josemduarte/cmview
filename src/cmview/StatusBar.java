@@ -100,8 +100,8 @@ public class StatusBar extends JPanel {
 	
 	// data rank label
 	private JLabel deltaRankLable;					// delta rank display (in delta rank mode)
-	private JButton addBestDRContact;
-	private JButton removeWorstDRContact;
+	private JButton addBestDRContactButton;
+	private JButton removeWorstDRContactButton;
 
 	/**
 	 * Initializes the status bar
@@ -111,6 +111,8 @@ public class StatusBar extends JPanel {
 		this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
 		this.listener = listener;
 		this.add(Box.createRigidArea(new Dimension(width, 2)));
+		this.addBestDRContactButton = new JButton("add max DR");
+		this.removeWorstDRContactButton = new JButton("remove min DR");
 	}
 	
 	/**
@@ -176,8 +178,8 @@ public class StatusBar extends JPanel {
 	}
 	
 	private void initDeltaRankStrategyButtons() {
-		addBestDRContact = new JButton("add best");
-		removeWorstDRContact = new JButton("remove worst");
+		addBestDRContactButton = new JButton("add best");
+		removeWorstDRContactButton = new JButton("remove worst");
 	}
 	
 	/** Method called by this component to determine its minimum size */

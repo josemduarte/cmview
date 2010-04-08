@@ -2415,6 +2415,7 @@ public class View extends JFrame implements ActionListener {
 			} else {
 				deltaRankBar.setActive(false);
 				this.tbPane.remove(deltaRankBar);
+				this.tbPane.repaint();
 			}
 			
 		}
@@ -3180,6 +3181,9 @@ public class View extends JFrame implements ActionListener {
 			if (guiState.getShowDensityMap()) {
 				handleShowDensityMap(secondView);
 			}
+		}
+		if (guiState.getShowBottomDeltaRankMap() && !guiState.getShowDeltaRankMap()) {
+			
 		}
 		
 	}
