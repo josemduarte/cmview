@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -16,6 +17,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+
+import cmview.datasources.Model;
 
 
 /**
@@ -81,8 +84,11 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	private JComboBox firstViewCB, secondViewCB;			// drop down lists in overlaysGroup
 	
 	// components for multi model group
+	private HistogramPanel histogramPanel;					// showing the histogram of contact weights
 	private JCheckBox discretizeCheckBox;					// to switch discretization slider on/off
 	private JSlider discretizationSlider;					// to choose a cutoff for discretization
+	private JCheckBox l10checkBox;							// to choose length/10 contacts for discretization	
+	private JCheckBox l5checkBox;							// to choose length/5 contacts for discretization
 	private JButton discretizeButton;						// to permanently apply discretization
 	
 	/**
@@ -195,15 +201,26 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		// (Show a warning message that discretization will be fixed).
 		// MultiModels/Fuzzy maps can come from: NMR ensembles, MD trajectories,
 		// distance map, fuzzy contact map file.
+		
+		// initialize group
 		multiModelGroup = new JPanel();
 		multiModelGroup.setLayout(new BoxLayout(multiModelGroup,BoxLayout.PAGE_AXIS));
-		String title = "Discretization";
+		String title = "Contact weights";
 		multiModelGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		
+		// initialize components
+		histogramPanel = new HistogramPanel();
+		histogramPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		discretizationSlider = new JSlider();
 		discretizationSlider.setMinorTickSpacing(10);
 		discretizationSlider.setMajorTickSpacing(50);
 		discretizationSlider.setMaximum(100);
 		discretizationSlider.setPaintTicks(true);
+		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
+		labels.put(new Integer(1),new JLabel("0"));
+		labels.put(new Integer(100), new JLabel("1"));
+		discretizationSlider.setLabelTable(labels);
+		discretizationSlider.setPaintLabels(true);
 		discretizationSlider.setEnabled(false);
 		discretizeCheckBox = new JCheckBox("discretize");
 		discretizeCheckBox.setSelected(false);
@@ -213,16 +230,32 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		discretizeButton.setAlignmentX(CENTER_ALIGNMENT);
 		discretizeButton.setEnabled(false);
 		discretizeButton.addActionListener(this);
+		// place two check boxes horizontally
+		l10checkBox = new JCheckBox("len/10");
+		l10checkBox.setEnabled(false);
+		l10checkBox.addItemListener(this);
+		l5checkBox = new JCheckBox("len/5");
+		l5checkBox.setEnabled(false);
+		l5checkBox.addItemListener(this);
+		JPanel checkBoxPanel = new JPanel();
+		checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel,BoxLayout.LINE_AXIS));
+		checkBoxPanel.add(l10checkBox);
+		checkBoxPanel.add(l5checkBox);
+		checkBoxPanel.setAlignmentX(CENTER_ALIGNMENT);
+		
+		// adding components to group
 	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
 	    multiModelGroup.add(discretizeCheckBox);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
+		multiModelGroup.add(histogramPanel);
 	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));    
 	    multiModelGroup.add(discretizationSlider);
-	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));    	    
+	    multiModelGroup.add(checkBoxPanel);
+	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,10)));
 	    multiModelGroup.add(discretizeButton);
 	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,10)));
-	    //this.add(Box.createVerticalGlue());
 	    groupsPanel.add(multiModelGroup);
-	    //this.add(Box.createVerticalGlue());
 	}
 	
 	/**
@@ -276,23 +309,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	public void showDeltaRankGroup(boolean show) {
 		this.deltaRankGroup.setVisible(show);
 	}
-	
-//	/**
-//	 * Initialize the label for showing the delta rank score
-//	 */
-//	public void initDeltaRankLable() {
-//		this.add(Box.createRigidArea(new Dimension(150,200)));
-//		deltaRankLable = new JLabel();
-//		deltaRankLable.setBounds(5, 5, 100, 20);
-//		groupsPane.add(deltaRankLable);
-//		//this.add(deltaRankLable,2);
-//	}
-//	
-//	private void initDeltaRankStrategyButtons() {
-//		addBestDRContactButton = new JButton("add best");
-//		removeWorstDRContactButton = new JButton("remove worst");
-//	}
-	
+		
 	/** Method called by this component to determine its minimum size */
 	@Override
 	public Dimension getMinimumSize() {
@@ -319,13 +336,43 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	 * Handle local item events
 	 */
 	public void itemStateChanged(ItemEvent e) {
+
+		// discretize check box
 		if(e.getItemSelectable() == discretizeCheckBox) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				discretizationSlider.setEnabled(false);
 				discretizeButton.setEnabled(false);
+				l5checkBox.setEnabled(false);
+				l10checkBox.setEnabled(false);
 			} else {
 				discretizationSlider.setEnabled(true);
 				discretizeButton.setEnabled(true);
+				l5checkBox.setEnabled(true);
+				l10checkBox.setEnabled(true);
+			}
+		}
+		
+		// l/5 check box
+		if(e.getItemSelectable() == l5checkBox) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				if(!l10checkBox.isSelected()) {
+					discretizationSlider.setEnabled(true);
+				}
+			} else {
+				discretizationSlider.setEnabled(false);
+				l10checkBox.setSelected(false);
+			}
+		}
+		
+		// l/10 check box
+		if(e.getItemSelectable() == l10checkBox) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				if(!l5checkBox.isSelected()) {
+					discretizationSlider.setEnabled(true);
+				}
+			} else {
+				discretizationSlider.setEnabled(false);
+				l5checkBox.setSelected(false);
 			}
 		}
 	}
@@ -355,6 +402,14 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		{
 		deltaRankLable.setText("\u0394" + "rank: "+f);
 		}
+	}
+	
+	/**
+	 * Calculates the histogram for the graph in the given model.
+	 * @param mod the model containing the graph for which the histogram will be calculated
+	 */
+	public void calculateHistogram(Model mod) {
+		this.histogramPanel.calculateHistogram(mod);
 	}
 	
 }

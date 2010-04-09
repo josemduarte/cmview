@@ -20,7 +20,6 @@ import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import javax.help.*;
 
-
 import cmview.datasources.*;
 import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
@@ -45,6 +44,7 @@ import owl.core.util.Interval;
 import owl.core.util.IntervalSet;
 import owl.core.util.actionTools.Getter;
 import owl.core.util.actionTools.GetterError;
+
 /**
  * Main GUI window and associated event handling.
  * Multiple instances of this will be shown in separate windows.
@@ -410,9 +410,11 @@ public class View extends JFrame implements ActionListener {
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
 		
-		// init status bar
+		// init status bar (TODO: maybe move these to constructor of StatusBar)
 		statusBar.initOverlayGroup();
 		statusBar.initDeltaRankGroup();
+		//statusBar.initMultiModelGroup();
+		//statusBar.calculateHistogram(mod);
 	
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -434,7 +436,6 @@ public class View extends JFrame implements ActionListener {
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			selectionModeButtons.add(tbShowComNbh);
 		}
-		
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
