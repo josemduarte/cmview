@@ -41,7 +41,8 @@ public class ContactPane extends JPanel{
 	private Dimension screenSize;			// current size of this component on screen
 	
 	// query data
-	private char iRes='A', jRes='A', ssType='H';
+	private char iRes='A', jRes='A';
+//	private char ssType='H';
 	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
@@ -55,7 +56,7 @@ public class ContactPane extends JPanel{
 	// Sphoxel-Data
 	private CMPdb_sphoxel sphoxel;
 	private double [][] ratios;
-	private double [][][] bayesRatios;
+//	private double [][][] bayesRatios;
 	private double minRatio = 0;
 	private double maxRatio = 0;
 	// NBHStraces-Data
@@ -142,7 +143,7 @@ public class ContactPane extends JPanel{
 		sphoxel.runBayes();
 		System.out.println("BayesRatios computed");
 		this.ratios = sphoxel.getRatios();
-		this.bayesRatios = sphoxel.getBayesRatios();
+//		this.bayesRatios = sphoxel.getBayesRatios();
 		this.minRatio = sphoxel.getMinRatio();
 		this.maxRatio = sphoxel.getMaxRatio();
 		// compute nbhstringTraces

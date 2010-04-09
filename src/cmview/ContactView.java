@@ -16,7 +16,6 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;

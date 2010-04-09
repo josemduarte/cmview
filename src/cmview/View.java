@@ -38,8 +38,6 @@ import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import owl.core.structure.*;
-import owl.core.structure.graphs.RIGNbhood;
-import owl.core.structure.graphs.RIGNode;
 import owl.core.util.FileFormatError;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
