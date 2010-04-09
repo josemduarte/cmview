@@ -92,6 +92,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
 	private static final String LABEL_RUN_TINKER = "Run Tinker";
+	private static final String LABEL_MIN_SET = "Minimal subset";
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
@@ -112,7 +113,7 @@ public class View extends JFrame implements ActionListener {
 	DeltaRankBar deltaRankBar;	// A Bar at the bottom of the contact map showing delta rank information for the sequence
 	
 	// Tool bar buttons
-	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker;  
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, minimalSubset;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 		
@@ -373,6 +374,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_swatch.png"));
 		ImageIcon icon_toggle_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
 		ImageIcon icon_run_tinker = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "plugin_go.png"));
+		ImageIcon icon_min_set  = new ImageIcon(getClass().getResource(Start.ICON_DIR+"arrow_in.png"));	//icon to run cone peeling algorithm
 		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
 		Icon icon_black = getBlackSquareIcon();		// black square icon
 
@@ -409,6 +411,7 @@ public class View extends JFrame implements ActionListener {
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
+		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);
 		
 		// init status bar (TODO: maybe move these to constructor of StatusBar)
 		statusBar.initOverlayGroup();
@@ -1158,6 +1161,9 @@ public class View extends JFrame implements ActionListener {
 		if( e.getSource() == mmShowAlignedResidues ) {
 			handleShowAlignedResidues3D();
 		}
+		if(e.getSource() == minimalSubset){
+			handleMinimalSet();
+		}
 
 		/* ---------- Help Menu ---------- */
 
@@ -1405,7 +1411,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CM file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) throws PdbCodeNotFoundError, PdbLoadError, SQLException {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
 					}
@@ -1418,7 +1424,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public void doLoadFromCmFile(String f, boolean secondModel) {
+	public void doLoadFromCmFile(String f, boolean secondModel) throws SQLException, PdbCodeNotFoundError, PdbLoadError {
 		System.out.println("Loading from contact map file "+f);
 		try {
 			Model mod = new ContactMapFileModel(f);
@@ -2558,6 +2564,20 @@ public class View extends JFrame implements ActionListener {
 			});
 		 
 		 tinkerDialog.createGUI();
+	}
+	
+	protected void handleMinimalSet (){
+		//mod.computeMinimalSubset("dummy");
+		try{
+		//Model modl = mod.copy();
+		mod2 = new PdbFtpModel(mod);
+		mod2.computeMinimalSubset();
+		this.doGreedyPairwiseAlignment();
+		doLoadSecondModel(mod2, ali);
+		}
+		catch(Exception e){
+			System.err.println("model error!!!!\n"+e.getMessage());
+		}
 	}
 
 	/**

@@ -24,11 +24,11 @@ import owl.core.util.IntPairSet;
 import owl.core.util.actionTools.GetterError;
 import owl.core.util.actionTools.TinkerStatusNotifier;
 import owl.deltaRank.DeltaRank;
-
-
+import owl.embed.ConePeeler;
 
 import cmview.Start;
 import edu.uci.ics.jung.graph.util.Pair;
+
 /**
  * A contact map data model. Derived classes have to implement the constructor
  * in which the structure is loaded, the member variables are set appropriately
@@ -108,6 +108,7 @@ public abstract class Model {
 	 */
 	public abstract Model copy();
 
+
 	public abstract void load(String pdbChainCode, int modelSerial)
 			throws ModelConstructionError;
 
@@ -164,6 +165,18 @@ public abstract class Model {
 					System.err.println("Failed to assign secondary structure: "
 							+ e.getMessage());
 				}
+			}
+		}
+	}
+	
+	public void computeMinimalSubset(){
+		if(this !=null){
+			try{
+				RIGraph subset = ConePeeler.getMinSubset(graph);
+				graph = subset.copy();
+			}
+			catch (Exception e){
+				System.err.println("Either a database exception occurred or no such entry was found in the database!\n"+e.getMessage());				
 			}
 		}
 	}
