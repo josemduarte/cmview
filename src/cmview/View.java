@@ -1411,7 +1411,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CM file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) throws PdbCodeNotFoundError, PdbLoadError, SQLException {
+					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
 					}
@@ -1424,7 +1424,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public void doLoadFromCmFile(String f, boolean secondModel) throws SQLException, PdbCodeNotFoundError, PdbLoadError {
+	public void doLoadFromCmFile(String f, boolean secondModel) {
 		System.out.println("Loading from contact map file "+f);
 		try {
 			Model mod = new ContactMapFileModel(f);
