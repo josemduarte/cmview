@@ -3,18 +3,26 @@ package cmview;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.TreeMap;
 
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
@@ -34,6 +42,7 @@ public class ContactView extends JFrame implements ActionListener{
 //	private static final String LABEL_FILE_PRINT = "Print...";	
 	private static final String LABEL_FILE_QUIT = "Quit";
 	private static final String LABEL_PNG_FILE = "PNG File...";
+	private static final String LABEL_CSV_FILE = "CSV File...";
 	// Select
 //	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	
@@ -54,14 +63,14 @@ public class ContactView extends JFrame implements ActionListener{
 	// M -> "menu bar"
 	JMenuItem clusterM;
 	// mm -> "main menu"
-	JMenuItem mmInfo, mmSavePng, mmQuit;
+	JMenuItem mmInfo, mmSavePng, mmSaveCsv, mmQuit;
 	JMenuItem mmSelectAll;
 	
 	// Data and status variables
 //	private GUIState guiState;
 	private Model mod;
 	public ContactMapPane cmPane;
-	public ContactPane svPane;
+	public ContactPane cPane;
 	
 
 	/** Create a new View object */
@@ -152,6 +161,7 @@ public class ContactView extends JFrame implements ActionListener{
 		submenu = new JMenu("Save to");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 		mmSavePng = makeMenuItem(LABEL_PNG_FILE, null, submenu);
+		mmSaveCsv = makeMenuItem(LABEL_CSV_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Save", submenu);
 		// Print, Quit
@@ -168,16 +178,16 @@ public class ContactView extends JFrame implements ActionListener{
 //		mmSelectAll = makeMenuItem("All Contacts", null, menu);		
 //		addToJMenuBar(menu);
 	
-		tbPane.setSize(130, 230);
+//		tbPane.setSize(130, 230);
 		// Creating contact map pane if model loaded
 		if(mod != null) {			
 			try {
-				svPane = new ContactPane(this.mod, this.cmPane, this);
+				cPane = new ContactPane(this.mod, this.cmPane, this);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			svP.add(svPane);
+			svP.add(cPane);
 		}
 
 		// Add everything to the content pane		
@@ -194,7 +204,110 @@ public class ContactView extends JFrame implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		
+		/* ---------- File Menu ---------- */
+
+		// Save
+		if(e.getSource() == mmSavePng) {
+			handleSaveToPng();
+		}
+		if(e.getSource() == mmSaveCsv) {
+			handleSaveToCsv();
+		}
+		
+		// Info, Print, Quit
+		if(e.getSource() == mmInfo) {
+			handleInfo();
+		}	
+		if(e.getSource() == mmQuit) {
+			handleQuit();
+		}
+	}
+	
+	
+	private void handleSaveToPng() {
+		if(this.mod == null) {
+			showNoContactWarning();
+		} else {
+			int ret = Start.getFileChooser().showSaveDialog(this);
+			if(ret == JFileChooser.APPROVE_OPTION) {
+				File chosenFile = Start.getFileChooser().getSelectedFile();
+				if (confirmOverwrite(chosenFile)) {
+					// Create a buffered image in which to draw
+					BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+					// Create a graphics contents on the buffered image
+					Graphics2D g2d = bufferedImage.createGraphics();
+
+					// Draw the current contact map window to Image
+					cPane.paintComponent(g2d);
+
+					try {
+						ImageIO.write(bufferedImage, "png", chosenFile);
+						System.out.println("File " + chosenFile.getPath() + " saved.");
+					} catch (IOException e) {
+						System.err.println("Error while trying to write to PNG file " + chosenFile.getPath());
+					}
+				}
+			}
+		}
+	}
+	
+	private void handleSaveToCsv() {
+		if(this.mod == null) {
+			showNoContactWarning();
+		} else {
+			int ret = Start.getFileChooser().showSaveDialog(this);
+			if(ret == JFileChooser.APPROVE_OPTION) {
+				File chosenFile = Start.getFileChooser().getSelectedFile();
+				System.out.println("File " + chosenFile.getPath());
+				System.out.println("chosenFile= "+chosenFile.toString());
+				if (confirmOverwrite(chosenFile)) {
+					cPane.writeSphoxels(chosenFile.toString());
+				}
+			}
+		}
+	}
+	
+	private void handleInfo() {
+		if(this.mod == null) {
+			//System.out.println("No contact map loaded yet.");
+			showNoContactWarning();
+		} else {			
+//			JDialog infoDialog = new ContactMapInfoDialog(this, mod, mod2, ali, cmPane);
+//			infoDialog.setLocationRelativeTo(this);
+//			infoDialog.setVisible(true);
+		}
 	}
 
+	private void handleQuit() {
+		Start.shutDown(0);
+	}
+	
+	/**
+	 * Checks for existence of given file and displays a confirm dialog
+	 * @param file
+	 * @return true if file does not exist or user clicks on Yes, false if file
+	 *  exists and user clicks on No
+	 */
+	private boolean confirmOverwrite(File file) {
+		if(file.exists()) {
+			String message = "File " + file.getAbsolutePath() + " already exists. Overwrite?";
+			int ret = JOptionPane.showConfirmDialog(this,message, "Confirm overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if(ret != JOptionPane.YES_OPTION) {
+				return false;
+			} else {
+				return true;
+			}
+		} 
+		return true;
+	}
+
+	/* -------------------- Warnings -------------------- */
+
+	/** Shows a window with a warning message that no contact map is loaded yet */
+	private void showNoContactWarning() {
+		JOptionPane.showMessageDialog(this, "No contact selected yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
 	
 }
