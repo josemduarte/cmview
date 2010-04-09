@@ -57,6 +57,14 @@ public abstract class Model {
 						// available
 	protected RIGraph graph; // currently every model must have a valid graph
 								// object
+	protected RIGraph backupGraph; 	// for storing the original graph when
+									// temporary changes are applied.
+									// Currently used for discretization of
+									// weighted contact maps.
+	protected boolean isGraphWeighted;	// whether the graph is weighted
+									// initialized on load, changed only when
+									// graph is discretized.
+	
 	protected HashMap<Pair<Integer>, Double> distMatrix; // the scaled [0-1]
 															// distance matrix
 															// TODO: Could move
@@ -68,13 +76,11 @@ public abstract class Model {
 
 	protected String loadedGraphID; // the unique identifier of a user-loaded
 									// graph, we assign this whenever the user
-
+									// loads a graph/structure into the viewer,
+									// this is being used to identify the
+									// graph in an alignment object and in pymol
 	
 	private DeltaRank deltaRank; // Our deltaRank calculation object, providing delta Rank background maps
-	
-	// loads a graph/structure into the viewer, this is being used to identify
-	// the
-	// graph in an alignment object and in pymol
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -89,16 +95,17 @@ public abstract class Model {
 
 	/**
 	 * Create a new model as a shallow copy of the given model
-	 * 
-	 * @param mod
-	 *            the original model
+	 * @param mod the original model
 	 */
 	public Model(Model mod) {
 		this.pdb = mod.pdb;
 		this.graph = mod.graph;
+		this.backupGraph = mod.backupGraph;
+		this.isGraphWeighted = mod.isGraphWeighted;
 		this.distMatrix = mod.distMatrix;
 		this.tempPdbFile = mod.tempPdbFile;
 		this.loadedGraphID = mod.loadedGraphID;
+		this.deltaRank = mod.deltaRank;
 	}
 
 	/**
@@ -485,8 +492,6 @@ public abstract class Model {
 		}
 	}
 
-	
-
 	/**
 	 * Initialises the distMatrix member. The matrix is scaled to doubles from
 	 * zero to one. Returns the scaled value of the current distance cutoff. May
@@ -789,4 +794,80 @@ public abstract class Model {
 	public double[][] getDeltaRankProbabilities() {
 		return deltaRank.getProbabilities();
 	}
+	
+	// discretization stuff
+	
+	/**
+	 * Returns true iff the graph stored in this model is weighted (i.e. has weights other than 0 or 1)
+	 * @returns true if graph is weighted, false otherwise
+	 */
+	public boolean isGraphWeighted() {
+		return this.isGraphWeighted;
+	}
+	
+	/**
+	 * Sets the isGraphWeighted flag of this model.
+	 * Use this with care to avoid inconsistencies!
+	 * @param b the new value of the flag
+	 */
+	public void setIsGraphWeighted(boolean b) {
+		this.isGraphWeighted = b;
+	}
+	
+	/**
+	 * Returns whether this model contains a backup copy of the graph
+	 * @return true if backup copy exists, false otherwise
+	 */
+	public boolean hasBackupGraph() {
+		return backupGraph != null;
+	}
+	
+	/**
+	 * Creates a backup copy of the current graph.
+	 */
+	public void makeBackupGraph() {
+		this.backupGraph = this.graph.copy();
+	}
+	
+	/**
+	 * Restores the current graph from the backup copy which has to be
+	 * previously created using makeBackupCopy(); 
+	 * @return whether restoring was successful (i.e. backup copy was found)
+	 */
+	public boolean restoreBackupGraph() {
+		if(this.backupGraph == null) return false;
+		this.graph = this.backupGraph.copy();
+		return true;
+	}
+	
+	/**
+	 * Deletes the backup copy of the graph, which has to
+	 * previously created using makeBackupCopy();
+	 * @return whether deleting was successful (i.e. backup copy was found)
+	 */
+	public boolean deleteBackupGraph() {
+		if(this.backupGraph == null) return false;
+		this.backupGraph = null;
+		return true;
+	}
+	
+	/**
+	 * Discretize the current graph such that values at or above the weightCutuff
+	 * will become contacts with weight 1 and values below will become no contacts (weight 0).
+	 * @param weightCutoff
+	 */
+	public void discretizeGraphByWeightCutoff(double weightCutoff) {
+		this.graph.discretizeByWeightCutoff(weightCutoff);
+	}
+	
+	/**
+	 * Discretize the current graph such only the length/fraction contacts with the highest
+	 * weights remain and others are discarded. For ties, the order is undefined.
+	 */
+	public void discretizeGraphByOrderedWeights(int fraction) {
+		int top = this.graph.getFullLength() / fraction;
+		this.graph.discretizeByNumContacts(top);
+	}	
+
+
 }

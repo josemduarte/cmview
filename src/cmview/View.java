@@ -179,6 +179,18 @@ public class View extends JFrame implements ActionListener {
 		}
 		this.guiState = new GUIState(this);
 		this.initGUI(); 							// build gui tree and pack
+		
+		// show status bar groups
+		if(mod != null) {
+			statusBar.showCoordinatesGroup(true);
+			statusBar.showOverlayGroup(true);
+			if(mod != null && mod.isGraphWeighted()) {
+				System.out.println("Graph is weighted!!!");
+				statusBar.showMultiModelGroup(true, mod);
+			}
+			statusBar.revalidate();
+		}
+		
 		setVisible(true);							// show GUI									
 		
 		final JFrame parent = this;					// need a final to refer to in the thread below
@@ -413,13 +425,7 @@ public class View extends JFrame implements ActionListener {
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
 		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);
-		
-		// init status bar (TODO: maybe move these to constructor of StatusBar)
-		statusBar.initOverlayGroup();
-		statusBar.initDeltaRankGroup();
-		//statusBar.initMultiModelGroup();
-		//statusBar.calculateHistogram(mod);
-	
+			
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
@@ -3108,7 +3114,6 @@ public class View extends JFrame implements ActionListener {
 				this.dispose();
 			}
 			
-			
 			// load structure in PyMol (in a new thread so that it doesn't interfere with other stuff happening at the same time)
 			// This is to fix a bug in Windows 2000/XP with Java6 (but not Vista): 
 			// when loading small structures (~<100 residues) the connection to PyMol is lost in the middle of the loadStructure() call
@@ -3209,6 +3214,118 @@ public class View extends JFrame implements ActionListener {
 			
 		}
 		
+	}
+	
+	/**
+	 * Handles the user action to switch on discretization of a weighted graph
+	 * @param weightCutoff the cutoff to apply for discretization
+	 */
+	public void handleSwitchDiscretizeOn(double weightCutoff) {
+		// 1. switch on discretization
+		// - make backup copy
+		// - apply discretization
+		// - notify that contact map has changed
+		mod.makeBackupGraph();
+		mod.discretizeGraphByWeightCutoff(weightCutoff);
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+	
+	/**
+	 * Handles the user action to switch on discretization of a weighted graph
+	 * @param fraction contacts with the length/fraction highest weights will be kept, others discarded
+	 */
+	public void handleSwitchDiscretizeOn(int fraction) {
+		// 1. switch on discretization
+		// - make backup copy
+		// - apply discretization
+		// - notify that contact map has changed
+		mod.makeBackupGraph();
+		mod.discretizeGraphByOrderedWeights(fraction);
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+	
+	/** 
+	 * Handles the user action to switch off discretization of a weighted graph
+	 */
+	public void handleSwitchDiscretizeOff() {
+		// 4. switch off discretization
+		// - restore backup copy
+		mod.restoreBackupGraph();
+		// - notify that contact map has changed
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+	
+	/**
+	 * Handles the user action to change the discretization weightCutoff while discretization is active
+	 * @param weightCutoff the new cutoff to apply for discretization
+	 */
+	public void handleChangeDiscretization(double weightCutoff) {
+		// 2. change discretization
+		// - restore backup copy
+		// - apply discretization
+		mod.restoreBackupGraph();
+		mod.discretizeGraphByWeightCutoff(weightCutoff);
+		// - notify that contact map has changed
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+	
+	/**
+	 * Handles the user action to switch to discretization by ordered weights while discretization is active
+	 * @param fraction contacts with the length/fraction highest weights will be kept, others discarded
+	 */	
+	public void handleChangeDiscretization(int fraction) {
+		// 2. change discretization
+		// - restore backup copy
+		// - apply discretization
+		mod.restoreBackupGraph();
+		mod.discretizeGraphByOrderedWeights(fraction);
+		// - notify that contact map has changed
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+
+	/**
+	 * Handles the user action to apply discretization permanently while discretization by weightCutoff is active
+	 * @param weightCutoff
+	 */
+	public void handleApplyDiscretizationPermanently(double weightCutoff) {
+		// 3. apply discretization permanently
+		// - restore backup copy
+		// - apply discretization
+		// - delete backup copy
+		// - hide discretization controls
+		mod.restoreBackupGraph();
+		mod.discretizeGraphByWeightCutoff(weightCutoff);
+		mod.deleteBackupGraph();
+		mod.setIsGraphWeighted(false);
+		statusBar.showMultiModelGroup(false, null);
+		// - notify that contact map has changed
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
+	}
+
+	/**
+	 * Handles the user action to apply discretization permanently while discretization by ordered weights is active
+	 * @param fraction contacts with the length/fraction highest weights will be kept, others discarded
+	 */
+	public void handleApplyDiscretizationPermanently(int fraction) {
+		// 3. apply discretization permanently
+		// - restore backup copy
+		// - apply discretization
+		// - delete backup copy
+		// - hide discretization controls
+		mod.restoreBackupGraph();
+		mod.discretizeGraphByOrderedWeights(fraction);
+		mod.deleteBackupGraph();
+		mod.setIsGraphWeighted(false);
+		statusBar.showMultiModelGroup(false, null);
+		// - notify that contact map has changed
+		cmPane.resetSelections();
+		cmPane.reloadContacts();	// will update screen buffer and repaint
 	}
 	
 	/* -------------------- getter methods -------------------- */

@@ -17,6 +17,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import cmview.datasources.Model;
 
@@ -52,7 +54,7 @@ import cmview.datasources.Model;
  * @author stehr
  *
  */
-public class StatusBar extends JPanel implements ItemListener, ActionListener {
+public class StatusBar extends JPanel implements ItemListener, ActionListener, ChangeListener {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -96,22 +98,21 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	 * @param controller the controller which is notified on gui actions in the status bar
 	 */
 	public StatusBar(View controller) {
-		//this.setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
-		//this.add(Box.createRigidArea(new Dimension(width, 2)));
+		
 		this.controller = controller;
 		
 		// init basic border layout
 		this.setLayout(new BorderLayout(0,0));
-		coordinatesPanel = new CoordinatesPanel();
 		groupsPanel = new JPanel();
+		coordinatesGroup = new JPanel();
 		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.PAGE_AXIS));
-		//groupsPane.add(Box.createRigidArea(new Dimension(width, 2)));
 		groupsPanel.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
 		this.add(groupsPanel,BorderLayout.PAGE_START);
-		this.add(coordinatesPanel, BorderLayout.PAGE_END);
-		this.addBestDRContactButton = new JButton("add max DR");
-		this.removeWorstDRContactButton = new JButton("remove min DR");
-		
+		this.add(coordinatesGroup, BorderLayout.PAGE_END);
+		initCoordinatesGroup();
+		initOverlayGroup();
+		initDeltaRankGroup();
+		initMultiModelGroup();		
 	}
 	
 	/**
@@ -124,6 +125,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		String title = "Overlays";
 		overlaysGroup.setLayout(new BoxLayout(overlaysGroup,BoxLayout.PAGE_AXIS));
 		overlaysGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		overlaysGroup.setVisible(false);
 		
 		// init sub-components
 		firstViewCB = new JComboBox();
@@ -175,17 +177,25 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	 */
 	public void initCoordinatesGroup() {
 		// init group
-		coordinatesGroup = new JPanel();
-		String title = "Coordinates";
-		coordinatesGroup.setLayout(new BoxLayout(coordinatesGroup,BoxLayout.PAGE_AXIS));
-		coordinatesGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+//		String title = "Coordinates";
+//		coordinatesGroup.setLayout(new BoxLayout(coordinatesGroup,BoxLayout.PAGE_AXIS));
+//		coordinatesGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		coordinatesGroup.setVisible(false);
 		
-		// init sub-components
-		coordinatesGroup.add(Box.createRigidArea(new Dimension(groupWidth, 20)));
+//		// init sub-components
+//		coordinatesGroup.add(Box.createRigidArea(new Dimension(groupWidth, 20)));
+		coordinatesPanel = new CoordinatesPanel();
 		
-		// add group to StatusBar
-		groupsPanel.add(coordinatesGroup);
-		//this.add(Box.createVerticalGlue());	 // to show next component just below this group		
+		// add components to group
+		coordinatesGroup.add(coordinatesPanel);	
+	}
+
+	/**
+	 * Toggles the visibility of the coordinates group on or off.
+	 * @param show whether to show or hide the group
+	 */
+	public void showCoordinatesGroup(boolean show) {
+		coordinatesGroup.setVisible(show);
 	}
 	
 	/**
@@ -207,6 +217,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		multiModelGroup.setLayout(new BoxLayout(multiModelGroup,BoxLayout.PAGE_AXIS));
 		String title = "Contact weights";
 		multiModelGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+	    multiModelGroup.setVisible(false);
 		
 		// initialize components
 		histogramPanel = new HistogramPanel();
@@ -222,6 +233,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 		discretizationSlider.setLabelTable(labels);
 		discretizationSlider.setPaintLabels(true);
 		discretizationSlider.setEnabled(false);
+		discretizationSlider.addChangeListener(this);
 		discretizeCheckBox = new JCheckBox("discretize");
 		discretizeCheckBox.setSelected(false);
 		discretizeCheckBox.setAlignmentX(CENTER_ALIGNMENT);
@@ -261,8 +273,10 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	/**
 	 * Toggles the visibility of the overlays group on or off.
 	 * @param show whether to show or hide the overlay group
+	 * @param mod the model for which a histogram will be shown
 	 */
-	public void showMultiModelGroup(boolean show) {
+	public void showMultiModelGroup(boolean show, Model mod) {
+		if(show) calculateHistogram(mod);
 		this.multiModelGroup.setVisible(show);
 	}
 	
@@ -337,18 +351,27 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	 */
 	public void itemStateChanged(ItemEvent e) {
 
-		// discretize check box
+		// discretize check box (switch discretization on/off)
 		if(e.getItemSelectable() == discretizeCheckBox) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				discretizationSlider.setEnabled(false);
 				discretizeButton.setEnabled(false);
 				l5checkBox.setEnabled(false);
 				l10checkBox.setEnabled(false);
+				controller.handleSwitchDiscretizeOff();
 			} else {
 				discretizationSlider.setEnabled(true);
 				discretizeButton.setEnabled(true);
 				l5checkBox.setEnabled(true);
 				l10checkBox.setEnabled(true);
+				if(l5checkBox.isSelected()) {
+					controller.handleSwitchDiscretizeOn(5);
+				} else
+				if(l10checkBox.isSelected()) {
+					controller.handleSwitchDiscretizeOn(10);
+				} else {
+					controller.handleSwitchDiscretizeOn(discretizationSlider.getValue() / 100.0);
+				}
 			}
 		}
 		
@@ -357,10 +380,12 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				if(!l10checkBox.isSelected()) {
 					discretizationSlider.setEnabled(true);
+					controller.handleChangeDiscretization(discretizationSlider.getValue() / 100.0);
 				}
 			} else {
 				discretizationSlider.setEnabled(false);
 				l10checkBox.setSelected(false);
+				controller.handleChangeDiscretization(5);
 			}
 		}
 		
@@ -369,10 +394,12 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				if(!l5checkBox.isSelected()) {
 					discretizationSlider.setEnabled(true);
+					controller.handleChangeDiscretization(discretizationSlider.getValue() / 100.0);
 				}
 			} else {
 				discretizationSlider.setEnabled(false);
 				l5checkBox.setSelected(false);
+				controller.handleChangeDiscretization(10);
 			}
 		}
 	}
@@ -382,7 +409,13 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 	 */
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == discretizeButton) {
-			System.out.println("Discretize button was pressed. Threshold = " + discretizationSlider.getValue());
+			//System.out.println("Discretize button was pressed. Threshold = " + discretizationSlider.getValue());
+			if(l5checkBox.isSelected()) {
+				controller.handleApplyDiscretizationPermanently(5);
+			} else if(l10checkBox.isSelected()) {
+				controller.handleApplyDiscretizationPermanently(10);
+			}
+			controller.handleApplyDiscretizationPermanently(discretizationSlider.getValue() / 100.0);
 		}
 		if(e.getSource() == firstViewCB) {
 			controller.handleBgOverlayChange(false,firstViewCB.getSelectedIndex());
@@ -391,6 +424,17 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener {
 			controller.handleBgOverlayChange(true,secondViewCB.getSelectedIndex());
 		}
 	}
+	
+	/**
+	 * Handle local change events
+	 */
+	public void stateChanged(ChangeEvent e) {
+		
+		if(e.getSource() == discretizationSlider) {
+			controller.handleChangeDiscretization(discretizationSlider.getValue() / 100.0);
+		}
+	}
+
 	
 	/*-------------------------- getters and setters -----------------------*/
 	

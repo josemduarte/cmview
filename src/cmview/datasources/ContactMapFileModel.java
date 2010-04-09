@@ -23,6 +23,7 @@ public class ContactMapFileModel extends Model {
 		try {
 			
 			this.graph = new FileRIGraph(fileName);
+			this.isGraphWeighted = graph.hasWeightedEdges();
 			
 			String pdbCode = graph.getPdbCode();
 			String pdbChainCode = graph.getPdbChainCode();

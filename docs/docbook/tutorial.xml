@@ -265,13 +265,13 @@
       feature we will use a CASP7 prediction to see what predictions 
       get right or not in terms of contacts. We want to compare the 
       native structure of target T0354 to a prediction. So first we 
-      load the <ulink url="downloads/hard_real_T0354.pdb">experimental 
+      load the <ulink url="downloads/hard_real_T0354.pdb">reference 
       structure</ulink> from the PDB file (same procedure as before) 
       and then the <ulink url="hard_good_T0354_TS276_1.pdb">
       prediction</ulink> by using <guimenu>Compare</guimenu> -&gt; 
       <guimenuitem>Load Second Structure From</guimenuitem> -&gt; 
-      <guimenuitem>PDB File</guimenuitem>. As before we choose Ca as 
-      contact type and 8.0 Å distance cutoff.</para>
+      <guimenuitem>PDB File</guimenuitem>. As before we choose contact 
+      type Ca and 8.0 Å distance cutoff.</para>
 
       <para>After pressing OK the second contact map is calculated and 
       a dialog comes up to choose what type of alignment we want:</para>

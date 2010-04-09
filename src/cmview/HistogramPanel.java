@@ -21,7 +21,7 @@ public class HistogramPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	// constants/settings
-	int numBins = 5;		// number of bins to partition the interval [0,1]
+	int numBins = 10;		// number of bins to partition the interval [0,1]
 	int[] histogram;		// raw counts of values in bins
 	int numValues;			// number of all values (to normalize histogram)
 	double step = 1.0 / numBins; // width of bins in value space [0,1]

@@ -199,7 +199,6 @@ public class ContactView extends JFrame implements ActionListener{
 		pack();
 	}
 
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		

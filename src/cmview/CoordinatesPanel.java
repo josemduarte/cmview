@@ -37,7 +37,7 @@ public class CoordinatesPanel extends JPanel {
 	private int width = 182;
 	int leftMargin = 7;			// margin between bg rectangle and edge
 	int rightMargin = 12;		// margin between bg rectangle and edge
-	int bottomMargin = 5;		// margin between bg rectable and edge
+	int bottomMargin = 0;		// margin between bg rectable and edge
 	int textYOffset = 23;		// top margin between rectangle and first text
 	int firstColumnX = leftMargin + 13;		// from edge
 	int secondColumnX = leftMargin + 55;	// from edge
