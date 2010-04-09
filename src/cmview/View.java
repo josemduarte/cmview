@@ -38,6 +38,8 @@ import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import owl.core.structure.*;
+import owl.core.structure.graphs.RIGNbhood;
+import owl.core.structure.graphs.RIGNode;
 import owl.core.util.FileFormatError;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
@@ -91,6 +93,7 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show threshold spheres for the residue pair (%s,%s) in 3D";
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
+	private static final String LABEL_SHOW_SPHOXEL = "Show sphoxel and neighbourhood-traces";
 	private static final String LABEL_RUN_TINKER = "Run Tinker";
 	private static final String LABEL_MIN_SET = "Minimal subset";
 	// Compare
@@ -134,7 +137,7 @@ public class View extends JFrame implements ActionListener {
 	// M -> "menu bar"
 	JMenuItem sendM, sphereM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
 	// P -> "popup menu"
-	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell;
+	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
 	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
@@ -462,6 +465,7 @@ public class View extends JFrame implements ActionListener {
 			}
 			pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
 			pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
+			pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_nbh_sel_mode, popup);
 		}
 		popup.addSeparator();		
 		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
@@ -1107,6 +1111,10 @@ public class View extends JFrame implements ActionListener {
 		// show 2nd shell button clicked
 		if(e.getSource()== pmShowSecShell) {
 			handleShowSecShell();
+		}
+		// show sphoxel and neighbourhood-traces
+		if(e.getSource()== pmShowSphoxel) {
+			handleShowSphoxel();
 		}
 		// send current edge (only available in popup menu)
 		if(e.getSource() == popupSendEdge) {
@@ -2842,6 +2850,16 @@ public class View extends JFrame implements ActionListener {
 			}
 			
 			pymol.showSecShell(mod, completeSecShell);
+			
+		}
+	}
+	
+	private void handleShowSphoxel(){
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {		
+//			ContactView tview = 
+				new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
 			
 		}
 	}
