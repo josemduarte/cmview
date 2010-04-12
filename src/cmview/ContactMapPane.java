@@ -590,7 +590,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							g2d.setColor(colorMapHeatmap(1.0f - truncWeight));
 						} else { // gray shades
 							float colorWeight = 1.0f - truncWeight;
-							g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));
+							//g2d.setColor(new Color(colorWeight, colorWeight, colorWeight));	// w/o alpha channel (faster?)
+							g2d.setColor(new Color(0f,0f,0f, 1.0f-colorWeight));	// use alpha channel
 						}
 
 					}
@@ -600,55 +601,109 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				drawContact(g2d, cont,true,view.getGUIState().getShowBottomBackground());
 			}
 		} else { // compare mode
-			// 1) common=0, first=0, second=1
-			if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+
+			if(Start.USE_EXPERIMENTAL_FEATURES && Start.SHOW_WEIGHTED_CONTACTS) {
+
+				// 1) common=0, first=0, second=1
+				if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,false);
+				}
+				// 2) common=0, first=1, second=0 
+				else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,true);
+				}
+				// 3) common=0, first=1, second=1
+				else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,true);
+				}
+				// 4) common=1, first=0, second=0
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,false);
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,true);
+				}
+				// 5) common=1, first=0, second=1
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,false);
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,true);
+				}
+				// 6) common=1, first=1, second=0
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,false);
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,true);
+				}
+				// 7) common=1, first=1, second=1
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true) {
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,false);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,false);
+					drawWeightedContacts(g2d,commonContacts,3,commonContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToFirstContacts,1,uniqueToFirstContactsColor,true);
+					drawWeightedContacts(g2d,uniqueToSecondContacts,2,uniqueToSecondContactsColor,true);
+					// 8) common=0, first=0, second=0
+				} else { 
+					// do nothing
+				}
+				
+			} else { // don't show weighted contacts
+				
+				// 1) common=0, first=0, second=1
+				if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+				}
+				// 2) common=0, first=1, second=0 
+				else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+				}
+				// 3) common=0, first=1, second=1
+				else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
+				}
+				// 4) common=1, first=0, second=0
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
+					drawContacts(g2d,commonContacts,commonContactsColor,false);
+					drawContacts(g2d,commonContacts,commonContactsColor,true);
+				}
+				// 5) common=1, first=0, second=1
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
+					drawContacts(g2d,commonContacts,commonContactsColor,false);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+					drawContacts(g2d,commonContacts,commonContactsColor,true);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
+				}
+				// 6) common=1, first=1, second=0
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
+					drawContacts(g2d,commonContacts,commonContactsColor,false);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+					drawContacts(g2d,commonContacts,commonContactsColor,true);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+				}
+				// 7) common=1, first=1, second=1
+				else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true) {
+					drawContacts(g2d,commonContacts,commonContactsColor,false);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
+					drawContacts(g2d,commonContacts,commonContactsColor,true);
+					drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
+					drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
+				// 8) common=0, first=0, second=0
+				} else { 
+					// do nothing
+				}
 			}
-			// 2) common=0, first=1, second=0 
-			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
-			}
-			// 3) common=0, first=1, second=1
-			else if (view.getGUIState().getShowCommon() == false && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
-			}
-			// 4) common=1, first=0, second=0
-			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,commonContacts,commonContactsColor,false);
-				drawContacts(g2d,commonContacts,commonContactsColor,true);
-			}
-			// 5) common=1, first=0, second=1
-			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == false && view.getGUIState().getShowSecond() == true){
-				drawContacts(g2d,commonContacts,commonContactsColor,false);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
-				drawContacts(g2d,commonContacts,commonContactsColor,true);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
-			}
-			// 6) common=1, first=1, second=0
-			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == false){
-				drawContacts(g2d,commonContacts,commonContactsColor,false);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
-				drawContacts(g2d,commonContacts,commonContactsColor,true);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
-			}
-			// 7) common=1, first=1, second=1
-			else if (view.getGUIState().getShowCommon() == true && view.getGUIState().getShowFirst() == true && view.getGUIState().getShowSecond() == true) {
-				drawContacts(g2d,commonContacts,commonContactsColor,false);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,false);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,false);
-				drawContacts(g2d,commonContacts,commonContactsColor,true);
-				drawContacts(g2d,uniqueToFirstContacts,uniqueToFirstContactsColor,true);
-				drawContacts(g2d,uniqueToSecondContacts,uniqueToSecondContactsColor,true);
-			// 8) common=0, first=0, second=0
-			} else { 
-				// do nothing
-			}
-			
 		}
 	}
 	
@@ -661,6 +716,31 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color, boolean secondMap) {
 		g2d.setColor(color);
 		for(Pair<Integer> cont:contactSet){
+			drawContact(g2d, cont, secondMap,(view.getGUIState().getShowBackground() && !secondMap) || (view.getGUIState().getShowBottomBackground() && secondMap) );
+		}	
+	}
+
+	/**
+	 * Draws weighted contacts for the given contact set in the given color
+	 * @param g2d
+	 * @param contactSet
+	 * @param color
+	 */
+	private void drawWeightedContacts(Graphics2D g2d, IntPairSet contactSet, int modNum, Color color, boolean secondMap) {
+		for(Pair<Integer> cont:contactSet){
+			double weight;
+			if(modNum == 1) {
+				weight = mod.getGraph().getEdgeFromSerials(mapAl2Seq(mod.getLoadedGraphID(),cont.getFirst()), mapAl2Seq(mod.getLoadedGraphID(),cont.getSecond())).getWeight();
+			} else if(modNum == 2) {
+				weight = mod2.getGraph().getEdgeFromSerials(mapAl2Seq(mod2.getLoadedGraphID(),cont.getFirst()), mapAl2Seq(mod2.getLoadedGraphID(),cont.getSecond())).getWeight();
+			} else { // both
+				double weight1 = mod.getGraph().getEdgeFromSerials(mapAl2Seq(mod.getLoadedGraphID(),cont.getFirst()), mapAl2Seq(mod.getLoadedGraphID(),cont.getSecond())).getWeight();
+				double weight2 = mod2.getGraph().getEdgeFromSerials(mapAl2Seq(mod2.getLoadedGraphID(),cont.getFirst()), mapAl2Seq(mod2.getLoadedGraphID(),cont.getSecond())).getWeight();
+				weight = Math.max(weight1, weight2);
+			}
+			float truncWeight = (float) Math.max(0, Math.min(1, weight)); // truncated weight (if weights are off the (0,1) interval)
+			Color newColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.round(255 * truncWeight));
+			g2d.setColor(newColor);
 			drawContact(g2d, cont, secondMap,(view.getGUIState().getShowBackground() && !secondMap) || (view.getGUIState().getShowBottomBackground() && secondMap) );
 		}	
 	}
@@ -762,6 +842,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
+	 * NOT USED ANYMORE. NOW, COORDINATES ARE SHOWN IN STATUS BAR.
 	 * Draws coordinates for all registered models.
 	 */
 	protected void drawCoordinates(){
@@ -773,6 +854,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 
 	/**
+	 * NOT USED ANYMORE. NOW, COORDINATES ARE SHOWN IN STATUS BAR.
 	 * Draws coordinates when mouse is over residue ruler.
 	 */
 	private void drawRulerCoord() {
@@ -785,6 +867,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 
 	/**
+	 * NOT USED ANYMORE. NOW, COORDINATES ARE SHOWN IN STATUS BAR.
 	 * Passes coordinates for the given model to the status bar on the right. Please 
 	 * note, that whenever an ordinate of the current mouse position in the 
 	 * graphic equals zero the coordinates will not be printed. 
@@ -2033,7 +2116,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	}
 
 	/**
-	 * Deletes currently selected contacts from first and from second model if present
+	 * Deletes currently selected contacts from first model
 	 */
 	public void deleteSelectedContacts() {
 		for (Pair<Integer> cont:selContacts){
