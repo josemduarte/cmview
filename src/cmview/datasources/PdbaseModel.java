@@ -2,6 +2,7 @@ package cmview.datasources;
 import java.sql.SQLException;
 
 import owl.core.structure.*;
+import owl.core.structure.graphs.RIGEnsemble;
 
 import cmview.Start;
 
@@ -34,7 +35,6 @@ public class PdbaseModel extends Model {
 	    return new PdbaseModel(this);
 	}
 
-
 	/**
 	 * Loads the chain corresponding to the passed chain code identifier.
 	 * @param pdbChainCode  pdb chain code of the chain to be loaded
@@ -43,11 +43,46 @@ public class PdbaseModel extends Model {
 	 */
 	@Override
 	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
+		load(pdbChainCode, modelSerial, false);
+	}
+
+	/**
+	 * Loads the chain corresponding to the passed chain code identifier.
+	 * loadEnsembleGraph is true, the graph in this model will be the average graph of the ensemble of all models
+	 * instead of the graph of the specified model only. The Pdb object will still correspond to the given model number.
+	 * @param pdbChainCode  pdb chain code of the chain to be loaded
+	 * @param modelSerial  a model serial
+	 * @param loadEnsembleGraph whether to set the graph in this model to the (weighted) ensemble graph of all models
+	 * @throws ModelConstructionError
+	 */
+	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError {
 		// load structure from Pdbase
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
 			super.checkAndAssignSecondaryStructure();
-			this.graph = pdb.getRIGraph(edgeType, distCutoff);
+			if(loadEnsembleGraph == false || this.pdb.getModels().length == 1) {
+				this.graph = pdb.getRIGraph(edgeType, distCutoff);
+			} else {
+				try {
+					RIGEnsemble e = new RIGEnsemble(edgeType, distCutoff);
+					for(int modNum: this.pdb.getModels()) {
+						Pdb p = new PdbasePdb(this.pdb.getPdbCode());
+						p.load(pdbChainCode, modNum);
+						e.addRIG(p.getRIGraph(edgeType, distCutoff));
+					}
+					this.graph = e.getAverageGraph();
+					if(this.graph == null) {
+						throw new ModelConstructionError("Error loading ensembl graph: Graph returned by GraphAverager is null");
+					}
+					this.graph.setPdbCode(this.pdb.getPdbCode());
+					this.graph.setChainCode(pdbChainCode);
+					this.setIsGraphWeighted(true);
+				} catch (SQLException e) {
+					throw new ModelConstructionError("Error loading ensemble graph: " + e.getMessage());
+				} catch (PdbCodeNotFoundError e) {
+					throw new ModelConstructionError("Error loading ensemble graph: " + e.getMessage());
+				}
+			}
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();

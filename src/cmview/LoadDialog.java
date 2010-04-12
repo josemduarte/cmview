@@ -24,7 +24,7 @@ import owl.core.util.actionTools.GetterError;
  * and displays different input fields depending on the given parameters.
  * The action to be performed when ok is pressed can be passed as a LoadAction instance.
  */
-public class LoadDialog extends JDialog implements ActionListener, PopupMenuListener, DocumentListener {  
+public class LoadDialog extends JDialog implements ActionListener, PopupMenuListener, DocumentListener, ItemListener {  
 
 	/*------------------------------ constants ------------------------------*/
 	
@@ -53,6 +53,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	private JButton loadButton, cancelButton, fileChooserButton;
 	private JTextField selectFileName, selectGraphId, selectAc, selectDist, selectMinSeqSep, selectMaxSeqSep, selectDb;
 	private JLabel labelAfterCc,labelAfterModel;
+	private JCheckBox loadAllModelsCheckBox;
 	/** loads the model from the source */
 	private LoadAction loadAction;
 	/** implements the retrieval of all available chain identifiers for the given source */
@@ -105,10 +106,12 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 * @param a  action to perform when user clicks the OK button
 	 * @param showFileName  filename, initialises text of the filename field
 	 * @param showAc  pdb accession code, ... pdb code field
-	 * @param showCc  chain code 
-	 *  Only allowed values: <code>""</code> or <code>null</code>  
 	 * @param showModel NMR model serial
 	 *  Only allowed values: <code>""</code> or <code>null</code> 
+	 * @param showLoadAllModels check box to load all models (weighted ensemble graph)
+	 *  Only allowed values: <code>""</code> (on) or <code>null</code> (off)
+	 * @param showCc  chain code 
+	 *  Only allowed values: <code>""</code> or <code>null</code>  
 	 * @param showCt  contact type, sets this contact type to the selected one 
 	 *  (deprecated!)
 	 * @param showDist  contact distance threshold, initialises text of the 
@@ -121,8 +124,8 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 * @param showGraphId  name of the graph to be used, ... graph id field
 	 */
 	public LoadDialog(JFrame f, String title, LoadAction a,
-			String showFileName, String showAc, String showModel, String showCc, String showCt,
-			String showDist, String showMinSeqSep, String showMaxSeqSep, String showDb, String showGraphId) 
+			String showFileName, String showAc, String showModel, String showLoadAllModels, String showCc,
+			String showCt, String showDist, String showMinSeqSep, String showMaxSeqSep, String showDb, String showGraphId) 
 	throws LoadDialogConstructionError {
 	
 		super(f, title, true);
@@ -136,7 +139,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		this.parentFrame = f;
 
 		this.setResizable(false);
-		//setLocation(300,200); // aparrently has no effect
+		//setLocation(300,200); // apparently has no effect
 		
 		loadButton = new JButton("Ok");
 		cancelButton = new JButton("Cancel");
@@ -149,7 +152,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		// enter-key is being pressed and released this button is invoked
 		this.getRootPane().setDefaultButton(loadButton);
 	
-		// construct all the text fields
+		// construct all the text fields and components
 		selectFileName = new JTextField();
 		selectGraphId = new JTextField();
 		selectAc = new JTextField();
@@ -157,7 +160,10 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		selectMinSeqSep = new JTextField();
 		selectMaxSeqSep = new JTextField();		
 		selectDb = new JTextField();
-		
+
+		loadAllModelsCheckBox = new JCheckBox("all models");
+		loadAllModelsCheckBox.addItemListener(this);
+				
 		// register all insertion/deletion/update events from these fields.
 		// this allows as to reset the comboCc (s.b.) whenever any changes were 
 		// made in these field
@@ -235,7 +241,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		if(showModel != null) {
 			inputPane.add(labelModel);
 			inputPane.add(comboModel);
-			inputPane.add(labelAfterModel);
+			if(showLoadAllModels != null) {
+				inputPane.add(loadAllModelsCheckBox);
+			} else {
+				inputPane.add(labelAfterModel);
+			}
 			
 			// set text-field to previous value if there is such thing in 
 			// field2defValues.
@@ -407,6 +417,14 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		}
 		return selectedModelSerial;
 	}
+	
+	/**
+	 * Returns the state of the 'load all models' checkbox.
+	 * @return true if checkbox is selected, false otherwise
+	 */
+	public boolean isSelectedLoadAllModels() {
+		return loadAllModelsCheckBox.isSelected();
+	}
 
 	/**
 	 * Gets the currently selected chaincode
@@ -522,7 +540,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	}
 	
 	
-	/** action listener for load button */
+	/** action listener method for buttons */
 	public void actionPerformed (ActionEvent e) {
 		
 		/* load button */
@@ -545,8 +563,19 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 				this.selectFileName.setText(path);
 			}
 		}
-		
-
+	}
+	
+	/**
+	 * 	listener method for check box
+	 */
+	public void itemStateChanged(ItemEvent e) {
+		if(e.getItemSelectable() == loadAllModelsCheckBox) {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				comboModel.setEnabled(false);
+			} else {
+				comboModel.setEnabled(true);
+			}
+		}
 	}
 	
 	public Getter getChainCodesGetter() {
@@ -824,6 +853,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			String f = getSelectedFileName();
 			String ac = getSelectedAc();
 			int modelSerial = getSelectedModel();
+			boolean loadAllModels = isSelectedLoadAllModels();
 			String cc = getSelectedCc();
 			String ct = getSelectedCt();
 			double dist = getSelectedDist();
@@ -834,7 +864,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 
-			this.loadAction.doit((Object) parentFrame, f, ac, modelSerial, cc, ct, dist, minss, maxss, db, gid);
+			this.loadAction.doit((Object) parentFrame, f, ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, gid);
 			
 			// write default values to remember them for the next load-dialog 
 			// (e.g. for loading the second structure)
@@ -861,10 +891,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 
 		try {
 			LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction(false) {
-				public void doit (Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {					
+				public void doit (Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {					
 					System.out.println("Filename:\t" + f);
 					System.out.println("PDB code:\t" + ac);
 					System.out.println("Model serial:\t" + modelSerial);
+					System.out.println("All models:\t" + loadAllModels);
 					System.out.println("Chain code:\t" + cc);
 					System.out.println("Contact type:\t" + ct);
 					System.out.println("Dist. cutoff:\t" + dist);
@@ -873,7 +904,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 					System.out.println("Database:\t" + db);
 					System.out.println("Graph Id:\t" + gid);
 				};
-			}, "filename", null, "2", "B", "Ca", "8.0", "0", "20", "pdbase", "1");
+			}, "filename", null, "2", "true", "B", "Ca", "8.0", "0", "20", "pdbase", "1");
 			dialog.addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent event) {
 					System.exit(0);

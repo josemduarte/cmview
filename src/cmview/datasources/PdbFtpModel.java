@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.IOException;
 
 import owl.core.structure.*;
+import owl.core.structure.graphs.RIGEnsemble;
 
 
 import cmview.Start;
@@ -13,7 +14,7 @@ import cmview.Start;
 public class PdbFtpModel extends Model {
     
 	
-	private File cifFile;
+	private File cifFile;		// the cached cif file downloaded from the PDB
 		
 	/**
 	 * Overloaded constructor to load the data.
@@ -48,7 +49,7 @@ public class PdbFtpModel extends Model {
 	public File getCifFile() {
 		return cifFile;
 	}
-	
+
 	/**
 	 * Loads the chain corresponding to the passed chain code identifier.
 	 * @param pdbChainCode  pdb chain code of the chain to be loaded
@@ -57,11 +58,37 @@ public class PdbFtpModel extends Model {
 	 */
 	@Override
 	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
+		load(pdbChainCode, modelSerial, false);
+	}
+	
+	/**
+	 * Loads the chain corresponding to the passed chain code identifier.
+	 * If loadEnsembleGraph is true, the graph in this model will be the average graph of the ensemble of all models
+	 * instead of the graph of the specified model only. The Pdb object will still correspond to the given model number.
+	 * @param pdbChainCode  pdb chain code of the chain to be loaded
+	 * @param modelSerial  a model serial
+	 * @param loadEnsembleGraph whether to set the graph in this model to the (weighted) ensemble graph of all models
+	 * @throws ModelConstructionError
+	 */
+	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError {
 		// load CIF file from online pdb
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
 			super.checkAndAssignSecondaryStructure();
-			this.graph = pdb.getRIGraph(edgeType, distCutoff);
+			if(loadEnsembleGraph == false || this.pdb.getModels().length == 1) {
+				this.graph = pdb.getRIGraph(edgeType, distCutoff);
+			} else {
+				RIGEnsemble e = new RIGEnsemble(edgeType, distCutoff);
+				try {
+					e.loadFromMultiModelFile(this.cifFile);
+					this.graph = e.getAverageGraph();
+					this.graph.setPdbCode(this.pdb.getPdbCode());
+					this.graph.setChainCode(pdbChainCode);
+					this.setIsGraphWeighted(true);
+				} catch (IOException e1) {
+					throw new ModelConstructionError("Error loading ensemble graph: " + e1.getMessage());
+				}
+			}
 
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();

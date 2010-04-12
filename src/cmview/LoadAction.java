@@ -22,6 +22,7 @@ public abstract class LoadAction {
 	 * @param f  filename
 	 * @param ac  accession code
 	 * @param modelSerial the model serial
+	 * @param loadAllModels whether to load a weighted ensembl graph
 	 * @param cc  chain code
 	 * @param ct  contact type
 	 * @param dist  distance threshold for the contacts
@@ -30,6 +31,6 @@ public abstract class LoadAction {
 	 * @param db  name of the database
 	 * @param gid  graph id
 	 */
-	public abstract void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
+	public abstract void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
 
 }

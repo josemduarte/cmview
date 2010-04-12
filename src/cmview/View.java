@@ -1221,11 +1221,11 @@ public class View extends JFrame implements ActionListener {
 				LoadDialog dialog;
 				try {
 					dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
-						public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 							View view = (View) o;
 							view.doLoadFromGraphDb(db, gid, secondModel);
 						}
-					}, null, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+					}, null, null, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
 					
 					actLoadDialog = dialog;
 					dialog.showIt();
@@ -1264,11 +1264,11 @@ public class View extends JFrame implements ActionListener {
 			} else{
 				try {
 					LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
-						public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 							View view = (View) o;
-							view.doLoadFromPdbase(ac, modelSerial, cc, ct, dist, minss, maxss, db, secondModel);
+							view.doLoadFromPdbase(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, secondModel);
 						}
-					}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
+					}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
 					dialog.setChainCodeGetter(new Getter(dialog) {
 						public Object get() throws GetterError {
 							LoadDialog dialog = (LoadDialog) getObject();
@@ -1312,7 +1312,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public void doLoadFromPdbase(String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
+	public void doLoadFromPdbase(String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
 		System.out.println("Loading from Pdbase");
 		System.out.println("PDB code:\t" + ac);
 		System.out.println("Model serial:\t" + modelSerial);
@@ -1323,8 +1323,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		System.out.println("Database:\t" + db);	
 		try{
-			Model mod = new PdbaseModel(ac, ct, dist, minss, maxss, db);
-			mod.load(cc, modelSerial);
+			PdbaseModel mod = new PdbaseModel(ac, ct, dist, minss, maxss, db);
+			mod.load(cc, modelSerial, loadAllModels);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1348,11 +1348,11 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from PDB file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
-						view.doLoadFromPdbFile(f, modelSerial, cc, ct, dist, minss, maxss, secondModel);
+						view.doLoadFromPdbFile(f, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}
-				}, "", null, "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, "", null, "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
 				dialog.setChainCodeGetter(new Getter(dialog) {
 					public Object get() throws GetterError {
 						LoadDialog dialog = (LoadDialog) getObject();
@@ -1389,7 +1389,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public void doLoadFromPdbFile(String f, int modelSerial, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
+	public void doLoadFromPdbFile(String f, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
 		System.out.println("Loading from Pdb file");
 		System.out.println("Filename:\t" + f);
 		System.out.println("Model serial:\t" + modelSerial);
@@ -1399,8 +1399,8 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		try {
-			Model mod = new PdbFileModel(f, ct, dist, minss, maxss);
-			mod.load(cc, modelSerial);
+			PdbFileModel mod = new PdbFileModel(f, ct, dist, minss, maxss);
+			mod.load(cc, modelSerial, loadAllModels);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
@@ -1444,11 +1444,11 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CM file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
 					}
-				}, "", null, null, null, null, null, null, null, null, null);
+				}, "", null, null, null, null, null, null, null, null, null, null);
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
@@ -1480,11 +1480,11 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CASP RR file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
 						view.doLoadFromCaspRRFile(f, secondModel);
 					}
-				}, "", null, null, null, null, null, null, null, null, null);
+				}, "", null, null, null, null, null, null, null, null, null, null);
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
@@ -1515,11 +1515,11 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from online PDB", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
 						View view = (View) o;
-						view.doLoadFromFtp(ac, modelSerial, cc, ct, dist, minss, maxss, secondModel);
+						view.doLoadFromFtp(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}
-				}, null, "", "1", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
 				dialog.setChainCodeGetter(new Getter(dialog) {
 					public Object get() throws GetterError {
 						LoadDialog dialog = (LoadDialog) getObject();
@@ -1571,7 +1571,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	public void doLoadFromFtp(String ac, int modelSerial, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
+	public void doLoadFromFtp(String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, boolean secondModel) {
 		System.out.println("Loading from online PDB");
 		System.out.println("PDB code:\t" + ac);
 		System.out.println("Model serial:\t" + modelSerial);
@@ -1582,13 +1582,13 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));	
 		try{
 			File localFile = Start.getFilename2PdbCode(ac);
-			Model mod = null;
+			PdbFtpModel mod = null;
 			if( localFile != null ) {
 				mod = new PdbFtpModel(localFile, ct, dist, minss, maxss);
 			} else { 
 				mod = new PdbFtpModel(ac, ct, dist, minss, maxss);
 			}
-			mod.load(cc, modelSerial);
+			mod.load(cc, modelSerial, loadAllModels);
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;
