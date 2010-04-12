@@ -647,6 +647,7 @@ public abstract class Model {
 	 * Calculates and returns the density matrix for the current model.
 	 */
 	public double[][] getDensityMatrix() {
+
 		int size = getMatrixSize();
 		double[][] d = new double[size][size]; // density matrix
 

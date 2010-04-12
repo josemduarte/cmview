@@ -219,7 +219,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		this.screenSize = new Dimension(Start.INITIAL_SCREEN_SIZE, Start.INITIAL_SCREEN_SIZE);
-
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
 		this.mouseDraggingPos = new Point();

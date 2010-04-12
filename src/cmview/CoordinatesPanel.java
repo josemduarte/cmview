@@ -132,7 +132,7 @@ public class CoordinatesPanel extends JPanel {
 //		int hyphenLength = 7;
 //		int lineHeight = 20;		// offset between lines
 //		int baseLineY = getHeight() - totalHeight;	// top of bg rectangle in local coordinates of this component
-	
+		totalHeight = 3 * lineHeight + bottomMargin + textYOffset;
 		if(writePDBResNum) {
 			totalHeight += lineHeight;		// for pdb res numbers
 		}	

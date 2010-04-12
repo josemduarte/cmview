@@ -94,11 +94,13 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SPHOXEL = "Show sphoxel and neighbourhood-traces";
 	private static final String LABEL_RUN_TINKER = "Run Tinker";
 	private static final String LABEL_MIN_SET = "Minimal subset";
+
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
 	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
+	private static final String LABEL_SWAP_MODELS = "Swap Models";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
 	
 	/*--------------------------- member variables --------------------------*/
@@ -145,7 +147,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
-	JMenuItem mmSuperposition, mmShowAlignedResidues;
+	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -199,6 +201,11 @@ public class View extends JFrame implements ActionListener {
 				parent.toFront();					// bring new window to front
 			}
 		});
+	}
+	
+	public View(Model mod, Model mod2, MultipleSequenceAlignment ali,String title) {
+		View v = new View(mod,title);
+		v.doLoadSecondModelFromModel(mod2);
 	}
 	
 	/** 
@@ -591,6 +598,8 @@ public class View extends JFrame implements ActionListener {
 		mmSuperposition.setEnabled(false);
 		mmShowAlignedResidues = makeMenuItem("Show Corresponding Residues From Selection",null,menu);
 		mmShowAlignedResidues.setEnabled(false);
+		mmSwapModels = makeMenuItem(LABEL_SWAP_MODELS,null,menu);
+		mmSwapModels.setEnabled(false);
 		addToJMenuBar(menu);
 
 		// Help menu
@@ -1173,6 +1182,9 @@ public class View extends JFrame implements ActionListener {
 		if( e.getSource() == mmShowAlignedResidues ) {
 			handleShowAlignedResidues3D();
 		}
+		if (e.getSource() == mmSwapModels) {
+			handleSwapModels();
+		}
 		if(e.getSource() == minimalSubset){
 			handleMinimalSet();
 		}
@@ -1400,6 +1412,15 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		}
 	}	
+	
+	public void doLoadSecondModelFromModel(Model m) {
+		mod2 = m;
+		try {
+			doPairwiseSequenceAlignment();
+		} catch (AlignmentConstructionError e) {
+			showLoadError(e.getMessage());
+		}
+	}
 	
 	public void doLoadSecondModelFromPdbFile(String string) {
 		
@@ -1646,7 +1667,7 @@ public class View extends JFrame implements ActionListener {
 		// corresponding residues for both structures
 		mmSuperposition.setEnabled(true);	
 		mmShowAlignedResidues.setEnabled(true);
-
+		mmSwapModels.setEnabled(true);
 		// disable/enable some menu-bar items, popup-menu items and buttons
 		setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
 		setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
@@ -2955,7 +2976,15 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 	}
-
+	/* Handler for the swap models action in the comparison menu. Swaps first and
+	 * second model
+	 */
+	
+	private void handleSwapModels() {
+		new View(mod2,mod,ali,null);
+		this.dispose();
+	}
+	
 	/* -------------------- Help menu -------------------- */
 
 	private void handleHelpWriteConfig() {
