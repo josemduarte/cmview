@@ -1,6 +1,7 @@
 package cmview;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
@@ -16,6 +17,7 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -39,16 +41,19 @@ public class ContactView extends JFrame implements ActionListener{
 	// File
 	private static final String LABEL_FILE_INFO = "Info";
 //	private static final String LABEL_FILE_PRINT = "Print...";	
-	private static final String LABEL_FILE_QUIT = "Quit";
+//	private static final String LABEL_FILE_QUIT = "Quit";
 	private static final String LABEL_PNG_FILE = "PNG File...";
-	private static final String LABEL_CSV_FILE = "CSV File...";
+	private static final String LABEL_SPHOXEL_CSV_FILE = "Sphoxel to CSV File...";
+	private static final String LABEL_TRACES_CSV_FILE = "Traces to CSV File...";
 	// Select
-//	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
+	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
+	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
 	JPanel svP; 				// Main panel holding the Contact map pane Sperical Voxel view 
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
+	ContactStatusBar contStatBar;		// A status bar with metainformation on the right
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -60,13 +65,13 @@ public class ContactView extends JFrame implements ActionListener{
 	
 	// Menu items
 	// M -> "menu bar"
-	JMenuItem clusterM;
+	JMenuItem squareM, clusterM;
 	// mm -> "main menu"
-	JMenuItem mmInfo, mmSavePng, mmSaveCsv, mmQuit;
+	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmQuit;
 	JMenuItem mmSelectAll;
 	
 	// Data and status variables
-//	private GUIState guiState;
+	private ContactGUIState guiState;
 	private Model mod;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
@@ -75,7 +80,8 @@ public class ContactView extends JFrame implements ActionListener{
 	/** Create a new View object */
 	public ContactView(Model mod, String title, ContactMapPane cmPane) {
 		super(title);
-		Start.viewInstancesCreated();
+		Start.viewInstancesCreated();		
+		this.guiState = new ContactGUIState(this);
 		this.mod = mod;
 		this.cmPane = cmPane;
 //		Dimension dim = new Dimension(150, 250);
@@ -86,7 +92,12 @@ public class ContactView extends JFrame implements ActionListener{
 		}
 //		this.guiState = new GUIState(this);
 		this.initGUI(); 							// build gui tree and pack
-		setVisible(true);							// show GUI									
+		setVisible(true);							// show GUI			
+		
+		// show status bar groups
+		if(mod != null) {
+			contStatBar.showDeltaRadiusGroup(true);
+		}
 		
 		final JFrame parent = this;					// need a final to refer to in the thread below
 		EventQueue.invokeLater(new Runnable() {		// execute after other events have been processed
@@ -138,9 +149,11 @@ public class ContactView extends JFrame implements ActionListener{
 		// Creating the Panels
 		tbPane = new JPanel(new BorderLayout());	// toolbar pane, holding only toolbar and cmp (all the rest)
 		svP = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
+		contStatBar = new ContactStatusBar(this);	// pass reference to 'this' for handling gui actions
 		
 //		// Icons
-//		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
+		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
+		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
 		
 		// Main menu
 		JMenuBar menuBar;
@@ -160,40 +173,34 @@ public class ContactView extends JFrame implements ActionListener{
 		submenu = new JMenu("Save to");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 		mmSavePng = makeMenuItem(LABEL_PNG_FILE, null, submenu);
-		mmSaveCsv = makeMenuItem(LABEL_CSV_FILE, null, submenu);
+		mmSaveSCsv = makeMenuItem(LABEL_SPHOXEL_CSV_FILE, null, submenu);
+		mmSaveTCsv = makeMenuItem(LABEL_TRACES_CSV_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Save", submenu);
-		// Print, Quit
-		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
+//		// Print, Quit
+//		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		addToJMenuBar(menu);
 		
 //		// Select menu
-//		menu = new JMenu("Select");
-//		menu.setMnemonic(KeyEvent.VK_S);
-//		submenu = new JMenu("Selection Mode");
-//		clusterM = makeMenuItem(this.LABEL_CLUSTER_SELECTION_MODE, icon_square_sel_mode, submenu);
-//		menu.add(submenu);
-//		menu.addSeparator();
-//		mmSelectAll = makeMenuItem("All Contacts", null, menu);		
-//		addToJMenuBar(menu);
+		menu = new JMenu("Select");
+		menu.setMnemonic(KeyEvent.VK_S);
+		submenu = new JMenu("Selection Mode");
+		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
+		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
+		menu.add(submenu);
+		addToJMenuBar(menu);
 	
 //		tbPane.setSize(130, 230);
 		// Creating contact map pane if model loaded
-		if(mod != null) {			
-			try {
-				cPane = new ContactPane(this.mod, this.cmPane, this);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if(mod != null) {	
+			cPane = new ContactPane(this.mod, this.cmPane, this);
+			cPane.setStatusBar(contStatBar);
 			svP.add(cPane);
 		}
 
-		// Add everything to the content pane		
-//		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
-		
+		// Add everything to the content pane				
 		this.tbPane.add(svP,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
-//		this.tbPane.add(statusBar,BorderLayout.EAST);
+		this.tbPane.add(contStatBar,BorderLayout.EAST);
 		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
 	
 		pack();
@@ -208,8 +215,11 @@ public class ContactView extends JFrame implements ActionListener{
 		if(e.getSource() == mmSavePng) {
 			handleSaveToPng();
 		}
-		if(e.getSource() == mmSaveCsv) {
-			handleSaveToCsv();
+		if(e.getSource() == mmSaveSCsv) {
+			handleSaveSphoxelsToCsv();
+		}
+		if(e.getSource() == mmSaveTCsv) {
+			handleSaveTracesToCsv();
 		}
 		
 		// Info, Print, Quit
@@ -218,6 +228,19 @@ public class ContactView extends JFrame implements ActionListener{
 		}	
 		if(e.getSource() == mmQuit) {
 			handleQuit();
+		}
+		
+		/* ---------- Action menu ---------- */
+
+		// Selection modes
+
+		// square button clicked
+		if (e.getSource() == squareM) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
+		}
+		// cluster button clicked
+		if (e.getSource() == clusterM) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
 		}
 	}
 	
@@ -235,6 +258,8 @@ public class ContactView extends JFrame implements ActionListener{
 
 					// Create a graphics contents on the buffered image
 					Graphics2D g2d = bufferedImage.createGraphics();
+					g2d.setBackground(Color.white);
+					g2d.setColor(Color.white);
 
 					// Draw the current contact map window to Image
 					cPane.paintComponent(g2d);
@@ -250,7 +275,27 @@ public class ContactView extends JFrame implements ActionListener{
 		}
 	}
 	
-	private void handleSaveToCsv() {
+	private void handleSaveSphoxelsToCsv() {
+		if(this.mod == null) {
+			showNoContactWarning();
+		} else {
+			int ret = Start.getFileChooser().showSaveDialog(this);
+			if(ret == JFileChooser.APPROVE_OPTION) {
+				File chosenFile = Start.getFileChooser().getSelectedFile();
+				System.out.println("File " + chosenFile.getPath());
+				System.out.println("chosenFile= "+chosenFile.toString());
+				String filename = chosenFile.toString();
+				System.out.println("Substring: "+filename.substring(filename.length()-4, filename.length()-1));
+				if (filename.substring(filename.length()-4, filename.length()-1) != ".csv")
+					filename += ".csv";
+				if (confirmOverwrite(chosenFile)) {
+					cPane.writeSphoxels(filename);
+				}
+			}
+		}
+	}
+	
+	private void handleSaveTracesToCsv() {
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
@@ -260,8 +305,8 @@ public class ContactView extends JFrame implements ActionListener{
 				System.out.println("File " + chosenFile.getPath());
 				System.out.println("chosenFile= "+chosenFile.toString());
 				if (confirmOverwrite(chosenFile)) {
-					cPane.writeSphoxels(chosenFile.toString());
-				}
+					cPane.writeTraces(chosenFile.toString());
+;				}
 			}
 		}
 	}
@@ -299,6 +344,34 @@ public class ContactView extends JFrame implements ActionListener{
 		} 
 		return true;
 	}
+	
+	/**
+	 * Handles the user action to change the radius range 
+	 * @param minR and maxR --> range
+	 */
+	public void handleChangeRadiusRange(float minR, float maxR) {
+		this.cPane.setMinR(minR);
+		this.cPane.setMaxR(maxR);
+		try {
+			this.cPane.recalcSphoxel();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * Handles the user action to change the resolution
+	 * @param numSteps the number of Steps to apply for query
+	 */
+	public void handleChangeResolution(int numSteps) {
+		this.cPane.setNumSteps(numSteps);
+		try {
+			this.cPane.recalcSphoxel();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	/* -------------------- Warnings -------------------- */
 
@@ -307,5 +380,14 @@ public class ContactView extends JFrame implements ActionListener{
 		JOptionPane.showMessageDialog(this, "No contact selected yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
+	/* -------------------- getter methods -------------------- */
+	
+	/**
+	 * Returns the gui state object associated with this View.
+	 * @return the gui state object associated with this View
+	 */
+	protected ContactGUIState getGUIState() {
+		return this.guiState;
+	}
 	
 }

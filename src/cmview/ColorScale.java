@@ -9,13 +9,18 @@ public class ColorScale {
 		return getColor4HotColdScale(val, alphaScaled);
 	}
 	
-	public Color getColor4BlueRedScale(double val, int alpha){
+	public Color getColor4BlueRedScale(double val, float alpha){
 		Color color;
+		int alphaInt = Math.round(alpha*255 + 0.5f);
+		if (alphaInt>255)
+			alphaInt = 255;
 		if(val<0){
-			color = new Color(24,116,205,alpha);
+//			color = new Color(24/255,116/255,205/255,alpha);
+			color = new Color(24,116,205,alphaInt);
 		}
 		else if (val>0){
-			color = new Color(238,44,44,alpha);
+//			color = new Color(238/255,44/255,44/255,alpha);
+			color = new Color(238,44,44,alphaInt);
 		}
 		else // if (val==0)
 			color = Color.white;
