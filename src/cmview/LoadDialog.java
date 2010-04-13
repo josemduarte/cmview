@@ -241,7 +241,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		if(showModel != null) {
 			inputPane.add(labelModel);
 			inputPane.add(comboModel);
-			if(showLoadAllModels != null) {
+			if(Start.USE_EXPERIMENTAL_FEATURES && Start.SHOW_WEIGHTED_CONTACTS && showLoadAllModels != null) {
 				inputPane.add(loadAllModelsCheckBox);
 			} else {
 				inputPane.add(labelAfterModel);

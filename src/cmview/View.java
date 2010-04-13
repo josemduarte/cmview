@@ -123,6 +123,26 @@ public class View extends JFrame implements ActionListener {
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
 
+	// background overlay types
+	public enum BgOverlayType {
+		DISTANCE("Distance"), 
+		DENSITY("Contact Density"), 
+		COMMON_NBH("Common Nbhd"), 
+		DELTA_RANK("Delta Rank"), 
+		DIFF_DIST("Difference"), 
+		ENERGY("Pairwise Energy");
+		
+		String label;
+		
+		BgOverlayType(String label) {
+			this.label = label;
+		}
+		
+		public Object getItem() {
+			return this.label;
+		}
+	};
+	
 	// contains all types of component that shall not be 
 	// considered for the right setting of the visibility 
 	// mode of a menu
@@ -430,8 +450,10 @@ public class View extends JFrame implements ActionListener {
 		toolBar.addSeparator(separatorDim);
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
-		tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
-		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
+			minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);
+		}
 			
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
@@ -473,10 +495,10 @@ public class View extends JFrame implements ActionListener {
 			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
+				pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
+				pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
+				pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_nbh_sel_mode, popup);
 			}
-			pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
-			pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
-			pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_nbh_sel_mode, popup);
 		}
 		popup.addSeparator();		
 		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
@@ -3196,19 +3218,19 @@ public class View extends JFrame implements ActionListener {
 	 * @param secondView whether the second drop down list was changed, otherwise the first
 	 * @param selectedIndex which index was selected from the drop down list
 	 */
-	protected void handleBgOverlayChange(boolean secondView, int selectedIndex) {
+	protected void handleBgOverlayChange(boolean secondView, Object selectedItem) {
 		
 		clearBackgrounds(secondView);
 		
-		if (selectedIndex == 1) {
+		if (selectedItem == BgOverlayType.COMMON_NBH.getItem()) {
 			handleShowNbhSizeMap(secondView);
-		} else if (selectedIndex == 2) {
+		} else if (selectedItem == BgOverlayType.DENSITY.getItem()) {
 			handleShowDensityMap(secondView);
-		} else if (selectedIndex == 3) {
+		} else if (selectedItem == BgOverlayType.DISTANCE.getItem()) {
 			handleShowDistanceMap(secondView);
-		} else if (selectedIndex == 4) {
+		} else if (selectedItem == BgOverlayType.DELTA_RANK.getItem()) {
 			handleShowDeltaRankMap(secondView);
-		}
+		} 
 	}
 	
 	private void clearBackgrounds(boolean secondView) {

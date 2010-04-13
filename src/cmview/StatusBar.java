@@ -132,12 +132,19 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		secondViewCB = new JComboBox();
 		firstViewCB.addItem((Object)"Top-Right BG");
 		secondViewCB.addItem((Object)"Bottom-Left BG");
-		Object[] viewOptions = {"Common Nbhd", "Contact Density", "Distance","Delta Rank"};
-		for (Object o : viewOptions) {
-			firstViewCB.addItem(o);
-			secondViewCB.addItem(o);
+		View.BgOverlayType[] viewOptions = {View.BgOverlayType.DENSITY, View.BgOverlayType.DISTANCE}; // View.BgOverlayType.ENERGY
+		for (View.BgOverlayType t: viewOptions) {
+			firstViewCB.addItem(t.getItem());
+			secondViewCB.addItem(t.getItem());
 		}
-		firstViewCB.setEditable(true);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
+			for (View.BgOverlayType t: viewOptions2) {
+				firstViewCB.addItem(t.getItem());
+				secondViewCB.addItem(t.getItem());
+			}			
+		}
+		firstViewCB.setEditable(true); // this should actually be false, but we want the white background
 		secondViewCB.setEditable(true);
 		firstViewCB.setSize(150, 20);
 		secondViewCB.setSize(150, 20);
@@ -418,10 +425,10 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 			controller.handleApplyDiscretizationPermanently(discretizationSlider.getValue() / 100.0);
 		}
 		if(e.getSource() == firstViewCB) {
-			controller.handleBgOverlayChange(false,firstViewCB.getSelectedIndex());
+			controller.handleBgOverlayChange(false,firstViewCB.getSelectedItem());
 		}
 		if(e.getSource() == secondViewCB) {
-			controller.handleBgOverlayChange(true,secondViewCB.getSelectedIndex());
+			controller.handleBgOverlayChange(true,secondViewCB.getSelectedItem());
 		}
 	}
 	
