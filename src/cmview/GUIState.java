@@ -35,9 +35,10 @@ public class GUIState {
 	private boolean showBottomNbhSizeMap;
 	private boolean showBottomDensityMap;
 	private boolean showBottomDistanceMap;
-	private boolean showBottomDiffDistMap;
 	private boolean showBottomDeltaRankMap;
+	private boolean showBottomDiffDistMap;
 	
+	// compare mode
 	private boolean compareMode;		// whether we are in pairwise comparison mode (i.e. a second structure has been loaded)
 	private Color paintingColor;		// current color for coloring contacts selected by the user
 	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)

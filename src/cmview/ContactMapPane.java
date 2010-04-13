@@ -1543,6 +1543,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawDiffDistMap(g2d, false);
 		}
 		
+		// draw difference distance map (in comparison mode)
+		if(view.getGUIState().getCompareMode() && view.getGUIState().getShowBottomDiffDistMap()) {
+			drawDiffDistMap(g2d, true);
+		}
+		
 		// draw contact map if necessary (single or comparison)
 		//if(!view.getGUIState().getShowNbhSizeMap() && !view.getGUIState().getShowDistanceMap()) {
 			drawContactMap(g2d);			

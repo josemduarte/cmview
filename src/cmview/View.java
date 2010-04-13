@@ -179,7 +179,6 @@ public class View extends JFrame implements ActionListener {
 	public ResidueRuler topRuler;
 	public ResidueRuler leftRuler;
 	
-	// global icons TODO: replace these by tickboxes?
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "tick.png"));
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
 
@@ -207,7 +206,7 @@ public class View extends JFrame implements ActionListener {
 			statusBar.showCoordinatesGroup(true);
 			statusBar.showOverlayGroup(true);
 			if(mod != null && mod.isGraphWeighted()) {
-				System.out.println("Graph is weighted!!!");
+				System.out.println("Graph is weighted");
 				statusBar.showMultiModelGroup(true, mod);
 			}
 			statusBar.revalidate();
@@ -1694,7 +1693,7 @@ public class View extends JFrame implements ActionListener {
 		setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
 		setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
 		setAccessibility(compareModeButtonAccessibility(),    true, null,          disregardedTypes);
-
+		statusBar.enableDifferenceMapOverlay();
 	}
 	
 	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionError {
@@ -2492,6 +2491,27 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	private void handleShowDiffDistMap(boolean secondView) {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning(mod);
+		} else if(mod2== null || !mod2.has3DCoordinates()){
+			showNo3DCoordsWarning(mod2);
+		} else {
+			if (secondView) {
+				guiState.setShowBottomDiffDistMap(!guiState.getShowBottomDiffDistMap());
+				cmPane.toggleDiffDistMap(guiState.getShowBottomDiffDistMap());
+			} else {
+				guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
+				cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
+			}
+		}
+	}
 
 	/* -------------------- Select menu -------------------- */
 
@@ -3230,7 +3250,9 @@ public class View extends JFrame implements ActionListener {
 			handleShowDistanceMap(secondView);
 		} else if (selectedItem == BgOverlayType.DELTA_RANK.getItem()) {
 			handleShowDeltaRankMap(secondView);
-		} 
+		} else if (selectedItem == BgOverlayType.DIFF_DIST.getItem()) {
+			handleShowDiffDistMap(secondView);
+		}
 	}
 	
 	private void clearBackgrounds(boolean secondView) {
@@ -3247,6 +3269,9 @@ public class View extends JFrame implements ActionListener {
 			if (guiState.getShowBottomDensityMap()) {
 				handleShowDensityMap(secondView);
 			}
+			if(guiState.getShowBottomDiffDistMap()) {
+				handleShowDiffDistMap(secondView);
+			}
 		} else {
 			if(guiState.getShowNbhSizeMap()) {
 				handleShowNbhSizeMap(secondView);
@@ -3260,6 +3285,9 @@ public class View extends JFrame implements ActionListener {
 			if (guiState.getShowDensityMap()) {
 				handleShowDensityMap(secondView);
 			}
+			if(guiState.getShowDiffDistMap()) {
+				handleShowDiffDistMap(secondView);
+			}			
 		}
 		if (guiState.getShowBottomDeltaRankMap() && !guiState.getShowDeltaRankMap()) {
 			

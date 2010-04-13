@@ -458,6 +458,17 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	}
 	
 	/**
+	 * Enable the option to choose difference map as a background overlay.
+	 * This is being called when compare mode is switched on. Currently, it
+	 * is not possible to exit compare mode (other than closing the window)
+	 * so there is no need for a disableDifferenceMapOverlay() method.
+	 */
+	public void enableDifferenceMapOverlay() {
+		firstViewCB.addItem(View.BgOverlayType.DIFF_DIST.getItem());
+		secondViewCB.addItem(View.BgOverlayType.DIFF_DIST.getItem());			
+	}
+	
+	/**
 	 * Calculates the histogram for the graph in the given model.
 	 * @param mod the model containing the graph for which the histogram will be calculated
 	 */
