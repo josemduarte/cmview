@@ -92,7 +92,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
 	private static final String LABEL_SHOW_SPHOXEL = "Show sphoxel and neighbourhood-traces";
-	private static final String LABEL_RUN_TINKER = "Run Tinker";
+	private static final String LABEL_RUN_TINKER = "Run distance geometry";
 	private static final String LABEL_MIN_SET = "Minimal subset";
 
 	// Compare

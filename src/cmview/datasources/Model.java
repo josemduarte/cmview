@@ -748,7 +748,7 @@ public abstract class Model {
 			tinker = new TinkerRunner(Start.TINKER_BINPATH,
 					Start.TINKER_FORCEFIELD);
 		} catch (FileNotFoundException e1) {
-			System.out.println("Error starting tinker run: "+e1.getMessage());
+			System.out.println("Error starting Distgeom run: "+e1.getMessage());
 		}
 
 		try {

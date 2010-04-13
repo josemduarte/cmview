@@ -36,7 +36,7 @@ public class TinkerProgressDialog extends JDialog implements ActionListener {
 	static final String CHOOSE_BEST_LABEL = "Selecting best structure";
 	static final String LOADING_LABEL = "Loading as second structure";
 	
-	static final String WINDOW_TITLE = "Running Tinker...";
+	static final String WINDOW_TITLE = "Running Distgeom...";
 	
 	TinkerRunAction runner;
 	JButton cancelButton;

@@ -35,7 +35,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	static final String REFINEMENT_LABEL = "Refinement Method";
 	static final String NUM_MODELS_LABEL = "Number of Models";
 	static final String PARALLELIZATION_LABEL = "Paralellization";
-	static final String WINDOW_TITLE = "Start Tinker Run";
+	static final String WINDOW_TITLE = "Start Distgeom Run";
 	private JButton runButton, cancelButton;
 	private JComboBox refinementCB, parallelCB;
 	private JSpinner numModelsSpinner;
