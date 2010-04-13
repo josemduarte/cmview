@@ -283,8 +283,10 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	 * @param mod the model for which a histogram will be shown
 	 */
 	public void showMultiModelGroup(boolean show, Model mod) {
-		if(show) calculateHistogram(mod);
-		this.multiModelGroup.setVisible(show);
+		if(Start.USE_EXPERIMENTAL_FEATURES && Start.SHOW_WEIGHTED_CONTACTS) {
+			if(show) calculateHistogram(mod);
+			this.multiModelGroup.setVisible(show);
+		}
 	}
 	
 	/**
