@@ -10,5 +10,5 @@ Class-Path: jars/mysql-connector-java-5.0.5-bin.jar
  jars/jh.jar
 Name: CMView
 Specification-Title: Interactive contact map visualization and analysis tool
-Specification-Version: 1.2.0
+Specification-Version: 1.2.1
 Specification-Vendor: AG Lappe, MPI for Molecular Genetics, Berlin
