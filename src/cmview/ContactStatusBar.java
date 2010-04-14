@@ -1,7 +1,7 @@
 package cmview;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
+//import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -26,8 +26,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	protected static final int DEFAULT_WIDTH = 100;
+	
 	// settings
-	private int width = 105;						// width of this component, height matches contact map size
+	private int width = DEFAULT_WIDTH;						// width of this component, height matches contact map size
 	private int groupWidth = width - 20;			// width of information groups within StatusBar
 //	private int height = 100;
 	
@@ -36,10 +38,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	
 	// main panels
 	private JPanel groupsPanel;						// panel holding the subgroups
+	private AnglePanel anglePanel;					// panel holding the subgroups
 	
 	// subgroups panels holding gui elements for specific purposes
 	private JPanel deltaRadiusGroup;					// radius range
 	private JPanel resolutionGroup;					    // resolution 
+	private JPanel angleGroup;							// selected angle range
 	
 	// components for multi model group
 	private JSlider radiusSliderLabel;					// to choose a radius-range
@@ -55,16 +59,21 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		// init basic border layout
 		this.setLayout(new BorderLayout(0,0));
 		groupsPanel = new JPanel();
+		angleGroup = new JPanel();
 		deltaRadiusGroup = new JPanel();
 		resolutionGroup = new JPanel();
-		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.PAGE_AXIS));
+		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
 		groupsPanel.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
 		this.add(groupsPanel,BorderLayout.PAGE_START);
+		this.add(angleGroup, BorderLayout.PAGE_END);
+		
 		this.add(deltaRadiusGroup, BorderLayout.LINE_START); //.PAGE_END
 		this.add(resolutionGroup, BorderLayout.LINE_START);
 		
 		initDeltaRadiusGroup();
 		initResolutionGroup();
+		initAngleGroup();
+		showAngleGroup(true);
 	}
 	
 	/**
@@ -131,7 +140,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		deltaRadiusGroup.add(Box.createRigidArea(new Dimension(0,5)));
 	    
 //	    deltaRadiusGroup.setPreferredSize(new Dimension(groupWidth, deltaRadiusGroup.getHeight()));
-	    groupsPanel.add(deltaRadiusGroup);
+//	    groupsPanel.add(deltaRadiusGroup);
+	    groupsPanel.add(deltaRadiusGroup, BorderLayout.LINE_START);
 	}
 	
 	/**
@@ -167,8 +177,21 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		resolSlider.setExtent(resolSlider.getMajorTickSpacing());
 		resolSlider.setOrientation(JSlider.VERTICAL);
 
-//		resolSlider.setInverted(true);
-		
+//		resolSlider.setInverted(true);		
+		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
+		labels.put(new Integer(4),new JLabel("45¡"));
+		labels.put(new Integer(10),new JLabel("18¡"));
+		labels.put(new Integer(20),new JLabel("9.0¡"));
+		labels.put(new Integer(30),new JLabel("6.0¡"));
+		labels.put(new Integer(40),new JLabel("4.5¡"));
+		labels.put(new Integer(50),new JLabel("3.6¡"));
+		labels.put(new Integer(60),new JLabel("3.0¡"));
+//		labels.put(new Integer(9), new JLabel("20¡"));
+//		labels.put(new Integer(18), new JLabel("10¡"));
+//		labels.put(new Integer(36), new JLabel("5¡"));
+		labels.put(new Integer(72), new JLabel("2.5¡"));
+		resolSlider.setLabelTable(labels);	
+		 
 		resolSlider.setPaintLabels(true);
 		resolSlider.setPaintTicks(true);
 		resolSlider.setPaintTrack(true);
@@ -178,9 +201,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 				
 		// adding components to group
 //	    resolutionGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
-	    resolutionGroup.add(resolSlider);
-	    resolutionGroup.setMinimumSize(new Dimension(groupWidth,10));
-	    groupsPanel.add(resolutionGroup);
+	    resolutionGroup.add(resolSlider, BorderLayout.WEST);
+//	    resolutionGroup.setMinimumSize(new Dimension(groupWidth,10));
+//	    groupsPanel.add(resolutionGroup);
+	    groupsPanel.add(resolutionGroup, BorderLayout.LINE_START);
 	}
 
 	/**
@@ -191,6 +215,32 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void showResolutionGroup(boolean show) {
 		this.resolutionGroup.setVisible(show);
+	}
+	
+	/**
+	 * Initializes the group for showing coordinates
+	 */
+	public void initAngleGroup() {
+		// init group
+//		String title = "Coordinates";
+//		coordinatesGroup.setLayout(new BoxLayout(coordinatesGroup,BoxLayout.PAGE_AXIS));
+//		coordinatesGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		angleGroup.setVisible(false);
+		
+//		// init sub-components
+//		coordinatesGroup.add(Box.createRigidArea(new Dimension(groupWidth, 20)));
+		anglePanel = new AnglePanel();
+		
+		// add components to group
+		angleGroup.add(anglePanel);	
+	}
+
+	/**
+	 * Toggles the visibility of the coordinates group on or off.
+	 * @param show whether to show or hide the group
+	 */
+	public void showAngleGroup(boolean show) {
+		angleGroup.setVisible(show);
 	}
 	
 	/*---------------------------- event listening -------------------------*/
@@ -224,6 +274,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			controller.handleChangeResolution(this.resolSlider.getValue());
 			System.out.println("ResolutionSliderVal= "+ this.resolSlider.getValue());
 		}
+	}
+	
+    /*-------------------------- getters and setters -----------------------*/
+	
+	public AnglePanel getAnglePanel() {
+		return this.anglePanel;
 	}
 
 }

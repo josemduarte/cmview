@@ -112,7 +112,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		initCoordinatesGroup();
 		initOverlayGroup();
 		initDeltaRankGroup();
-		initMultiModelGroup();		
+		initMultiModelGroup();	
 	}
 	
 	/**

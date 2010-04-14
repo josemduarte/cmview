@@ -26,7 +26,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JToolBar;
+//import javax.swing.JToolBar;
 
 import cmview.datasources.Model;
 
@@ -50,7 +50,9 @@ public class ContactView extends JFrame implements ActionListener{
 	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	
 	// GUI components in the main frame
-	JToolBar toolBar;			// icon tool bar
+//	JToolBar toolBar;			// icon tool bar
+	JPanel phiRul;				// Panel for top (phi) ruler
+	JPanel thetaRul;			// Panel for left (theta) ruler	
 	JPanel svP; 				// Main panel holding the Contact map pane Sperical Voxel view 
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	ContactStatusBar contStatBar;		// A status bar with metainformation on the right
@@ -70,13 +72,16 @@ public class ContactView extends JFrame implements ActionListener{
 	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmQuit;
 	JMenuItem mmSelectAll;
 	
+	private Dimension screenSize;			// current size of this component on screen
+	
 	// Data and status variables
 	private ContactGUIState guiState;
 	private Model mod;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
+	public AngleRuler phiRuler;
+	public AngleRuler thetaRuler;
 	
-
 	/** Create a new View object */
 	public ContactView(Model mod, String title, ContactMapPane cmPane) {
 		super(title);
@@ -90,6 +95,12 @@ public class ContactView extends JFrame implements ActionListener{
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
+		else{
+			int xDim = ContactPane.defaultDim.width + ContactStatusBar.DEFAULT_WIDTH + AngleRuler.STD_RULER_WIDTH;
+			int yDim = ContactPane.defaultDim.height + AngleRuler.STD_RULER_WIDTH;
+			this.screenSize = new Dimension(xDim, yDim);
+			this.setPreferredSize(this.screenSize);
+		}
 //		this.guiState = new GUIState(this);
 		this.initGUI(); 							// build gui tree and pack
 		setVisible(true);							// show GUI			
@@ -97,6 +108,7 @@ public class ContactView extends JFrame implements ActionListener{
 		// show status bar groups
 		if(mod != null) {
 			contStatBar.showDeltaRadiusGroup(true);
+			contStatBar.showResolutionGroup(true);
 		}
 		
 		final JFrame parent = this;					// need a final to refer to in the thread below
@@ -144,11 +156,13 @@ public class ContactView extends JFrame implements ActionListener{
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocation(20,20);
-		this.setSize(150, 250);
+//		this.setSize(150, 250);
 		
 		// Creating the Panels
-		tbPane = new JPanel(new BorderLayout());	// toolbar pane, holding only toolbar and cmp (all the rest)
-		svP = new JPanel(new BorderLayout()); 		// pane holding the cmPane and (optionally) the ruler panes
+		tbPane = new JPanel(new BorderLayout());	// toolbar panel, holding only toolbar and cmp (all the rest)
+		svP = new JPanel(new BorderLayout()); 		// panel holding the cmPane and (optionally) the ruler panes
+		phiRul = new JPanel(new BorderLayout()); 	// panel holding the phi (top) ruler
+		thetaRul = new JPanel(new BorderLayout()); 	// panel holding the theta (left) ruler
 		contStatBar = new ContactStatusBar(this);	// pass reference to 'this' for handling gui actions
 		
 //		// Icons
@@ -189,20 +203,37 @@ public class ContactView extends JFrame implements ActionListener{
 		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
 		menu.add(submenu);
 		addToJMenuBar(menu);
-	
-//		tbPane.setSize(130, 230);
-		// Creating contact map pane if model loaded
+
+		// Creating contact map pane and ruler if model loaded
 		if(mod != null) {	
 			cPane = new ContactPane(this.mod, this.cmPane, this);
 			cPane.setStatusBar(contStatBar);
-			svP.add(cPane);
+//			svP.add(cPane, BorderLayout.SOUTH);
+			svP.add(cPane, BorderLayout.CENTER);
+			
+			phiRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
+			thetaRuler = new AngleRuler(this, cPane, AngleRuler.LEFT);
+			phiRul.add(phiRuler);
+			thetaRul.add(thetaRuler);
 		}
-
-		// Add everything to the content pane				
-		this.tbPane.add(svP,BorderLayout.CENTER);				// otherwise can add these to contentPane directly
-		this.tbPane.add(contStatBar,BorderLayout.EAST);
-		this.getContentPane().add(tbPane, BorderLayout.CENTER); // and get rid of this line
+		
+//		cPane.setVisible(false);
 	
+		// Add everything to the content pane				
+		this.tbPane.add(svP,BorderLayout.CENTER);				
+		this.tbPane.add(contStatBar,BorderLayout.EAST);
+		this.getContentPane().add(tbPane, BorderLayout.CENTER); 
+
+		if(guiState.getShowRulers()) {
+			svP.add(phiRul, BorderLayout.NORTH);
+			svP.add(thetaRul, BorderLayout.WEST);
+		}
+		
+		System.out.println("Sizes of panels:");
+		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
+		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
+		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
+				
 		pack();
 	}
 
@@ -388,6 +419,14 @@ public class ContactView extends JFrame implements ActionListener{
 	 */
 	protected ContactGUIState getGUIState() {
 		return this.guiState;
+	}
+
+	public Dimension getScreenSize(){
+//		System.out.println("screensize HxW: "+this.cPane.getScreenSize().height+"x"+this.cPane.getScreenSize().width);
+//		System.out.println("screensize HxW: "+this.cPane.getSize().height+"x"+this.cPane.getSize().width);
+//		return this.cPane.getSize();
+		System.out.println("getScreensize ContactView HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+		return this.screenSize;
 	}
 	
 }

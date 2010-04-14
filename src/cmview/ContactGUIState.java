@@ -16,6 +16,7 @@ public class ContactGUIState {
 	// current gui state
 	private ContactView view;					// the parent view
 	private SelMode selectionMode;		// current selection mode, modify using setSelectionMode
+	private boolean showRulers;			// whether showing angle rulers is switched on
 
 	/**
 	 * Initializes the GUI state with default values.
@@ -23,6 +24,7 @@ public class ContactGUIState {
 	ContactGUIState(ContactView view) {
 		this.view = view;
 		this.selectionMode = INITIAL_SEL_MODE;
+		this.showRulers=Start.SHOW_RULERS;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -34,6 +36,13 @@ public class ContactGUIState {
 	 */
 	protected SelMode getSelectionMode() {
 		return selectionMode;
+	}
+	
+	/**
+	 * @return the showRulers
+	 */
+	protected boolean getShowRulers() {
+		return showRulers;
 	}
 	
 	/*---------------- setters ---------------*/
@@ -50,5 +59,12 @@ public class ContactGUIState {
 //		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
 //		}
 		this.selectionMode = mode;
+	}
+	
+	/**
+	 * @param showRulers the showRulers to set
+	 */
+	protected void setShowRulers(boolean showRulers) {
+		this.showRulers = showRulers;
 	}
 }

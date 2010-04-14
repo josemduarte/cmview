@@ -38,6 +38,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	protected static final Dimension defaultDim = new Dimension(1200, 600);
+	protected static final float g2dRatio = 0.5f; // H/W
+	
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
 	private Model mod;
@@ -47,13 +50,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private ContactStatusBar contStatBar;	
 	
 	// used for drawing
-	private Dimension screenSize;			// current size of this component on screen
-	private int[] outputSize;          		// size of the effective Rectangle
-											// available for drawing the contact
-											// map (on screen or other output
-											// device)
-	private double ratio;		  			// ratio of screen size and contact
-											// map size = size of each contact
+	private Dimension screenSize;			// current size of this component (contactView) on screen
+	private Dimension g2dSize;         		// size of the effective Rectangle
+											// available for drawing the sphoxel image
+//	private double screenRatio;  			// ratio of screen size and contact
+//											// map size = size of each contact
 											// on screen
 //	private int sphoxelSize;
 	
@@ -69,8 +70,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int lastMouseButtonPressed;		// mouse button which was pressed
 											// last (being updated by
 											// MousePressed)
-	private int currentRulerCoord;	 		// the residue number shown if
-											// showRulerSer=true
+//	private int currentRulerCoord;	 		// the residue number shown if
+//											// showRulerSer=true
 //	private int currentRulerMousePos;		// the current position of the mouse
 //											// in the ruler
 	private boolean dragging;     			// set to true while the user is
@@ -79,11 +80,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected boolean mouseIn;				// true if the mouse is currently in
 											// the contact map window (otherwise
 											// supress crosshair)
-	private boolean showRulerCoord; 		// while true, current ruler
-											// coordinate are shown instead of
-											// usual coordinates
-	private boolean showRulerCrosshair;		// while true, ruler "crosshair" is
-											// being shown
+//	private boolean showRulerCoord; 		// while true, current ruler
+//											// coordinate are shown instead of
+//											// usual coordinates
+//	private boolean showRulerCrosshair;		// while true, ruler "crosshair" is
+//											// being shown
 	
 	// drawing colors (being set in the constructor)
 	private Color backgroundColor;	  		// background color
@@ -135,8 +136,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private float pixelWidth = 5*36/this.numSteps; // change in dependence of numSteps
 	private float pixelHeight = this.pixelWidth; //5*36/this.numSteps;	
 	private float voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI); //pixelWidth;
-	
-	private Dimension defaultDim = new Dimension(1200, 600);
 
 	private boolean removeOutliers = false;
 	private double minAllowedRat = -3;
@@ -144,7 +143,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private boolean paintCentralResidue = true;
 	
-	private int xDim=0, yDim=0;
+	private int xDim=0;
+	private int yDim=0;
 	
 	private final char[] aas = new char[]{'A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y'}; // possible Residues
 	private final String AAStr = new String(aas); 
@@ -175,16 +175,21 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			e.printStackTrace();
 		}		
 		
-		this.xDim = (int) this.defaultDim.getWidth();
-		this.yDim = (int) this.defaultDim.getHeight();
+		this.xDim = defaultDim.width;
+//		this.yDim = defaultDim.height;
 		// update pixel dimensions
 		this.pixelWidth = (this.xDim-2*this.border)/(2*this.numSteps) ;
 		this.pixelHeight =  this.pixelWidth;
 		this.voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI);
 	
-		this.screenSize = new Dimension(this.xDim,this.yDim);
-		this.contactView.setPreferredSize(this.screenSize);
-		this.setSize(screenSize);
+		this.g2dSize = defaultDim; // new Dimension(this.xDim,this.yDim);
+		this.setSize(this.g2dSize);
+		this.screenSize = this.contactView.getPreferredSize();
+//		System.out.println("ContactPane screensize HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+//		this.screenSize = this.contactView.getScreenSize();
+//		System.out.println("ContactPane getscreensize HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+//		this.contactView.setPreferredSize(this.screenSize);
+//		this.contactView.setPreferredSize(new Dimension(this.screenSize.width+AngleRuler.STD_RULER_WIDTH, this.screenSize.height+AngleRuler.STD_RULER_WIDTH));
 
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
@@ -200,6 +205,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.selContacts = new IntPairSet();
 		this.phiRanges = new FloatPairSet();
 		this.thetaRanges = new FloatPairSet();
+		
+		this.tmpPhiRange = new Pair<Float>(0.0f, 0.0f);
+		this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
 		
 //		setOutputSize(screenSize.width, screenSize.height);
 //		System.out.println("outputsize= "+this.outputSize);
@@ -384,12 +392,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	/*------------------------ drawing methods --------------------*/
 	
-	public void drawSphoxels(Graphics2D g2){
+	public void drawSphoxels(Graphics2D g2d){
 		Shape shape = null;
 		float xPos, yPos;
 		double val;
 		Color col; // = new Color(24,116,205,255);
 		ColorScale scale = new ColorScale();
+		
+		System.out.println("drawSphoxels ratios.length= "+ratios.length);
 		
 		// ----- color representation -----
 		for(int i=0;i<ratios.length;i++){
@@ -422,15 +432,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //				val = -val;
 				col = scale.getColor4BlueRedScale(val,alpha);
 				
-				g2.setColor(col);
-				
-				g2.draw(shape);
-				g2.fill(shape);
+				g2d.setColor(col);
+				g2d.setColor(Color.black); // Test purpose
+				g2d.draw(shape);
+				g2d.setColor(col);
+				g2d.fill(shape);
 			}
 		}
 	}
 	
-	public void drawNbhsTraces(Graphics2D g2){
+	public void drawNbhsTraces(Graphics2D g2d){
 		Shape line = null;
 		Shape circle = null;
 		float xPos, yPos, xPosNB=0, yPosNB=0;
@@ -445,10 +456,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		ColorScale scale = new ColorScale();
 		
-		g2.setColor(Color.blue);
+		g2d.setColor(Color.blue);
 		
 		Font f = new Font("Dialog", Font.PLAIN, 12);
-		g2.setFont(f);
+		g2d.setFont(f);
 		
 		for(int i=0; i<this.nbhsNodes.size(); i++){
 			node = (float[]) this.nbhsNodes.get(i);
@@ -464,17 +475,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			circle = new Ellipse2D.Float( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
 			switch (jSSType){
 				case 0: // 'H'
-					g2.setColor(Color.magenta); break;
+					g2d.setColor(Color.magenta); break;
 				case 1: // 'S'
-					g2.setColor(Color.yellow); break;
+					g2d.setColor(Color.yellow); break;
 				case 2: // 'O'
-					g2.setColor(Color.cyan); break;
+					g2d.setColor(Color.cyan); break;
 			}		
-			g2.draw(circle);
-			g2.fill(circle);
+			g2d.draw(circle);
+			g2d.fill(circle);
 			nodeName = Character.toString(this.aas[jResID]) +" "+ String.valueOf(jNum-iNum);
-			g2.setColor(Color.black);
-			g2.drawString(nodeName, xPos+radius, yPos+radius+this.yBorderThres);	
+			g2d.setColor(Color.black);
+			g2d.drawString(nodeName, xPos+radius, yPos+radius+this.yBorderThres);	
 			
 			while (this.numNodesPerLine[lineID]==0){
 				lineID++;
@@ -490,7 +501,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				if (node[0]==nbNode[0] && node[1]==nbNode[1]){
 //					System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
 					float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
-					g2.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
+					g2d.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
 					
 					gIdNB = (int) nbNode[0];
 					iNumNB = (int) nbNode[1];
@@ -521,7 +532,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							col = scale.getColor4HotColdScale(ratio, 1.0f);
 						}
 						System.out.print(iNum+"_"+jNum+"_"+Math.abs(jNum-iNum)+":"+ratio +"\t");
-						g2.setColor(col);					
+						g2d.setColor(col);					
 						
 						
 						if (iNum>jNum && iNum<jNumNB && this.paintCentralResidue){
@@ -529,30 +540,30 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							circle = new Ellipse2D.Float( xPosINum-radius, yPosINum+this.yBorderThres-radius,2*radius, 2*radius);
 							
 							line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosINum, yPosINum+this.yBorderThres);		
-							g2.draw(line);
+							g2d.draw(line);
 							line = new Line2D.Float(xPosINum, yPosINum+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-							g2.draw(line);
+							g2d.draw(line);
 						}
 						else {
 							// -- test for distance
 							if (Math.abs(xPosNB-xPos) > this.xDim/2){
 								if (xPos<xPosNB){
 									line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
-									g2.draw(line);
+									g2d.draw(line);
 									line = new Line2D.Float(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-									g2.draw(line);
+									g2d.draw(line);
 								}
 								else{
 									line = new Line2D.Float(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-									g2.draw(line);
+									g2d.draw(line);
 									line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
-									g2.draw(line);
+									g2d.draw(line);
 								}
 							}
 							else 
 							{
 								line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-								g2.draw(line);
+								g2d.draw(line);
 							}
 						}	
 					}									
@@ -569,29 +580,29 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 	}
 	
-	protected void drawCrosshair(Graphics2D g2){
+	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
 		// drawing the cross-hair
-		g2.setColor(crosshairColor);
-//		g2.drawLine(mousePos.x, 0, mousePos.x, outputSize);
-//		g2.drawLine(0, mousePos.y, outputSize, mousePos.y);
+		g2d.setColor(crosshairColor);
+//		g2d.drawLine(mousePos.x, 0, mousePos.x, outputSize);
+//		g2d.drawLine(0, mousePos.y, outputSize, mousePos.y);
 //		int bcenterx = mousePos.y;
 //		int bcentery = mousePos.x;
-		g2.drawLine(mousePos.x, 0, mousePos.x, screenSize.height);
-		g2.drawLine(0, mousePos.y, screenSize.width, mousePos.y);
+		g2d.drawLine(mousePos.x, 0, mousePos.x, g2dSize.height);
+		g2d.drawLine(0, mousePos.y, g2dSize.width, mousePos.y);
 		int bcenterx = mousePos.x;
 		int bcentery = mousePos.y;
 		
-		System.out.println("MousPos= " +mousePos.x+", "+mousePos.y);
+//		System.out.println("MousPos= " +mousePos.x+", "+mousePos.y);
 		
-		g2.drawLine(bcenterx-30,bcentery, bcenterx+30,bcentery);
-		g2.drawLine(bcenterx,bcentery-30, bcenterx,bcentery+30);
-		g2.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
+		g2d.drawLine(bcenterx-30,bcentery, bcenterx+30,bcentery);
+		g2d.drawLine(bcenterx,bcentery-30, bcenterx,bcentery+30);
+		g2d.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
 	}
 
-//	private void drawRulerCrosshair(Graphics2D g2) {
+//	private void drawRulerCrosshair(Graphics2D g2d) {
 //		int x1,x2,y1,y2;
-//		g2.setColor(crosshairColor);
+//		g2d.setColor(crosshairColor);
 //		if(currentRulerMouseLocation == ResidueRuler.TOP || currentRulerMouseLocation == ResidueRuler.BOTTOM) {
 //			x1 = currentRulerMousePos;
 //			x2 = currentRulerMousePos;
@@ -603,17 +614,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			y1 = currentRulerMousePos;
 //			y2 = currentRulerMousePos;			
 //		}
-//		g2.drawLine(x1, y1, x2, y2);
+//		g2d.drawLine(x1, y1, x2, y2);
 //	}
 	
-	private void drawOccupiedAngleRanges(Graphics2D g2){
+	private void drawOccupiedAngleRanges(Graphics2D g2d){
 		Shape shape;
 		System.out.println(phiRanges.size()+"=?"+thetaRanges.size()+"=?"+selContacts.size());
+		System.out.println("Coordinates Occupied Rectangle:");
 		Iterator<Pair<Float>> itrP = phiRanges.iterator();
 		Iterator<Pair<Float>> itrT = thetaRanges.iterator();
 //		Iterator<Pair<Integer>> itrC = selContacts.iterator();
 		while (itrP.hasNext()){
-			g2.setColor(selAngleRangeColor);
+			g2d.setColor(selAngleRangeColor);
 			Pair<Float> phi = (Pair<Float>) itrP.next();
 			Pair<Float> theta = (Pair<Float>) itrT.next();
 //			Pair<Integer> con = (Pair<Integer>) itrC.next();			
@@ -621,12 +633,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			float xE = phi.getSecond();
 			float yS = theta.getFirst();
 			float yE = theta.getSecond();
+			System.out.println(xS+","+yS+" to "+xE+","+yE);
 			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
-			g2.draw(shape);
+			g2d.draw(shape);
+			g2d.fill(shape);
 		}
 //		for(Pair<Float> phi:phiRanges) {}
 		
 	}
+	
+	private void drawSelectedAngleRange(){
+		this.contStatBar.getAnglePanel().setIRes(String.valueOf(this.iRes));
+		this.contStatBar.getAnglePanel().setJRes(String.valueOf(this.jRes));	
+		float val = (float)(Math.round(this.tmpPhiRange.getFirst()*100))/100;
+		this.contStatBar.getAnglePanel().setPhiMin(String.valueOf(val));	
+		val = (float)(Math.round(this.tmpPhiRange.getSecond()*100))/100;
+		this.contStatBar.getAnglePanel().setPhiMax(String.valueOf(val));	
+		val = (float)(Math.round(this.tmpThetaRange.getFirst()*100))/100;
+		this.contStatBar.getAnglePanel().setThetaMin(String.valueOf(val));	
+		val = (float)(Math.round(this.tmpThetaRange.getSecond()*100))/100;
+		this.contStatBar.getAnglePanel().setThetaMax(String.valueOf(val));
+		
+		this.contStatBar.repaint();
+		
+	}
+	
 	// end drawing methods
 	
 	
@@ -686,14 +717,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	}
 	
-	/** Called by ResidueRuler to enable display of ruler "crosshair" */	
-	public void showRulerCrosshair() {
-		showRulerCrosshair = true;
-	}
-	/** Called by ResidueRuler to switch off showing ruler coordinates */
-	public void hideRulerCoordinate() {
-		showRulerCoord = false;
-	}
+//	/** Called by ResidueRuler to enable display of ruler "crosshair" */	
+//	public void showRulerCrosshair() {
+//		showRulerCrosshair = true;
+//	}
+//	/** Called by ResidueRuler to switch off showing ruler coordinates */
+//	public void hideRulerCoordinate() {
+//		showRulerCoord = false;
+//	}
 
 	/**
 	 * Main method to draw the component on screen. This method is called each
@@ -702,33 +733,50 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	@Override
 	protected synchronized void paintComponent(Graphics g) {
-		Graphics2D g2 = (Graphics2D) g.create();
+		Graphics2D g2d = (Graphics2D) g.create();
 		
-		Dimension dim = this.contactView.getSize();		
-		this.xDim = (int) dim.getWidth();
-		this.yDim = (int) dim.getHeight();
+		this.screenSize = this.contactView.getScreenSize();
+		System.out.println("ContactPane paintComponent HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+		System.out.println("ContactPane pC HxW: "+this.getSize().height+"x"+this.getSize().width+"  --> ratio="+(float)(this.getSize().height)/(float)(this.getSize().width));
+		
+		if ((float)(this.getSize().height)/(float)(this.getSize().width) > g2dRatio){
+			this.xDim = this.getSize().width;
+			this.yDim = (int) (this.xDim*g2dRatio);
+		}
+		else{
+			this.yDim = this.getSize().height;
+			this.xDim = (int) (this.yDim/g2dRatio);			
+		}
+		this.g2dSize.setSize(new Dimension(this.xDim, this.yDim));
+		this.setSize(this.g2dSize);
+		
+//		Dimension dim = this.contactView.getSize();		
+//		this.xDim = (int) dim.getWidth();
+//		this.yDim = (int) dim.getHeight();
+		
 		// update pixel dimensions
 		this.pixelWidth = (this.xDim-2*this.border)/(2*this.numSteps) ;
 		this.pixelHeight =  this.pixelWidth; //(this.yDim-2*this.border-this.yBorderThres)/(2*this.numSteps);
 		this.voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI);
 		
-		g2.setBackground(this.backgroundColor);
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setBackground(this.backgroundColor);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		drawSphoxels(g2);
-		drawNbhsTraces(g2);
+		drawSphoxels(g2d);
+		drawNbhsTraces(g2d);
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
 		if (dragging && contactView.getGUIState().getSelectionMode()==ContactGUIState.SelMode.RECT) {
-			g2.setColor(squareSelColor);
+			g2d.setColor(squareSelColor);
 			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
 			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
 			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
 			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
-			g2.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
+			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 		} 
-		drawCrosshair(g2);
-		drawOccupiedAngleRanges(g2);
+		drawCrosshair(g2d);
+		drawOccupiedAngleRanges(g2d);
+		drawSelectedAngleRange();
 	}
 	
 	/*---------------------------- setters and getters -----------------------------*/
@@ -738,6 +786,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	public ContactStatusBar getSatusBar(){
 		return this.contStatBar;
+	}
+	
+	public Dimension getScreenSize(){
+		return this.screenSize;
+	}
+	
+	public Dimension getPanelSize(){
+		return this.g2dSize;
 	}
 	
 	/*---------------------------- mouse events -----------------------------*/
@@ -787,6 +843,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 
 			}
+			
+			this.tmpPhiRange = new Pair<Float>(0.0f, 0.0f);
+			this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
 		}
 	}
 
@@ -827,6 +886,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		System.out.println("mouseMoved");
 
 		mousePos = evt.getPoint();
+		
+		Pair<Float> pos = screen2A(mousePos);
+		this.tmpThetaRange = new Pair<Float>(pos.getFirst(), pos.getSecond());
 		this.repaint();
 	}
 }
