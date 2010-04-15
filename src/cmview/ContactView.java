@@ -203,37 +203,44 @@ public class ContactView extends JFrame implements ActionListener{
 		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
 		menu.add(submenu);
 		addToJMenuBar(menu);
-
+		
 		// Creating contact map pane and ruler if model loaded
 		if(mod != null) {	
 			cPane = new ContactPane(this.mod, this.cmPane, this);
 			cPane.setStatusBar(contStatBar);
-//			svP.add(cPane, BorderLayout.SOUTH);
 			svP.add(cPane, BorderLayout.CENTER);
 			
 			phiRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
 			thetaRuler = new AngleRuler(this, cPane, AngleRuler.LEFT);
 			phiRul.add(phiRuler);
+			phiRul.setSize(phiRuler.getSize());
+			phiRul.setPreferredSize(phiRuler.getSize());
 			thetaRul.add(thetaRuler);
+			thetaRul.setSize(thetaRuler.getSize());
+			thetaRul.setPreferredSize(thetaRuler.getSize());
+			
+//			phiRul.setBorder(BorderFactory.createLineBorder(Color.black));
+//			thetaRul.setBorder(BorderFactory.createLineBorder(Color.black));
 		}
-		
 //		cPane.setVisible(false);
-	
-		// Add everything to the content pane				
-		this.tbPane.add(svP,BorderLayout.CENTER);				
-		this.tbPane.add(contStatBar,BorderLayout.EAST);
-		this.getContentPane().add(tbPane, BorderLayout.CENTER); 
-
 		if(guiState.getShowRulers()) {
 			svP.add(phiRul, BorderLayout.NORTH);
 			svP.add(thetaRul, BorderLayout.WEST);
 		}
+	
+		// Add everything to the content pane				
+		this.tbPane.add(svP,BorderLayout.CENTER);			
+		this.tbPane.add(contStatBar,BorderLayout.EAST);
+		this.getContentPane().add(tbPane, BorderLayout.CENTER);
 		
 		System.out.println("Sizes of panels:");
 		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
 		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
 		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
-				
+		System.out.println("Size of phiRuler: "+phiRuler.getSize().height+"x"+phiRuler.getSize().width);
+		System.out.println("Size of phiRul: "+phiRul.getSize().height+"x"+phiRul.getSize().width);
+		System.out.println("Size of thetaRuler: "+thetaRuler.getRulerSize().height+"x"+thetaRuler.getRulerSize().width);
+						
 		pack();
 	}
 
@@ -394,8 +401,9 @@ public class ContactView extends JFrame implements ActionListener{
 	 * Handles the user action to change the resolution
 	 * @param numSteps the number of Steps to apply for query
 	 */
-	public void handleChangeResolution(int numSteps) {
-		this.cPane.setNumSteps(numSteps);
+	public void handleChangeResolution(int val) {
+//		this.cPane.setNumSteps(val);
+		this.cPane.setResol((float)val);
 		try {
 			this.cPane.recalcSphoxel();
 		} catch (SQLException e) {
@@ -425,7 +433,7 @@ public class ContactView extends JFrame implements ActionListener{
 //		System.out.println("screensize HxW: "+this.cPane.getScreenSize().height+"x"+this.cPane.getScreenSize().width);
 //		System.out.println("screensize HxW: "+this.cPane.getSize().height+"x"+this.cPane.getSize().width);
 //		return this.cPane.getSize();
-		System.out.println("getScreensize ContactView HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+//		System.out.println("getScreensize ContactView HxW: "+this.screenSize.height+"x"+this.screenSize.width);
 		return this.screenSize;
 	}
 	

@@ -22,16 +22,17 @@ public class AnglePanel extends JPanel {
 	int leftMargin = 5;			// margin between bg rectangle and edge
 	int firstColumnX = leftMargin + 10;		// from edge
 	int secondColumnX = leftMargin + 25;	// from edge
-	int thirdColumnX = leftMargin + 40;		// second contact map or seq sep
+	int thirdColumnX = leftMargin + 55;		// second contact map or seq sep
 	int rightMargin = 12;		// margin between bg rectangle and edge
 	int bottomMargin = 0;		// margin between bg rectable and edge
 	int textYOffset = 23;		// top margin between rectangle and first text
 	int lineHeight = 20;		// offset between lines
-	int totalHeight = 3 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
+	int totalHeight = 5 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
 	
-	private String title = "Angle for contact:";
+	private String title1 = "Contact:";
 	private String iRes = "";
 	private String jRes = "";
+	private String title2 = "AngleRange:";
 	private String phiMin = "";
 	private String phiMax = "";
 	private String thetaMin = "";
@@ -80,26 +81,29 @@ public class AnglePanel extends JPanel {
 		int x = firstColumnX;			// where first text will be written
 		int y = baseLineY+textYOffset;	// where first text will be written
 		
-		g2d.drawString(title, x, y);			// name of contact map
+		g2d.drawString(title1, x, y);			// name of contact map
 		y += this.lineHeight;
 		g2d.drawString(iRes+"-"+jRes, x, y);			// name of contact map
-		y += this.lineHeight;
+//		y += this.lineHeight;
 		
 		baseLineY = y;
+		y = baseLineY+this.textYOffset;
+		g2d.drawString(title2, x, y);			// name of contact map
+		y += this.lineHeight;
 //		y = baseLineY + textYOffset;
 		x = firstColumnX;
 		g2d.drawString("p:", x,y);					// Phi	
 		x = secondColumnX;
 		g2d.drawString(phiMin, x, y);
 		x = thirdColumnX;
-		g2d.drawString(phiMax, x, y);
+		g2d.drawString("- "+phiMax, x, y);
 		y += 20;
 		x = firstColumnX;
 		g2d.drawString("t:", x, y);					// Theta
 		x = secondColumnX;
 		g2d.drawString(thetaMin, x, y);
 		x = thirdColumnX;
-		g2d.drawString(thetaMax, x, y);
+		g2d.drawString("- "+thetaMax, x, y);
 		y += 20;
 		
 	}

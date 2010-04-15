@@ -1,6 +1,7 @@
 package cmview;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 //import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +13,7 @@ import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 //import javax.swing.Box;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -26,12 +28,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final int DEFAULT_WIDTH = 100;
+	protected static final int DEFAULT_WIDTH = 110;
+	protected static final int DEFAULT_HEIGHT = 500;
 	
 	// settings
 	private int width = DEFAULT_WIDTH;						// width of this component, height matches contact map size
 	private int groupWidth = width - 20;			// width of information groups within StatusBar
-//	private int height = 100;
+	private int height = DEFAULT_HEIGHT;
 	
 	// general members
 	private ContactView controller; 						// controller which is notified as a response to gui actions
@@ -64,6 +67,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		resolutionGroup = new JPanel();
 		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
 		groupsPanel.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
+		
+		groupsPanel.setSize(width, height);
+		groupsPanel.setPreferredSize(new Dimension(width, height));
+		deltaRadiusGroup.setPreferredSize(new Dimension(groupWidth, height));
+		resolutionGroup.setPreferredSize(new Dimension(groupWidth, height));
+		
 		this.add(groupsPanel,BorderLayout.PAGE_START);
 		this.add(angleGroup, BorderLayout.PAGE_END);
 		
@@ -94,7 +103,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		
 		radiusSlider = new JRangeSlider(minSlVal, maxSlVal, minSlVal, minSlVal+deltaSlVal, JRangeSlider.VERTICAL, -1);
 		radiusSlider.setMinExtent(deltaSlVal);
-		radiusSlider.setSize(groupWidth/2, HEIGHT);
+		radiusSlider.setSize(groupWidth/8, HEIGHT);
+		radiusSlider.setPreferredSize(new Dimension(groupWidth/6, HEIGHT));
+		
 		radiusSlider.setEnabled(true);
 //		radiusSlider.addChangeListener(this);
 		radiusSlider.addMouseListener(new MouseAdapter() {
@@ -119,14 +130,16 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel.setOrientation(JSlider.VERTICAL);		
 //		radiusSliderLabel.setInverted(true);		
 		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
-		labels.put(new Integer(20),new JLabel("2.0"));
-		labels.put(new Integer(56), new JLabel("5.6"));
-		labels.put(new Integer(92), new JLabel("9.2"));
-		labels.put(new Integer(128), new JLabel("12.8"));
+		labels.put(new Integer(20),new JLabel(" 2.0"));
+		labels.put(new Integer(56), new JLabel(" 5.6"));
+		labels.put(new Integer(92), new JLabel(" 9.2"));
+		labels.put(new Integer(128), new JLabel(" 12.8"));
 		radiusSliderLabel.setLabelTable(labels);		
 		radiusSliderLabel.setPaintLabels(true);
 		radiusSliderLabel.setPaintTicks(true);
 //		radiusSliderLabel.setPaintTrack(true);	
+		radiusSliderLabel.setSize(groupWidth-(radiusSlider.getWidth()), HEIGHT);
+		radiusSliderLabel.setPreferredSize(new Dimension(groupWidth-(radiusSlider.getWidth()), HEIGHT));
 				
 		// adding components to group		
 //	    deltaRadiusGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
@@ -165,31 +178,60 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Resolution";
 		resolutionGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		resolutionGroup.setVisible(true);
+		resolutionGroup.setPreferredSize(new Dimension(groupWidth, height));
 		
+//		// --- NUMSTEPS----
+//		// initialize components
+//		resolSlider = new JSlider();
+//		resolSlider.setMinimum(4);
+//		resolSlider.setMaximum(72);
+//		resolSlider.setValue(8);
+//		resolSlider.setMinorTickSpacing(4);
+//		resolSlider.setMajorTickSpacing(16);
+//		resolSlider.setSnapToTicks(true);
+//		resolSlider.setExtent(resolSlider.getMajorTickSpacing());
+//		resolSlider.setOrientation(JSlider.VERTICAL);
+//
+////		resolSlider.setInverted(true);		
+//		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
+//		labels.put(new Integer(4),new JLabel("45¡"));
+//		labels.put(new Integer(10),new JLabel("18¡"));
+//		labels.put(new Integer(20),new JLabel("9.0¡"));
+//		labels.put(new Integer(30),new JLabel("6.0¡"));
+//		labels.put(new Integer(40),new JLabel("4.5¡"));
+//		labels.put(new Integer(50),new JLabel("3.6¡"));
+//		labels.put(new Integer(60),new JLabel("3.0¡"));
+////		labels.put(new Integer(9), new JLabel("20¡"));
+////		labels.put(new Integer(18), new JLabel("10¡"));
+////		labels.put(new Integer(36), new JLabel("5¡"));
+//		labels.put(new Integer(72), new JLabel("2.5¡"));
+//		resolSlider.setLabelTable(labels);	
+		
+		
+		// --- RESOL----
 		// initialize components
 		resolSlider = new JSlider();
-		resolSlider.setMinimum(4);
-		resolSlider.setMaximum(72);
-		resolSlider.setValue(8);
+		resolSlider.setMinimum(2);
+		resolSlider.setMaximum(42);
+		resolSlider.setValue(42);
 		resolSlider.setMinorTickSpacing(4);
-		resolSlider.setMajorTickSpacing(16);
+		resolSlider.setMajorTickSpacing(8);
 		resolSlider.setSnapToTicks(true);
 		resolSlider.setExtent(resolSlider.getMajorTickSpacing());
 		resolSlider.setOrientation(JSlider.VERTICAL);
 
 //		resolSlider.setInverted(true);		
 		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
-		labels.put(new Integer(4),new JLabel("45¡"));
-		labels.put(new Integer(10),new JLabel("18¡"));
-		labels.put(new Integer(20),new JLabel("9.0¡"));
-		labels.put(new Integer(30),new JLabel("6.0¡"));
-		labels.put(new Integer(40),new JLabel("4.5¡"));
-		labels.put(new Integer(50),new JLabel("3.6¡"));
-		labels.put(new Integer(60),new JLabel("3.0¡"));
-//		labels.put(new Integer(9), new JLabel("20¡"));
-//		labels.put(new Integer(18), new JLabel("10¡"));
-//		labels.put(new Integer(36), new JLabel("5¡"));
-		labels.put(new Integer(72), new JLabel("2.5¡"));
+		labels.put(new Integer(2),new JLabel(" 2¡"));
+//		labels.put(new Integer(5),new JLabel("5¡"));
+		labels.put(new Integer(10),new JLabel(" 10¡"));
+		labels.put(new Integer(18),new JLabel(" 18¡"));
+		labels.put(new Integer(26),new JLabel(" 26¡"));
+//		labels.put(new Integer(25),new JLabel("25¡"));
+		labels.put(new Integer(34),new JLabel(" 34¡"));
+//		labels.put(new Integer(35), new JLabel("35¡"));
+//		labels.put(new Integer(40), new JLabel("40¡"));
+		labels.put(new Integer(42), new JLabel(" 42¡"));
 		resolSlider.setLabelTable(labels);	
 		 
 		resolSlider.setPaintLabels(true);
@@ -202,6 +244,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		// adding components to group
 //	    resolutionGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
 	    resolutionGroup.add(resolSlider, BorderLayout.WEST);
+	    resolutionGroup.add(Box.createRigidArea(new Dimension(groupWidth-resolSlider.getWidth(),5)));
+	    System.out.println("groupWidth-resolSlider.getWidth()= "+ (groupWidth-resolSlider.getWidth()));
 //	    resolutionGroup.setMinimumSize(new Dimension(groupWidth,10));
 //	    groupsPanel.add(resolutionGroup);
 	    groupsPanel.add(resolutionGroup, BorderLayout.LINE_START);
@@ -272,7 +316,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		}
 		if(e.getSource() == this.resolSlider) {
 			controller.handleChangeResolution(this.resolSlider.getValue());
-			System.out.println("ResolutionSliderVal= "+ this.resolSlider.getValue());
+			System.out.println("ResolutionSliderVal= "+ this.resolSlider.getValue() +"¡");
 		}
 	}
 	

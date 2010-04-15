@@ -24,7 +24,7 @@ import javax.swing.JPanel;
 import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
-import owl.core.util.FloatPairSet;
+//import owl.core.util.FloatPairSet;
 import owl.core.util.IntPairSet;
 import owl.gmbp.CMPdb_nbhString_traces;
 import owl.gmbp.CMPdb_sphoxel;
@@ -38,8 +38,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final Dimension defaultDim = new Dimension(1200, 600);
+	protected static final Dimension defaultDim = new Dimension(1600, 800);
 	protected static final float g2dRatio = 0.5f; // H/W
+	
+	protected static final int defaultNumSteps = 4;
+	protected static final float defaultResol = 180/(float)defaultNumSteps; // in degrees
 	
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
@@ -93,12 +96,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Color selAngleRangeColor;       // color for selected rectangles
 	
 	// selections 
-	private FloatPairSet phiRanges;			// permanent list of currently selected phi ranges
-	private FloatPairSet thetaRanges;       // permanent list of currently selected theta ranges
-	private IntPairSet selContacts;         // permanent list of currently selected and referred contacts
+//	private FloatPairSet phiRanges;			// permanent list of currently selected phi ranges
+//	private FloatPairSet thetaRanges;       // permanent list of currently selected theta ranges
+//	private IntPairSet selContacts;         // permanent list of currently selected and referred contacts
+	private Vector<Pair<Float>> phiRanges;			// permanent list of currently selected phi ranges
+	private Vector<Pair<Float>> thetaRanges;       // permanent list of currently selected theta ranges
+	private Vector<Pair<Integer>> selContacts;         // permanent list of currently selected and referred contacts
 	private Pair<Float> tmpPhiRange;
 	private Pair<Float> tmpThetaRange;
 	private Pair<Integer> tmpSelContact;
+	private Pair<Float> tmpAngleComb;
 	
 	
 	// query data
@@ -127,7 +134,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int numLines;
 	
 	// variables for representation (drawing methods)
-	private int numSteps = 8; // change later via interface
+	private int numSteps = defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
+	private float resol = defaultResol; //CMPdb_sphoxel.getDefaultResol();
 	private final int border = 0; //15;
 	private final int yBorderThres = 45;
 	private float pixelWidth = 5*36/this.numSteps; // change in dependence of numSteps
@@ -164,7 +172,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
-		
+				
 		try {
 			calcData();
 		} catch (SQLException e) {
@@ -195,13 +203,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// set default colors
 		this.backgroundColor = Color.white;
 		this.squareSelColor = Color.black;	
-		this.crosshairColor = Color.green;
-		this.selAngleRangeColor = Color.red;
+		this.crosshairColor = Color.yellow;
+		this.selAngleRangeColor = Color.white;
 		
 		this.dragging = false;
-		this.selContacts = new IntPairSet();
-		this.phiRanges = new FloatPairSet();
-		this.thetaRanges = new FloatPairSet();
+//		this.selContacts = new IntPairSet();
+//		this.phiRanges = new FloatPairSet();
+//		this.thetaRanges = new FloatPairSet();
+		this.selContacts = new Vector<Pair<Integer>>();
+		this.phiRanges = new Vector<Pair<Float>>();
+		this.thetaRanges = new Vector<Pair<Float>>();
 		
 		this.tmpPhiRange = new Pair<Float>(0.0f, 0.0f);
 		this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
@@ -287,9 +298,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.sphoxel.setNumSteps(this.numSteps); // choose number of steps for resolution
 		this.sphoxel.setMinr(this.minr);
 		this.sphoxel.setMaxr(this.maxr);
-//		this.sphoxel.runBayes();
-//		this.ratios = this.sphoxel.getRatios();
-		this.ratios = new double [this.numSteps][2*this.numSteps];
+//		this.ratios = new double [this.numSteps][2*this.numSteps];
+		this.sphoxel.runBayes();
+		this.ratios = this.sphoxel.getRatios();
 		System.out.println("BayesRatios computed");		
 //		this.bayesRatios = sphoxel.getBayesRatios();
 		this.minRatio = this.sphoxel.getMinRatio();
@@ -363,6 +374,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	public void setNumSteps(int num){
 		this.numSteps = num;
+		this.resol = 180/(float)this.numSteps;
+	}
+	public void setResol(float res){
+		this.numSteps = (int) (180/res);
+		this.resol = 180/(float)this.numSteps;
+		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
 	}
 	
 	
@@ -396,7 +413,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Color col; // = new Color(24,116,205,255);
 		ColorScale scale = new ColorScale();
 		
-		System.out.println("drawSphoxels ratios.length= "+ratios.length);
+//		System.out.println("drawSphoxels ratios.length= "+ratios.length);
 		
 		// ----- color representation -----
 		for(int i=0;i<ratios.length;i++){
@@ -587,14 +604,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		int bcentery = mousePos.x;
 		g2d.drawLine(mousePos.x, 0, mousePos.x, g2dSize.height);
 		g2d.drawLine(0, mousePos.y, g2dSize.width, mousePos.y);
-		int bcenterx = mousePos.x;
-		int bcentery = mousePos.y;
+		
+//		int bcenterx = mousePos.x;
+//		int bcentery = mousePos.y;
 		
 //		System.out.println("MousPos= " +mousePos.x+", "+mousePos.y);
 		
-		g2d.drawLine(bcenterx-30,bcentery, bcenterx+30,bcentery);
-		g2d.drawLine(bcenterx,bcentery-30, bcenterx,bcentery+30);
-		g2d.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
+//		g2d.drawLine(bcenterx-30,bcentery, bcenterx+30,bcentery);
+//		g2d.drawLine(bcenterx,bcentery-30, bcenterx,bcentery+30);
+//		g2d.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
 	}
 
 //	private void drawRulerCrosshair(Graphics2D g2d) {
@@ -625,15 +643,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			g2d.setColor(selAngleRangeColor);
 			Pair<Float> phi = (Pair<Float>) itrP.next();
 			Pair<Float> theta = (Pair<Float>) itrT.next();
-//			Pair<Integer> con = (Pair<Integer>) itrC.next();			
-			float xS = phi.getFirst();
-			float xE = phi.getSecond();
-			float yS = theta.getFirst();
-			float yE = theta.getSecond();
+//			Pair<Integer> con = (Pair<Integer>) itrC.next();
+			System.out.println(phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());			
+			float xS = phi.getFirst() * this.voxelsize;
+			float xE = phi.getSecond() * this.voxelsize;
+			float yS = theta.getFirst() * this.voxelsize;
+			float yE = theta.getSecond() * this.voxelsize;
 			System.out.println(xS+","+yS+" to "+xE+","+yE);
 			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 			g2d.draw(shape);
-			g2d.fill(shape);
+//			g2d.fill(shape);
 		}
 //		for(Pair<Float> phi:phiRanges) {}
 		
@@ -642,13 +661,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void drawSelectedAngleRange(){
 		this.contStatBar.getAnglePanel().setIRes(String.valueOf(this.iRes));
 		this.contStatBar.getAnglePanel().setJRes(String.valueOf(this.jRes));	
+		
 		float val = (float)(Math.round(this.tmpPhiRange.getFirst()*100))/100;
 		this.contStatBar.getAnglePanel().setPhiMin(String.valueOf(val));	
-		val = (float)(Math.round(this.tmpPhiRange.getSecond()*100))/100;
+		val = (float)(Math.round(this.tmpAngleComb.getFirst()*100))/100;
 		this.contStatBar.getAnglePanel().setPhiMax(String.valueOf(val));	
 		val = (float)(Math.round(this.tmpThetaRange.getFirst()*100))/100;
 		this.contStatBar.getAnglePanel().setThetaMin(String.valueOf(val));	
-		val = (float)(Math.round(this.tmpThetaRange.getSecond()*100))/100;
+		val = (float)(Math.round(this.tmpAngleComb.getSecond()*100))/100;
 		this.contStatBar.getAnglePanel().setThetaMax(String.valueOf(val));
 		
 		this.contStatBar.repaint();
@@ -703,6 +723,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.tmpThetaRange = new Pair<Float>(tmin, tmax);
 		this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
 		
+		this.tmpAngleComb = new Pair<Float>(pmax, tmax);
+		
 		// we loop over all contacts so time is o(number of contacts) instead of
 		// looping over the square (o(n2) being n size of square)
 
@@ -733,8 +755,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Graphics2D g2d = (Graphics2D) g.create();
 		
 		this.screenSize = this.contactView.getScreenSize();
-		System.out.println("ContactPane paintComponent HxW: "+this.screenSize.height+"x"+this.screenSize.width);
-		System.out.println("ContactPane pC HxW: "+this.getSize().height+"x"+this.getSize().width+"  --> ratio="+(float)(this.getSize().height)/(float)(this.getSize().width));
+//		System.out.println("ContactPane paintComponent HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+//		System.out.println("ContactPane pC HxW: "+this.getSize().height+"x"+this.getSize().width+"  --> ratio="+(float)(this.getSize().height)/(float)(this.getSize().width));
 		
 		if ((float)(this.getSize().height)/(float)(this.getSize().width) > g2dRatio){
 			this.xDim = this.getSize().width;
@@ -859,7 +881,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			case RECT:
 				squareSelect();
 				break;
-			}	
+			}
 		}
 		mouseMoved(evt); // TODO is this necessary? I tried getting rid of it
 		// but wasn't quite working
@@ -885,7 +907,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		mousePos = evt.getPoint();
 		
 		Pair<Float> pos = screen2A(mousePos);
-		this.tmpThetaRange = new Pair<Float>(pos.getFirst(), pos.getSecond());
+		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
 		this.repaint();
 	}
 }
