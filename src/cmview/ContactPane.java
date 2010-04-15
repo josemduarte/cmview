@@ -110,9 +110,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private String nbhString, nbhStringL;
 	private String jAtom = "CA";
 	
-	private String host = "talyn";
-	private String username = "vehlow";
-	private String password = "nieve";
 	private String db = "bagler_all5p0";
 	
 	// Sphoxel-Data
@@ -284,7 +281,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcSphoxel() throws SQLException{
 		// compute sphoxeldata
-		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.host, this.username, this.password, this.db);
+		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.db);
 		this.sphoxel.setDiffSSType(this.diffSStype); // set to true if you want to differentiate ssType
 		this.sphoxel.setSSType(this.iSSType);
 		this.sphoxel.setNumSteps(this.numSteps); // choose number of steps for resolution
@@ -305,7 +302,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcNbhsTraces() throws SQLException{
 		// compute nbhstringTraces
-		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.host, this.username, this.password, this.db);
+		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 		nbhsTraces.setDiffSSType(this.diffSStype);
 		nbhsTraces.setSSType(this.iSSType);
 		nbhsTraces.run();
