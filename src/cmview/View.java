@@ -1246,7 +1246,7 @@ public class View extends JFrame implements ActionListener {
 							View view = (View) o;
 							view.doLoadFromGraphDb(db, gid, secondModel);
 						}
-					}, null, null, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "");
+					}, null, null, null, null, null, null, null, null, null, Start.DEFAULT_GRAPH_DB, "", null);
 					
 					actLoadDialog = dialog;
 					dialog.showIt();
@@ -1289,7 +1289,7 @@ public class View extends JFrame implements ActionListener {
 							View view = (View) o;
 							view.doLoadFromPdbase(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, secondModel);
 						}
-					}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null);
+					}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null, null);
 					dialog.setChainCodeGetter(new Getter(dialog) {
 						public Object get() throws GetterError {
 							LoadDialog dialog = (LoadDialog) getObject();
@@ -1373,7 +1373,7 @@ public class View extends JFrame implements ActionListener {
 						View view = (View) o;
 						view.doLoadFromPdbFile(f, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}
-				}, "", null, "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, "", null, "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null, null);
 				dialog.setChainCodeGetter(new Getter(dialog) {
 					public Object get() throws GetterError {
 						LoadDialog dialog = (LoadDialog) getObject();
@@ -1469,7 +1469,7 @@ public class View extends JFrame implements ActionListener {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
 					}
-				}, "", null, null, null, null, null, null, null, null, null, null);
+				}, "", null, null, null, null, null, null, null, null, null, null, null);
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
@@ -1505,7 +1505,7 @@ public class View extends JFrame implements ActionListener {
 						View view = (View) o;
 						view.doLoadFromCaspRRFile(f, secondModel);
 					}
-				}, "", null, null, null, null, null, null, null, null, null, null);
+				}, "", null, null, null, null, null, null, null, null, null, null, null);
 				actLoadDialog = dialog;
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
@@ -1540,7 +1540,7 @@ public class View extends JFrame implements ActionListener {
 						View view = (View) o;
 						view.doLoadFromFtp(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}
-				}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null);
+				}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null, null);
 				dialog.setChainCodeGetter(new Getter(dialog) {
 					public Object get() throws GetterError {
 						LoadDialog dialog = (LoadDialog) getObject();

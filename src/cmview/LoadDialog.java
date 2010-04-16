@@ -122,10 +122,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 *  field
 	 * @param showDb  name of the database to be used, ... database field
 	 * @param showGraphId  name of the graph to be used, ... graph id field
+	 * @param showPasteSeq text area for pasting sequence
 	 */
 	public LoadDialog(JFrame f, String title, LoadAction a,
 			String showFileName, String showAc, String showModel, String showLoadAllModels, String showCc,
-			String showCt, String showDist, String showMinSeqSep, String showMaxSeqSep, String showDb, String showGraphId) 
+			String showCt, String showDist, String showMinSeqSep, String showMaxSeqSep, String showDb, String showGraphId, String showPasteSeq) 
 	throws LoadDialogConstructionError {
 	
 		super(f, title, true);
@@ -210,6 +211,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		JLabel labelDb = new JLabel("Database:");
 		JLabel labelModel = new JLabel("Model:");
 		labelAfterModel = new JLabel(LABEL_AFTER_COMBO_BOX);
+		JLabel labelPasteSeq = new JLabel("Or paste sequence:");
 		
 		int fields = 0;
 		if(showFileName != null) {
@@ -348,16 +350,27 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			selectGraphId.setText(showGraphId);
 			fields++;
 		}
+		if(showPasteSeq != null) {
+			inputPane.add(labelPasteSeq);
+			fields++;
+		}
 		GridLayout layout = new GridLayout(fields,3);
 		layout.setHgap(5);
 		inputPane.setLayout(layout);
 		
+		// Setting up pane for pasting in a sequence (only shown if showPasteSeq != null)
+		JTextArea seqArea = new JTextArea(6, 42);
+		seqArea.setFont(new Font(Font.DIALOG,Font.PLAIN,12));
+		seqArea.setLineWrap(true);
+		JScrollPane seqPane = new JScrollPane(seqArea);
+		
 		// Lay out the label and scroll pane from top to bottom.
 		JPanel selectionPane = new JPanel();
-		selectionPane.setLayout(new BoxLayout(selectionPane, BoxLayout.LINE_AXIS));
+		selectionPane.setLayout(new BoxLayout(selectionPane, BoxLayout.PAGE_AXIS));
 
 		//selectionPane.add(labelPane);
 		selectionPane.add(inputPane);
+		if(showPasteSeq != null) selectionPane.add(seqPane);
 		selectionPane.add(Box.createRigidArea(new Dimension(0,5)));
 		selectionPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
@@ -904,7 +917,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 					System.out.println("Database:\t" + db);
 					System.out.println("Graph Id:\t" + gid);
 				};
-			}, "filename", null, "2", "true", "B", "Ca", "8.0", "0", "20", "pdbase", "1");
+			}, "filename", null, "2", "", "B", "Ca", "8.0", "0", "20", "pdbase", "1", "");
 			dialog.addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent event) {
 					System.exit(0);
