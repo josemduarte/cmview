@@ -419,8 +419,8 @@ public class ContactView extends JFrame implements ActionListener{
 		JOptionPane.showMessageDialog(this, "No contact selected yet", "Warning", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
-	/* -------------------- getter methods -------------------- */
-	
+	/* -------------------- getters and setters methods -------------------- */
+		
 	/**
 	 * Returns the gui state object associated with this View.
 	 * @return the gui state object associated with this View
