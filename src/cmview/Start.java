@@ -141,7 +141,7 @@ public class Start {
 	 * Increase the counter of view instances.
 	 * @return the new number of view instances after increasing the count.
 	 */
-	protected static int viewInstancesCreated() {
+	public static int viewInstancesCreated() {
 		return ++viewInstances;
 	}
 	
@@ -157,7 +157,7 @@ public class Start {
 	 * Cleans up and exits CMView.
 	 * @param exitCode the exit code to return to the operating system
 	 */
-	protected static void shutDown(int exitCode) {
+	public static void shutDown(int exitCode) {
 		// Note that the shutdown hook of the virtual machine will still be executed.
 		System.exit(exitCode);
 	}

@@ -21,6 +21,7 @@ import javax.imageio.*;
 import javax.help.*;
 
 import cmview.datasources.*;
+import cmview.gmbp.ContactView;
 import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
 import cmview.sadpAdapter.SADPResult;
