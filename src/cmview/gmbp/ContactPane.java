@@ -25,7 +25,7 @@ import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
 //import owl.core.util.FloatPairSet;
-import owl.core.util.IntPairSet;
+//import owl.core.util.IntPairSet;
 import owl.gmbp.CMPdb_nbhString_traces;
 import owl.gmbp.CMPdb_sphoxel;
 
@@ -41,10 +41,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	protected static final Dimension defaultDim = new Dimension(1600, 800);
 	protected static final float g2dRatio = 0.5f; // H/W
-	
-	protected static final int defaultNumSteps = 4;
-	protected static final float defaultResol = 180/(float)defaultNumSteps; // in degrees
-	
+		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
 	private Model mod;
@@ -108,10 +105,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Pair<Integer> tmpSelContact;
 	private Pair<Float> tmpAngleComb;
 	
+	private RIGNode nodeI, nodeJ;
 	
 	// query data
 	private char iRes='A', jRes='A';
-	private char iSSType='H';
+	private char iSSType='H', jSSType='H';
 	private boolean diffSStype=false;
 	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
@@ -135,8 +133,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int numLines;
 	
 	// variables for representation (drawing methods)
-	private int numSteps = defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
-	private float resol = defaultResol; //CMPdb_sphoxel.getDefaultResol();
+	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
+	private float resol = CMPdb_sphoxel.defaultResol; //CMPdb_sphoxel.getDefaultResol();
 	private final int border = 0; //15;
 	private final int yBorderThres = 45;
 	private float pixelWidth = 5*36/this.numSteps; // change in dependence of numSteps
@@ -153,7 +151,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int yDim=0;
 	
 	private final char[] aas = new char[]{'A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y'}; // possible Residues
-	private final String AAStr = new String(aas); 
+//	private final String AAStr = new String(aas); 
 	
 	/*----------------------------- constructors ----------------------------*/
 
@@ -179,7 +177,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.ratios = new double[0][0];
 				
 		try {
-			calcData();
+			calcParam();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -227,42 +225,63 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		System.out.println("outputsize= "+this.outputSize);
 	}
 	
-	private void calcData() throws SQLException{
+	public void updateQueryParam(int type){
+		switch (type){
+		case 0:
+			calcSphoxelParam(); break;
+		case 1:
+			calcTracesParam(); break;
+		}
+	}
+	
+	private void calcParam() throws SQLException{
+		calcSphoxelParam();
+		calcTracesParam();		
+		
+		calcSphoxel();
+		calcNbhsTraces();		
+	}
+	
+	private void calcTracesParam(){
+		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
+		this.nbhString = nbhood.getNbString();
+		this.nbhStringL = "%";
+		for (int i=0; i<this.nbhString.length(); i++){
+			this.nbhStringL += this.nbhString.charAt(i);
+			this.nbhStringL += "%";
+		}
+		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
+	}
+	
+	private void updateAngleRange(){
+//		RIGEdge edge = this.mod.getGraph().getEdgeFromSerials(this.tmpSelContact.getFirst(), this.tmpSelContact.getSecond());		
+//		edge.setPhiPsi(this.tmpPhiRange.getFirst(), this.tmpPhiRange.getSecond(), this.tmpThetaRange.getFirst(), this.tmpThetaRange.getSecond());		
+		this.mod.getGmbp().setPhiRanges(this.phiRanges);
+		this.mod.getGmbp().setThetaRanges(this.thetaRanges);
+		this.mod.getGmbp().setSelContacts(this.selContacts);
+	}
+	
+	private void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
 		Pair<Integer> currentResPair = this.cmPane.getmousePos();
 		this.iNum = currentResPair.getFirst();
 		this.jNum = currentResPair.getSecond();
 		System.out.println("first:"+this.iNum+"  second:"+this.jNum);
 		
-//		if(this.iNum==this.jNum){
-//			IntPairSet firstShellNbrs1 = this.cmPane.getfirstShellNbrRels(this.mod, this.iNum);
-//			
-//			if( firstShellNbrs1.isEmpty() ) {
-//				return; // nothing to do!
-//			}		
-//			
-//		} else{
-//			IntPairSet firstShellNbrs1 = this.cmPane.getfirstShellNbrRels(this.mod, this.iNum);
-//			IntPairSet firstShellNbrs2 = this.cmPane.getfirstShellNbrRels(this.mod, this.jNum);
-//			
-//			if( firstShellNbrs1.isEmpty() || firstShellNbrs2.isEmpty()) {
-//				return; // nothing to do!
-//			}
-//		}
 		// use pair to get iRes and jRes, isstype, nbhstring
-		RIGNode nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
-		RIGNode nodeJ = this.mod.getNodeFromSerial(this.jNum);		
-		this.iRes = nodeI.toString().charAt(nodeI.toString().length()-1);
+		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
+		nodeJ = this.mod.getNodeFromSerial(this.jNum);		
+		this.iRes = this.nodeI.toString().charAt(this.nodeI.toString().length()-1);
 		this.jRes = nodeJ.toString().charAt(nodeJ.toString().length()-1);
-		System.out.println("nodeI="+nodeI.toString()+"-->"+iRes+"  nodeI="+nodeJ.toString()+"-->"+jRes);
+		System.out.println("this.nodeI="+this.nodeI.toString()+"-->"+iRes+"  this.nodeI="+nodeJ.toString()+"-->"+jRes);
 		
-		this.iResType = nodeI.getResidueType();
+		this.iResType = this.nodeI.getResidueType();
 		this.jResType = nodeJ.getResidueType();
 		System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
 
 		// Definition of sstype and jatom
-		SecStrucElement iSSelem = nodeI.getSecStrucElement();
-//		type = nodeI.getSecStrucElement().getType(); 
+		SecStrucElement iSSelem = this.nodeI.getSecStrucElement();
+//		type = this.nodeI.getSecStrucElement().getType(); 
 		if (iSSelem == null){
 			System.out.println("No SSelement!");
 			this.diffSStype = false;
@@ -280,32 +299,51 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			System.out.println("i secStrucElement: "+this.iSSType);
 //			System.out.println("j secStrucElement: "+nodeJ.getSecStrucElement().getType());
 			this.diffSStype = true;
-		}		
-		
-		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
-		this.nbhString = nbhood.getNbString();
-		this.nbhStringL = "%";
-		for (int i=0; i<this.nbhString.length(); i++){
-			this.nbhStringL += this.nbhString.charAt(i);
-			this.nbhStringL += "%";
 		}
-		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
-		
-		calcSphoxel();
-		calcNbhsTraces();
-		
+		SecStrucElement jSSelem = nodeJ.getSecStrucElement();
+		if (jSSelem == null){
+			System.out.println("No JSSelement!");
+//			this.diffSStype = false;
+		}
+		else{
+			if (jSSelem.isHelix())
+				this.jSSType = SecStrucElement.HELIX;
+			else if (jSSelem.isOther())
+				this.jSSType = SecStrucElement.OTHER;
+			else if (jSSelem.isStrand())
+				this.jSSType = SecStrucElement.STRAND;
+			else if (jSSelem.isTurn())
+				this.jSSType = SecStrucElement.TURN;
+			
+			System.out.println("j secStrucElement: "+this.jSSType);
+//			System.out.println("j secStrucElement: "+nodeJ.getSecStrucElement().getType());
+//			this.diffSStype = true;
+		}	
 	}
 	
 	private void calcSphoxel() throws SQLException{
 		// compute sphoxeldata
 		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.db);
 		this.sphoxel.setDiffSSType(this.diffSStype); // set to true if you want to differentiate ssType
-		this.sphoxel.setSSType(this.iSSType);
+		this.sphoxel.setISSType(this.iSSType);
 		this.sphoxel.setNumSteps(this.numSteps); // choose number of steps for resolution
 		this.sphoxel.setMinr(this.minr);
 		this.sphoxel.setMaxr(this.maxr);
 //		this.ratios = new double [this.numSteps][2*this.numSteps];
-		this.sphoxel.runBayes();
+		
+		if (this.minr==2.0 && this.maxr==5.6)
+			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[0]);
+		else if (this.minr==5.6 && this.maxr==9.2)
+			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[1]);
+		else if (this.minr==9.2 && this.maxr==12.8)
+			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[2]);
+		else 
+			this.sphoxel.setRadiusPrefix("");
+		if (this.sphoxel.getRadiusPrefix() == "")
+			this.sphoxel.runBayes();
+		else
+			this.sphoxel.runBayesPreComp();
+		
 		this.ratios = this.sphoxel.getRatios();
 		System.out.println("BayesRatios computed");		
 //		this.bayesRatios = sphoxel.getBayesRatios();
@@ -314,9 +352,28 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	public void recalcSphoxel() throws SQLException{
-		if (this.sphoxel.getNumSteps() != this.numSteps){
+		if (this.sphoxel.getNumSteps()!=this.numSteps || this.sphoxel.getMinr()!=this.minr || this.sphoxel.getMaxr()!=this.maxr){
+
+			this.sphoxel.setDiffSSType(this.diffSStype); // set to true if you want to differentiate ssType
+			this.sphoxel.setISSType(this.iSSType);
 			this.sphoxel.setNumSteps(this.numSteps); // choose number of steps for resolution
-			this.sphoxel.runBayes();
+			this.sphoxel.setMinr(this.minr);
+			this.sphoxel.setMaxr(this.maxr);
+//			this.ratios = new double [this.numSteps][2*this.numSteps];
+			
+			if (this.minr==2.0 && this.maxr==5.6)
+				this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[0]);
+			else if (this.minr==5.6 && this.maxr==9.2)
+				this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[1]);
+			else if (this.minr==9.2 && this.maxr==12.8)
+				this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[2]);
+			else 
+				this.sphoxel.setRadiusPrefix("");
+			if (this.sphoxel.getRadiusPrefix() == "")
+				this.sphoxel.runBayes();
+			else
+				this.sphoxel.runBayesPreComp();
+			
 			this.ratios = this.sphoxel.getRatios();
 			System.out.println("BayesRatios computed");		
 //			this.bayesRatios = sphoxel.getBayesRatios();
@@ -394,9 +451,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.numSteps = (int) (180/res);
 		this.resol = 180/(float)this.numSteps;
 		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
-	}
-	
-	
+	}	
 //	/**
 //	 * Sets the output size and updates the ratio and contact square size. This
 //	 * will affect all drawing operations. Used by print() method to change the
@@ -410,6 +465,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 ////		this.pixelHeight = (float) ratio;
 ////		// square representing a sphoxel
 //	}
+	
 	/*------------------------ writing methods --------------------*/
 	public void writeSphoxels(String filename){
 		this.sphoxel.writeSphoxelOutput(filename);
@@ -654,15 +710,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Shape shape;
 //		System.out.println(phiRanges.size()+"=?"+thetaRanges.size()+"=?"+selContacts.size());
 		System.out.println("Coordinates Occupied Rectangle:");
-		Iterator<Pair<Float>> itrP = phiRanges.iterator();
-		Iterator<Pair<Float>> itrT = thetaRanges.iterator();
+		Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
+		Iterator<Pair<Float>> itrT = this.thetaRanges.iterator();
 //		Iterator<Pair<Integer>> itrC = selContacts.iterator();
 		while (itrP.hasNext()){
 			g2d.setColor(selAngleRangeColor);
 			Pair<Float> phi = (Pair<Float>) itrP.next();
 			Pair<Float> theta = (Pair<Float>) itrT.next();
 //			Pair<Integer> con = (Pair<Integer>) itrC.next();
-			System.out.println(phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());			
+			System.out.println("COR: "+phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());			
 			float xS = phi.getFirst() * this.voxelsize;
 			float xE = phi.getSecond() * this.voxelsize;
 			float yS = theta.getFirst() * this.voxelsize;
@@ -689,8 +745,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		val = (float)(Math.round(this.tmpAngleComb.getSecond()*100))/100;
 		this.contStatBar.getAnglePanel().setThetaMax(String.valueOf(val));
 		
-		this.contStatBar.repaint();
-		
+		this.contStatBar.repaint();		
 	}
 	
 	// end drawing methods
@@ -701,16 +756,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * coordinates
 	 */
 	private Pair<Float> screen2A(Point point){
-		
-//		private double ratio;		  			// ratio of screen size and contact
-		// map size = size of each contact
-		// on screen
-	
-//		if (point.y > point.x) { // check if we're in the bottom left CM
-//			return new Pair<Integer>((int) Math.ceil(point.x/ratio),(int) Math.ceil(point.y/ratio));
-//		}
-//		return new Pair<Integer>((int) Math.ceil(point.y/ratio),(int) Math.ceil(point.x/ratio));
-		
 		
 		Pair<Float> floatP = new Pair<Float>((float)(point.x)/this.voxelsize,(float)(point.y)/this.voxelsize);
 //		System.out.println("scree2A_point "+(point.x)+","+(point.y));
@@ -739,18 +784,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		this.tmpPhiRange = new Pair<Float>(pmin, pmax);
 		this.tmpThetaRange = new Pair<Float>(tmin, tmax);
-		this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
+//		this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
+		this.tmpSelContact = new Pair<Integer>(this.iNum,this.jNum);
 		
 		this.tmpAngleComb = new Pair<Float>(pmax, tmax);
-		
-		// we loop over all contacts so time is o(number of contacts) instead of
-		// looping over the square (o(n2) being n size of square)
-
-//		for (Pair<Integer> cont:contacts){
-//			if (cont.getFirst()<=imax && cont.getFirst()>=imin && cont.getSecond()<=jmax && cont.getSecond()>=jmin){
-//				tmpContacts.add(cont);
-//			}
-//		}
 
 	}
 	
@@ -862,9 +899,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			case RECT:
 				if (dragging){
 //					squareSelect();
+					if (this.selContacts.size()>0 && 
+							this.selContacts.lastElement().getFirst()==this.tmpSelContact.getFirst() && 
+							this.selContacts.lastElement().getSecond()==this.tmpSelContact.getSecond()){
+						this.phiRanges.removeElementAt(this.phiRanges.size()-1);
+						this.thetaRanges.removeElementAt(this.thetaRanges.size()-1);
+						this.selContacts.removeElementAt(this.selContacts.size()-1);						
+					}
 					this.phiRanges.add(this.tmpPhiRange);
 					this.thetaRanges.add(this.tmpThetaRange);
 					this.selContacts.add(this.tmpSelContact);
+					updateAngleRange();
 				}				
 				dragging = false;
 //				this.repaint();
@@ -872,9 +917,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				
 			case CLUSTER:
 //				// resets selContacts when clicking mouse
-//				if (!isControlDown(evt)){
-//					resetSelections();
-//				}
 
 //				this.repaint();
 				return;

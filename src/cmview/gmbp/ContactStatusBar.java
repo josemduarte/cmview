@@ -124,9 +124,11 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel = new JSlider();
 		radiusSliderLabel.setMinimum(minSlVal);
 		radiusSliderLabel.setMaximum(maxSlVal);
-		radiusSliderLabel.setValue(radiusSlider.getMaximum());
+		radiusSliderLabel.setValue(radiusSlider.getHighValue());
 		radiusSliderLabel.setMinorTickSpacing(1*10);
-		radiusSliderLabel.setMajorTickSpacing((int) ((this.radiusThresholds[1]-this.radiusThresholds[0])*10));
+		radiusSliderLabel.setMajorTickSpacing(deltaSlVal);
+		radiusSliderLabel.setSnapToTicks(true);
+		radiusSliderLabel.setExtent(radiusSliderLabel.getMajorTickSpacing());
 		radiusSliderLabel.setOrientation(JSlider.VERTICAL);		
 //		radiusSliderLabel.setInverted(true);		
 		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
@@ -137,10 +139,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel.setLabelTable(labels);		
 		radiusSliderLabel.setPaintLabels(true);
 		radiusSliderLabel.setPaintTicks(true);
-//		radiusSliderLabel.setPaintTrack(true);	
+		radiusSliderLabel.setPaintTrack(true);	
 		radiusSliderLabel.setSize(groupWidth-(radiusSlider.getWidth()), HEIGHT);
 		radiusSliderLabel.setPreferredSize(new Dimension(groupWidth-(radiusSlider.getWidth()), HEIGHT));
-				
+		
+		radiusSliderLabel.setEnabled(true);
+		radiusSliderLabel.addChangeListener(this);
+								
 		// adding components to group		
 //	    deltaRadiusGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
 //		deltaRadiusGroup.add(radiusSlider, BorderLayout.WEST, 0);
@@ -311,6 +316,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		if(e.getSource() == this.radiusSlider) {
 //			controller.handleChangeRadiusRange(this.radiusThresholds[0], (float) (this.radiusSlider.getValue() / 10.0f));
 //			System.out.println("RadiusSliderVal= "+ this.radiusSlider.getValue() / 10.0f);
+			this.radiusSliderLabel.setValue(this.radiusSlider.getHighValue());
+			controller.handleChangeRadiusRange(this.radiusSlider.getLowValue()/10.0f, this.radiusSlider.getHighValue()/10.0f);
+			System.out.println("RadiusSliderRange= "+ this.radiusSlider.getLowValue()/10.0f + "-" + this.radiusSlider.getHighValue()/10.0f);
+		}
+		if(e.getSource() == this.radiusSliderLabel){
+
 			controller.handleChangeRadiusRange(this.radiusSlider.getLowValue()/10.0f, this.radiusSlider.getHighValue()/10.0f);
 			System.out.println("RadiusSliderRange= "+ this.radiusSlider.getLowValue()/10.0f + "-" + this.radiusSlider.getHighValue()/10.0f);
 		}

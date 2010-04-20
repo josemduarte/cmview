@@ -25,6 +25,7 @@ import owl.core.util.actionTools.GetterError;
 import owl.core.util.actionTools.TinkerStatusNotifier;
 import owl.deltaRank.DeltaRank;
 import owl.embed.ConePeeler;
+import owl.gmbp.Gmbp;
 
 import cmview.Start;
 import edu.uci.ics.jung.graph.util.Pair;
@@ -81,6 +82,8 @@ public abstract class Model {
 									// graph in an alignment object and in pymol
 	
 	private DeltaRank deltaRank; // Our deltaRank calculation object, providing delta Rank background maps
+	
+	private Gmbp gmbp; // hold values for angle (phi-psi ranges for certain iNum-jNum contacts)
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -189,6 +192,10 @@ public abstract class Model {
 	}
 
 	/*---------------------------- public methods ---------------------------*/
+	/** Returns instance of gmbp class for angle range handling */
+	public Gmbp getGmbp(){
+		return this.gmbp;
+	}
 
 	/**
 	 * Gets chain codes for all chains being present in the source.

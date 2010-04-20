@@ -245,6 +245,19 @@ public class ContactView extends JFrame implements ActionListener{
 						
 		pack();
 	}
+	
+	public void updateGUI(){ //(Model mod, String title, ContactMapPane cmPane) {
+//		this.mod = mod;
+//		this.cmPane = cmPane;
+		this.cPane.updateQueryParam(0);
+		try {
+			this.cPane.recalcSphoxel();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
