@@ -109,6 +109,7 @@ public abstract class Model {
 		this.tempPdbFile = mod.tempPdbFile;
 		this.loadedGraphID = mod.loadedGraphID;
 		this.deltaRank = mod.deltaRank;
+		this.edgeType = mod.edgeType;
 	}
 
 	/**
@@ -180,6 +181,7 @@ public abstract class Model {
 	}
 	
 	public void computeMinimalSubset(){
+		
 		if(this !=null){
 			try{
 				RIGraph subset = ConePeeler.getMinSubset(graph);
@@ -749,7 +751,7 @@ public abstract class Model {
 	}
 
 	public TinkerRunner runTinker(TinkerStatusNotifier tinkerStatusNotifier, TinkerRunner.PARALLEL parallel,
-			TinkerRunner.REFINEMENT refinement, int models, String tmpDir) {
+			TinkerRunner.REFINEMENT refinement, int models, boolean gmbp, String tmpDir) {
 		TinkerRunner tinker = null;
 		try {
 			tinker = new TinkerRunner(Start.TINKER_BINPATH,
@@ -875,6 +877,23 @@ public abstract class Model {
 	public void discretizeGraphByOrderedWeights(int fraction) {
 		int top = this.graph.getFullLength() / fraction;
 		this.graph.discretizeByNumContacts(top);
+	}
+
+	public void addBestDR() {
+		if (this.deltaRank != null) { 
+			this.addEdge(this.deltaRank.highestDRNonContact());
+		}
+	}
+
+	public void delWorstDR() {
+		if (this.deltaRank != null) { 
+			this.removeEdge(this.deltaRank.lowestDRContact());
+		}
+		
+	}
+
+	public boolean hasGMBPConstraints() {
+		return true;
 	}	
 
 

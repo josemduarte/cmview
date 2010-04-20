@@ -2633,11 +2633,11 @@ public class View extends JFrame implements ActionListener {
 		
 		final View v = this;
 		 tinkerDialog = new TinkerPreferencesDialog(this, new TinkerAction() {
-				public void doit(TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models) {
+				public void doit(TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, boolean gmbp) {
 					tinkerDialog.dispose();
-					tinkerRunner = new TinkerRunAction(v,mod,parallel,refinement,models);
+					tinkerRunner = new TinkerRunAction(v,mod,parallel,refinement,models,gmbp);
 				}
-			});
+			},mod.hasGMBPConstraints());
 		 
 		 tinkerDialog.createGUI();
 	}
@@ -3407,6 +3407,17 @@ public class View extends JFrame implements ActionListener {
 		cmPane.resetSelections();
 		cmPane.reloadContacts();	// will update screen buffer and repaint
 	}
+
+	public void handleAddBestDR() {
+		mod.addBestDR();
+		cmPane.reloadContacts();
+	}
+	
+	public void handleDeleteWorstDR() {
+		mod.delWorstDR();
+		cmPane.reloadContacts();
+	}
+
 	
 	/* -------------------- getter methods -------------------- */
 	

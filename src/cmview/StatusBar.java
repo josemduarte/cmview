@@ -305,12 +305,13 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		//deltaRankLable.setBounds(5, 5, 100, 20);
 		deltaRankLable.setAlignmentX(CENTER_ALIGNMENT);
 		addBestDRContactButton = new JButton("add best");
+		addBestDRContactButton.addActionListener(this);
 		addBestDRContactButton.setMaximumSize(new Dimension(120,50));
 		addBestDRContactButton.setAlignmentX(CENTER_ALIGNMENT);
 		removeWorstDRContactButton = new JButton("remove worst");
 		removeWorstDRContactButton.setMaximumSize(new Dimension(120,50));
 		removeWorstDRContactButton.setAlignmentX(CENTER_ALIGNMENT);
-
+		removeWorstDRContactButton.addActionListener(this);
 		// add components to group
 		deltaRankGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));	// defines component width
 		deltaRankGroup.add(deltaRankLable);
@@ -431,6 +432,12 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		}
 		if(e.getSource() == secondViewCB) {
 			controller.handleBgOverlayChange(true,secondViewCB.getSelectedItem());
+		}
+		if(e.getSource() == addBestDRContactButton) {
+			controller.handleAddBestDR();
+		}
+		if(e.getSource() == removeWorstDRContactButton) {
+			controller.handleDeleteWorstDR();
 		}
 	}
 	

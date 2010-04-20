@@ -24,8 +24,7 @@ import javax.swing.JPanel;
 import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
-//import owl.core.util.FloatPairSet;
-//import owl.core.util.IntPairSet;
+
 import owl.gmbp.CMPdb_nbhString_traces;
 import owl.gmbp.CMPdb_sphoxel;
 

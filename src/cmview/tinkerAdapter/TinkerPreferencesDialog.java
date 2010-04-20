@@ -11,6 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -41,8 +42,9 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	private JSpinner numModelsSpinner;
 	private SpinnerNumberModel numModelsSpinnerModel;
 	private TinkerAction callback;
+	private JCheckBox gmbpConstraints;
 	
-	public TinkerPreferencesDialog(JFrame f, TinkerAction cb) {
+	public TinkerPreferencesDialog(JFrame f, TinkerAction cb,boolean hasGMBP) {
 		super(f, WINDOW_TITLE, true);
 		this.setResizable(false);
 		callback = cb;
@@ -71,12 +73,19 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 
 		numModelsSpinnerModel = new SpinnerNumberModel(3, 1, 250, 1);
 		numModelsSpinner = new JSpinner(numModelsSpinnerModel);
-
+		gmbpConstraints = new JCheckBox("Apply GMBP Constraints");
+		if (hasGMBP) {
+			gmbpConstraints.setEnabled(true);
+			gmbpConstraints.setSelected(true);
+		} else {
+			gmbpConstraints.setEnabled(false);
+			gmbpConstraints.setSelected(false);
+		}
+		
 		JPanel inputPane = new JPanel();
 		JLabel labelAfterRefinement = new JLabel("Refinement Method");
 		JLabel labelAfterNumModels = new JLabel("Number of Models");
 		JLabel labelAfterParallelization = new JLabel("Parallel Mode");
-
 		inputPane.add(refinementCB);
 		inputPane.add(labelAfterRefinement);
 		inputPane.add(parallelCB);
@@ -145,6 +154,10 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		}
 	}
 	
+	private boolean getGMBP() {
+		return gmbpConstraints.isSelected();
+	}
+	
 	private int getNumModels() {
 	
 		return numModelsSpinnerModel.getNumber().intValue();
@@ -152,7 +165,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	
 	
 	private void go() {
-		callback.doit(getParallel(),getRefinement(),getNumModels());
+		callback.doit(getParallel(),getRefinement(),getNumModels(),getGMBP());
 	}
 	
 	public void createGUI() {
@@ -170,7 +183,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		frame.setVisible(false);
 
 		try {
-			TinkerPreferencesDialog dialog = new TinkerPreferencesDialog(frame,null);
+			TinkerPreferencesDialog dialog = new TinkerPreferencesDialog(frame,null,false);
 			dialog.createGUI();
 		} finally {
 		}
