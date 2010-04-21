@@ -30,7 +30,8 @@ public abstract class LoadAction {
 	 * @param maxss  maximal sequence separation
 	 * @param db  name of the database
 	 * @param gid  graph id
+	 * @param seq pasted sequence
 	 */
-	public abstract void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid);
+	public abstract void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq);
 
 }

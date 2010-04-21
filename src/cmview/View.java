@@ -75,6 +75,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_ONLINE_PDB = "Online PDB...";
 	private static final String LABEL_PDBASE = "Pdbase...";
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
+	private static final String LABEL_LOAD_SEQ = "Sequence...";
 	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
@@ -160,7 +161,7 @@ public class View extends JFrame implements ActionListener {
 	// P -> "popup menu"
 	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp, mmLoadSeq;
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
@@ -529,6 +530,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, submenu);
 		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmLoadCaspRR = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
+		mmLoadSeq = makeMenuItem(LABEL_LOAD_SEQ, null, submenu);
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
@@ -1015,6 +1017,9 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmLoadCaspRR) {
 			handleLoadFromCaspRRFile(FIRST_MODEL);
 		}
+		if(e.getSource() == mmLoadSeq) {
+			handleLoadFromSequence(FIRST_MODEL);
+		}		
 
 		// Save
 		if(e.getSource() == mmSaveGraphDb) {
@@ -1244,7 +1249,7 @@ public class View extends JFrame implements ActionListener {
 				LoadDialog dialog;
 				try {
 					dialog = new LoadDialog(this, "Load from graph database", new LoadAction(secondModel) {
-						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 							View view = (View) o;
 							view.doLoadFromGraphDb(db, gid, secondModel);
 						}
@@ -1287,7 +1292,7 @@ public class View extends JFrame implements ActionListener {
 			} else{
 				try {
 					LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
-						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 							View view = (View) o;
 							view.doLoadFromPdbase(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, secondModel);
 						}
@@ -1371,7 +1376,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from PDB file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
 						view.doLoadFromPdbFile(f, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}
@@ -1456,7 +1461,7 @@ public class View extends JFrame implements ActionListener {
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
 		} catch (AlignmentConstructionError e) {
-		showLoadError(e.getMessage());
+			showLoadError(e.getMessage());
 		}
 	}
 	
@@ -1467,7 +1472,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CM file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
 						view.doLoadFromCmFile(f, secondModel);
 					}
@@ -1477,6 +1482,65 @@ public class View extends JFrame implements ActionListener {
 			} catch (LoadDialogConstructionError e) {
 				System.err.println("Failed to load the load-dialog.");
 			}
+		}
+	}
+	
+	/**
+	 * This method is being called when 'Load from sequence' was chosen in the menu.
+	 * @param secondModel whether the function was invoked from the 'Load second contact map' menu.
+	 */
+	private void handleLoadFromSequence(boolean secondModel) {
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			try {
+				LoadDialog dialog = new LoadDialog(this, "Load from sequence", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
+						View view = (View) o;
+						view.doLoadFromSequence(f, seq, secondModel);
+					}
+				}, "", null, null, null, null, null, null, null, null, null, null, "");
+				actLoadDialog = dialog;
+				dialog.showIt();
+			} catch (LoadDialogConstructionError e) {
+				System.err.println("Failed to load the load-dialog.");
+			}			
+		}
+	}
+	
+	/**
+	 * Actually loads a new contact map given a sequence. The contact map will contain
+	 * no contacts. If seq is empty, the file name is used, otherwise seq.
+	 * @param f fasta file name from which to load sequence
+	 * @param seq actual sequence to load
+	 * @param secondModel whether this is called to create a second model
+	 */
+	private void doLoadFromSequence(String f, String seq, boolean secondModel) {
+		Model mod;
+		try {
+			
+			// load new model
+			if(seq.length() > 0) {
+				System.out.println("Loading from sequence "+seq);
+				mod = new EmptyModel(seq);
+			} else {
+				System.out.println("Loading from sequence file "+f);
+				mod = new EmptyModel(new File(f));
+			}
+			
+			// assign secondary structure by Psipred?
+			
+			
+			// apply new model
+			if(secondModel == SECOND_MODEL) {
+				//handleLoadSecondModel(mod);
+				mod2 = mod;
+				handlePairwiseAlignment();
+			} else {
+				this.spawnNewViewWindow(mod);
+			}		
+		} catch (ModelConstructionError e) {
+			showLoadError(e.getMessage());
 		}
 	}
 
@@ -1503,7 +1567,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from CASP RR file", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
 						view.doLoadFromCaspRRFile(f, secondModel);
 					}
@@ -1538,7 +1602,7 @@ public class View extends JFrame implements ActionListener {
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from online PDB", new LoadAction(secondModel) {
-					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
 						view.doLoadFromFtp(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);
 					}

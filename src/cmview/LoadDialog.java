@@ -54,6 +54,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	private JTextField selectFileName, selectGraphId, selectAc, selectDist, selectMinSeqSep, selectMaxSeqSep, selectDb;
 	private JLabel labelAfterCc,labelAfterModel;
 	private JCheckBox loadAllModelsCheckBox;
+	private JTextArea seqArea;
 	/** loads the model from the source */
 	private LoadAction loadAction;
 	/** implements the retrieval of all available chain identifiers for the given source */
@@ -212,6 +213,8 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		JLabel labelModel = new JLabel("Model:");
 		labelAfterModel = new JLabel(LABEL_AFTER_COMBO_BOX);
 		JLabel labelPasteSeq = new JLabel("Or paste sequence:");
+		JLabel dummyLabel = new JLabel();
+		JLabel dummyLabel2 = new JLabel();
 		
 		int fields = 0;
 		if(showFileName != null) {
@@ -352,6 +355,8 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		}
 		if(showPasteSeq != null) {
 			inputPane.add(labelPasteSeq);
+			inputPane.add(dummyLabel);
+			inputPane.add(dummyLabel2);			
 			fields++;
 		}
 		GridLayout layout = new GridLayout(fields,3);
@@ -359,7 +364,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		inputPane.setLayout(layout);
 		
 		// Setting up pane for pasting in a sequence (only shown if showPasteSeq != null)
-		JTextArea seqArea = new JTextArea(6, 42);
+		seqArea = new JTextArea(6, 42);
 		seqArea.setFont(new Font(Font.DIALOG,Font.PLAIN,12));
 		seqArea.setLineWrap(true);
 		JScrollPane seqPane = new JScrollPane(seqArea);
@@ -552,6 +557,13 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		return selectedGraphId;
 	}
 	
+	/**
+	 * Returns the contents of the sequence text area
+	 * @return
+	 */
+	public String getPastedSequence() {
+		return seqArea.getText();
+	}
 	
 	/** action listener method for buttons */
 	public void actionPerformed (ActionEvent e) {
@@ -874,10 +886,11 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			int maxss = getSelectedMaxSeqSep();
 			String db = getSelectedDb();
 			int gid = getSelectedGraphId();
+			String seq = getPastedSequence();
 			
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 
-			this.loadAction.doit((Object) parentFrame, f, ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, gid);
+			this.loadAction.doit((Object) parentFrame, f, ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, gid, seq);
 			
 			// write default values to remember them for the next load-dialog 
 			// (e.g. for loading the second structure)
@@ -904,7 +917,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 
 		try {
 			LoadDialog dialog = new LoadDialog(frame, "Test dialog", new LoadAction(false) {
-				public void doit (Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid) {					
+				public void doit (Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {					
 					System.out.println("Filename:\t" + f);
 					System.out.println("PDB code:\t" + ac);
 					System.out.println("Model serial:\t" + modelSerial);
@@ -916,6 +929,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 					System.out.println("Max. Seq. Sep.:\t" + maxss);	        		
 					System.out.println("Database:\t" + db);
 					System.out.println("Graph Id:\t" + gid);
+					System.out.println("Sequence:\t" + seq);
 				};
 			}, "filename", null, "2", "", "B", "Ca", "8.0", "0", "20", "pdbase", "1", "");
 			dialog.addWindowListener(new WindowAdapter() {
