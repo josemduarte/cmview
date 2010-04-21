@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -26,6 +27,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 //import javax.swing.JToolBar;
 
 import cmview.ContactMapPane;
@@ -50,14 +53,18 @@ public class ContactView extends JFrame implements ActionListener{
 	// Select
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
+	private static final String LABEL_PAN_VIEW_MODE = "Panning Mode";
 	
 	// GUI components in the main frame
-//	JToolBar toolBar;			// icon tool bar
+	JToolBar toolBar;			// icon tool bar
 	JPanel phiRul;				// Panel for top (phi) ruler
 	JPanel thetaRul;			// Panel for left (theta) ruler	
 	JPanel svP; 				// Main panel holding the Contact map pane Sperical Voxel view 
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	ContactStatusBar contStatBar;		// A status bar with metainformation on the right
+	
+	// Toolbar Buttons
+	JToggleButton tbSquareSel, tbClusterSel, tbPanMode;
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -151,6 +158,22 @@ public class ContactView extends JFrame implements ActionListener{
 		popupMenu2Parent.put(menu.getPopupMenu(),menu);
 	}
 	
+	/**
+	 * Sets up and returns a new tool bar toggle button
+	 */
+	private JToggleButton makeToolBarToggleButton(ImageIcon icon, String toolTipText, boolean selected, boolean enabled, boolean visible) {
+		JToggleButton newButton = new JToggleButton(icon, selected);
+		newButton.setFocusPainted(false);
+		newButton.setToolTipText(toolTipText);
+		newButton.addActionListener(this);
+		newButton.setVisible(visible);
+		newButton.setEnabled(enabled);
+		newButton.setSelected(selected);		
+		toolBar.add(newButton);
+		return newButton;
+	}
+
+	
 	/** Initialize and show the main GUI window */
 	private void initGUI(){
 
@@ -170,6 +193,22 @@ public class ContactView extends JFrame implements ActionListener{
 //		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
 		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
+		ImageIcon icon_pan_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
+		
+		// Tool bar
+		toolBar = new JToolBar();
+		toolBar.setVisible(Start.SHOW_ICON_BAR);
+		
+		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
+		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
+		tbPanMode = makeToolBarToggleButton(icon_pan_view_mode, LABEL_PAN_VIEW_MODE, true, true, true);
+		
+		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
+		ButtonGroup selectionModeButtons = new ButtonGroup();
+		selectionModeButtons.add(tbSquareSel);
+		selectionModeButtons.add(tbClusterSel);
+		selectionModeButtons.add(tbPanMode);
+		
 		
 		// Main menu
 		JMenuBar menuBar;
@@ -230,6 +269,9 @@ public class ContactView extends JFrame implements ActionListener{
 			svP.add(thetaRul, BorderLayout.WEST);
 		}
 	
+		// Add everything to the content pane		
+		this.tbPane.add(toolBar, BorderLayout.NORTH);			// tbPane is necessary if toolBar is floatable
+		
 		// Add everything to the content pane				
 		this.tbPane.add(svP,BorderLayout.CENTER);			
 		this.tbPane.add(contStatBar,BorderLayout.EAST);
@@ -288,12 +330,15 @@ public class ContactView extends JFrame implements ActionListener{
 		// Selection modes
 
 		// square button clicked
-		if (e.getSource() == squareM) {
+		if (e.getSource() == squareM || e.getSource() == tbSquareSel ) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
 		}
 		// cluster button clicked
-		if (e.getSource() == clusterM) {
+		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
+		}
+		if (e.getSource() == tbPanMode) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
 		}
 	}
 	
@@ -405,12 +450,13 @@ public class ContactView extends JFrame implements ActionListener{
 	public void handleChangeRadiusRange(float minR, float maxR) {
 		this.cPane.setMinR(minR);
 		this.cPane.setMaxR(maxR);
-		try {
-			this.cPane.recalcSphoxel();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		System.out.println("handleChangeRadiusRange "+minR+"-"+maxR);
+//		try {
+//			this.cPane.recalcSphoxel();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	/**
 	 * Handles the user action to change the resolution

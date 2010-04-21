@@ -1257,6 +1257,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
+			
+			if (view.tview != null){
+				Pair<Integer> c = screen2cm(mousePressedPos); 
+				System.out.println("CMPane MouseReleased first:"+c.getFirst()+"  second:"+c.getSecond());
+				view.tview.cPane.calcSphoxelParam(c);
+			}
 
 			switch (view.getGUIState().getSelectionMode()) {
 			case COMNBH:

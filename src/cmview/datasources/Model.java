@@ -83,7 +83,7 @@ public abstract class Model {
 	
 	private DeltaRank deltaRank; // Our deltaRank calculation object, providing delta Rank background maps
 	
-	private Gmbp gmbp; // hold values for angle (phi-psi ranges for certain iNum-jNum contacts)
+	private Gmbp gmbp = new Gmbp(); // hold values for angle (phi-psi ranges for certain iNum-jNum contacts)
 
 	/*----------------------------- constructors ----------------------------*/
 

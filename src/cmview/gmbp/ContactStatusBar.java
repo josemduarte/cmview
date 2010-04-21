@@ -52,7 +52,11 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JSlider radiusSliderLabel;					// to choose a radius-range
 	private JRangeSlider radiusSlider;
 	private float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
+	private final int deltaSlVal = (int) ((this.radiusThresholds[1]-this.radiusThresholds[0])*10);
 	private JSlider resolSlider;
+	
+	private final int minSlVal = (int) (this.radiusThresholds[0]*10);
+	private final int maxSlVal = (int) (this.radiusThresholds[this.radiusThresholds.length-1]*10);			
 	
 	
 	public ContactStatusBar(ContactView controller) {
@@ -97,12 +101,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		deltaRadiusGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		deltaRadiusGroup.setVisible(true);
 		
-		int minSlVal = (int) (this.radiusThresholds[0]*10);
-		int maxSlVal = (int) (this.radiusThresholds[this.radiusThresholds.length-1]*10);
-		int deltaSlVal = (int) ((this.radiusThresholds[1]-this.radiusThresholds[0])*10);
+		System.out.println("deltaSliderValue= "+this.deltaSlVal);
 		
-		radiusSlider = new JRangeSlider(minSlVal, maxSlVal, minSlVal, minSlVal+deltaSlVal, JRangeSlider.VERTICAL, -1);
-		radiusSlider.setMinExtent(deltaSlVal);
+		radiusSlider = new JRangeSlider(minSlVal, maxSlVal, minSlVal, minSlVal+this.deltaSlVal, JRangeSlider.VERTICAL, -1);
+		radiusSlider.setMinExtent(this.deltaSlVal);
 		radiusSlider.setSize(groupWidth/8, HEIGHT);
 		radiusSlider.setPreferredSize(new Dimension(groupWidth/6, HEIGHT));
 		
@@ -115,8 +117,26 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
             public void mouseReleased(MouseEvent e) {
 //                m_display.setHighQuality(true);
 //                m_display.repaint();
-            	System.out.println("RadiusSliderRange= "+ radiusSlider.getLowValue()/10.0f + "-" + radiusSlider.getHighValue()/10.0f);
-            	controller.handleChangeRadiusRange(radiusSlider.getLowValue()/10.0f, radiusSlider.getHighValue()/10.0f);
+
+    			int min = radiusSlider.getLowValue();
+    			int max = radiusSlider.getHighValue();
+    			int fac = (int) Math.round((double)(min/deltaSlVal));			
+    			int minVal = minSlVal + (fac*deltaSlVal);
+    			fac = max-minSlVal;
+    			fac = (int) Math.round( (double)(max-minSlVal)/(double)(deltaSlVal));
+    			int maxVal = minSlVal + (fac*deltaSlVal);
+    			if (maxVal==minVal)
+    				maxVal += deltaSlVal;    			
+
+    			radiusSlider.setLowValue(minVal);
+    			radiusSlider.setHighValue(maxVal);
+    			radiusSliderLabel.setValue(radiusSlider.getHighValue());
+    			
+    			controller.handleChangeRadiusRange((float)(radiusSlider.getLowValue())/10.0f, (float)(radiusSlider.getHighValue())/10.0f);
+    			System.out.println("RadiusSliderRange= "+ (float)(radiusSlider.getLowValue())/10.0f + "-" + (float)(radiusSlider.getHighValue())/10.0f);
+    			
+//            	System.out.println("RadiusSliderRange= "+ radiusSlider.getLowValue()/10.0f + "-" + radiusSlider.getHighValue()/10.0f);
+//            	controller.handleChangeRadiusRange(radiusSlider.getLowValue()/10.0f, radiusSlider.getHighValue()/10.0f);
             }
         });
 		
@@ -126,9 +146,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel.setMaximum(maxSlVal);
 		radiusSliderLabel.setValue(radiusSlider.getHighValue());
 		radiusSliderLabel.setMinorTickSpacing(1*10);
-		radiusSliderLabel.setMajorTickSpacing(deltaSlVal);
+		radiusSliderLabel.setMajorTickSpacing(this.deltaSlVal);
+		radiusSliderLabel.setExtent(this.deltaSlVal);
 		radiusSliderLabel.setSnapToTicks(true);
-		radiusSliderLabel.setExtent(radiusSliderLabel.getMajorTickSpacing());
 		radiusSliderLabel.setOrientation(JSlider.VERTICAL);		
 //		radiusSliderLabel.setInverted(true);		
 		Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
@@ -139,12 +159,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel.setLabelTable(labels);		
 		radiusSliderLabel.setPaintLabels(true);
 		radiusSliderLabel.setPaintTicks(true);
-		radiusSliderLabel.setPaintTrack(true);	
+//		radiusSliderLabel.setPaintTrack(true);	
 		radiusSliderLabel.setSize(groupWidth-(radiusSlider.getWidth()), HEIGHT);
 		radiusSliderLabel.setPreferredSize(new Dimension(groupWidth-(radiusSlider.getWidth()), HEIGHT));
 		
-		radiusSliderLabel.setEnabled(true);
-		radiusSliderLabel.addChangeListener(this);
+//		radiusSliderLabel.setEnabled(true);
+//		radiusSliderLabel.addChangeListener(this);
 								
 		// adding components to group		
 //	    deltaRadiusGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
@@ -316,14 +336,30 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		if(e.getSource() == this.radiusSlider) {
 //			controller.handleChangeRadiusRange(this.radiusThresholds[0], (float) (this.radiusSlider.getValue() / 10.0f));
 //			System.out.println("RadiusSliderVal= "+ this.radiusSlider.getValue() / 10.0f);
+			int min = this.radiusSlider.getLowValue();
+			int max = this.radiusSlider.getHighValue();
+			int fac = Math.round(min/this.deltaSlVal);			
+			int minVal = this.minSlVal + (fac*this.deltaSlVal);
+			fac = Math.round((max-this.minSlVal)/this.deltaSlVal);
+			int maxVal = this.minSlVal + (fac*this.deltaSlVal);
+			
+
+			this.radiusSlider.setLowValue(minVal);
+			this.radiusSlider.setHighValue(maxVal);
 			this.radiusSliderLabel.setValue(this.radiusSlider.getHighValue());
-			controller.handleChangeRadiusRange(this.radiusSlider.getLowValue()/10.0f, this.radiusSlider.getHighValue()/10.0f);
-			System.out.println("RadiusSliderRange= "+ this.radiusSlider.getLowValue()/10.0f + "-" + this.radiusSlider.getHighValue()/10.0f);
+			
+			controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
+			System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
 		}
 		if(e.getSource() == this.radiusSliderLabel){
-
-			controller.handleChangeRadiusRange(this.radiusSlider.getLowValue()/10.0f, this.radiusSlider.getHighValue()/10.0f);
-			System.out.println("RadiusSliderRange= "+ this.radiusSlider.getLowValue()/10.0f + "-" + this.radiusSlider.getHighValue()/10.0f);
+			float max = (float)(this.radiusSliderLabel.getValue())/10.0f;
+			if (max < this.radiusThresholds[1])
+				max = this.radiusThresholds[1];
+			float min = max-((float)(this.deltaSlVal)/10.0f); // = this.delatRadiusThresholds[0];
+			this.radiusSlider.setLowValue((int) (min*10.0f));
+			this.radiusSlider.setHighValue((int) (max*10.0f));
+			controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
+			System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
 		}
 		if(e.getSource() == this.resolSlider) {
 			controller.handleChangeResolution(this.resolSlider.getValue());

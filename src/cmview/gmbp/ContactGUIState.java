@@ -11,7 +11,7 @@ public class ContactGUIState {
 	/*--------------------------- type definitions --------------------------*/
 	
 	// the selection mode
-	protected enum SelMode {RECT, CLUSTER};
+	protected enum SelMode {RECT, CLUSTER, PAN};
 	
 	/*--------------------------- member variables --------------------------*/
 	
@@ -55,11 +55,12 @@ public class ContactGUIState {
 	 */
 	protected void setSelectionMode(SelMode mode) {
 		// switch on toggle buttons
-//		switch(mode) {
-//		case RECT: view.tbSquareSel.setSelected(true); break;
-//		case CLUSTER: view.tbClusterSel.setSelected(true); break;
-//		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
-//		}
+		switch(mode) {
+		case RECT: view.tbSquareSel.setSelected(true); break;
+		case CLUSTER: view.tbClusterSel.setSelected(true); break;
+		case PAN: view.tbPanMode.setSelected(true); break;
+		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
+		}
 		this.selectionMode = mode;
 	}
 	

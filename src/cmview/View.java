@@ -188,6 +188,7 @@ public class View extends JFrame implements ActionListener {
 	TinkerRunAction tinkerRunner;
 	// invisible notifiers
 	SADPDialogDoneNotifier sadpNotifier;
+	public ContactView tview;
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -2926,8 +2927,7 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {		
-//			ContactView tview = 
-				new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
+			tview = new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
 			
 		}
 	}

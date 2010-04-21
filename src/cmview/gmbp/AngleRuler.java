@@ -30,7 +30,7 @@ public class AngleRuler extends JPanel {
 	
 	private static final Color BACKGROUND_COLOR = Color.yellow;		// if opaque, otherwise transparent
 	
-	private ContactView cview;
+//	private ContactView cview;
 	private ContactPane cpane;
 	private int rulerWidth;
 	private int rulerLength;
@@ -44,7 +44,7 @@ public class AngleRuler extends JPanel {
 	private int location; 
 	
 	public AngleRuler(ContactView cview, ContactPane cpane, int location){
-		this.cview = cview;
+//		this.cview = cview;
 		this.cpane = cpane;
 		this.location = location;
 		this.offSetX = 0;
@@ -81,9 +81,9 @@ public class AngleRuler extends JPanel {
 		
 		this.cpane.repaint();
 		
-		System.out.println("CView HxB: "+this.cview.getSize().height+"x"+this.cview.getSize().width);
-		System.out.println("CPane HxB: "+this.cpane.getSize().height+"x"+this.cpane.getSize().width);
-		System.out.println("CPane g2dSize HxB: "+this.cpane.getPanelSize().height+"x"+this.cpane.getSize().width);		
+//		System.out.println("CView HxB: "+this.cview.getSize().height+"x"+this.cview.getSize().width);
+//		System.out.println("CPane HxB: "+this.cpane.getSize().height+"x"+this.cpane.getSize().width);
+//		System.out.println("CPane g2dSize HxB: "+this.cpane.getPanelSize().height+"x"+this.cpane.getSize().width);		
 		
 		/// --- Update Ruler Size ----
 		
@@ -159,7 +159,7 @@ public class AngleRuler extends JPanel {
 		}
 //		System.out.println("numTicks= "+numTicks);
 //		float delta = (float) this.rulerLength / (float) numTicks;
-		System.out.println(this.location+"  rlength= "+this.rulerLength+"  numTicks= "+numTicks+"  delta= "+delta+"  Coordinates: "+xS+", "+yS+", "+xE+", "+yE);
+//		System.out.println(this.location+"  rlength= "+this.rulerLength+"  numTicks= "+numTicks+"  delta= "+delta+"  Coordinates: "+xS+", "+yS+", "+xE+", "+yE);
 		
 		shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 		g2d.draw(shape);
@@ -171,7 +171,17 @@ public class AngleRuler extends JPanel {
 		Font f = new Font("Dialog", Font.PLAIN, 10);
 		g2d.setFont(f);
 		
-		for (int i=0; i<=numTicks; i++){
+		for (int j=0; j<=numTicks; j++){
+			float val = (float) (j*(DEGREE_RESOL*Math.PI/180));
+			float transl = 0;
+			if (this.location == TOP || this.location == BOTTOM){
+				transl = this.cpane.translateXCoordRespective2Orig(val);				
+			}
+			else {
+				transl = this.cpane.translateYCoordRespective2Orig(val);
+			}
+			int i = (int) (transl/(DEGREE_RESOL*Math.PI/180));
+			
 			if (this.location == TOP || this.location == BOTTOM){
 				xS = i*delta;
 				xE = xS;
