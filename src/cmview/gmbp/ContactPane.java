@@ -8,10 +8,11 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -35,7 +36,7 @@ import cmview.ContactMapPane;
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
-public class ContactPane extends JPanel implements MouseListener, MouseMotionListener{
+public class ContactPane extends JPanel implements MouseListener, MouseMotionListener, KeyListener{
 	/**
 	 * 
 	 */
@@ -107,7 +108,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Pair<Float> tmpThetaRange;
 	private Pair<Integer> tmpSelContact;
 	private Pair<Float> tmpAngleComb;
-	private Pair<Float> origCoordinates;
+	private Pair<Float> origCoordinates;    // actual coordinates of origin in angle range x:[0:2*PI] y:[0:PI]
 	
 	private RIGNode nodeI, nodeJ;
 	
@@ -172,6 +173,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.contactView = contactView;		
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		this.setFocusable(true);
+		this.addKeyListener(this);
 
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -370,13 +373,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		this.maxRatio = this.sphoxel.getMaxRatio();
 		
 
-		String fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol72.csv";
+		String fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
 		CSVhandler csv = new CSVhandler();
 		try {
 			this.bayesRatios = csv.readCSVfile3Ddouble(fn);
 			System.out.println("Dimensions: " + this.bayesRatios.length + " x " + this.bayesRatios[0].length);
 			System.out.println("NumSteps= "+this.numSteps+" --> "+this.bayesRatios.length);
-			this.numSteps = this.bayesRatios.length;
+//			this.numSteps = this.bayesRatios.length;
+			setNumSteps(this.bayesRatios.length);
 			this.ratios = new double[this.bayesRatios.length][this.bayesRatios[0].length];
 			for (int i=0; i<this.bayesRatios.length; i++){
 				for (int j=0; j<this.bayesRatios[i].length; j++){
@@ -486,6 +490,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.resol = 180/(float)this.numSteps;
 		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
 	}	
+	public Pair<Float> getOrigCoord(){
+		return this.origCoordinates;
+	}
+	public float getVoxelsize(){
+		return this.voxelsize;
+	}
+	
 //	/**
 //	 * Sets the output size and updates the ratio and contact square size. This
 //	 * will affect all drawing operations. Used by print() method to change the
@@ -512,7 +523,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	public void drawSphoxels(Graphics2D g2d){
 		Shape shape = null;
-		float xPos, yPos;
+		double xPos;
+		double yPos;
 		double val;
 		Color col; // = new Color(24,116,205,255);
 		ColorScale scale = new ColorScale();
@@ -522,16 +534,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.setColor(backgroundColor);
 		g2d.draw(shape);
 		g2d.fill(shape);
-		
-//		System.out.println("drawSphoxels ratios.length= "+ratios.length);
-		
+				
 		// ----- color representation -----
 		for(int i=0;i<ratios.length;i++){
 			for(int j=0;j<ratios[i].length;j++){
-				xPos = j*pixelWidth +this.border;
-				yPos = i*pixelHeight +this.border;
+//				xPos = j*pixelWidth +this.border;
+//				yPos = i*pixelHeight +this.border;
+				xPos = translateXPixelCoordRespective2Orig(j*pixelWidth) +this.border;
+				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;				
 //				shape = new Rectangle2D.Float(xPos+this.border, yPos+this.border+this.yBorderThres, pixelWidth, pixelHeight);
-				shape = new Rectangle2D.Float(xPos, yPos, pixelWidth, pixelHeight);
+				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
+				
 				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
 				// ----- remove outliers
 				if (this.removeOutliers){
@@ -554,6 +567,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				
 				g2d.setColor(col);
 //				g2d.setColor(Color.black); // Test purpose
+				g2d.draw(shape);
+//				g2d.setColor(col);
+				g2d.fill(shape);
+				if (xPos+pixelWidth > this.xDim)
+					xPos -= xDim;
+				if (yPos+pixelHeight > this.yDim)
+					yPos -= yDim;
+				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
 				g2d.draw(shape);
 //				g2d.setColor(col);
 				g2d.fill(shape);
@@ -826,17 +847,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return floatP;
 	}
 	
-	public Pair<Float> translateCoordRespective2Orig(Pair<Float> pair){
-		Pair<Float> transl;
-		float xPos = translateXCoordRespective2Orig(pair.getFirst());
-		float yPos = translateYCoordRespective2Orig(pair.getSecond());
-		transl = new Pair<Float>(xPos, yPos);
+	public Pair<Double> translateCoordRespective2Orig(Pair<Double> pair){
+		Pair<Double> transl;
+		double xPos = translateXCoordRespective2Orig(pair.getFirst());
+		double yPos = translateYCoordRespective2Orig(pair.getSecond());
+		transl = new Pair<Double>(xPos, yPos);
 		return transl;
 	}
 	
-	public float translateXCoordRespective2Orig(float x){
-		float dx = (float) (this.origCoordinates.getFirst() - Math.PI);
-		float xPos = x + dx;
+	public double translateXCoordRespective2Orig(double x){
+		double dx = (this.origCoordinates.getFirst() - Math.PI);
+		double xPos = x + dx;
 		if (xPos > 2*Math.PI)
 			xPos -= (2*Math.PI);
 		else if (xPos < 0)
@@ -844,13 +865,33 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return xPos;
 	}
 	
-	public float translateYCoordRespective2Orig(float y){
-		float dy = (float) (this.origCoordinates.getSecond() - (Math.PI/2));
-		float yPos = y + dy;
+	public double translateYCoordRespective2Orig(double y){
+		double dy = (this.origCoordinates.getSecond() - (Math.PI/2));
+		double yPos = y + dy;
 		if (yPos > Math.PI)
 			yPos -= Math.PI;
 		else if (yPos < 0)
 			yPos += Math.PI;
+		return yPos;
+	}
+	
+	public double translateXPixelCoordRespective2Orig(double x){
+		double dx = (this.origCoordinates.getFirst() - Math.PI) * this.voxelsize;
+		double xPos = x + dx;
+		if (xPos > 2*Math.PI* this.voxelsize)
+			xPos -= (2*Math.PI* this.voxelsize);
+		else if (xPos < 0)
+			xPos += (2*Math.PI* this.voxelsize);
+		return xPos;
+	}
+	
+	public double translateYPixelCoordRespective2Orig(double y){
+		double dy = (this.origCoordinates.getSecond() - (Math.PI/2)) * this.voxelsize;
+		double yPos = y + dy;
+		if (yPos > Math.PI* this.voxelsize)
+			yPos -= Math.PI* this.voxelsize;
+		else if (yPos < 0)
+			yPos += Math.PI* this.voxelsize;
 		return yPos;
 	}
 	
@@ -1023,6 +1064,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
 				float second = fac*resol;
 				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+				this.contactView.phiRuler.repaint();
+				this.contactView.thetaRuler.repaint();
 				System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
 				System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
 				return;
@@ -1047,6 +1090,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				squareSelect();
 				break;
 			case PAN:
+				float resol = (float) (Math.PI/this.numSteps);
+				int fac = (int) Math.ceil(this.tmpAngleComb.getFirst()/resol);
+				float first = fac*resol; //this.tmpAngleComb.getFirst();
+				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
+				float second = fac*resol;
+				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+				this.contactView.phiRuler.repaint();
+				this.contactView.thetaRuler.repaint();
 				break;
 			}
 		}
@@ -1076,5 +1127,55 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Pair<Float> pos = screen2A(mousePos);
 		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
 		this.repaint();
+	}
+
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyPressed");
+		//-- Process arrow "virtual" keys
+    	float first = this.origCoordinates.getFirst();
+    	float second = this.origCoordinates.getSecond();
+    	float fac = (float) (Math.PI / 20);
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT : first-=fac; break;
+            case KeyEvent.VK_RIGHT: first+=fac; break;
+            case KeyEvent.VK_UP   : second-=fac;   break;
+            case KeyEvent.VK_DOWN : second+=fac; break;
+        }
+        if (first<0)
+        	first += 2*Math.PI;
+        if (first>2*Math.PI)
+        	first -= 2*Math.PI;
+        if (second<0)
+        	first += Math.PI;
+        if (second>Math.PI)
+        	first -= Math.PI;
+        
+		this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+		this.contactView.phiRuler.repaint();
+		this.contactView.thetaRuler.repaint();		
+	}
+
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased");
+		int id = e.getID();
+        String keyString;
+        if (id == KeyEvent.KEY_TYPED) {
+            char c = e.getKeyChar();
+            keyString = "key character = '" + c + "'";
+        } else {
+            int keyCode = e.getKeyCode();
+            keyString = "key code = " + keyCode
+                    + " ("
+                    + KeyEvent.getKeyText(keyCode)
+                    + ")";
+        }
+        System.out.println("keyString= "+keyString);
+	}
+
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub	
+		System.out.println("keyReleased");	
 	}
 }

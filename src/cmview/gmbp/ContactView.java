@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+//import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -286,6 +287,7 @@ public class ContactView extends JFrame implements ActionListener{
 		System.out.println("Size of thetaRuler: "+thetaRuler.getRulerSize().height+"x"+thetaRuler.getRulerSize().width);
 						
 		pack();
+		this.cPane.requestFocus();
 	}
 	
 	public void updateGUI(){ //(Model mod, String title, ContactMapPane cmPane) {
@@ -301,46 +303,6 @@ public class ContactView extends JFrame implements ActionListener{
 	}
 	
 
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
-		/* ---------- File Menu ---------- */
-
-		// Save
-		if(e.getSource() == mmSavePng) {
-			handleSaveToPng();
-		}
-		if(e.getSource() == mmSaveSCsv) {
-			handleSaveSphoxelsToCsv();
-		}
-		if(e.getSource() == mmSaveTCsv) {
-			handleSaveTracesToCsv();
-		}
-		
-		// Info, Print, Quit
-		if(e.getSource() == mmInfo) {
-			handleInfo();
-		}	
-		if(e.getSource() == mmQuit) {
-			handleQuit();
-		}
-		
-		/* ---------- Action menu ---------- */
-
-		// Selection modes
-
-		// square button clicked
-		if (e.getSource() == squareM || e.getSource() == tbSquareSel ) {
-			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
-		}
-		// cluster button clicked
-		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
-			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
-		}
-		if (e.getSource() == tbPanMode) {
-			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
-		}
-	}
 	
 	
 	private void handleSaveToPng() {
@@ -496,6 +458,78 @@ public class ContactView extends JFrame implements ActionListener{
 //		return this.cPane.getSize();
 //		System.out.println("getScreensize ContactView HxW: "+this.screenSize.height+"x"+this.screenSize.width);
 		return this.screenSize;
+	}
+	
+	/* ------------------Event Handling--------------------------*/
+
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+		/* ---------- File Menu ---------- */
+
+		// Save
+		if(e.getSource() == mmSavePng) {
+			handleSaveToPng();
+		}
+		if(e.getSource() == mmSaveSCsv) {
+			handleSaveSphoxelsToCsv();
+		}
+		if(e.getSource() == mmSaveTCsv) {
+			handleSaveTracesToCsv();
+		}
+		
+		// Info, Print, Quit
+		if(e.getSource() == mmInfo) {
+			handleInfo();
+		}	
+		if(e.getSource() == mmQuit) {
+			handleQuit();
+		}
+		
+		/* ---------- Action menu ---------- */
+
+		// Selection modes
+
+		// square button clicked
+		if (e.getSource() == squareM || e.getSource() == tbSquareSel ) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
+		}
+		// cluster button clicked
+		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
+		}
+		if (e.getSource() == tbPanMode) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
+		}
+	}
+
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyPressed");
+		
+	}
+
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased");
+		int id = e.getID();
+        String keyString;
+        if (id == KeyEvent.KEY_TYPED) {
+            char c = e.getKeyChar();
+            keyString = "key character = '" + c + "'";
+        } else {
+            int keyCode = e.getKeyCode();
+            keyString = "key code = " + keyCode
+                    + " ("
+                    + KeyEvent.getKeyText(keyCode)
+                    + ")";
+        }
+        System.out.println("keyString= "+keyString);
+	}
+
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub	
+		System.out.println("keyReleased");	
 	}
 	
 }

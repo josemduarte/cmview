@@ -142,26 +142,29 @@ public class AngleRuler extends JPanel {
 			xE = this.rulerLength + this.offSetX;
 			yS = 0.0f + this.offSetY;
 			yE = this.rulerWidth + this.offSetY;
-			Color col = new Color(255, 0, 0, 126);
+//			Color col = new Color(255, 0, 0, 255);
+			Color col = new Color(255, 255, 255, 255);
 			g2d.setColor(col);
 			numTicks = DEGREES_PHI/DEGREE_RESOL;	
 			delta = (float) (this.rulerLength-this.offSetX) / (float) numTicks;
+			shape = new Rectangle2D.Float(xS-this.offSetX, yS, xE-xS, yE-yS);			
 		}
 		else { // this.location == LEFT || RIGHT
 			xS = 0.0f + this.offSetX;
 			xE = this.rulerWidth + this.offSetX;
 //			yS = 0.0f + this.offSetY;
 //			yE = this.rulerLength + this.offSetY;
-			Color col = new Color(0, 255, 0, 126);
+//			Color col = new Color(0, 255, 0, 255);
+			Color col = new Color(255, 255, 255, 255);
 			g2d.setColor(col);
 			numTicks = DEGREES_THETA/DEGREE_RESOL;
 			delta = (float) this.rulerLength / (float) numTicks;
+			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 		}
 //		System.out.println("numTicks= "+numTicks);
 //		float delta = (float) this.rulerLength / (float) numTicks;
 //		System.out.println(this.location+"  rlength= "+this.rulerLength+"  numTicks= "+numTicks+"  delta= "+delta+"  Coordinates: "+xS+", "+yS+", "+xE+", "+yE);
 		
-		shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 		g2d.draw(shape);
 		g2d.fill(shape);
 		
@@ -170,53 +173,118 @@ public class AngleRuler extends JPanel {
 //		g2d.draw(tick);
 		Font f = new Font("Dialog", Font.PLAIN, 10);
 		g2d.setFont(f);
-		
-		for (int j=0; j<=numTicks; j++){
-			float val = (float) (j*(DEGREE_RESOL*Math.PI/180));
-			float transl = 0;
+
+		int i=0;
+		float xPosOrig = this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize(); //(this.origCoordinates.getFirst() * this.voxelsize)
+		float yPosOrig = this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize(); //(this.origCoordinates.getSecond() * this.voxelsize)
+		int count = 0;
+		i=numTicks/2;
+		while (count<=numTicks){
 			if (this.location == TOP || this.location == BOTTOM){
-				transl = this.cpane.translateXCoordRespective2Orig(val);				
-			}
-			else {
-				transl = this.cpane.translateYCoordRespective2Orig(val);
-			}
-			int i = (int) (transl/(DEGREE_RESOL*Math.PI/180));
-			
-			if (this.location == TOP || this.location == BOTTOM){
-				xS = i*delta;
+				if (count==0){
+					xS = xPosOrig;
+					xS += this.offSetX;
+				}
+				else
+					xS += delta;
+				if (xS>this.rulerLength){
+					xS -= this.rulerLength;
+					xS += this.offSetX;
+				}
 				xE = xS;
-				xS += this.offSetX;
-				xE += this.offSetX;
 				yS = this.rulerWidth - (this.rulerWidth/4);
 				yE = this.rulerWidth;
 			}
 			else { // this.location == LEFT || RIGHT
-				yS = i*delta;
+				if (count==0)
+					yS = yPosOrig;
+				else
+					yS += delta;
+				if (yS>this.rulerLength)
+					yS -= this.rulerLength;
 				yE = yS;
 				xS = this.rulerWidth - (this.rulerWidth/4);
 				xE = this.rulerWidth;
 			}
 			tick = new Line2D.Float(xS, yS, xE, yE);			
 			g2d.draw(tick);
-//			g2d.fill(shape);
 			
 			degree = i*DEGREE_RESOL;
 			degreeS = String.valueOf(degree);
 			float d = 10*((float)degreeS.length()/2);
 			if (this.location == TOP || this.location == BOTTOM){
-				xS = i*delta - d;
-				xS += this.offSetX;
-				yS = this.rulerWidth - (this.rulerWidth/3); //0;
+				xS -= d;
+				yS = this.rulerWidth - (this.rulerWidth/3); 
+				g2d.drawString(degreeS, xS, yS);
+				xS += d;
 			}
 			else { // this.location == LEFT || RIGHT
 				d = 6;
-				yS = i*delta + d;
-//				xS = this.rulerWidth/2; 
+				yS += d;
 				xS = 0;
+				g2d.drawString(degreeS, xS, yS);
+				yS -= d;
 			}
-			g2d.drawString(degreeS, xS, yS);
 			
-		}	
+			i++;
+			if (i>numTicks)
+				i -= numTicks;
+			count++;
+	    }
+		
+//		for (int j=1; j<=numTicks; j++){
+//			if (j==1){
+//				float val = (float) (j*(DEGREE_RESOL*Math.PI/180));
+//				float transl = 0;
+//				if (this.location == TOP || this.location == BOTTOM){
+//					transl = this.cpane.translateXCoordRespective2Orig(val);				
+//				}
+//				else {
+//					transl = this.cpane.translateYCoordRespective2Orig(val);
+//				}
+//				i = (int) (transl/(DEGREE_RESOL*Math.PI/180));
+//			}
+//			else 
+//				i++;	
+//			if (i>=numTicks)
+//				i -= numTicks;
+//			
+//			if (this.location == TOP || this.location == BOTTOM){
+//				xS = i*delta;
+//				xE = xS;
+//				xS += this.offSetX;
+//				xE += this.offSetX;
+//				yS = this.rulerWidth - (this.rulerWidth/4);
+//				yE = this.rulerWidth;
+//			}
+//			else { // this.location == LEFT || RIGHT
+//				yS = i*delta;
+//				yE = yS;
+//				xS = this.rulerWidth - (this.rulerWidth/4);
+//				xE = this.rulerWidth;
+//			}
+//			tick = new Line2D.Float(xS, yS, xE, yE);			
+//			g2d.draw(tick);
+////			g2d.fill(shape);
+//			
+////			degree = i*DEGREE_RESOL;
+//			degree = j*DEGREE_RESOL;
+//			degreeS = String.valueOf(degree);
+//			float d = 10*((float)degreeS.length()/2);
+//			if (this.location == TOP || this.location == BOTTOM){
+//				xS = i*delta - d;
+//				xS += this.offSetX;
+//				yS = this.rulerWidth - (this.rulerWidth/3); //0;
+//			}
+//			else { // this.location == LEFT || RIGHT
+//				d = 6;
+//				yS = i*delta + d;
+////				xS = this.rulerWidth/2; 
+//				xS = 0;
+//			}
+//			g2d.drawString(degreeS, xS, yS);
+//			
+//		}	
 	}
 	
 	/*-------------------------- overridden methods -------------------------*/
