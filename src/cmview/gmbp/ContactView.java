@@ -279,6 +279,7 @@ public class ContactView extends JFrame implements ActionListener{
 		this.getContentPane().add(tbPane, BorderLayout.CENTER);
 		
 		System.out.println("Sizes of panels:");
+		System.out.println("ContactView: "+this.getSize().height+"x"+this.getSize().width);
 		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
 		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
 		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());

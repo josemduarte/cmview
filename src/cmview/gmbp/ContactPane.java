@@ -260,7 +260,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcTracesParam();	
 		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 		setTracesParam();
-//		calcNbhsTraces();		
+//		calcNbhsTraces();	
 	}
 	
 	private void calcTracesParam(){
@@ -394,7 +394,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					if (this.ratios[i][j]>this.maxRatio)
 						this.maxRatio = this.ratios[i][j];
 				}  
-			}	 
+			}	
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -402,6 +402,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+//		this.contactView.contStatBar.getResolSlider().setValue(3);
+		this.contactView.contStatBar.getResolSlider().setEnabled(false);
 			
 	}
 	
@@ -747,12 +749,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		xE = xS;
 		line = new Line2D.Float(xS,yS,xE,yE);
 		g2d.draw(line);
-		yS = (float) (translateYCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
-		yE = yS;
 //		xS = (float) (translateXCoordRespective2Orig(0.0f) *this.voxelsize) +this.border;
 //		xE = (float) (translateXCoordRespective2Orig((float) (2*Math.PI)) *this.voxelsize) +this.border;
 		xS = (float) ((0.0f) *this.voxelsize) +this.border;
 		xE = (float) (((float) (2*Math.PI)) *this.voxelsize) +this.border;
+		yS = (float) (translateYCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Float(xS,yS,xE,yE);
+		g2d.draw(line);
+		yS = (float) (translateYCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
+		yE = yS;
 		line = new Line2D.Float(xS,yS,xE,yE);
 		g2d.draw(line);
 //		g2d.drawLine(xS, yS, xE, yE);

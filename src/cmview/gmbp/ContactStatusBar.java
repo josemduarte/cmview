@@ -372,5 +372,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	public AnglePanel getAnglePanel() {
 		return this.anglePanel;
 	}
+	public JSlider getResolSlider(){
+		return this.resolSlider;
+	}
 
 }
