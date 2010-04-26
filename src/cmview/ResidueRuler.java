@@ -99,7 +99,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 
 		// painting secondary structure elements
 		if (mod.hasSecondaryStructure()){
-			Iterator<SecStrucElement> secStruc = mod.getSecondaryStructure().getIterator();
+			Iterator<SecStrucElement> secStruc = mod.getSecondaryStructure().iterator();
 			while(secStruc.hasNext()) {
 				SecStrucElement ssElem = secStruc.next();
 				if (ssElem.isHelix()){
