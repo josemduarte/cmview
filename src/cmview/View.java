@@ -1529,10 +1529,10 @@ public class View extends JFrame implements ActionListener {
 			// load new model
 			if(seq.length() > 0) {
 				System.out.println("Loading from sequence "+seq);
-				mod = new EmptyModel(seq);
+				mod = new SequenceModel(seq);
 			} else {
 				System.out.println("Loading from sequence file "+f);
-				mod = new EmptyModel(new File(f));
+				mod = new SequenceModel(new File(f));
 			}
 			
 			// TODO: assign secondary structure by JPredConnection		
