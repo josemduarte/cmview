@@ -103,6 +103,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
 	private static final String LABEL_SWAP_MODELS = "Swap Models";
+	private static final String LABEL_COPY_CONTACTS = "Copy Selected Contacts from Second to First";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
 	
 	/*--------------------------- member variables --------------------------*/
@@ -169,7 +170,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
-	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels;
+	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -623,6 +624,9 @@ public class View extends JFrame implements ActionListener {
 		mmSuperposition.setEnabled(false);
 		mmShowAlignedResidues = makeMenuItem("Show Corresponding Residues From Selection",null,menu);
 		mmShowAlignedResidues.setEnabled(false);
+		menu.addSeparator();
+		mmCopyContacts = makeMenuItem(LABEL_COPY_CONTACTS,null,menu);
+		mmCopyContacts.setEnabled(false);
 		mmSwapModels = makeMenuItem(LABEL_SWAP_MODELS,null,menu);
 		mmSwapModels.setEnabled(false);
 		addToJMenuBar(menu);
@@ -730,7 +734,7 @@ public class View extends JFrame implements ActionListener {
 	 *  <code>comp</code> equals this component.key
 	 * @param disregardedTypes  collection of component types not to be 
 	 *  considered
-	 * @see #setAccessibility(Map, boolean, Component, Collection)
+	 * @see setAccessibility(Map, boolean, Component, Collection)
 	 */
 	public void setAccessibility(Component comp, boolean visible, boolean parentCheck, Component topLevelComponent, Collection<Class<?>> disregardedTypes) {
 
@@ -822,7 +826,7 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * Gets a map containing accessibility rules for the initialization of the 
 	 * menu-bar. Use this map as an input to function 
-	 * {@link #setAccessibility(Map, boolean, Component, Collection)}.
+	 * {@link setAccessibility(Map, boolean, Component, Collection)}.
 	 * @param hasMod  set this to true if the View holds a first model
 	 * @return a map containing accessibility rules for menu bar at startup 
 	 */
@@ -1213,6 +1217,9 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == mmSwapModels) {
 			handleSwapModels();
 		}
+		if (e.getSource() == mmCopyContacts) {
+			handleCopyContacts();
+		}		
 		if(e.getSource() == minimalSubset){
 			handleMinimalSet();
 		}
@@ -1528,8 +1535,7 @@ public class View extends JFrame implements ActionListener {
 				mod = new EmptyModel(new File(f));
 			}
 			
-			// assign secondary structure by Psipred?
-			
+			// TODO: assign secondary structure by JPredConnection		
 			
 			// apply new model
 			if(secondModel == SECOND_MODEL) {
@@ -1755,6 +1761,7 @@ public class View extends JFrame implements ActionListener {
 		mmSuperposition.setEnabled(true);	
 		mmShowAlignedResidues.setEnabled(true);
 		mmSwapModels.setEnabled(true);
+		mmCopyContacts.setEnabled(true);
 		// disable/enable some menu-bar items, popup-menu items and buttons
 		setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
 		setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
@@ -3083,13 +3090,38 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 	}
-	/* Handler for the swap models action in the comparison menu. Swaps first and
-	 * second model
+	/**
+	 * Handler for the swap models action in the comparison menu. Swaps first and
+	 * second model.
 	 */
-	
 	private void handleSwapModels() {
 		new View(mod2,mod,ali,null);
 		this.dispose();
+	}
+	
+	/**
+	 * Handler for the Copy Contacts action in the compare menu. Copies selected contacts
+	 * from second to first contact map.
+	 */
+	private void handleCopyContacts() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if(mod2==null) {
+			showNoSecondContactMapWarning();
+		} else if(cmPane.getSelContacts().size() == 0) {
+			showNoContactsSelectedWarning();
+		} else {
+			int numContacts = 0;
+			for(Pair<Integer> c : cmPane.getSelContacts()) {
+				if(mod2.containsEdge(c) && !mod.containsEdge(c)) {
+					mod.addEdge(c);
+					numContacts++;
+				}
+			}
+			cmPane.resetSelections();
+			cmPane.reloadContacts();
+			// showContactsCopiedMessage(numContacts)
+		}
 	}
 	
 	/* -------------------- Help menu -------------------- */
