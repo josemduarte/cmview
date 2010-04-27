@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
+import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -1258,10 +1259,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 			
-			if (view.tview != null){
+			if (view.contView != null){
 				Pair<Integer> c = screen2cm(mousePressedPos); 
 				System.out.println("CMPane MouseReleased first:"+c.getFirst()+"  second:"+c.getSecond());
-				view.tview.cPane.calcSphoxelParam(c);
+				view.contView.cPane.calcSphoxelParam(c);
+				try {
+					view.contView.cPane.recalcSphoxel();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 			switch (view.getGUIState().getSelectionMode()) {
