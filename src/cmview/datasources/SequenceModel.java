@@ -55,6 +55,8 @@ public class SequenceModel extends Model {
 		
 		// create new graph from sequence
 		this.graph = new RIGraph(rawSeq.toString());
+		this.graph.setContactType(Start.DEFAULT_CONTACT_TYPE);
+		this.graph.setCutoff(Start.DEFAULT_DISTANCE_CUTOFF);
 		this.isGraphWeighted = false;
 		this.secondaryStructure = null;
 		

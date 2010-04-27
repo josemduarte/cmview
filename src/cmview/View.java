@@ -1536,7 +1536,8 @@ public class View extends JFrame implements ActionListener {
 			}
 			
 			// TODO: assign secondary structure by JPredConnection
-			String msg = "Do you want to assign predicted secondary structure using JPred?\n\n" +
+			
+			String msg = "\nDo you want to assign predicted secondary structure using JPred?\n\n" +
 					     "(This requires an active internet connection and may take some\n" +
 					     " time to connect to the JPred server and retrieve the result)";
 			String title = "Secondary Structure";
