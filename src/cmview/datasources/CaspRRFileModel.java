@@ -23,6 +23,7 @@ public class CaspRRFileModel extends Model {
 			
 			this.graph = new CaspRRFileRIGraph(fileName);
 			this.isGraphWeighted = graph.hasWeightedEdges();
+			this.secondaryStructure = graph.getSecondaryStructure(); // take ss from graph
 			
 			// check whether sequence info exists
 			if(graph.getSequence().equals("")) {

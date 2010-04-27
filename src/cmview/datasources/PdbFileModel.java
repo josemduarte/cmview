@@ -63,7 +63,8 @@ public class PdbFileModel extends Model {
 		// load PDB file
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
-			super.checkAndAssignSecondaryStructure();
+			this.secondaryStructure = pdb.getSecondaryStructure(); 	// in case, dssp is n/a, use ss from pdb
+			super.checkAndAssignSecondaryStructure();				// if dssp is a/, recalculate ss
 			if(loadEnsembleGraph == false || this.pdb.getModels().length == 1) {
 				this.graph = pdb.getRIGraph(edgeType, distCutoff);
 			} else {

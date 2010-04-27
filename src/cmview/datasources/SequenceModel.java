@@ -56,6 +56,7 @@ public class SequenceModel extends Model {
 		// create new graph from sequence
 		this.graph = new RIGraph(rawSeq.toString());
 		this.isGraphWeighted = false;
+		this.secondaryStructure = null;
 		
 		// add diagonal
 		for(int i=1; i < this.graph.getFullLength(); i++) {

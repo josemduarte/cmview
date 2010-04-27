@@ -24,6 +24,7 @@ public class ContactMapFileModel extends Model {
 			
 			this.graph = new FileRIGraph(fileName);
 			this.isGraphWeighted = graph.hasWeightedEdges();
+			this.secondaryStructure = graph.getSecondaryStructure(); // take ss from graph
 			
 			String pdbCode = graph.getPdbCode();
 			String pdbChainCode = graph.getPdbChainCode();
@@ -73,7 +74,10 @@ public class ContactMapFileModel extends Model {
 					} 
 					// if pdb creation failed then pdb=null					
 				}
-				
+				// if structure is available, and has secondary structure annotation, use it
+				if(this.pdb != null && pdb.getSecondaryStructure() != null) {
+					this.secondaryStructure = pdb.getSecondaryStructure(); 
+				}				
 			} else {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
 			}

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 
+import owl.core.connections.JPredConnection;
 import owl.core.runners.DsspRunner;
 import owl.core.runners.tinker.TinkerError;
 import owl.core.runners.tinker.TinkerRunner;
@@ -66,6 +67,11 @@ public abstract class Model {
 									// initialized on load, changed only when
 									// graph is discretized.
 	
+	protected SecondaryStructure secondaryStructure;	// store the secondary
+														// structure independent
+														// of the PDB object, e.g.
+														// to allow prediction
+	
 	protected HashMap<Pair<Integer>, Double> distMatrix; // the scaled [0-1]
 															// distance matrix
 															// TODO: Could move
@@ -105,6 +111,7 @@ public abstract class Model {
 		this.graph = mod.graph;
 		this.backupGraph = mod.backupGraph;
 		this.isGraphWeighted = mod.isGraphWeighted;
+		this.secondaryStructure = mod.secondaryStructure;
 		this.distMatrix = mod.distMatrix;
 		this.tempPdbFile = mod.tempPdbFile;
 		this.loadedGraphID = mod.loadedGraphID;
@@ -168,10 +175,9 @@ public abstract class Model {
 		if (has3DCoordinates()) { // otherwise we can't (re)assign secondary
 									// structure
 			if (Start.isDsspAvailable()) {
-				System.out
-						.println("(Re)assigning secondary structure using DSSP");
+				System.out.println("(Re)assigning secondary structure using DSSP");
 				try {
-					pdb.setSecondaryStructure(DsspRunner.runDssp(pdb,Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS));
+					this.setSecondaryStructure(DsspRunner.runDssp(pdb,Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS));
 				} catch (IOException e) {
 					System.err.println("Failed to assign secondary structure: "
 							+ e.getMessage());
@@ -179,6 +185,28 @@ public abstract class Model {
 			}
 		}
 	}
+	
+	/**
+	 * Assigns predicted secondary structure to the current model possibly overwriting existing
+	 * secondary structure annotation.
+	 * @return true on success, false otherwise 
+	 */
+	public boolean assignJPredSecondaryStructure() {
+		System.out.println("(Re)assigning secondary structure using JPred...");
+		JPredConnection conn = new JPredConnection();
+		try {
+			conn.setDebugMode(true);
+			conn.submitQuery(this.getSequence());
+			SecondaryStructure ss = conn.getSecondaryStructurePredictionObject();
+			this.setSecondaryStructure(ss);
+			System.out.println("Secondary structure assigned.");
+		} catch (IOException e) {
+			System.err.println("Failed to assign secondary structure: "
+					+ e.getMessage());
+		}
+		return true;
+		
+	}	
 	
 	public void computeMinimalSubset(){
 		
@@ -616,38 +644,50 @@ public abstract class Model {
 
 	/**
 	 * Returns true if this model has secondary structure information.
-	 * 
 	 * @return true if secondary structure information is available, false
 	 *         otherwise
 	 */
 	public boolean hasSecondaryStructure() {
-		if (this.pdb == null) {
-			return false;
-		}
-		return this.pdb.hasSecondaryStructure();
+		return this.secondaryStructure!=null;
+//		if (this.pdb == null) {
+//			return false;
+//		}
+//		return this.pdb.hasSecondaryStructure();
 	}
 
 	/**
 	 * Returns the secondary structure annotation object of this model.
-	 * 
 	 * @return the secondary structure annotation object
 	 */
 	public SecondaryStructure getSecondaryStructure() {
 
+		// Secondary structure information can be stored in the pdb object
+		// and in the graph object. Here we use a local variable to be
+		// independent of the two.
+		
+		// old:
 		// We don't need to try to get the secondary structure from graph as at
 		// the moment there
 		// is no way we could have a graph without 3D coordinates that has
 		// secondary structure
 		// annotation (neither in our database nor in our file formats we have a
 		// way to store the secondary structure annotation)
-
 		// assert pdb.getSecondaryStructure()==graph.getSecondaryStructure();
 
-		if (pdb != null && pdb.hasSecondaryStructure()) {
-			return pdb.getSecondaryStructure();
-		} else {
-			return new SecondaryStructure("");
-		}
+		return this.secondaryStructure!=null?this.secondaryStructure:new SecondaryStructure("");
+//		if (pdb != null && pdb.hasSecondaryStructure()) {
+//			return pdb.getSecondaryStructure();
+//		} else {
+//			return new SecondaryStructure("");
+//		}
+	}
+	
+	/**
+	 * Assigns new secondary structure annotation to the current model.
+	 * @param ss the secondary structure annotation object to be assigned
+	 */
+	public void setSecondaryStructure(SecondaryStructure ss) {
+		this.secondaryStructure = ss;
 	}
 
 	// end of secondary structure related methods
@@ -894,7 +934,6 @@ public abstract class Model {
 
 	public boolean hasGMBPConstraints() {
 		return true;
-	}	
-
+	}
 
 }

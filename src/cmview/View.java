@@ -1535,7 +1535,14 @@ public class View extends JFrame implements ActionListener {
 				mod = new SequenceModel(new File(f));
 			}
 			
-			// TODO: assign secondary structure by JPredConnection		
+			// TODO: assign secondary structure by JPredConnection
+			String msg = "Do you want to assign predicted secondary structure using JPred?\n\n" +
+					     "(This requires an active internet connection and may take some\n" +
+					     " time to connect to the JPred server and retrieve the result)";
+			String title = "Secondary Structure";
+			if(JOptionPane.showConfirmDialog(this,msg,title,JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				mod.assignJPredSecondaryStructure();	
+			}
 			
 			// apply new model
 			if(secondModel == SECOND_MODEL) {

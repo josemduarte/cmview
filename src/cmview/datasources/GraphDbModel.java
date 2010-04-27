@@ -23,6 +23,9 @@ public class GraphDbModel extends Model {
 		// load contact graph from user specified graph database
 		try {
 			graph = new DbRIGraph(db, Start.getDbConnection(), graphId);
+			this.secondaryStructure = graph.getSecondaryStructure(); // take ss from graph
+																	 // will likely be null here
+																	 // because we don't store ss in db
 			
 			// read information about structure from graph object
 			String pdbCode = graph.getPdbCode();
@@ -51,6 +54,10 @@ public class GraphDbModel extends Model {
 			}
 			// if pdb created failed then pdb=null
 			
+			// if structure is available, and has secondary structure annotation, use it
+			if(this.pdb != null && pdb.getSecondaryStructure() != null) {
+				this.secondaryStructure = pdb.getSecondaryStructure(); 
+			}
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			super.printWarnings(pdbChainCode);
 			
