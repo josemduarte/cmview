@@ -62,6 +62,12 @@ public class View extends JFrame implements ActionListener {
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
 
+	// text shown in window title
+	private static final String TITLE_DEFAULT = Start.APP_NAME+" "+Start.VERSION;
+	private static final String TITLE_PREFIX = "";
+	private static final String TITLE_MODIFIED = " (modified)";
+	private static final String TITLE_COMPARING = "Comparing ";
+	private static final String TITLE_TO = " to ";
 	// menu item labels (used in main menu, popup menu and icon bar)
 	// File
 	private static final String LABEL_FILE_INFO = "Info";
@@ -199,6 +205,7 @@ public class View extends JFrame implements ActionListener {
 		super(title);
 		Start.viewInstancesCreated();
 		this.mod = mod;
+		this.updateTitle();
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
@@ -1455,6 +1462,7 @@ public class View extends JFrame implements ActionListener {
 		} catch (AlignmentConstructionError e) {
 			showLoadError(e.getMessage());
 		}
+		updateTitle();
 	}
 	
 	public void doLoadSecondModelFromPdbFile(String string) {
@@ -1470,6 +1478,7 @@ public class View extends JFrame implements ActionListener {
 		} catch (AlignmentConstructionError e) {
 			showLoadError(e.getMessage());
 		}
+		updateTitle();
 	}
 	
 	private void handleLoadFromCmFile(boolean secondModel) {
@@ -2156,8 +2165,9 @@ public class View extends JFrame implements ActionListener {
 		
 		// re-setting window title
 		System.out.println("Second contact map loaded.");
-		String title = "Comparing " + mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
-		this.setTitle(title);
+		updateTitle();
+//		String title = "Comparing " + mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
+//		this.setTitle(title);
 
 		// add the second model and update the image buffer
 		cmPane.setSecondModel(mod2, ali);
@@ -2878,7 +2888,7 @@ public class View extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * 
+	 * Delete currently selected contacts.
 	 */
 	private void handleDeleteSelContacts() {
 		if(mod==null) {
@@ -2886,10 +2896,33 @@ public class View extends JFrame implements ActionListener {
 		} else if(cmPane.getSelContacts().size() == 0) {
 			showNoContactsSelectedWarning();
 		} else {
-			cmPane.deleteSelectedContacts();
+			for (Pair<Integer> cont:cmPane.getSelContacts()){
+				mod.removeEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+				//if (hasSecondModel()) {
+				//	mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
+				//}
+			}
+			cmPane.resetSelections();
+			cmPane.reloadContacts();	// will update screen buffer and repaint
+			updateTitle();
 		}
 	}
 
+	/**
+	 * Inserts/deletes a contact. 
+	 * @param cont the contact to toggle
+	 */
+	public void handleToggleContact(Pair<Integer> cont) {
+		if (mod.containsEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(),cont))) {
+			mod.removeEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+		} else {
+			mod.addEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+		}
+		cmPane.resetSelections();
+		cmPane.reloadContacts();
+		updateTitle();
+	}
+	
 	private void handleShowShellRels(){
 		//pymol adapter
 		PyMolAdaptor pymol = Start.getPyMolAdaptor();
@@ -3129,6 +3162,7 @@ public class View extends JFrame implements ActionListener {
 			cmPane.resetSelections();
 			cmPane.reloadContacts();
 			// showContactsCopiedMessage(numContacts)
+			updateTitle();
 		}
 	}
 	
@@ -3306,6 +3340,30 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
+	/**
+	 * Update the title of this window with the
+	 * appropriate text for
+	 * - no contact map
+	 * - single contact map
+	 * - single contact map (modified)
+	 * - comparing two contact maps
+	 * See TITLE_constants.
+	 */
+	public void updateTitle() {
+		String title;
+		if(this.mod == null) {
+			title = TITLE_DEFAULT;
+		} else
+		if(this.mod2 == null) {
+			title = TITLE_PREFIX + mod.getLoadedGraphID();
+			if(mod.isModified()) title += TITLE_MODIFIED;
+		} else {
+			String t1 = mod.getLoadedGraphID() + (mod.isModified()?TITLE_MODIFIED:"");
+			String t2 = mod2.getLoadedGraphID() + (mod2.isModified()?TITLE_MODIFIED:"");
+			title = TITLE_COMPARING + t1 + TITLE_TO + t2;
+		}
+		this.setTitle(title);
+	}
 	
 	/**
 	 * Writes the current contact map view to a png file and exits CMView (to be used from command line).
@@ -3490,6 +3548,7 @@ public class View extends JFrame implements ActionListener {
 		// - notify that contact map has changed
 		cmPane.resetSelections();
 		cmPane.reloadContacts();	// will update screen buffer and repaint
+		updateTitle();
 	}
 
 	/**
@@ -3510,16 +3569,21 @@ public class View extends JFrame implements ActionListener {
 		// - notify that contact map has changed
 		cmPane.resetSelections();
 		cmPane.reloadContacts();	// will update screen buffer and repaint
+		updateTitle();
 	}
 
 	public void handleAddBestDR() {
 		mod.addBestDR();
+		cmPane.resetSelections();
 		cmPane.reloadContacts();
+		updateTitle();
 	}
 	
 	public void handleDeleteWorstDR() {
 		mod.delWorstDR();
+		cmPane.resetSelections();
 		cmPane.reloadContacts();
+		updateTitle();
 	}
 
 	

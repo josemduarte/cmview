@@ -66,6 +66,8 @@ public abstract class Model {
 	protected boolean isGraphWeighted;	// whether the graph is weighted
 									// initialized on load, changed only when
 									// graph is discretized.
+	protected boolean modified = false;	// whether the model (i.e. mainly the graph)
+									// has been modified (edges added or deleted)
 	
 	protected SecondaryStructure secondaryStructure;	// store the secondary
 														// structure independent
@@ -111,6 +113,7 @@ public abstract class Model {
 		this.graph = mod.graph;
 		this.backupGraph = mod.backupGraph;
 		this.isGraphWeighted = mod.isGraphWeighted;
+		this.modified = mod.modified;
 		this.secondaryStructure = mod.secondaryStructure;
 		this.distMatrix = mod.distMatrix;
 		this.tempPdbFile = mod.tempPdbFile;
@@ -147,6 +150,8 @@ public abstract class Model {
 
 	/**
 	 * Filter out unwanted contacts and initializes the seqSep variable.
+	 * This is currently only used when loading a model that's why we
+	 * don't set the modified flag here.
 	 * Warning: Not tested for directed graphs
 	 */
 	protected void filterContacts(int minSeqSep, int maxSeqSep) {
@@ -208,8 +213,13 @@ public abstract class Model {
 		
 	}	
 	
+	/**
+	 * Computes the minimal reconstructable subset using the
+	 * cone peeling algorithm and replaces the graph in this
+	 * model with the subset.
+	 * @author gmueller
+	 */
 	public void computeMinimalSubset(){
-		
 		if(this !=null){
 			try{
 				RIGraph subset = ConePeeler.getMinSubset(graph);
@@ -289,7 +299,6 @@ public abstract class Model {
 
 	/**
 	 * Returns the unique identifier for this model
-	 * 
 	 * @return
 	 */
 	public String getLoadedGraphID() {
@@ -515,15 +524,20 @@ public abstract class Model {
 	}
 
 	public void addEdge(Pair<Integer> cont) {
-		graph.addEdgeIJ(cont.getFirst(), cont.getSecond());
+		if(graph.addEdgeIJ(cont.getFirst(), cont.getSecond())) {
+			this.setModified(true);
+		}
 		if (deltaRank != null) {
 			updateDeltaRankMap(cont);
 		}
+		
 	}
 
 	public void removeEdge(Pair<Integer> cont) {
-		graph.removeEdge(this.graph.findEdge(graph.getNodeFromSerial(cont
-				.getFirst()), graph.getNodeFromSerial(cont.getSecond())));
+		if(graph.removeEdge(this.graph.findEdge(graph.getNodeFromSerial(cont
+				.getFirst()), graph.getNodeFromSerial(cont.getSecond())))) {
+			this.setModified(true);
+		}
 		if (deltaRank != null) {
 			updateDeltaRankMap(cont);
 		}
@@ -862,6 +876,24 @@ public abstract class Model {
 	 */
 	public void setIsGraphWeighted(boolean b) {
 		this.isGraphWeighted = b;
+	}
+	
+	/**
+	 * Returns whether the modified flag is set, i.e.
+	 * whether this model has been modified (edges
+	 * added or deleted).
+	 * @return true if the model has been modified, false otherwise
+	 */
+	public boolean isModified() {
+		return this.modified;
+	}
+	
+	/**
+	 * Sets the modified flag to the given value.
+	 * @param b the new value of the modified flag
+	 */
+	private void setModified(boolean b) {
+		this.modified=b;
 	}
 	
 	/**

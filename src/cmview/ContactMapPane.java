@@ -395,7 +395,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param cont
 	 * @return
 	 */
-	private Pair<Integer> mapContactAl2Seq (String tag, Pair<Integer> cont) {
+	Pair<Integer> mapContactAl2Seq (String tag, Pair<Integer> cont) {
 		return new Pair<Integer>(mapAl2Seq(tag,cont.getFirst()),mapAl2Seq(tag,cont.getSecond()));
 	}
 	
@@ -1406,7 +1406,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case TOGGLE:
 
 				Pair<Integer> clicked = screen2cm(mousePressedPos);
-				toggleContact(clicked);
+				view.handleToggleContact(clicked);
 				return;
 
 			}
@@ -2132,31 +2132,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 //	private void markDiffDistMapAsDirty() {
 
 //	}
-
-	/**
-	 * Deletes currently selected contacts from first model
-	 */
-	public void deleteSelectedContacts() {
-		for (Pair<Integer> cont:selContacts){
-			mod.removeEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
-			//if (hasSecondModel()) {
-			//	mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
-			//}
-		}
-		resetSelections();
-		reloadContacts();	// will update screen buffer and repaint
-	}
-
-	public void toggleContact(Pair<Integer> cont) {
-		if (mod.containsEdge(mapContactAl2Seq(mod.getLoadedGraphID(),cont))) {
-			mod.removeEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
-		} else {
-			mod.addEdge(mapContactAl2Seq(mod.getLoadedGraphID(), cont));
-		}
-		resetSelections();
-		reloadContacts();
-	}
-	
 	
 	/**
 	 * Update tmpContact with the contacts contained in the rectangle given by
