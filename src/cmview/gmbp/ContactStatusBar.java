@@ -15,9 +15,11 @@ import javax.swing.BorderFactory;
 //import javax.swing.Box;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -28,9 +30,11 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final int DEFAULT_WIDTH = 110;
+	protected static final int DEFAULT_WIDTH = 120;
 	protected static final int DEFAULT_HEIGHT = 500;
+	public static final float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
 	
+	/*--------------------------- member variables --------------------------*/	
 	// settings
 	private int width = DEFAULT_WIDTH;						// width of this component, height matches contact map size
 	private int groupWidth = width - 20;			// width of information groups within StatusBar
@@ -40,23 +44,37 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private ContactView controller; 						// controller which is notified as a response to gui actions
 	
 	// main panels
-	private JPanel groupsPanel;						// panel holding the subgroups
-	private AnglePanel anglePanel;					// panel holding the subgroups
+	private JPanel angleGroup;							// selected angle range
+	private JPanel sphoxelGroup;						// panel holding the subgroups
 	
 	// subgroups panels holding gui elements for specific purposes
-	private JPanel deltaRadiusGroup;					// radius range
-	private JPanel resolutionGroup;					    // resolution 
-	private JPanel angleGroup;							// selected angle range
+	private JPanel deltaRadiusPanel;					// radius range
+	private JPanel deltaRadiusSliderPanel;
+	private JPanel deltaRadiusButtonPanel;
+	private JPanel resolutionPanel;					    // resolution 
+	private AnglePanel anglePanel;					// panel holding the subgroups
+	private JPanel sstypePanel;
+	private JPanel drawPropPanel;
 	
 	// components for multi model group
 	private JSlider radiusSliderLabel;					// to choose a radius-range
 	private JRangeSlider radiusSlider;
-	private float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
-	private final int deltaSlVal = (int) ((this.radiusThresholds[1]-this.radiusThresholds[0])*10);
+	private JCheckBox radiusButton;
+	private final int deltaSlVal = (int) ((radiusThresholds[1]-radiusThresholds[0])*10);
 	private JSlider resolSlider;
+	private JCheckBox diffSSTypeButton;
+	private JCheckBox remOutliersButton;
+	private JTextField minRatioField;
+	private JTextField maxRatioField;
 	
-	private final int minSlVal = (int) (this.radiusThresholds[0]*10);
-	private final int maxSlVal = (int) (this.radiusThresholds[this.radiusThresholds.length-1]*10);			
+	private boolean radiusRangesFixed = true;
+	private boolean diffSSType = true;
+	private boolean removeOutliers = true;
+	private double minAllowedRatio = ContactPane.defaultMinAllowedRat;
+	private double maxAllowedRatio = ContactPane.defaultMaxAllowedRat;
+	
+	private final int minSlVal = (int) (radiusThresholds[0]*10);
+	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
 	
 	
 	public ContactStatusBar(ContactView controller) {
@@ -65,26 +83,32 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		
 		// init basic border layout
 		this.setLayout(new BorderLayout(0,0));
-		groupsPanel = new JPanel();
+		sphoxelGroup = new JPanel();
 		angleGroup = new JPanel();
-		deltaRadiusGroup = new JPanel();
-		resolutionGroup = new JPanel();
-		groupsPanel.setLayout(new BoxLayout(groupsPanel, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
-		groupsPanel.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
 		
-		groupsPanel.setSize(width, height);
-		groupsPanel.setPreferredSize(new Dimension(width, height));
-		deltaRadiusGroup.setPreferredSize(new Dimension(groupWidth, height));
-		resolutionGroup.setPreferredSize(new Dimension(groupWidth, height));
+		deltaRadiusPanel = new JPanel();
+		resolutionPanel = new JPanel();
+		sstypePanel = new JPanel();
+		drawPropPanel = new JPanel();
+		sphoxelGroup.setLayout(new BoxLayout(sphoxelGroup, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
+		sphoxelGroup.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
 		
-		this.add(groupsPanel,BorderLayout.PAGE_START);
+		sphoxelGroup.setSize(width, height);
+		sphoxelGroup.setPreferredSize(new Dimension(width, height));
+//		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, height));
+//		resolutionPanel.setPreferredSize(new Dimension(groupWidth, height));
+//		sstypePanel.setPreferredSize(new Dimension(groupWidth, 50));
+		
+		this.add(sphoxelGroup,BorderLayout.PAGE_START);
 		this.add(angleGroup, BorderLayout.PAGE_END);
 		
-		this.add(deltaRadiusGroup, BorderLayout.LINE_START); //.PAGE_END
-		this.add(resolutionGroup, BorderLayout.LINE_START);
+//		this.add(deltaRadiusGroup, BorderLayout.LINE_START); //.PAGE_END
+//		this.add(resolutionGroup, BorderLayout.LINE_START);
 		
-		initDeltaRadiusGroup();
-		initResolutionGroup();
+		initDeltaRadiusPanel();
+		initResolutionPanel();
+		initSSTypePanel();
+		initDrawPropPanel();
 		initAngleGroup();
 		showAngleGroup(true);
 	}
@@ -92,16 +116,27 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	/**
 	 * Initialize the gui group for changing the radius range.
 	 */
-	public void initDeltaRadiusGroup() {
+	public void initDeltaRadiusPanel() {
 		// initialize group
-		deltaRadiusGroup = new JPanel();
-//		deltaRadiusGroup.setLayout(new BoxLayout(deltaRadiusGroup,BoxLayout.PAGE_AXIS));
-		deltaRadiusGroup.setLayout(new BoxLayout(deltaRadiusGroup,BoxLayout.LINE_AXIS));
-		String title = "Radius range";
-		deltaRadiusGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
-		deltaRadiusGroup.setVisible(true);
+//		deltaRadiusPanel = new JPanel();
+		deltaRadiusPanel.setLayout(new BoxLayout(deltaRadiusPanel,BoxLayout.PAGE_AXIS));
+		String title = "Radius";
+		deltaRadiusPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		deltaRadiusPanel.setVisible(true);
+		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, height));
+//		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,10));
 		
-		System.out.println("deltaSliderValue= "+this.deltaSlVal);
+		deltaRadiusSliderPanel = new JPanel();
+		deltaRadiusSliderPanel.setLayout(new BoxLayout(deltaRadiusSliderPanel,BoxLayout.LINE_AXIS));
+		
+		deltaRadiusButtonPanel = new JPanel();
+		deltaRadiusButtonPanel.setLayout(new BoxLayout(deltaRadiusButtonPanel,BoxLayout.LINE_AXIS));
+		
+		radiusButton = new JCheckBox("FixedRanges");
+		radiusButton.setSelected(true);
+		radiusButton.addItemListener(this);
+		
+//		System.out.println("deltaSliderValue= "+this.deltaSlVal);
 		
 		radiusSlider = new JRangeSlider(minSlVal, maxSlVal, minSlVal, minSlVal+this.deltaSlVal, JRangeSlider.VERTICAL, -1);
 		radiusSlider.setMinExtent(this.deltaSlVal);
@@ -109,34 +144,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSlider.setPreferredSize(new Dimension(groupWidth/6, HEIGHT));
 		
 		radiusSlider.setEnabled(true);
-//		radiusSlider.addChangeListener(this);
 		radiusSlider.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
 //                m_display.setHighQuality(false);
             }
             public void mouseReleased(MouseEvent e) {
-//                m_display.setHighQuality(true);
-//                m_display.repaint();
-
-    			int min = radiusSlider.getLowValue();
-    			int max = radiusSlider.getHighValue();
-    			int fac = (int) Math.round((double)(min/deltaSlVal));			
-    			int minVal = minSlVal + (fac*deltaSlVal);
-    			fac = max-minSlVal;
-    			fac = (int) Math.round( (double)(max-minSlVal)/(double)(deltaSlVal));
-    			int maxVal = minSlVal + (fac*deltaSlVal);
-    			if (maxVal==minVal)
-    				maxVal += deltaSlVal;    			
-
-    			radiusSlider.setLowValue(minVal);
-    			radiusSlider.setHighValue(maxVal);
-    			radiusSliderLabel.setValue(radiusSlider.getHighValue());
-    			
-    			controller.handleChangeRadiusRange((float)(radiusSlider.getLowValue())/10.0f, (float)(radiusSlider.getHighValue())/10.0f);
-    			System.out.println("RadiusSliderRange= "+ (float)(radiusSlider.getLowValue())/10.0f + "-" + (float)(radiusSlider.getHighValue())/10.0f);
-    			
-//            	System.out.println("RadiusSliderRange= "+ radiusSlider.getLowValue()/10.0f + "-" + radiusSlider.getHighValue()/10.0f);
-//            	controller.handleChangeRadiusRange(radiusSlider.getLowValue()/10.0f, radiusSlider.getHighValue()/10.0f);
+    			updateRadiusValues();
             }
         });
 		
@@ -158,28 +171,24 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		labels.put(new Integer(128), new JLabel(" 12.8"));
 		radiusSliderLabel.setLabelTable(labels);		
 		radiusSliderLabel.setPaintLabels(true);
-		radiusSliderLabel.setPaintTicks(true);
+		radiusSliderLabel.setPaintTicks(false);
 //		radiusSliderLabel.setPaintTrack(true);	
 		radiusSliderLabel.setSize(groupWidth-(radiusSlider.getWidth()), HEIGHT);
 		radiusSliderLabel.setPreferredSize(new Dimension(groupWidth-(radiusSlider.getWidth()), HEIGHT));
 		
 //		radiusSliderLabel.setEnabled(true);
 //		radiusSliderLabel.addChangeListener(this);
+		radiusSliderLabel.setEnabled(false);
 								
-		// adding components to group		
-//	    deltaRadiusGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
-//		deltaRadiusGroup.add(radiusSlider, BorderLayout.WEST, 0);
-	    deltaRadiusGroup.add(radiusSlider, BorderLayout.WEST);
-//		deltaRadiusGroup.add(Box.createRigidArea(new Dimension(5,0)));
-//	    deltaRadiusGroup.add(Box.createRigidArea(new Dimension(groupWidth,2)));
-	    deltaRadiusGroup.add(radiusSliderLabel, BorderLayout.WEST);
-//		deltaRadiusGroup.add(Box.createRigidArea(new Dimension(5,0)));
-//		deltaRadiusGroup.add(radiusSliderLabel, BorderLayout.EAST, 0);
-//		deltaRadiusGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		// adding components to group	
+		deltaRadiusSliderPanel.add(radiusSlider, BorderLayout.LINE_START);
+	    deltaRadiusSliderPanel.add(radiusSliderLabel, BorderLayout.LINE_START);	    
+	    deltaRadiusButtonPanel.add(radiusButton, BorderLayout.LINE_START);
+		
+		deltaRadiusPanel.add(deltaRadiusButtonPanel);
+		deltaRadiusPanel.add(deltaRadiusSliderPanel);
 	    
-//	    deltaRadiusGroup.setPreferredSize(new Dimension(groupWidth, deltaRadiusGroup.getHeight()));
-//	    groupsPanel.add(deltaRadiusGroup);
-	    groupsPanel.add(deltaRadiusGroup, BorderLayout.LINE_START);
+	    sphoxelGroup.add(deltaRadiusPanel);
 	}
 	
 	/**
@@ -188,22 +197,23 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 * the radius range of the sphoxel image.
 	 * @param show whether to show or hide the delta radius group
 	 */
-	public void showDeltaRadiusGroup(boolean show) {
-		this.deltaRadiusGroup.setVisible(show);
+	public void showDeltaRadiusPanel(boolean show) {
+		this.deltaRadiusPanel.setVisible(show);
 	}
 	
 	/**
 	 * Initialize the gui group for changing the resolution.
 	 */
-	public void initResolutionGroup() {
+	public void initResolutionPanel() {
 		// initialize group
-		resolutionGroup = new JPanel();
-//		resolutionGroup.setLayout(new BoxLayout(resolutionGroup,BoxLayout.PAGE_AXIS));
-		resolutionGroup.setLayout(new BoxLayout(resolutionGroup,BoxLayout.LINE_AXIS));
+//		resolutionPanel = new JPanel();
+//		resolutionPanel.setLayout(new BoxLayout(resolutionPanel,BoxLayout.PAGE_AXIS));
+		resolutionPanel.setLayout(new BoxLayout(resolutionPanel,BoxLayout.LINE_AXIS));
 		String title = "Resolution";
-		resolutionGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
-		resolutionGroup.setVisible(true);
-		resolutionGroup.setPreferredSize(new Dimension(groupWidth, height));
+		resolutionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		resolutionPanel.setVisible(true);
+		resolutionPanel.setPreferredSize(new Dimension(groupWidth, height));
+//		resolutionPanel.setMinimumSize(new Dimension(groupWidth,10));
 		
 //		// --- NUMSTEPS----
 //		// initialize components
@@ -263,17 +273,18 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		resolSlider.setPaintTicks(true);
 		resolSlider.setPaintTrack(true);
 		
-		resolSlider.setEnabled(true);
+//		resolSlider.setEnabled(true);
+		resolSlider.setEnabled(false);
 		resolSlider.addChangeListener(this);
 				
 		// adding components to group
-//	    resolutionGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
-	    resolutionGroup.add(resolSlider, BorderLayout.WEST);
-	    resolutionGroup.add(Box.createRigidArea(new Dimension(groupWidth-resolSlider.getWidth(),5)));
+//	    resolutionPanel.add(Box.createRigidArea(new Dimension(groupWidth,5)));
+	    resolutionPanel.add(resolSlider, BorderLayout.WEST);
+	    resolutionPanel.add(Box.createRigidArea(new Dimension(groupWidth-resolSlider.getWidth(),5)));
 	    System.out.println("groupWidth-resolSlider.getWidth()= "+ (groupWidth-resolSlider.getWidth()));
-//	    resolutionGroup.setMinimumSize(new Dimension(groupWidth,10));
-//	    groupsPanel.add(resolutionGroup);
-	    groupsPanel.add(resolutionGroup, BorderLayout.LINE_START);
+	    
+	    sphoxelGroup.add(resolutionPanel);
+//	    sphoxelGroup.add(resolutionPanel, BorderLayout.LINE_START);
 	}
 
 	/**
@@ -282,8 +293,86 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 * the resolution of the sphoxel image.
 	 * @param show whether to show or hide the resolution overlay group
 	 */
-	public void showResolutionGroup(boolean show) {
-		this.resolutionGroup.setVisible(show);
+	public void showResolutionPanel(boolean show) {
+		this.resolutionPanel.setVisible(show);
+	}
+
+	/**
+	 * Initialize the gui group for switching flag for diffSSType on and of.
+	 */
+	public void initSSTypePanel(){
+		sstypePanel.setLayout(new BoxLayout(sstypePanel,BoxLayout.LINE_AXIS));
+		String title = "SSType";
+		sstypePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		sstypePanel.setVisible(true);
+//		sstypePanel.setMinimumSize(new Dimension(groupWidth,10));
+		sstypePanel.setPreferredSize(new Dimension(groupWidth,50));
+		
+		diffSSTypeButton = new JCheckBox("DiffSSType   ");
+		diffSSTypeButton.setSelected(true);
+		diffSSTypeButton.addItemListener(this);
+		
+		sstypePanel.add(diffSSTypeButton, BorderLayout.LINE_START);
+		sphoxelGroup.add(sstypePanel);
+	}
+	/**
+	 * Toggles the visibility of the sstype panel on or off.
+	 * The sstype panel holds controls for switching 
+	 * differentiation of i_ssType on or of.
+	 * @param show whether to show or hide the sstype panel
+	 */
+	public void showSSTypePanel(boolean show){
+		this.sstypePanel.setVisible(show);
+	}
+
+	/**
+	 * Initialize the gui group for switching removal of outliers in sphoxel image on and of.
+	 */
+	public void initDrawPropPanel(){
+		drawPropPanel.setLayout(new BoxLayout(drawPropPanel,BoxLayout.PAGE_AXIS));
+		String title = "Outliers";
+		drawPropPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		drawPropPanel.setVisible(true);		
+//		drawPropPanel.setMinimumSize(new Dimension(groupWidth,10));
+		drawPropPanel.setPreferredSize(new Dimension(groupWidth,100));
+		
+		JPanel buttonLinePanel = new JPanel();
+		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
+		JPanel minLinePanel = new JPanel();
+		minLinePanel.setLayout(new BoxLayout(minLinePanel,BoxLayout.LINE_AXIS));
+		JPanel maxLinePanel = new JPanel();
+		maxLinePanel.setLayout(new BoxLayout(maxLinePanel,BoxLayout.LINE_AXIS));
+		
+		remOutliersButton = new JCheckBox("Remove        ");
+		remOutliersButton.setSelected(true);
+		remOutliersButton.addItemListener(this);
+		
+		minRatioField = new JTextField(String.valueOf(this.minAllowedRatio));
+		maxRatioField = new JTextField(String.valueOf(this.maxAllowedRatio));
+		minRatioField.addActionListener(this);
+		maxRatioField.addActionListener(this);
+		JLabel minLabel = new JLabel("min=  ");
+		JLabel maxLabel = new JLabel("max= ");
+		
+		buttonLinePanel.add(remOutliersButton, BorderLayout.LINE_START);
+		minLinePanel.add(minLabel, BorderLayout.LINE_START);
+		minLinePanel.add(minRatioField, BorderLayout.LINE_END);
+		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
+		maxLinePanel.add(maxRatioField, BorderLayout.LINE_END);
+		drawPropPanel.add(buttonLinePanel);
+		drawPropPanel.add(minLinePanel);
+		drawPropPanel.add(maxLinePanel);
+//		drawPropPanel.add(remOutliersButton);
+//		drawPropPanel.add(minRatioField);
+//		drawPropPanel.add(maxRatioField);
+		sphoxelGroup.add(drawPropPanel);		
+	}
+	/**
+	 * Toggles the visibility of the drawProp panel on or off.
+	 * @param show whether to show or hide the draw prop panel
+	 */
+	public void showDrawPropPanel(boolean show){
+		this.drawPropPanel.setVisible(show);
 	}
 	
 	/**
@@ -318,7 +407,39 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void itemStateChanged(ItemEvent e) {
 		// TODO Auto-generated method stub
-		
+		if (e.getItemSelectable() == radiusButton){
+			if (e.getStateChange() == ItemEvent.SELECTED)
+				this.radiusRangesFixed = true;
+			else // e.getStateChange() == ItemEvent.DESELECTED
+				this.radiusRangesFixed = false;
+//			this.radiusSliderLabel.setEnabled(radiusRangesFixed);
+			this.resolSlider.setEnabled(!this.radiusRangesFixed);
+//			this.resolSlider.setVisible(!this.radiusRangesFixed);
+			if (this.radiusRangesFixed)
+				updateRadiusValues();
+			System.out.println("radiusRangesFixed ="+this.radiusRangesFixed);
+			controller.handleChangeRadiusRangesFixed(this.radiusRangesFixed);
+		}
+		if (e.getItemSelectable() == diffSSTypeButton){
+			if (e.getStateChange() == ItemEvent.SELECTED)
+				this.diffSSType = true;
+			else // e.getStateChange() == ItemEvent.DESELECTED
+				this.diffSSType = false;
+			controller.handleChangeDiffSSType(this.diffSSType);
+		}
+		if (e.getItemSelectable() == remOutliersButton){
+			if (e.getStateChange() == ItemEvent.SELECTED){
+				this.removeOutliers = true;
+				this.minRatioField.setEnabled(true);
+				this.maxRatioField.setEnabled(true);
+			}
+			else{
+				this.removeOutliers = false;
+				this.minRatioField.setEnabled(false);
+				this.maxRatioField.setEnabled(false);
+			}
+			controller.handleChangeRemOutliers(this.removeOutliers);	
+		}
 	}
 
 	/**
@@ -326,7 +447,38 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		
+		this.minAllowedRatio = Double.valueOf(minRatioField.getText());
+		this.maxAllowedRatio = Double.valueOf(maxRatioField.getText());
+		controller.handleChangeOutlierThresholds(this.minAllowedRatio, this.maxAllowedRatio);
+		System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);		
+	}
+	
+	private void updateRadiusValues(){
+		int min = this.radiusSlider.getLowValue();
+		int max = this.radiusSlider.getHighValue();
+		int minVal = min;
+		int maxVal = max;
+		if (this.radiusRangesFixed){
+			int fac = (int) Math.round((double)(min/this.deltaSlVal));		
+			minVal = this.minSlVal + (fac*this.deltaSlVal);
+			fac = (int) Math.round( (double)(max-this.minSlVal)/(double)(this.deltaSlVal));
+			maxVal = this.minSlVal + (fac*this.deltaSlVal);	
+			if (maxVal==minVal) { 
+				if (maxVal<this.maxSlVal)
+					maxVal += this.deltaSlVal;
+				else
+					minVal -= this.deltaSlVal;
+			}				
+		}
+
+		this.radiusSlider.setLowValue(minVal);
+		this.radiusSlider.setHighValue(maxVal);
+		this.radiusSliderLabel.setValue(maxVal);
+
+//		controller.handleChangeRadiusRange(radiusThresholds[0], (float) (this.radiusSlider.getValue() / 10.0f));
+//		System.out.println("RadiusSliderVal= "+ this.radiusSlider.getValue() / 10.0f);
+		controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
+		System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
 	}
 	
 	/**
@@ -334,36 +486,31 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void stateChanged(ChangeEvent e) {		
 		if(e.getSource() == this.radiusSlider) {
-//			controller.handleChangeRadiusRange(this.radiusThresholds[0], (float) (this.radiusSlider.getValue() / 10.0f));
-//			System.out.println("RadiusSliderVal= "+ this.radiusSlider.getValue() / 10.0f);
-			int min = this.radiusSlider.getLowValue();
-			int max = this.radiusSlider.getHighValue();
-			int fac = Math.round(min/this.deltaSlVal);			
-			int minVal = this.minSlVal + (fac*this.deltaSlVal);
-			fac = Math.round((max-this.minSlVal)/this.deltaSlVal);
-			int maxVal = this.minSlVal + (fac*this.deltaSlVal);
-			
-
-			this.radiusSlider.setLowValue(minVal);
-			this.radiusSlider.setHighValue(maxVal);
-			this.radiusSliderLabel.setValue(this.radiusSlider.getHighValue());
-			
-			controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
-			System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
+			updateRadiusValues();
+			System.out.println("in stateChanged");
 		}
 		if(e.getSource() == this.radiusSliderLabel){
-			float max = (float)(this.radiusSliderLabel.getValue())/10.0f;
-			if (max < this.radiusThresholds[1])
-				max = this.radiusThresholds[1];
-			float min = max-((float)(this.deltaSlVal)/10.0f); // = this.delatRadiusThresholds[0];
-			this.radiusSlider.setLowValue((int) (min*10.0f));
-			this.radiusSlider.setHighValue((int) (max*10.0f));
-			controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
-			System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
+//			float max = (float)(this.radiusSliderLabel.getValue())/10.0f;
+//			if (this.radiusRangesFixed){
+//				if (max < radiusThresholds[1])
+//					max = radiusThresholds[1];
+//				float min = max-((float)(this.deltaSlVal)/10.0f); // = this.delatRadiusThresholds[0];
+//				this.radiusSlider.setLowValue((int) (min*10.0f));
+//				this.radiusSlider.setHighValue((int) (max*10.0f));				
+//			}
+//			else {
+//				int diff = this.radiusSlider.getHighValue()-this.radiusSlider.getLowValue();
+//				this.radiusSlider.setHighValue((int) (max*10.0f));
+//				this.radiusSlider.setLowValue((int)(max*10.0f)-diff);				
+//			}
+//			controller.handleChangeRadiusRange((float)(this.radiusSlider.getLowValue())/10.0f, (float)(this.radiusSlider.getHighValue())/10.0f);
+//			System.out.println("RadiusSliderRange= "+ (float)(this.radiusSlider.getLowValue())/10.0f + "-" + (float)(this.radiusSlider.getHighValue())/10.0f);
 		}
 		if(e.getSource() == this.resolSlider) {
-			controller.handleChangeResolution(this.resolSlider.getValue());
-			System.out.println("ResolutionSliderVal= "+ this.resolSlider.getValue() +"¡");
+			if (!this.radiusRangesFixed){
+				controller.handleChangeResolution(this.resolSlider.getValue());
+				System.out.println("ResolutionSliderVal= "+ this.resolSlider.getValue() +"¡");				
+			}
 		}
 	}
 	

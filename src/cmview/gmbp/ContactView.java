@@ -106,7 +106,7 @@ public class ContactView extends JFrame implements ActionListener{
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		else{
-			int xDim = ContactPane.defaultDim.width + ContactStatusBar.DEFAULT_WIDTH + AngleRuler.STD_RULER_WIDTH;
+			int xDim = ContactPane.defaultDim.width + AngleRuler.STD_RULER_WIDTH; //+ ContactStatusBar.DEFAULT_WIDTH;
 			int yDim = ContactPane.defaultDim.height + AngleRuler.STD_RULER_WIDTH;
 			this.screenSize = new Dimension(xDim, yDim);
 			this.setPreferredSize(this.screenSize);
@@ -117,8 +117,8 @@ public class ContactView extends JFrame implements ActionListener{
 		
 		// show status bar groups
 		if(mod != null) {
-			contStatBar.showDeltaRadiusGroup(true);
-			contStatBar.showResolutionGroup(true);
+			contStatBar.showDeltaRadiusPanel(true);
+			contStatBar.showResolutionPanel(true);
 		}
 		
 		final JFrame parent = this;					// need a final to refer to in the thread below
@@ -407,6 +407,51 @@ public class ContactView extends JFrame implements ActionListener{
 	}
 	
 	/**
+	 * Handles the user action to change flag whether to use fixed radius ranges 
+	 * @param fixedRadiusRanges --> boolean flag
+	 */
+	public void handleChangeRadiusRangesFixed(boolean fixed) {
+		this.cPane.setRadiusRangesFixed(fixed);
+		System.out.println("handleChangeRadiusRangeFixed "+fixed);
+	}
+	
+	/**
+	 * Handles the user action to change flag whether to differentiate ssType 
+	 * @param diffSSType --> boolean flag
+	 */
+	public void handleChangeDiffSSType(boolean diff) {
+		this.cPane.setDiffSStype(diff);
+		if (diff)
+			this.cPane.calcSphoxelParam();
+		try {
+			this.cPane.recalcSphoxel();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Handles the user action to change flag whether to remove outliers in contact density values 
+	 * @param removeOutliers --> boolean flag
+	 */
+	public void handleChangeRemOutliers(boolean rem) {
+		this.cPane.setRemoveOutliers(rem);
+		this.cPane.repaint();
+	}
+	
+	/**
+	 * Handles the user action to change flag whether to remove outliers in contact density values 
+	 * @param removeOutliers --> boolean flag
+	 */
+	public void handleChangeOutlierThresholds(double min, double max) {
+		this.cPane.setMinAllowedRat(min);
+		this.cPane.setMaxAllowedRat(max);
+		this.cPane.repaint();
+	}
+	
+	
+	/**
 	 * Handles the user action to change the radius range 
 	 * @param minR and maxR --> range
 	 */
@@ -414,12 +459,12 @@ public class ContactView extends JFrame implements ActionListener{
 		this.cPane.setMinR(minR);
 		this.cPane.setMaxR(maxR);
 		System.out.println("handleChangeRadiusRange "+minR+"-"+maxR);
-//		try {
-//			this.cPane.recalcSphoxel();
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			this.cPane.recalcSphoxel();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * Handles the user action to change the resolution
@@ -435,6 +480,7 @@ public class ContactView extends JFrame implements ActionListener{
 			e.printStackTrace();
 		}
 	}
+	
 
 	/* -------------------- Warnings -------------------- */
 

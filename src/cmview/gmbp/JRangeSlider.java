@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+//import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -12,20 +13,30 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+//import java.beans.PropertyChangeEvent;
+//import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+//import java.util.Dictionary;
+//import java.util.Enumeration;
+//import java.util.Hashtable;
 import java.util.Iterator;
 
+import javax.accessibility.Accessible;
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JComponent;
+//import javax.swing.JLabel;
+//import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+//import javax.swing.plaf.UIResource;
 
 /**
  * <p>Implements a Swing-based Range slider, which allows the user to enter a 
  * range (minimum and maximum) value.</p>
  */
-public class JRangeSlider extends JComponent implements MouseListener, MouseMotionListener, KeyListener {   
+public class JRangeSlider extends JComponent implements MouseListener, MouseMotionListener, KeyListener, SwingConstants, Accessible {   
 	
 	private static final long serialVersionUID = 1L;
 	final public static int VERTICAL = 0;
@@ -51,6 +62,44 @@ public class JRangeSlider extends JComponent implements MouseListener, MouseMoti
 	protected ChangeListener lstnr;
 	
 	protected Color thumbColor = new Color(150,180,220);
+	
+//	// by Corinna
+//	/**
+//     * The number of values between the major tick marks -- the 
+//     * larger marks that break up the minor tick marks.
+//     */
+//    protected int majorTickSpacing;
+//
+//    /**
+//     * The number of values between the minor tick marks -- the 
+//     * smaller marks that occur between the major tick marks.
+//     * @see #setMinorTickSpacing
+//     */
+//    protected int minorTickSpacing;
+//
+//    /**
+//     * If true, the knob (and the data value it represents) 
+//     * resolve to the closest tick mark next to where the user
+//     * positioned the knob.  The default is false.
+//     * @see #setSnapToTicks
+//     */
+//    protected boolean snapToTicks = false;
+//    
+//    /**
+//     * If true, the knob (and the data value it represents) 
+//     * resolve to the closest slider value next to where the user
+//     * positioned the knob.
+//     */
+//    boolean snapToValue = true;
+//    
+//	/**
+//     * {@code Dictionary} of what labels to draw at which values
+//     */
+//    private Dictionary labelTable;
+//    
+//    private boolean paintLabels = false;
+//    private boolean paintTicks = false;
+//	//end by Corinna
 	
 	// ------------------------------------------------------------------------
 	
@@ -299,6 +348,457 @@ public class JRangeSlider extends JComponent implements MouseListener, MouseMoti
 	        return new Dimension(PREFERRED_LENGTH, PREFERRED_BREADTH);
 	    }
 	}
+	
+	
+//	//---------- by Corinna
+//    /**
+//     * This method returns the major tick spacing.  The number that is returned
+//     * represents the distance, measured in values, between each major tick mark.
+//     * If you have a slider with a range from 0 to 50 and the major tick spacing
+//     * is set to 10, you will get major ticks next to the following values:
+//     * 0, 10, 20, 30, 40, 50.
+//     *
+//     * @return the number of values between major ticks
+//     * @see #setMajorTickSpacing
+//     */
+//    public int getMajorTickSpacing() { 
+//        return majorTickSpacing; 
+//    }
+//
+//
+//    /**
+//     * This method sets the major tick spacing.  The number that is passed in
+//     * represents the distance, measured in values, between each major tick mark.
+//     * If you have a slider with a range from 0 to 50 and the major tick spacing
+//     * is set to 10, you will get major ticks next to the following values:
+//     * 0, 10, 20, 30, 40, 50.
+//     * <p>
+//     * In order for major ticks to be painted, {@code setPaintTicks} must be
+//     * set to {@code true}.
+//     * <p>
+//     * This method will also set up a label table for you.
+//     * If there is not already a label table, and the major tick spacing is
+//     * {@code > 0}, and {@code getPaintLabels} returns
+//     * {@code true}, a standard label table will be generated (by calling
+//     * {@code createStandardLabels}) with labels at the major tick marks.
+//     * For the example above, you would get text labels: "0",
+//     * "10", "20", "30", "40", "50".
+//     * The label table is then set on the slider by calling
+//     * {@code setLabelTable}.
+//     *
+//     * @param  n  new value for the {@code majorTickSpacing} property
+//     * @see #getMajorTickSpacing
+//     * @see #setPaintTicks
+//     * @see #setLabelTable
+//     * @see #createStandardLabels(int)
+//     * @beaninfo
+//     *        bound: true
+//     *    attribute: visualUpdate true
+//     *  description: Sets the number of values between major tick marks.
+//     * 
+//     */
+//    public void setMajorTickSpacing(int n) {
+//        int oldValue = majorTickSpacing;
+//        majorTickSpacing = n;
+//        if ( labelTable == null && getMajorTickSpacing() > 0 && getPaintLabels() ) {
+//            setLabelTable( createStandardLabels( getMajorTickSpacing() ) );
+//        }
+//        firePropertyChange("majorTickSpacing", oldValue, majorTickSpacing);
+//        if (majorTickSpacing != oldValue && getPaintTicks()) {
+//            repaint();
+//        }
+//    }
+//
+//
+//
+//    /**
+//     * This method returns the minor tick spacing.  The number that is returned
+//     * represents the distance, measured in values, between each minor tick mark.
+//     * If you have a slider with a range from 0 to 50 and the minor tick spacing
+//     * is set to 10, you will get minor ticks next to the following values:
+//     * 0, 10, 20, 30, 40, 50.
+//     *
+//     * @return the number of values between minor ticks
+//     * @see #getMinorTickSpacing
+//     */
+//    public int getMinorTickSpacing() { 
+//        return minorTickSpacing; 
+//    }
+//
+//
+//    /**
+//     * This method sets the minor tick spacing.  The number that is passed in
+//     * represents the distance, measured in values, between each minor tick mark.
+//     * If you have a slider with a range from 0 to 50 and the minor tick spacing
+//     * is set to 10, you will get minor ticks next to the following values:
+//     * 0, 10, 20, 30, 40, 50.
+//     * <p>
+//     * In order for minor ticks to be painted, {@code setPaintTicks} must be
+//     * set to {@code true}.
+//     *
+//     * @param  n  new value for the {@code minorTickSpacing} property
+//     * @see #getMinorTickSpacing
+//     * @see #setPaintTicks
+//     * @beaninfo
+//     *        bound: true
+//     *    attribute: visualUpdate true
+//     *  description: Sets the number of values between minor tick marks.
+//     */
+//    public void setMinorTickSpacing(int n) { 
+//        int oldValue = minorTickSpacing;
+//        minorTickSpacing = n; 
+//        firePropertyChange("minorTickSpacing", oldValue, minorTickSpacing);
+//        if (minorTickSpacing != oldValue && getPaintTicks()) {
+//            repaint();
+//        }
+//    }
+//
+//
+//    /**
+//     * Returns true if the knob (and the data value it represents) 
+//     * resolve to the closest tick mark next to where the user
+//     * positioned the knob.
+//     *
+//     * @return true if the value snaps to the nearest tick mark, else false
+//     * @see #setSnapToTicks
+//     */
+//    public boolean getSnapToTicks() { 
+//        return snapToTicks; 
+//    }
+//
+//
+//    /**
+//     * Returns true if the knob (and the data value it represents) 
+//     * resolve to the closest slider value next to where the user
+//     * positioned the knob.
+//     *
+//     * @return true if the value snaps to the nearest slider value, else false
+//     * @see #setSnapToValue
+//     */
+//    boolean getSnapToValue() { 
+//        return snapToValue; 
+//    }
+//    
+//    /**
+//     * Tells if labels are to be painted.
+//     * @return true if labels are painted, else false
+//     * @see #setPaintLabels
+//     */
+//    public boolean getPaintLabels() { 
+//        return paintLabels; 
+//    }
+//    
+//	/**
+//     * {@inheritDoc}
+//     *
+//     * @since 1.6
+//     */
+//    public void setFont(Font font) {
+//        super.setFont(font);
+//        updateLabelSizes();
+//    }
+//    
+//	/**
+//     * Returns the dictionary of what labels to draw at which values.
+//     *
+//     * @return the <code>Dictionary</code> containing labels and
+//     *    where to draw them
+//     */
+//    public Dictionary getLabelTable() {
+///*
+//        if ( labelTable == null && getMajorTickSpacing() > 0 ) {
+//            setLabelTable( createStandardLabels( getMajorTickSpacing() ) );
+//        }
+//*/
+//        return labelTable;
+//    }
+//
+//	/**
+//     * Used to specify what label will be drawn at any given value.
+//     * The key-value pairs are of this format:
+//     * <code>{ Integer value, java.swing.JComponent label }</code>.
+//     * <p>
+//     * An easy way to generate a standard table of value labels is by using the
+//     * {@code createStandardLabels} method.
+//     * <p>
+//     * Once the labels have been set, this method calls {@link #updateLabelUIs}.
+//     * Note that the labels are only painted if the {@code paintLabels}
+//     * property is {@code true}.
+//     *
+//     * @param labels new {@code Dictionary} of labels, or {@code null} to
+//     *        remove all labels
+//     * @see #createStandardLabels(int)
+//     * @see #getLabelTable
+//     * @see #setPaintLabels
+//     * @beaninfo
+//     *       hidden: true
+//     *        bound: true
+//     *    attribute: visualUpdate true
+//     *  description: Specifies what labels will be drawn for any given value.
+//     */
+//    public void setLabelTable( Dictionary labels ) {
+//        Dictionary oldTable = labelTable;
+//        labelTable = labels;
+//        updateLabelUIs();
+//        firePropertyChange("labelTable", oldTable, labelTable );
+//        if (labels != oldTable) {
+//            revalidate();
+//            repaint();
+//        }
+//    }
+//    
+//    /**
+//     * Updates the UIs for the labels in the label table by calling
+//     * {@code updateUI} on each label.  The UIs are updated from
+//     * the current look and feel.  The labels are also set to their
+//     * preferred size.
+//     *
+//     * @see #setLabelTable
+//     * @see JComponent#updateUI
+//     */
+//    protected void updateLabelUIs() {
+//        if ( getLabelTable() == null ) {
+//            return;
+//        }
+//        Enumeration labels = getLabelTable().keys();
+//        while ( labels.hasMoreElements() ) {
+//            Object value = getLabelTable().get( labels.nextElement() );
+//            if ( value instanceof JComponent ) {
+//                JComponent component = (JComponent)value;
+//                component.updateUI();
+//                component.setSize( component.getPreferredSize()  );
+//            }
+//        }
+//    }
+//    private void updateLabelSizes() {
+//        Dictionary labelTable = getLabelTable();
+//        if (labelTable != null) {
+//            Enumeration labels = labelTable.elements();
+//            while (labels.hasMoreElements()) {
+//                Object value = labels.nextElement();
+//                if (value instanceof JComponent) {
+//                    JComponent component = (JComponent)value;
+//                    component.setSize(component.getPreferredSize());
+//                }
+//            }
+//        }
+//    }
+//    
+//    /**
+//     * Determines whether labels are painted on the slider.
+//     * <p>
+//     * This method will also set up a label table for you.
+//     * If there is not already a label table, and the major tick spacing is
+//     * {@code > 0},
+//     * a standard label table will be generated (by calling
+//     * {@code createStandardLabels}) with labels at the major tick marks.
+//     * The label table is then set on the slider by calling
+//     * {@code setLabelTable}.
+//     * <p>
+//     * By default, this property is {@code false}.
+//     *
+//     * @param  b  whether or not to paint labels
+//     * @see #getPaintLabels
+//     * @see #getLabelTable
+//     * @see #createStandardLabels(int)
+//     * @beaninfo
+//     *        bound: true
+//     *    attribute: visualUpdate true
+//     *  description: If true labels are painted on the slider.
+//     */
+//    public void setPaintLabels(boolean b) {
+//        boolean oldValue = paintLabels;
+//        paintLabels = b;
+////        if ( labelTable == null && getMajorTickSpacing() > 0 ) {
+////            setLabelTable( createStandardLabels( getMajorTickSpacing() ) );
+////        }
+//        firePropertyChange("paintLabels", oldValue, paintLabels);
+//        if (paintLabels != oldValue) {
+//            revalidate();
+//            repaint();
+//        }
+//    } 
+//    
+//    /**
+//     * Tells if tick marks are to be painted.
+//     * @return true if tick marks are painted, else false
+//     * @see #setPaintTicks
+//     */
+//    public boolean getPaintTicks() { 
+//        return paintTicks; 
+//    }
+//
+//
+//    /**
+//     * Determines whether tick marks are painted on the slider.
+//     * By default, this property is {@code false}.
+//     *
+//     * @param  b  whether or not tick marks should be painted
+//     * @see #getPaintTicks
+//     * @beaninfo
+//     *        bound: true
+//     *    attribute: visualUpdate true
+//     *  description: If true tick marks are painted on the slider.
+//     */
+//    public void setPaintTicks(boolean b) { 
+//        boolean oldValue = paintTicks;
+//        paintTicks = b;
+//        firePropertyChange("paintTicks", oldValue, paintTicks);
+//        if (paintTicks != oldValue) {
+//            revalidate();
+//            repaint();
+//        }
+//    }
+//    
+//    /**
+//     * Creates a {@code Hashtable} of numerical text labels, starting at the
+//     * slider minimum, and using the increment specified.
+//     * For example, if you call <code>createStandardLabels( 10 )</code>
+//     * and the slider minimum is zero,
+//     * then labels will be created for the values 0, 10, 20, 30, and so on.
+//     * <p>
+//     * For the labels to be drawn on the slider, the returned {@code Hashtable}
+//     * must be passed into {@code setLabelTable}, and {@code setPaintLabels}
+//     * must be set to {@code true}.
+//     * <p>
+//     * For further details on the makeup of the returned {@code Hashtable}, see
+//     * the {@code setLabelTable} documentation.
+//     *
+//     * @param  increment  distance between labels in the generated hashtable
+//     * @return a new {@code Hashtable} of labels
+//     * @see #setLabelTable
+//     * @see #setPaintLabels
+//     * @throws IllegalArgumentException if {@code increment} is less than or
+//     *		equal to zero
+//     */
+//    public Hashtable createStandardLabels( int increment ) {
+//        return createStandardLabels( increment, getMinimum() );
+//    }
+//    
+//    /**
+//     * Creates a {@code Hashtable} of numerical text labels, starting at the
+//     * starting point specified, and using the increment specified.
+//     * For example, if you call
+//     * <code>createStandardLabels( 10, 2 )</code>,
+//     * then labels will be created for the values 2, 12, 22, 32, and so on.
+//     * <p>
+//     * For the labels to be drawn on the slider, the returned {@code Hashtable}
+//     * must be passed into {@code setLabelTable}, and {@code setPaintLabels}
+//     * must be set to {@code true}.
+//     * <p>
+//     * For further details on the makeup of the returned {@code Hashtable}, see
+//     * the {@code setLabelTable} documentation.
+//     *
+//     * @param  increment  distance between labels in the generated hashtable
+//     * @param  start      value at which the labels will begin
+//     * @return a new {@code Hashtable} of labels
+//     * @see #setLabelTable
+//     * @see #setPaintLabels
+//     * @exception IllegalArgumentException if {@code start} is
+//     * 		out of range, or if {@code increment} is less than or equal
+//     *		to zero
+//     */
+//    public Hashtable createStandardLabels( int increment, int start ) {
+//        if ( start > getMaximum() || start < getMinimum() ) {
+//            throw new IllegalArgumentException( "Slider label start point out of range." );
+//        }
+//
+//        if ( increment <= 0 ) {
+//            throw new IllegalArgumentException( "Label incremement must be > 0" );
+//        }
+//
+//        class SmartHashtable extends Hashtable implements PropertyChangeListener {
+//            int increment = 0;
+//            int start = 0;
+//            boolean startAtMin = false;
+//
+//            class LabelUIResource extends JLabel implements UIResource {
+//                public LabelUIResource( String text, int alignment ) {
+//                    super( text, alignment );
+//                    setName("Slider.label");
+//                }
+//
+//		public Font getFont() {
+//		    Font font = super.getFont();
+//		    if (font != null && !(font instanceof UIResource)) {
+//			return font;
+//		    }
+//		    return JRangeSlider.this.getFont();
+//		}
+//
+//		public Color getForeground() {
+//		    Color fg = super.getForeground();
+//		    if (fg != null && !(fg instanceof UIResource)) {
+//			return fg;
+//		    }
+//		    if (!(JRangeSlider.this.getForeground() instanceof UIResource)) {
+//			return JRangeSlider.this.getForeground();
+//		    }
+//		    return fg;
+//		}
+//            }
+//
+//            public SmartHashtable( int increment, int start ) {
+//                super();
+//                this.increment = increment;
+//                this.start = start;
+//                startAtMin = start == getMinimum();
+//                createLabels();
+//            }
+//
+//            public void propertyChange( PropertyChangeEvent e ) {
+//                if ( e.getPropertyName().equals( "minimum" ) && startAtMin ) {
+//                    start = getMinimum();
+//                }
+//
+//                if ( e.getPropertyName().equals( "minimum" ) ||
+//                     e.getPropertyName().equals( "maximum" ) ) {
+//
+//                    Enumeration keys = getLabelTable().keys();
+//                    Object key = null;
+//                    Hashtable hashtable = new Hashtable();
+//
+//                    // Save the labels that were added by the developer
+//                    while ( keys.hasMoreElements() ) {
+//                        key = keys.nextElement();
+//                        Object value = getLabelTable().get( key );
+//                        if ( !(value instanceof LabelUIResource) ) {
+//                            hashtable.put( key, value );
+//                        }
+//                    }
+//
+//                    clear();
+//                    createLabels();
+//
+//                    // Add the saved labels
+//                    keys = hashtable.keys();
+//                    while ( keys.hasMoreElements() ) {
+//                        key = keys.nextElement();
+//                        put( key, hashtable.get( key ) );
+//                    }
+//
+//                    ((JSlider)e.getSource()).setLabelTable( this );
+//                }
+//            }
+//
+//            void createLabels() {
+//                for ( int labelIndex = start; labelIndex <= getMaximum(); labelIndex += increment ) {
+//                    put( new Integer( labelIndex ), new LabelUIResource( ""+labelIndex, JLabel.CENTER ) );
+//                }
+//            }
+//        }
+//
+//        SmartHashtable table = new SmartHashtable( increment, start );
+//
+//        if ( getLabelTable() != null && (getLabelTable() instanceof PropertyChangeListener) ) {
+//            removePropertyChangeListener( (PropertyChangeListener)getLabelTable() );
+//        }
+//
+//        addPropertyChangeListener( table );
+//
+//        return table;
+//    }
+//	// end by Corinna
 	
 	// ------------------------------------------------------------------------
 	// Rendering

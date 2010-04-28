@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import owl.gmbp.CMPdb_sphoxel;
 import owl.gmbp.CSVhandler;
 
 import cmview.ContactMapPane;
+import cmview.Start;
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -44,6 +46,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	protected static final Dimension defaultDim = new Dimension(1600, 800);
 	protected static final float g2dRatio = 0.5f; // H/W
+	protected static final double defaultMinAllowedRat = -3;
+	protected static final double defaultMaxAllowedRat = 1;
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
@@ -95,7 +99,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Color squareSelColor;	  		// color of selection rectangle
 	private Color crosshairColor;     		// color of crosshair	
 	private Color selAngleRangeColor;       // color for selected rectangles
-	private Color longitudeColor;			// color for longitudes and latitudes
+	private Color longitudeColor;			// color for longitudes
+	private Color latitudeColor;			// color for latitudes
 	
 	// selections 
 //	private FloatPairSet phiRanges;			// permanent list of currently selected phi ranges
@@ -116,10 +121,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private char iRes='A', jRes='A';
 	private char iSSType='H', jSSType='H';
 	private boolean diffSStype=false;
-	private String iResType="Ala", jResType="Ala";
+	//	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
 	private String jAtom = "CA";
+	private char[] nbhsRes;
 	
 	private String db = "bagler_all5p0";
 	
@@ -130,6 +136,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private double minRatio = 0;
 	private double maxRatio = 0;
 	private float minr=2.0f, maxr=12.8f;
+	private float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
+	private boolean radiusRangesFixed = true;
+	private String radiusPrefix = "rSR";
 	// NBHStraces-Data
 	private CMPdb_nbhString_traces nbhsTraces;
 	private Vector<float[]> nbhsNodes;
@@ -141,14 +150,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
 	private float resol = CMPdb_sphoxel.defaultResol; //CMPdb_sphoxel.getDefaultResol();
 	private final int border = 0; //15;
-	private final int yBorderThres = 45;
+	private final int yBorderThres = 0; //45;
 	private float pixelWidth = 5*36/this.numSteps; // change in dependence of numSteps
 	private float pixelHeight = this.pixelWidth; //5*36/this.numSteps;	
 	private float voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI); //pixelWidth;
 
-	private boolean removeOutliers = false;
-	private double minAllowedRat = -3;
-	private double maxAllowedRat = 1;
+	private boolean removeOutliers = true;
+	private double minAllowedRat = defaultMinAllowedRat;
+	private double maxAllowedRat = defaultMaxAllowedRat;
 	
 	private boolean paintCentralResidue = true;
 	
@@ -216,11 +225,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.crosshairColor = Color.yellow;
 		this.selAngleRangeColor = Color.black;
 		this.longitudeColor = Color.black;
+		this.latitudeColor = this.longitudeColor;
 		
 		this.dragging = false;
-//		this.selContacts = new IntPairSet();
-//		this.phiRanges = new FloatPairSet();
-//		this.thetaRanges = new FloatPairSet();
 		this.selContacts = new Vector<Pair<Integer>>();
 		this.phiRanges = new Vector<Pair<Float>>();
 		this.thetaRanges = new Vector<Pair<Float>>();
@@ -253,14 +260,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcParam() throws SQLException{
 		calcSphoxelParam();
-//		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.db);
-//		setSphoxelParam();
+		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.db);
+//		setSphoxelParam(); // performed within calcSphoxel		
 		calcSphoxel();
 
 		calcTracesParam();	
 		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 		setTracesParam();
-//		calcNbhsTraces();	
+		calcNbhsTraces();	
 	}
 	
 	private void calcTracesParam(){
@@ -269,14 +276,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.jAtom = this.mod.edgeType;
 		this.nbhString = nbhood.getNbString();
 		this.nbhStringL = "%";
+		int count = 0;
+		this.nbhsRes = new char[this.nbhString.length()];
 		for (int i=0; i<this.nbhString.length(); i++){
 			this.nbhStringL += this.nbhString.charAt(i);
 			this.nbhStringL += "%";
+			this.nbhsRes[count] = this.nbhString.charAt(i);
+			count++;
 		}
 		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
+
 	}
 	
-	private void calcSphoxelParam(){
+	public void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
 		Pair<Integer> currentResPair = this.cmPane.getmousePos();
 		calcSphoxelParam(currentResPair);
@@ -285,18 +297,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void calcSphoxelParam(Pair<Integer> currentResPair){
 		this.iNum = currentResPair.getFirst();
 		this.jNum = currentResPair.getSecond();
-		System.out.println("first:"+this.iNum+"  second:"+this.jNum);
+//		System.out.println("first:"+this.iNum+"  second:"+this.jNum);
 		
 		// use pair to get iRes and jRes, isstype, nbhstring
 		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
 		nodeJ = this.mod.getNodeFromSerial(this.jNum);		
 		this.iRes = this.nodeI.toString().charAt(this.nodeI.toString().length()-1);
 		this.jRes = nodeJ.toString().charAt(nodeJ.toString().length()-1);
-		System.out.println("this.nodeI="+this.nodeI.toString()+"-->"+iRes+"  this.nodeI="+nodeJ.toString()+"-->"+jRes);
+//		System.out.println("this.nodeI="+this.nodeI.toString()+"-->"+iRes+"  this.nodeI="+nodeJ.toString()+"-->"+jRes);
 		
-		this.iResType = this.nodeI.getResidueType();
-		this.jResType = this.nodeJ.getResidueType();
-		System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
+//		this.iResType = this.nodeI.getResidueType();
+//		this.jResType = this.nodeJ.getResidueType();
+//		System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
 
 		// Definition of sstype and jatom
 		SecStrucElement iSSelem = this.nodeI.getSecStrucElement();
@@ -304,6 +316,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if (iSSelem == null){
 			System.out.println("No SSelement!");
 			this.diffSStype = false;
+			this.iSSType = CMPdb_sphoxel.AnySStype;
 		}
 		else{
 			if (iSSelem.isHelix())
@@ -315,34 +328,35 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			else if (iSSelem.isTurn())
 				this.iSSType = SecStrucElement.TURN;
 			
-			System.out.println("i secStrucElement: "+this.iSSType);
-//			System.out.println("j secStrucElement: "+nodeJ.getSecStrucElement().getType());
 			this.diffSStype = true;
 		}
-		SecStrucElement jSSelem = nodeJ.getSecStrucElement();
-		if (jSSelem == null){
-			System.out.println("No JSSelement!");
-//			this.diffSStype = false;
-		}
-		else{
-			if (jSSelem.isHelix())
-				this.jSSType = SecStrucElement.HELIX;
-			else if (jSSelem.isOther())
-				this.jSSType = SecStrucElement.OTHER;
-			else if (jSSelem.isStrand())
-				this.jSSType = SecStrucElement.STRAND;
-			else if (jSSelem.isTurn())
-				this.jSSType = SecStrucElement.TURN;
-			
-			System.out.println("j secStrucElement: "+this.jSSType);
-//			System.out.println("j secStrucElement: "+nodeJ.getSecStrucElement().getType());
-//			this.diffSStype = true;
-		}	
+//		System.out.println("i secStrucElement: "+this.iSSType);
+//		SecStrucElement jSSelem = nodeJ.getSecStrucElement();
+//		if (jSSelem == null){
+//			System.out.println("No JSSelement!");
+//			this.jSSType = this.sphoxel.AnySStype;
+//		}
+//		else{
+//			if (jSSelem.isHelix())
+//				this.jSSType = SecStrucElement.HELIX;
+//			else if (jSSelem.isOther())
+//				this.jSSType = SecStrucElement.OTHER;
+//			else if (jSSelem.isStrand())
+//				this.jSSType = SecStrucElement.STRAND;
+//			else if (jSSelem.isTurn())
+//				this.jSSType = SecStrucElement.TURN;
+//		}
+		// Standard jSStype=any --> no differentiation made
+		this.jSSType = CMPdb_sphoxel.AnySStype;
+//		System.out.println("j secStrucElement: "+this.jSSType);	
 	}
 	
 	private void setSphoxelParam(){
 		this.sphoxel.setDiffSSType(this.diffSStype); // set to true if you want to differentiate ssType
 		this.sphoxel.setISSType(this.iSSType);
+		this.sphoxel.setJSSType(this.jSSType);
+		this.sphoxel.setIRes(this.iRes);
+		this.sphoxel.setJRes(this.jRes);
 		this.sphoxel.setNumSteps(this.numSteps); // choose number of steps for resolution
 		this.sphoxel.setMinr(this.minr);
 		this.sphoxel.setMaxr(this.maxr);
@@ -352,64 +366,65 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void calcSphoxel() throws SQLException{
 		this.ratios = new double [this.numSteps][2*this.numSteps];
 		
-		// compute sphoxeldata		
-//		if (this.minr==2.0 && this.maxr==5.6)
-//			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[0]);
-//		else if (this.minr==5.6 && this.maxr==9.2)
-//			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[1]);
-//		else if (this.minr==9.2 && this.maxr==12.8)
-//			this.sphoxel.setRadiusPrefix(CMPdb_sphoxel.radiusRanges[2]);
-//		else 
-//			this.sphoxel.setRadiusPrefix("");
-//		if (this.sphoxel.getRadiusPrefix() == "")
-//			this.sphoxel.runBayes();
-//		else
-//			this.sphoxel.runBayesPreComp();
-//				
-//		this.ratios = this.sphoxel.getRatios();
-//		System.out.println("BayesRatios computed");		
-////		this.bayesRatios = sphoxel.getBayesRatios();
-//		this.minRatio = this.sphoxel.getMinRatio();
-//		this.maxRatio = this.sphoxel.getMaxRatio();
-		
+		if (this.radiusRangesFixed){
 
-		String fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
-		CSVhandler csv = new CSVhandler();
-		try {
-			this.bayesRatios = csv.readCSVfile3Ddouble(fn);
-			System.out.println("Dimensions: " + this.bayesRatios.length + " x " + this.bayesRatios[0].length);
-			System.out.println("NumSteps= "+this.numSteps+" --> "+this.bayesRatios.length);
-//			this.numSteps = this.bayesRatios.length;
-			setNumSteps(this.bayesRatios.length);
-			this.ratios = new double[this.bayesRatios.length][this.bayesRatios[0].length];
-			for (int i=0; i<this.bayesRatios.length; i++){
-				for (int j=0; j<this.bayesRatios[i].length; j++){
-					this.ratios[i][j] = this.bayesRatios[i][j][0];
+			if (this.minr==this.radiusThresholds[0] && this.maxr==this.radiusThresholds[1])
+				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[0];
+			else if (this.minr==this.radiusThresholds[1] && this.maxr==this.radiusThresholds[2])
+				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[1];
+			else if (this.minr==this.radiusThresholds[2] && this.maxr==this.radiusThresholds[3])
+				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[2];
+			
+			String fn = Start.SPHOXEL_DIR; // "/Users/vehlow/Documents/workspace/outputFiles/sphoxelBG/";
+			fn = fn+"sphoxelBG_"+this.iRes+"-"+String.valueOf(this.iSSType).toLowerCase()+"_"+this.jRes+"-"
+				+String.valueOf(CMPdb_sphoxel.AnySStype).toLowerCase()+"_"+this.radiusPrefix+".csv";
+			System.out.println("Filename= "+fn);
+			fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
+			
+			CSVhandler csv = new CSVhandler();
+			try {
+				this.bayesRatios = csv.readCSVfile3Ddouble(fn);
+				setNumSteps(this.bayesRatios.length);
+				this.ratios = new double[this.bayesRatios.length][this.bayesRatios[0].length];
+				for (int i=0; i<this.bayesRatios.length; i++){
+					for (int j=0; j<this.bayesRatios[i].length; j++){
+						this.ratios[i][j] = this.bayesRatios[i][j][0];
+					}
 				}
+				for(int i=0;i<this.ratios.length;i++){ // dim for theta
+					for(int j=0;j<this.ratios[i].length;j++){ // dim for phi					                 
+						if (this.ratios[i][j]<this.minRatio)
+							this.minRatio = this.ratios[i][j];
+						if (this.ratios[i][j]>this.maxRatio)
+							this.maxRatio = this.ratios[i][j];
+					}  
+				}	
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			for(int i=0;i<this.ratios.length;i++){ // dim for theta
-				for(int j=0;j<this.ratios[i].length;j++){ // dim for phi					                 
-					if (this.ratios[i][j]<this.minRatio)
-						this.minRatio = this.ratios[i][j];
-					if (this.ratios[i][j]>this.maxRatio)
-						this.maxRatio = this.ratios[i][j];
-				}  
-			}	
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-//		this.contactView.contStatBar.getResolSlider().setValue(3);
-		this.contactView.contStatBar.getResolSlider().setEnabled(false);
+		else {
+			setSphoxelParam();
+							
+			this.sphoxel.runBayesPreComp();
+			this.ratios = this.sphoxel.getRatios();
+			System.out.println("BayesRatios computed");		
+//			this.bayesRatios = sphoxel.getBayesRatios();
+			this.minRatio = this.sphoxel.getMinRatio();
+			this.maxRatio = this.sphoxel.getMaxRatio();
+		}
 			
 	}
 	
 	public void recalcSphoxel() throws SQLException{
-		if (this.sphoxel.getNumSteps()!=this.numSteps || this.sphoxel.getMinr()!=this.minr || this.sphoxel.getMaxr()!=this.maxr){
-			setSphoxelParam();
+		if (this.sphoxel.getNumSteps()!=this.numSteps || this.sphoxel.getMinr()!=this.minr || this.sphoxel.getMaxr()!=this.maxr 
+				|| this.sphoxel.getIRes()!=this.iRes || this.sphoxel.getJRes()!=this.jRes 
+				|| this.sphoxel.getISSType()!=this.iSSType || this.sphoxel.getJSSType()!=this.jSSType || this.sphoxel.getDiffSSType()!=this.diffSStype){
+//			setSphoxelParam();
 			calcSphoxel();
 		}
 	}
@@ -423,6 +438,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		nbhsTraces.run();
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
+		
+		// FAKE
+		CSVhandler csv = new CSVhandler();
+		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
+		if (sFileName!=null){
+            System.out.println("Chosen path/file:" + sFileName);
+		}
+		else
+            System.out.println("No path chosen!");
+		try {
+			this.nbhsNodes = csv.readCSVfileVector(sFileName);
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.nbhString = "CPxHG";
+		this.nbhStringL = "%";
+		int count = 0;
+		this.nbhsRes = new char[this.nbhString.length()];
+		for (int i=0; i<this.nbhString.length(); i++){
+			this.nbhStringL += this.nbhString.charAt(i);
+			this.nbhStringL += "%";
+			this.nbhsRes[count] = this.nbhString.charAt(i);
+			count++;
+		}
+		// END FAKE
+		
 		// compute nbhstringTraces		
 		if (this.nbhsNodes.size()>0){
 			System.out.println("this.nbhsNodes.size(): "+this.nbhsNodes.size());
@@ -476,43 +521,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
-	/*------------------------ setters/getters --------------------*/
-	public void setMinR(float r){
-		this.minr = r;
-	}
-	public void setMaxR(float r){
-		this.maxr = r;
-	}
-	public void setNumSteps(int num){
-		this.numSteps = num;
-		this.resol = 180/(float)this.numSteps;
-	}
-	public void setResol(float res){
-		this.numSteps = (int) (180/res);
-		this.resol = 180/(float)this.numSteps;
-		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
-	}	
-	public Pair<Float> getOrigCoord(){
-		return this.origCoordinates;
-	}
-	public float getVoxelsize(){
-		return this.voxelsize;
-	}
-	
-//	/**
-//	 * Sets the output size and updates the ratio and contact square size. This
-//	 * will affect all drawing operations. Used by print() method to change the
-//	 * output size to the size of the paper and back.
-//	 */
-//	protected void setOutputSize(int size) {
-//		outputSize = size;
-//		ratio = (double) outputSize/numSteps;		// scale factor, = size
-////		// of one pixel
-////		this.pixelWidth =  (float) ratio; 			// the size of the
-////		this.pixelHeight = (float) ratio;
-////		// square representing a sphoxel
-//	}
-	
 	/*------------------------ writing methods --------------------*/
 	public void writeSphoxels(String filename){
 		this.sphoxel.writeSphoxelOutput(filename);
@@ -545,15 +553,21 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				xPos = translateXPixelCoordRespective2Orig(j*pixelWidth) +this.border;
 				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;				
 //				shape = new Rectangle2D.Float(xPos+this.border, yPos+this.border+this.yBorderThres, pixelWidth, pixelHeight);
-				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
-				
+				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);				
 				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
+				
 				// ----- remove outliers
+				double minRatio2Use = this.minRatio;
+				double maxRatio2Use = this.maxRatio;
 				if (this.removeOutliers){
-					if (this.minRatio<this.minAllowedRat)
-						this.minRatio = this.minAllowedRat;
-					if (this.maxRatio>this.maxAllowedRat)
-						this.maxRatio = this.maxAllowedRat;
+//					if (this.minRatio<this.minAllowedRat)
+//						this.minRatio = this.minAllowedRat;
+//					if (this.maxRatio>this.maxAllowedRat)
+//						this.maxRatio = this.maxAllowedRat;
+					if (minRatio2Use<this.minAllowedRat)
+						minRatio2Use = this.minAllowedRat;
+					if (maxRatio2Use>this.maxAllowedRat)
+						maxRatio2Use = this.maxAllowedRat;
 					if (val<this.minAllowedRat)
 						val = this.minAllowedRat;
 					else if (val>this.maxAllowedRat)
@@ -561,7 +575,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 								
 				// ----- compute alpha and set color	
-				float alpha = (float) (Math.abs(val)/Math.abs(minRatio));
+				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
+				if(val<0)
+					alpha = (float) (Math.abs(val)/Math.abs(minRatio2Use));
 				if (alpha>1.0f) alpha=1.0f;
 				if (alpha<0.0f) alpha=0.0f;
 //				val = -val;
@@ -584,190 +600,475 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
-	public void drawNbhsTraces(Graphics2D g2d){
-		Shape line = null;
+	public GeneralPath rhombusShape(double xC, double yC, double width, double height){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(xC-(width/2), yC);
+		shape.lineTo(xC, yC-(height/2));
+		shape.lineTo(xC+(width/2), yC);
+		shape.lineTo(xC, yC+(height/2));
+		shape.lineTo(xC-(width/2), yC);
+		return shape;
+	}
+	
+	public Color getNodeColor4SSType(int jSSTypeID){
+		Color col = Color.black;
+		switch (jSSTypeID){
+		case 0: // 'H'
+			col = (Color.magenta); break;
+		case 1: // 'S'
+			col = (Color.yellow); break;
+		case 2: // 'O'
+			col = (Color.cyan); break;
+		}
+		return col;
+	}
+	
+	public void drawNBHSNode(Graphics2D g2d, boolean specialRes, float[] node){
+		GeneralPath rhombus = null;
 		Shape circle = null;
-		float xPos, yPos, xPosNB=0, yPosNB=0;
-		int gID, iNum, jNum, gIdNB, iNumNB, jNumNB, jResID, jSSType;
-		float[] node, nbNode;
+		int iNum, jNum, jResID, jSSType;
+		double xPos, yPos;
+		Font f = new Font("Dialog", Font.PLAIN, 12);
 		float radius = 3.f;
+		String nodeName;
+		
+		iNum = (int) node[1];
+		jNum = (int) node[2];
+		jResID = (int) node[5];
+		jSSType = (int) node[6];
+//		xPos = (float) ((Math.PI+node[4]) *this.voxelsize);
+//		yPos = node[3]*this.voxelsize;
+		xPos = translateXPixelCoordRespective2Orig( (Math.PI+node[4]) *this.voxelsize )+this.border;
+		yPos = translateYPixelCoordRespective2Orig(node[3]*this.voxelsize) +this.border;
+		
+		// ---- draw geometric object for each residue
+		Color col = getNodeColor4SSType(jSSType);
+		g2d.setColor(col);
+		if (specialRes){
+			radius = 6.f;
+			// create rhombus for residue types contained in nbhstring
+			rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
+			g2d.draw(rhombus);
+			g2d.fill(rhombus);
+			f = new Font("Dialog", Font.PLAIN, 14);
+		}
+		else {
+			radius = 3.f;
+			// create ellipse for residue
+			circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
+			g2d.draw(circle);
+			g2d.fill(circle);
+			f = new Font("Dialog", Font.PLAIN, 12);
+		}
+		g2d.setFont(f);
+		nodeName = Character.toString(this.aas[jResID]) +" "+ String.valueOf(jNum-iNum);
+		if (specialRes)
+			g2d.setColor(Color.black);
+		else
+			g2d.setColor(new Color(70,70,70));
+		g2d.drawString(nodeName, (float)(xPos+radius), (float)(yPos+radius+this.yBorderThres));
+	}
+	
+	public void drawNBHSEdge(Graphics2D g2d, float[] node, int nodeID, int lineID, int j){
+		Shape line = null;
+		int gID, iNum, jNum, gIdNB, iNumNB, jNumNB; 
+		float[] nbNode;
+		ColorScale scale = new ColorScale();
+		Color col = null;
+		double xPos, yPos, xPosNB=0, yPosNB=0;
+		double xPosINum = (this.voxelsize*translateXCoordRespective2Orig(Math.PI)) +this.border;
+		double yPosINum = (this.voxelsize*translateYCoordRespective2Orig(Math.PI/2)) +this.border;
+		
+		gID = (int) node[0];
+		iNum = (int) node[1];
+		jNum = (int) node[2];
+//		xPos = (float) ((Math.PI+node[4]) *this.voxelsize) +this.border;
+//		yPos = node[3]*this.voxelsize +this.border;
+		xPos = translateXPixelCoordRespective2Orig( (Math.PI+node[4]) *this.voxelsize )+this.border;
+		yPos = translateYPixelCoordRespective2Orig(node[3]*this.voxelsize) +this.border;
+		
+		// --- gradient color edges between connected nodes
+		nbNode = (float[]) this.nbhsNodes.get(j);
+//		xPosNB = (Math.PI+nbNode[4])*this.voxelsize;
+//		yPosNB = nbNode[3]*this.voxelsize;
+		xPosNB = translateXPixelCoordRespective2Orig((Math.PI+nbNode[4])*this.voxelsize) + this.border;
+		yPosNB = translateYPixelCoordRespective2Orig(nbNode[3]*this.voxelsize) + this.border;
+		if (node[0]==nbNode[0] && node[1]==nbNode[1]){
+//			System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
+			float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
+//			ratio = ((this.maxDistsJRes[lineID]-this.minDistsJRes[lineID])*node[2] + this.minDistsJRes[lineID])/this.maxDistsJRes[lineID];
+//			System.out.print(ratio +"\t");
+			
+			// use ratio for color on scale
+//			g2d.setColor(scale.getColor4YellowRedScale(ratio, 1.0f));
+			g2d.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
+			
+			gIdNB = (int) nbNode[0];
+			iNumNB = (int) nbNode[1];
+			jNumNB = (int) nbNode[2];
+			if (gID==gIdNB && iNum==iNumNB){
+//				// -- equal scaling
+//				if (jNum-iNum < 0)
+//					ratio = -1 + (float)(jNum-this.minDistsJRes[lineID])/(float)(iNum-this.minDistsJRes[lineID]);
+//				else 
+//					ratio = (float)(jNum-iNum)/(float)(this.maxDistsJRes[lineID]-iNum);
+				
+//				// -- logarithmic scaling
+//				if (jNum-iNum < 0)
+//					ratio = -1 + (float)Math.log(jNum-this.minDistsJRes[lineID]+1)/(float)Math.log(iNum-this.minDistsJRes[lineID]+1);
+////					ratio = -1 + (float)Math.log10(jNum-this.minDistsJRes[lineID]+1)/(float)Math.log10(iNum-this.minDistsJRes[lineID]+1);
+//				else 
+//					ratio = (float)Math.log(jNum-iNum+1)/(float)Math.log(this.maxDistsJRes[lineID]-iNum+1);
+////					ratio = (float)Math.log10(jNum-iNum+1)/(float)Math.log10(this.maxDistsJRes[lineID]-iNum+1);
+//				System.out.print(iNum+"_"+jNum+"_"+this.minDistsJRes[lineID]+"_"+this.maxDistsJRes[lineID]+":"+ratio +"\t");
+//				g2d.setColor(scale.getColor4RGBscalePolar(ratio, 1.0f, 1));
+				
+				// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
+				int thres1 = 6; // 1-6:short range  6-25:middle range  25-n:long range
+				int thres2 = 25;
+				col = Color.black;
+				if (Math.abs(jNum-iNum)<=thres1){
+//					if (jNum-iNum < 0)
+//						ratio = -1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
+//					else 
+//						ratio = +1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
+					ratio = +1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
+					// scale on range 0.2:0.8
+					ratio = 0.2f + (ratio*(0.8f-0.2f));
+					col = scale.getColor4GreyValueRange(ratio, 1);
+				}
+				else if (Math.abs(jNum-iNum)<=thres2){
+					if (jNum-iNum < 0)
+						ratio = -1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
+					else 
+						ratio = +1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
+					col = scale.getColor4HotColdScale(ratio, 1.0f);
+				}
+				else {
+					if (jNum-iNum < 0)
+						ratio = -1.0f;
+					else 
+						ratio = +1.0f;
+					col = scale.getColor4HotColdScale(ratio, 1.0f);
+				}
+//				System.out.print(iNum+"_"+jNum+"_"+Math.abs(jNum-iNum)+":"+ratio +"\t");
+				g2d.setColor(col);					
+				
+				
+				if (iNum>jNum && iNum<jNumNB && this.paintCentralResidue){
+					// paint central residue
+//					circle = new Ellipse2D.Float( xPosINum-radius, yPosINum+this.yBorderThres-radius,2*radius, 2*radius);
+					
+					line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosINum, yPosINum+this.yBorderThres);		
+					g2d.draw(line);
+					line = new Line2D.Double(xPosINum, yPosINum+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+					g2d.draw(line);
+				}
+				else {
+					// -- test for distance
+					if (Math.abs(xPosNB-xPos) > this.xDim/2){
+						if (xPos<xPosNB){
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+							line = new Line2D.Double(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+						}
+						else{
+							line = new Line2D.Double(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+						}
+					}
+					else 
+					{
+						line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+						g2d.draw(line);
+					}
+				}	
+			}									
+			nodeID++;
+		}		
+
+//		// --- black edges between connected nodes
+//		nbNode = (float[]) this.nbhsNodes.get(j);
+//		xPosNB = (float) ((Math.PI+nbNode[4])*this.voxelsize);
+//		yPosNB = nbNode[3]*this.voxelsize;
+//		// if nodes have same gID and iNum --> connect through line
+//		if (node[0]==nbNode[0] && node[1]==nbNode[1]){
+//			g2d.setColor(Color.black);
+//			line = new Line2D.Double(xPos, yPos, xPosNB, yPosNB);		
+//			g2d.draw(line);
+//		}
+	}
+	
+	public void drawNBHSTraces(Graphics2D g2d){
+		int gID, iNum, jResID;
+		float[] node, nbNode;
 		int lineID = 0;
 		int nodeID = 0;
-		String nodeName;
-		float xPosINum = this.voxelsize*(float)(Math.PI);
-		float yPosINum = this.voxelsize*(float)(Math.PI/2);
-		
-		ColorScale scale = new ColorScale();
-		
-		g2d.setColor(Color.blue);
-		
-		Font f = new Font("Dialog", Font.PLAIN, 12);
-		g2d.setFont(f);
-		
-		if (this.nbhsNodes.size()>0){
-			for(int i=0; i<this.nbhsNodes.size(); i++){
-				node = (float[]) this.nbhsNodes.get(i);
-//				System.out.println("0:graphi_id + '\t' + 1:i_num + '\t' + 2:j_num + '\t' + 3:theta + '\t' + 4:phi");
-				gID = (int) node[0];
-				iNum = (int) node[1];
-				jNum = (int) node[2];
-				xPos = (float) ((Math.PI+node[4]) *this.voxelsize) +this.border;
-				yPos = node[3]*this.voxelsize +this.border;
-				jResID = (int) node[5];
-				jSSType = (int) node[6];
-				// ---- draw geometric object for each residue
-				circle = new Ellipse2D.Float( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
-				switch (jSSType){
-					case 0: // 'H'
-						g2d.setColor(Color.magenta); break;
-					case 1: // 'S'
-						g2d.setColor(Color.yellow); break;
-					case 2: // 'O'
-						g2d.setColor(Color.cyan); break;
-				}		
-				g2d.draw(circle);
-				g2d.fill(circle);
-				nodeName = Character.toString(this.aas[jResID]) +" "+ String.valueOf(jNum-iNum);
-				g2d.setColor(Color.black);
-				g2d.drawString(nodeName, xPos+radius, yPos+radius+this.yBorderThres);	
-				
-				while (this.numNodesPerLine[lineID]==0){
-					lineID++;
-					nodeID = 0;
-				}
-				int j=i+1;
-				
-				if (j<this.nbhsNodes.size()){				
-					// --- gradient color edges between connected nodes
-					nbNode = (float[]) this.nbhsNodes.get(j);
-					xPosNB = (float) ((Math.PI+nbNode[4])*this.voxelsize) +this.border;
-					yPosNB = nbNode[3]*this.voxelsize +this.border;
-					if (node[0]==nbNode[0] && node[1]==nbNode[1]){
-//						System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
-						float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
-						g2d.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
-						
-						gIdNB = (int) nbNode[0];
-						iNumNB = (int) nbNode[1];
-						jNumNB = (int) nbNode[2];
-						if (gID==gIdNB && iNum==iNumNB){						
-							// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
-							int thres1 = 6; // 1-6:short range  6-25:middle range  25-n:long range
-							int thres2 = 25;
-							Color col = Color.black;
-							if (Math.abs(jNum-iNum)<=thres1){
-								ratio = +1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
-								// scale on range 0.2:0.8
-								ratio = 0.2f + (ratio*(0.8f-0.2f));
-								col = scale.getColor4GreyValueRange(ratio, 1);
-							}
-							else if (Math.abs(jNum-iNum)<=thres2){
-								if (jNum-iNum < 0)
-									ratio = -1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
-								else 
-									ratio = +1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
-								col = scale.getColor4HotColdScale(ratio, 1.0f);
-							}
-							else {
-								if (jNum-iNum < 0)
-									ratio = -1.0f;
-								else 
-									ratio = +1.0f;
-								col = scale.getColor4HotColdScale(ratio, 1.0f);
-							}
-							System.out.print(iNum+"_"+jNum+"_"+Math.abs(jNum-iNum)+":"+ratio +"\t");
-							g2d.setColor(col);					
-							
-							
-							if (iNum>jNum && iNum<jNumNB && this.paintCentralResidue){
-								// paint central residue
-								circle = new Ellipse2D.Float( xPosINum-radius, yPosINum+this.yBorderThres-radius,2*radius, 2*radius);
-								
-								line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosINum, yPosINum+this.yBorderThres);		
-								g2d.draw(line);
-								line = new Line2D.Float(xPosINum, yPosINum+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-								g2d.draw(line);
-							}
-							else {
-								// -- test for distance
-								if (Math.abs(xPosNB-xPos) > this.xDim/2){
-									if (xPos<xPosNB){
-										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
-										g2d.draw(line);
-										line = new Line2D.Float(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-										g2d.draw(line);
-									}
-									else{
-										line = new Line2D.Float(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-										g2d.draw(line);
-										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
-										g2d.draw(line);
-									}
-								}
-								else 
-								{
-									line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-									g2d.draw(line);
-								}
-							}	
-						}									
-						nodeID++;
-					}	
-					else {
-						lineID++;
-					    System.out.println();
-						nodeID = 0;
-					}
 
-				}
+		int nbhsIndexC = 0;
+		boolean specialRes = false;
+				
+		for(int i=0; i<this.nbhsNodes.size(); i++){
+			
+			node = (float[]) this.nbhsNodes.get(i);
+//			System.out.println("0:graphi_id + '\t' + 1:i_num + '\t' + 2:j_num + '\t' + 3:theta + '\t' + 4:phi");
+			gID = (int) node[0];
+			iNum = (int) node[1];
+			jResID = (int) node[5];
+			
+			// ---- check if jResType is element of nbhstring
+			specialRes = false;
+			if (i>0){
+				nbNode = this.nbhsNodes.get(i-1);
+				if (nbNode[0]!=gID || nbNode[1]!=iNum)
+					nbhsIndexC = 0;				
+			}
+			// simple differentiation
+			if (this.nbhString.contains(String.valueOf(this.aas[jResID]))){
+				specialRes = true;
+			}
+			// ordering is of importance
+			if (nbhsIndexC > 0 && this.aas[jResID]==this.nbhsRes[nbhsIndexC-1])
+				specialRes = true;
+			if (this.aas[jResID] == this.nbhsRes[nbhsIndexC]){
+				specialRes = true;
+				nbhsIndexC++;
+			}				
+			
+			// ---- draw geometric object for each residue
+			drawNBHSNode(g2d, specialRes, node);				
+			
+			// jump over empty traces
+			while (this.numNodesPerLine[lineID]==0){
+				lineID++;
+				nodeID = 0;
+			}
+			int j=i+1;
+			
+			if (j<this.nbhsNodes.size()){				
+				drawNBHSEdge(g2d, node, nodeID, lineID, j);
 			}	
-		}		
+			else {
+				lineID++;
+//			    System.out.println();
+				nodeID = 0;
+			}		
+		}	
 		
 	}
 	
+//	public void drawNbhsTraces(Graphics2D g2d){
+//		Shape line = null;
+//		Shape circle = null;
+//		float xPos, yPos, xPosNB=0, yPosNB=0;
+//		int gID, iNum, jNum, gIdNB, iNumNB, jNumNB, jResID, jSSType;
+//		float[] node, nbNode;
+//		float radius = 3.f;
+//		int lineID = 0;
+//		int nodeID = 0;
+//		String nodeName;
+//		float xPosINum = this.voxelsize*(float)(Math.PI);
+//		float yPosINum = this.voxelsize*(float)(Math.PI/2);
+//		
+//		ColorScale scale = new ColorScale();
+//		
+//		g2d.setColor(Color.blue);
+//		
+//		Font f = new Font("Dialog", Font.PLAIN, 12);
+//		g2d.setFont(f);
+//		
+//		if (this.nbhsNodes.size()>0){
+//			for(int i=0; i<this.nbhsNodes.size(); i++){
+//				node = (float[]) this.nbhsNodes.get(i);
+////				System.out.println("0:graphi_id + '\t' + 1:i_num + '\t' + 2:j_num + '\t' + 3:theta + '\t' + 4:phi");
+//				gID = (int) node[0];
+//				iNum = (int) node[1];
+//				jNum = (int) node[2];
+//				xPos = (float) ((Math.PI+node[4]) *this.voxelsize) +this.border;
+//				yPos = node[3]*this.voxelsize +this.border;
+//				jResID = (int) node[5];
+//				jSSType = (int) node[6];
+//				// ---- draw geometric object for each residue
+//				circle = new Ellipse2D.Float( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
+//				switch (jSSType){
+//					case 0: // 'H'
+//						g2d.setColor(Color.magenta); break;
+//					case 1: // 'S'
+//						g2d.setColor(Color.yellow); break;
+//					case 2: // 'O'
+//						g2d.setColor(Color.cyan); break;
+//				}		
+//				g2d.draw(circle);
+//				g2d.fill(circle);
+//				nodeName = Character.toString(this.aas[jResID]) +" "+ String.valueOf(jNum-iNum);
+//				g2d.setColor(Color.black);
+//				g2d.drawString(nodeName, xPos+radius, yPos+radius+this.yBorderThres);	
+//				
+//				while (this.numNodesPerLine[lineID]==0){
+//					lineID++;
+//					nodeID = 0;
+//				}
+//				int j=i+1;
+//				
+//				if (j<this.nbhsNodes.size()){				
+//					// --- gradient color edges between connected nodes
+//					nbNode = (float[]) this.nbhsNodes.get(j);
+//					xPosNB = (float) ((Math.PI+nbNode[4])*this.voxelsize) +this.border;
+//					yPosNB = nbNode[3]*this.voxelsize +this.border;
+//					if (node[0]==nbNode[0] && node[1]==nbNode[1]){
+////						System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
+//						float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
+//						g2d.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
+//						
+//						gIdNB = (int) nbNode[0];
+//						iNumNB = (int) nbNode[1];
+//						jNumNB = (int) nbNode[2];
+//						if (gID==gIdNB && iNum==iNumNB){						
+//							// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
+//							int thres1 = 6; // 1-6:short range  6-25:middle range  25-n:long range
+//							int thres2 = 25;
+//							Color col = Color.black;
+//							if (Math.abs(jNum-iNum)<=thres1){
+//								ratio = +1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
+//								// scale on range 0.2:0.8
+//								ratio = 0.2f + (ratio*(0.8f-0.2f));
+//								col = scale.getColor4GreyValueRange(ratio, 1);
+//							}
+//							else if (Math.abs(jNum-iNum)<=thres2){
+//								if (jNum-iNum < 0)
+//									ratio = -1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
+//								else 
+//									ratio = +1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
+//								col = scale.getColor4HotColdScale(ratio, 1.0f);
+//							}
+//							else {
+//								if (jNum-iNum < 0)
+//									ratio = -1.0f;
+//								else 
+//									ratio = +1.0f;
+//								col = scale.getColor4HotColdScale(ratio, 1.0f);
+//							}
+//							System.out.print(iNum+"_"+jNum+"_"+Math.abs(jNum-iNum)+":"+ratio +"\t");
+//							g2d.setColor(col);					
+//							
+//							
+//							if (iNum>jNum && iNum<jNumNB && this.paintCentralResidue){
+//								// paint central residue
+//								circle = new Ellipse2D.Float( xPosINum-radius, yPosINum+this.yBorderThres-radius,2*radius, 2*radius);
+//								
+//								line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosINum, yPosINum+this.yBorderThres);		
+//								g2d.draw(line);
+//								line = new Line2D.Float(xPosINum, yPosINum+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//								g2d.draw(line);
+//							}
+//							else {
+//								// -- test for distance
+//								if (Math.abs(xPosNB-xPos) > this.xDim/2){
+//									if (xPos<xPosNB){
+//										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
+//										g2d.draw(line);
+//										line = new Line2D.Float(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//										g2d.draw(line);
+//									}
+//									else{
+//										line = new Line2D.Float(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//										g2d.draw(line);
+//										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
+//										g2d.draw(line);
+//									}
+//								}
+//								else 
+//								{
+//									line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//									g2d.draw(line);
+//								}
+//							}	
+//						}									
+//						nodeID++;
+//					}	
+//					else {
+//						lineID++;
+//					    System.out.println();
+//						nodeID = 0;
+//					}
+//
+//				}
+//			}	
+//		}		
+//		
+//	}
+	
 	protected void drawLongitudes(Graphics2D g2d){
+		// Laengengrad
 		g2d.setColor(this.longitudeColor);
-		float xS, xE, yS, yE;
+		double xS, xE, yS, yE;
 		Shape line;
-//		yS = (float) (translateYCoordRespective2Orig(0.0f) *this.voxelsize) +this.border;
-//		yE = (float) (translateYCoordRespective2Orig((float) Math.PI) *this.voxelsize) +this.border;
-		yS = (float) ((0.0f) *this.voxelsize) +this.border;
-		yE = (float) (Math.PI *this.voxelsize) +this.border;
-		xS = (float) (translateXCoordRespective2Orig(0.0f) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (float) (translateXCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (float) (translateXCoordRespective2Orig((float) Math.PI) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (float) (translateXCoordRespective2Orig((float) (3*Math.PI/2)) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-//		xS = (float) (translateXCoordRespective2Orig(0.0f) *this.voxelsize) +this.border;
-//		xE = (float) (translateXCoordRespective2Orig((float) (2*Math.PI)) *this.voxelsize) +this.border;
-		xS = (float) ((0.0f) *this.voxelsize) +this.border;
-		xE = (float) (((float) (2*Math.PI)) *this.voxelsize) +this.border;
-		yS = (float) (translateYCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
-		yE = yS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-		yS = (float) (translateYCoordRespective2Orig((float) (Math.PI/2)) *this.voxelsize) +this.border;
-		yE = yS;
-		line = new Line2D.Float(xS,yS,xE,yE);
-		g2d.draw(line);
-//		g2d.drawLine(xS, yS, xE, yE);
+
+		yS = ((0.0) *this.voxelsize) +this.border;
+		yE = (Math.PI *this.voxelsize) +this.border;
+//		yS = (translateYCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
+//		yE = (translateYCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
 		
+		xS = (translateXCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
+		xE = xS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		xS = (translateXCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;
+		xE = xS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		xS = (translateXCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
+		xE = xS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		xS = (translateXCoordRespective2Orig(3*Math.PI/2) *this.voxelsize) +this.border;
+		xE = xS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+	}
+	
+	protected void drawLatitudes(Graphics2D g2d){
+		// Breitengrad
+		g2d.setColor(this.latitudeColor);
+		double xS, xE, yS, yE;
+		Shape line;
+
+		xS = ((0.0f) *this.voxelsize) +this.border;
+		xE = (((2*Math.PI)) *this.voxelsize) +this.border;
+//		xS = (translateYCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
+//		xE = (translateYCoordRespective2Orig(2*Math.PI) *this.voxelsize) +this.border;
+		
+		yS = (translateYCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		yS = (translateYCoordRespective2Orig(Math.PI/4) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		yS = (translateYCoordRespective2Orig(3*Math.PI/4) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		
+		yS = (translateYCoordRespective2Orig(Math.PI-0.01) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		yS = (translateYCoordRespective2Orig(0+0.01) *this.voxelsize) +this.border;
+		yE = yS;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+	}
+	
+	protected void drawLongLatCentre(Graphics2D g2d){
 		float bcenterx = (this.origCoordinates.getFirst() * this.voxelsize) + this.border;
 		float bcentery = (this.origCoordinates.getSecond() * this.voxelsize) + this.border;
 		Shape circle = new Ellipse2D.Float(bcenterx-30, bcentery-30, 60, 60);
 		g2d.draw(circle);
-//		g2d.drawArc(bcenterx-30, bcentery-30, 60, 60,0,360);
 	}
 	
 	protected void drawCrosshair(Graphics2D g2d){
@@ -977,7 +1278,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		drawSphoxels(g2d);
-		drawNbhsTraces(g2d);
+		drawNBHSTraces(g2d);
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
 		if (dragging && contactView.getGUIState().getSelectionMode()==ContactGUIState.SelMode.RECT) {
@@ -990,6 +1291,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		} 
 		drawCrosshair(g2d);
 		drawLongitudes(g2d);
+		drawLatitudes(g2d);
+		drawLongLatCentre(g2d);
 		drawOccupiedAngleRanges(g2d);
 		drawSelectedAngleRange();
 	}
@@ -1010,6 +1313,84 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public Dimension getPanelSize(){
 		return this.g2dSize;
 	}
+
+	public void setRadiusRangesFixed(boolean radiusRangesFixed) {
+		this.radiusRangesFixed = radiusRangesFixed;
+	}
+
+	public boolean isRadiusRangesFixed() {
+		return radiusRangesFixed;
+	}
+	
+	public void setMinR(float r){
+		this.minr = r;
+	}
+	public void setMaxR(float r){
+		this.maxr = r;
+	}
+	public void setNumSteps(int num){
+		this.numSteps = num;
+		this.resol = 180/(float)this.numSteps;
+	}
+	public void setResol(float res){
+		this.numSteps = (int) (180/res);
+		this.resol = 180/(float)this.numSteps;
+		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
+	}	
+	public Pair<Float> getOrigCoord(){
+		return this.origCoordinates;
+	}
+	public float getVoxelsize(){
+		return this.voxelsize;
+	}
+
+	public boolean isDiffSStype() {
+		return diffSStype;
+	}
+	public void setDiffSStype(boolean diffSStype) {
+		this.diffSStype = diffSStype;
+		if (!this.diffSStype)
+			this.iSSType = CMPdb_sphoxel.AnySStype;
+	}
+
+	public boolean isRemoveOutliers() {
+		return removeOutliers;
+	}
+
+	public void setRemoveOutliers(boolean removeOutliers) {
+		this.removeOutliers = removeOutliers;
+	}
+
+	public double getMinAllowedRat() {
+		return minAllowedRat;
+	}
+
+	public void setMinAllowedRat(double minAllowedRat) {
+		this.minAllowedRat = minAllowedRat;
+	}
+
+	public double getMaxAllowedRat() {
+		return maxAllowedRat;
+	}
+
+	public void setMaxAllowedRat(double maxAllowedRat) {
+		this.maxAllowedRat = maxAllowedRat;
+	}
+
+	
+//	/**
+//	 * Sets the output size and updates the ratio and contact square size. This
+//	 * will affect all drawing operations. Used by print() method to change the
+//	 * output size to the size of the paper and back.
+//	 */
+//	protected void setOutputSize(int size) {
+//		outputSize = size;
+//		ratio = (double) outputSize/numSteps;		// scale factor, = size
+////		// of one pixel
+////		this.pixelWidth =  (float) ratio; 			// the size of the
+////		this.pixelHeight = (float) ratio;
+////		// square representing a sphoxel
+//	}
 	
 	/*---------------------------- mouse events -----------------------------*/
 
@@ -1054,7 +1435,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							+" , "+this.tmpThetaRange.getFirst()+"-"+this.tmpThetaRange.getSecond());
 				}				
 				dragging = false;
-//				this.repaint();
+				this.repaint();
 				return;
 				
 			case CLUSTER:
@@ -1069,11 +1450,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				float first = fac*resol; //this.tmpAngleComb.getFirst();
 				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
 				float second = fac*resol;
+				
+				second = (float) (Math.PI/2);   // --> panning just horizontally
 				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
 				System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
+				this.repaint();
 				return;
 			}
 			
@@ -1088,6 +1472,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// Called whenever the user moves the mouse
 		// while a mouse button is held down.
 
+		mouseMoved(evt); // TODO is this necessary? I tried getting rid of it
+		// but wasn't quite working
+
 		if(lastMouseButtonPressed == MouseEvent.BUTTON1) {
 			dragging = true;
 			mouseDraggingPos = evt.getPoint();
@@ -1101,14 +1488,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				float first = fac*resol; //this.tmpAngleComb.getFirst();
 				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
 				float second = fac*resol;
+				
+				second = (float) (Math.PI/2);   // --> panning just horizontally
 				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				break;
 			}
 		}
-		mouseMoved(evt); // TODO is this necessary? I tried getting rid of it
-		// but wasn't quite working
 	} 
 
 	public void mouseEntered(MouseEvent evt) { 
@@ -1157,6 +1544,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
         if (second>Math.PI)
         	first -= Math.PI;
         
+        second = (float) (Math.PI/2);   // --> panning just horizontally     	
 		this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
 		this.contactView.phiRuler.repaint();
 		this.contactView.thetaRuler.repaint();		
@@ -1184,4 +1572,5 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// TODO Auto-generated method stub	
 		System.out.println("keyReleased");	
 	}
+
 }
