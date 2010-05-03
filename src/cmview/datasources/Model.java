@@ -805,7 +805,7 @@ public abstract class Model {
 	}
 
 	public TinkerRunner runTinker(TinkerStatusNotifier tinkerStatusNotifier, TinkerRunner.PARALLEL parallel,
-			TinkerRunner.REFINEMENT refinement, int models, boolean gmbp, String tmpDir) {
+			TinkerRunner.REFINEMENT refinement, int models, boolean gmbp, boolean ss,String tmpDir) {
 		TinkerRunner tinker = null;
 		try {
 			tinker = new TinkerRunner(Start.TINKER_BINPATH,
@@ -814,6 +814,12 @@ public abstract class Model {
 			System.out.println("Error starting Distgeom run: "+e1.getMessage());
 		}
 
+		if (this.hasGMBPConstraints() && gmbp) {
+			tinker.setAdditionalConstraints(this.gmbp.getConstraints());
+		}
+		if (ss) {
+			tinker.addSSConstraints(this.secondaryStructure);
+		}
 		try {
 			tinker.setNotifier(tinkerStatusNotifier);
 			if (Start.TINKER_TEMP_DIR != null) {
@@ -965,7 +971,10 @@ public abstract class Model {
 	}
 
 	public boolean hasGMBPConstraints() {
-		return true;
+		if (this.gmbp == null) {
+			return false;
+		}
+		return this.gmbp.hasConstraints();
 	}
 
 }

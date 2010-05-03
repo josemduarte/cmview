@@ -20,11 +20,12 @@ public class TinkerRun implements Runnable {
 	private int models;
 	private TinkerRunner runner;
 	private boolean gmbp;
+	private boolean ss;
 	private String tmpDir;
 
 	
 	public TinkerRun(TinkerRunAction action, Model mod,
-			TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, boolean gmbp, String tmpDir) {
+			TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, boolean gmbp, boolean ss, String tmpDir) {
 			this.action = action;
 			this.mod = mod;
 			this.parallel = parallel;
@@ -32,6 +33,7 @@ public class TinkerRun implements Runnable {
 			this.models = models;
 			this.tmpDir = tmpDir;
 			this.gmbp = gmbp;
+			this.ss = ss;
 	}
 	
 	public void stop() {
@@ -54,7 +56,7 @@ public class TinkerRun implements Runnable {
 			
 			},
 			
-			parallel, refinement, models,gmbp,tmpDir);
+			parallel, refinement, models,gmbp,ss,tmpDir);
 		
 		action.sendStatus(TinkerRunner.STATE.LOADING);
 		

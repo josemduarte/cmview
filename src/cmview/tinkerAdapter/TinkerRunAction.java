@@ -29,13 +29,13 @@ public class TinkerRunAction {
 	private TinkerTable tableView;
 	public TinkerRunAction(View view, Model mod,
 			TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement,
-			int models, boolean gmbp) {
+			int models, boolean gmbp,boolean ss) {
 		this.view = view;
 		dialog = new TinkerProgressDialog(view, this, models);
 		String tmpDir;
 		try {
 			tmpDir = createTmpDir(Start.TEMP_DIR, "tinker");
-			tinkerRun = new TinkerRun(this, mod, parallel, refinement, models,gmbp,
+			tinkerRun = new TinkerRun(this, mod, parallel, refinement, models,gmbp,ss,
 					tmpDir);
 
 			thread = new Thread(tinkerRun);
@@ -105,7 +105,7 @@ public class TinkerRunAction {
 		}
 
 		new TinkerRunAction(null, mod1, TinkerRunner.PARALLEL.NONE,
-				TinkerRunner.REFINEMENT.MINIMIZATION, 1, false);
+				TinkerRunner.REFINEMENT.MINIMIZATION, 1, false,true);
 
 	}
 

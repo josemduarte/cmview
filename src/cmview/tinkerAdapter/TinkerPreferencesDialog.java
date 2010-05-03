@@ -43,6 +43,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	private SpinnerNumberModel numModelsSpinnerModel;
 	private TinkerAction callback;
 	private JCheckBox gmbpConstraints;
+	private JCheckBox secondaryStructureConstraints;
 	
 	public TinkerPreferencesDialog(JFrame f, TinkerAction cb,boolean hasGMBP) {
 		super(f, WINDOW_TITLE, true);
@@ -74,6 +75,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		numModelsSpinnerModel = new SpinnerNumberModel(3, 1, 250, 1);
 		numModelsSpinner = new JSpinner(numModelsSpinnerModel);
 		gmbpConstraints = new JCheckBox("Apply GMBP Constraints");
+		secondaryStructureConstraints = new JCheckBox("Apply Secondary Structure Constraints");
 		if (hasGMBP) {
 			gmbpConstraints.setEnabled(true);
 			gmbpConstraints.setSelected(true);
@@ -81,6 +83,8 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 			gmbpConstraints.setEnabled(false);
 			gmbpConstraints.setSelected(false);
 		}
+		secondaryStructureConstraints.setEnabled(true);
+		secondaryStructureConstraints.setSelected(true);
 		
 		JPanel inputPane = new JPanel();
 		JLabel labelAfterRefinement = new JLabel("Refinement Method");
@@ -92,8 +96,10 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		inputPane.add(labelAfterParallelization);
 		inputPane.add(numModelsSpinner);
 		inputPane.add(labelAfterNumModels);
-
-		GridLayout layout = new GridLayout(3, 3);
+		inputPane.add(gmbpConstraints);
+		inputPane.add(secondaryStructureConstraints);
+		
+		GridLayout layout = new GridLayout(4, 3);
 		layout.setHgap(5);
 		inputPane.setLayout(layout);
 
@@ -158,6 +164,10 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 		return gmbpConstraints.isSelected();
 	}
 	
+	private boolean getSS() {
+		return secondaryStructureConstraints.isSelected();
+	}
+	
 	private int getNumModels() {
 	
 		return numModelsSpinnerModel.getNumber().intValue();
@@ -165,7 +175,7 @@ public class TinkerPreferencesDialog extends JDialog implements ActionListener {
 	
 	
 	private void go() {
-		callback.doit(getParallel(),getRefinement(),getNumModels(),getGMBP());
+		callback.doit(getParallel(),getRefinement(),getNumModels(),getGMBP(),getSS());
 	}
 	
 	public void createGUI() {
