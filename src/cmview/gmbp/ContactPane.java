@@ -158,8 +158,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private boolean removeOutliers = true;
 	private double minAllowedRat = defaultMinAllowedRat;
 	private double maxAllowedRat = defaultMaxAllowedRat;
+	private int chosenColourScale = ContactStatusBar.BLUERED;
 	
 	private boolean paintCentralResidue = true;
+	private boolean mapProjection = false;
 	
 	private int xDim=0;
 	private int yDim=0;
@@ -531,12 +533,213 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	/*------------------------ drawing methods --------------------*/
 	
+	public GeneralPath rhombusShape(double xC, double yC, double width, double height){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(xC-(width/2), yC);
+		shape.lineTo(xC, yC-(height/2));
+		shape.lineTo(xC+(width/2), yC);
+		shape.lineTo(xC, yC+(height/2));
+		shape.lineTo(xC-(width/2), yC);
+		return shape;
+	}
+	
+	public GeneralPath nGon(Pair<Double> p1, Pair<Double> p2, Pair<Double> p3, Pair<Double> p4){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(p1.getFirst(), p1.getSecond());
+		shape.lineTo(p2.getFirst(), p2.getSecond());
+		shape.lineTo(p3.getFirst(), p3.getSecond());
+		shape.lineTo(p4.getFirst(), p4.getSecond());
+		shape.lineTo(p1.getFirst(), p1.getSecond());
+		return shape;
+	}
+	
+	public GeneralPath nGon(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(x1, y1);
+		shape.lineTo(x2, y2);
+		shape.lineTo(x3, y3);
+		shape.lineTo(x4, y4);
+		shape.lineTo(x1, y1);
+		return shape;
+	}
+	
+	public double phiKavrayskiy(double phiRad, double thetaRad){
+		double phi = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
+		return phi;
+	}
+	
+	/*
+	 * Transforms Radian values to Screen-position values
+	 * Expects values for theta[0:Pi] and phi[0:2Pi]
+	 * */
+	public Pair<Double> getScreenPosFromRad(double phiRad, double thetaRad){
+		Pair<Double> pos; // = new Pair(0,0);
+		double xPos, yPos;	
+		
+		if (this.mapProjection){
+			thetaRad = translateYCoordRespective2Orig(thetaRad);
+			phiRad = translateXCoordRespective2Orig(phiRad);
+			phiRad -= Math.PI;
+			thetaRad -= (Math.PI/2);
+			
+			yPos = thetaRad +(Math.PI/2);
+			xPos = phiKavrayskiy(phiRad, thetaRad);		
+			xPos = ( (Math.PI+xPos) *this.voxelsize )+this.border;
+			yPos = (yPos*this.voxelsize) +this.border;				
+		}
+		else {
+			phiRad -= Math.PI;
+			xPos = translateXPixelCoordRespective2Orig( (Math.PI+phiRad) *this.voxelsize )+this.border;
+			yPos = translateYPixelCoordRespective2Orig(thetaRad*this.voxelsize) +this.border;
+		}
+		
+		pos = new Pair<Double>(xPos, yPos);
+		return pos;
+	}
+	
+	public void drawSphoxelMap(Graphics2D g2d){
+		Shape shape = null;
+		double xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4;
+		double val;
+//		double thetaDeg, phiDeg; 
+		double thetaRad, phiRad;
+		Color col = Color.white; // = new Color(24,116,205,255);
+		ColorScale scale = new ColorScale();
+		double deltaRad = Math.PI/this.numSteps;
+//		double deltaDeg = 180/this.numSteps;
+		
+		g2d.setBackground(backgroundColor);
+		shape = new Rectangle2D.Float(0, 0, this.pixelWidth*this.ratios[0].length, this.pixelHeight*this.ratios.length);
+		g2d.setColor(backgroundColor);
+		g2d.draw(shape);
+		g2d.fill(shape);
+				
+		// ----- color representation -----
+		for(int i=0;i<ratios.length;i++){
+//			if (i==ratios.length - 2){
+//				int test = 0;
+//				int ff = test;
+//			}
+			for(int j=0;j<ratios[i].length;j++){
+//				thetaDeg = i*deltaDeg;
+				thetaRad = (i*deltaRad);
+//				phiDeg = 180 - (j*deltaDeg);
+				phiRad = (j*deltaRad);
+//				phiD = (j*deltaDeg);
+//				phiRad = (j*deltaRad);
+				
+//				xPos1 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+//				yPos1 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
+//				xPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+//				yPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();	
+//				thetaRad += deltaRad;
+//				xPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+//				yPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();
+//				xPos4 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+//				yPos4 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
+//				thetaRad -= deltaRad;
+//				shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
+				
+				if (this.mapProjection){
+					thetaRad = translateYCoordRespective2Orig(thetaRad);
+					phiRad = translateXCoordRespective2Orig(phiRad);
+					phiRad -= Math.PI;
+					thetaRad -= (Math.PI/2);
+					
+					yPos1 = thetaRad +(Math.PI/2);
+					xPos1 = phiKavrayskiy(phiRad, thetaRad);
+//					xPos1 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
+					yPos2 = yPos1;
+					xPos2 = phiKavrayskiy(phiRad+deltaRad, thetaRad);
+//					xPos2 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
+					thetaRad += deltaRad;
+					yPos3 = thetaRad +(Math.PI/2);
+					xPos3 = phiKavrayskiy(phiRad+deltaRad, thetaRad);
+//					xPos3 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
+					yPos4 = yPos3;
+					xPos4 = phiKavrayskiy(phiRad, thetaRad);
+//					xPos4 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
+					
+					xPos1 = ( (Math.PI+xPos1) *this.voxelsize )+this.border;
+					yPos1 = (yPos1*this.voxelsize) +this.border;
+					xPos2 = ( (Math.PI+xPos2) *this.voxelsize )+this.border;
+					yPos2 = (yPos2*this.voxelsize) +this.border;
+					xPos3 = ( (Math.PI+xPos3) *this.voxelsize )+this.border;
+					yPos3 = (yPos3*this.voxelsize) +this.border;
+					xPos4 = ( (Math.PI+xPos4) *this.voxelsize )+this.border;
+					yPos4 = (yPos4*this.voxelsize) +this.border;
+
+					shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);								
+				}
+				else {
+//					xPos = translateXPixelCoordRespective2Orig( (Math.PI+phiRad) *this.voxelsize )+this.border;
+//					yPos = translateYPixelCoordRespective2Orig(thetaRad*this.voxelsize) +this.border;				
+					xPos1 = j*pixelWidth;
+					yPos1 = i*pixelWidth;
+					xPos1 = translateXPixelCoordRespective2Orig(xPos1) +this.border;
+					yPos1 = translateYPixelCoordRespective2Orig(yPos1) +this.border;			
+					shape = nGon(xPos1, yPos1, xPos1+pixelWidth, yPos1, xPos1+pixelWidth, yPos1+pixelHeight, xPos1, yPos1+pixelHeight);
+//					shape = new Rectangle2D.Double(xPos1, yPos1, pixelWidth, pixelHeight);	
+				}
+				
+				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
+				
+				// ----- remove outliers
+				double minRatio2Use = this.minRatio;
+				double maxRatio2Use = this.maxRatio;
+				if (this.removeOutliers){
+					if (minRatio2Use<this.minAllowedRat)
+						minRatio2Use = this.minAllowedRat;
+					if (maxRatio2Use>this.maxAllowedRat)
+						maxRatio2Use = this.maxAllowedRat;
+					if (val<this.minAllowedRat)
+						val = this.minAllowedRat;
+					else if (val>this.maxAllowedRat)
+						val = this.maxAllowedRat;
+				}
+								
+				// ----- compute alpha and set color	
+				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
+				if(val<0){
+					alpha = (float) (Math.abs(val)/Math.abs(minRatio2Use));
+					val = -val/minRatio2Use;
+				}
+				else
+					val = val/maxRatio2Use;
+				if (alpha>1.0f) alpha=1.0f;
+				if (alpha<0.0f) alpha=0.0f;
+//				val = -val;
+				switch (this.chosenColourScale){
+				case ContactStatusBar.BLUERED:
+					col = scale.getColor4BlueRedScale(val,alpha); break;
+				case ContactStatusBar.HOTCOLD:
+					col = scale.getColor4HotColdScale(val, alpha);
+				case ContactStatusBar.RGB:
+					col = scale.getColor4RGBscalePolar((float)val, alpha, -1);
+				}
+				
+				g2d.setColor(col);
+//				g2d.setColor(Color.black); // Test purpose
+				g2d.draw(shape);
+				g2d.setColor(col);
+				g2d.fill(shape);
+//				if (xPos+pixelWidth > this.xDim)
+//					xPos -= xDim;
+//				if (yPos+pixelHeight > this.yDim)
+//					yPos -= yDim;
+//				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
+//				g2d.draw(shape);
+//				g2d.fill(shape);
+			}
+		}
+	}
+	
 	public void drawSphoxels(Graphics2D g2d){
 		Shape shape = null;
 		double xPos;
 		double yPos;
 		double val;
-		Color col; // = new Color(24,116,205,255);
+		Color col = Color.white; // = new Color(24,116,205,255);
 		ColorScale scale = new ColorScale();
 		
 		g2d.setBackground(backgroundColor);
@@ -553,7 +756,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				xPos = translateXPixelCoordRespective2Orig(j*pixelWidth) +this.border;
 				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;				
 //				shape = new Rectangle2D.Float(xPos+this.border, yPos+this.border+this.yBorderThres, pixelWidth, pixelHeight);
-				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);				
+				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);	
+//				shape = nGon(xPos, yPos, xPos+pixelWidth, yPos, xPos+pixelWidth, yPos+pixelHeight, xPos, yPos+pixelHeight);
+				
 				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
 				
 				// ----- remove outliers
@@ -576,12 +781,23 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 								
 				// ----- compute alpha and set color	
 				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
-				if(val<0)
+				if(val<0){
 					alpha = (float) (Math.abs(val)/Math.abs(minRatio2Use));
+					val = -val/minRatio2Use;
+				}
+				else
+					val = val/maxRatio2Use;
 				if (alpha>1.0f) alpha=1.0f;
 				if (alpha<0.0f) alpha=0.0f;
 //				val = -val;
-				col = scale.getColor4BlueRedScale(val,alpha);
+				switch (this.chosenColourScale){
+				case ContactStatusBar.BLUERED:
+					col = scale.getColor4BlueRedScale(val,alpha); break;
+				case ContactStatusBar.HOTCOLD:
+					col = scale.getColor4HotColdScale(val, alpha);
+				case ContactStatusBar.RGB:
+					col = scale.getColor4RGBscalePolar((float)val, alpha, -1);
+				}
 				
 				g2d.setColor(col);
 //				g2d.setColor(Color.black); // Test purpose
@@ -598,16 +814,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				g2d.fill(shape);
 			}
 		}
-	}
-	
-	public GeneralPath rhombusShape(double xC, double yC, double width, double height){
-		GeneralPath shape = new GeneralPath();
-		shape.moveTo(xC-(width/2), yC);
-		shape.lineTo(xC, yC-(height/2));
-		shape.lineTo(xC+(width/2), yC);
-		shape.lineTo(xC, yC+(height/2));
-		shape.lineTo(xC-(width/2), yC);
-		return shape;
 	}
 	
 	public Color getNodeColor4SSType(int jSSTypeID){
@@ -628,18 +834,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Shape circle = null;
 		int iNum, jNum, jResID, jSSType;
 		double xPos, yPos;
+		double thetaRad, phiRad;
 		Font f = new Font("Dialog", Font.PLAIN, 12);
 		float radius = 3.f;
 		String nodeName;
 		
 		iNum = (int) node[1];
 		jNum = (int) node[2];
+		thetaRad = node[3];
+		phiRad = node[4];
 		jResID = (int) node[5];
 		jSSType = (int) node[6];
-//		xPos = (float) ((Math.PI+node[4]) *this.voxelsize);
-//		yPos = node[3]*this.voxelsize;
-		xPos = translateXPixelCoordRespective2Orig( (Math.PI+node[4]) *this.voxelsize )+this.border;
-		yPos = translateYPixelCoordRespective2Orig(node[3]*this.voxelsize) +this.border;
+		
+		phiRad += Math.PI;
+		
+		xPos = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+		yPos = getScreenPosFromRad(phiRad, thetaRad).getSecond();
 		
 		// ---- draw geometric object for each residue
 		Color col = getNodeColor4SSType(jSSType);
@@ -676,23 +886,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		ColorScale scale = new ColorScale();
 		Color col = null;
 		double xPos, yPos, xPosNB=0, yPosNB=0;
-		double xPosINum = (this.voxelsize*translateXCoordRespective2Orig(Math.PI)) +this.border;
-		double yPosINum = (this.voxelsize*translateYCoordRespective2Orig(Math.PI/2)) +this.border;
+		double thetaRad, phiRad, thetaRadNB, phiRadNB;
+//		double xPosINum = (this.voxelsize*translateXCoordRespective2Orig(Math.PI)) +this.border;
+//		double yPosINum = (this.voxelsize*translateYCoordRespective2Orig(Math.PI/2)) +this.border;
+//		double xPosINum = (translateXPixelCoordRespective2Orig(this.voxelsize*Math.PI)) +this.border;
+//		double yPosINum = (translateYPixelCoordRespective2Orig(this.voxelsize*Math.PI/2)) +this.border;
+		double xPosINum = getScreenPosFromRad(Math.PI, Math.PI/2).getFirst();
+		double yPosINum = getScreenPosFromRad(Math.PI, Math.PI/2).getSecond();
 		
 		gID = (int) node[0];
 		iNum = (int) node[1];
 		jNum = (int) node[2];
-//		xPos = (float) ((Math.PI+node[4]) *this.voxelsize) +this.border;
-//		yPos = node[3]*this.voxelsize +this.border;
-		xPos = translateXPixelCoordRespective2Orig( (Math.PI+node[4]) *this.voxelsize )+this.border;
-		yPos = translateYPixelCoordRespective2Orig(node[3]*this.voxelsize) +this.border;
+		thetaRad = node[3];
+		phiRad = node[4];				
+		phiRad += Math.PI; // cause phi is expected to have a value of [0:pi]
+		xPos = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+		yPos = getScreenPosFromRad(phiRad, thetaRad).getSecond();
 		
 		// --- gradient color edges between connected nodes
 		nbNode = (float[]) this.nbhsNodes.get(j);
-//		xPosNB = (Math.PI+nbNode[4])*this.voxelsize;
-//		yPosNB = nbNode[3]*this.voxelsize;
-		xPosNB = translateXPixelCoordRespective2Orig((Math.PI+nbNode[4])*this.voxelsize) + this.border;
-		yPosNB = translateYPixelCoordRespective2Orig(nbNode[3]*this.voxelsize) + this.border;
+		thetaRadNB = nbNode[3];
+		phiRadNB = nbNode[4];
+		phiRadNB += Math.PI; // cause phi is expected to have a value of [0:pi]
+		xPosNB = getScreenPosFromRad(phiRadNB, thetaRadNB).getFirst();
+		yPosNB = getScreenPosFromRad(phiRadNB, thetaRadNB).getSecond();
+		
 		if (node[0]==nbNode[0] && node[1]==nbNode[1]){
 //			System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
 			float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
@@ -766,21 +984,21 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				else {
 					// -- test for distance
-					if (Math.abs(xPosNB-xPos) > this.xDim/2){
-						if (xPos<xPosNB){
-							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
-							g2d.draw(line);
-							line = new Line2D.Double(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-							g2d.draw(line);
-						}
-						else{
-							line = new Line2D.Double(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-							g2d.draw(line);
-							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
-							g2d.draw(line);
-						}
-					}
-					else 
+//					if (Math.abs(xPosNB-xPos) > this.xDim/2){
+//						if (xPos<xPosNB){
+//							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
+//							g2d.draw(line);
+//							line = new Line2D.Double(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//							g2d.draw(line);
+//						}
+//						else{
+//							line = new Line2D.Double(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//							g2d.draw(line);
+//							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
+//							g2d.draw(line);
+//						}
+//					}
+//					else 
 					{
 						line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
 						g2d.draw(line);
@@ -792,8 +1010,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 //		// --- black edges between connected nodes
 //		nbNode = (float[]) this.nbhsNodes.get(j);
-//		xPosNB = (float) ((Math.PI+nbNode[4])*this.voxelsize);
-//		yPosNB = nbNode[3]*this.voxelsize;
+//		xPosNB = (float) ((Math.PI+phiRadNB)*this.voxelsize);
+//		yPosNB = thetaRadNB*this.voxelsize;
 //		// if nodes have same gID and iNum --> connect through line
 //		if (node[0]==nbNode[0] && node[1]==nbNode[1]){
 //			g2d.setColor(Color.black);
@@ -860,147 +1078,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 	}
 	
-//	public void drawNbhsTraces(Graphics2D g2d){
-//		Shape line = null;
-//		Shape circle = null;
-//		float xPos, yPos, xPosNB=0, yPosNB=0;
-//		int gID, iNum, jNum, gIdNB, iNumNB, jNumNB, jResID, jSSType;
-//		float[] node, nbNode;
-//		float radius = 3.f;
-//		int lineID = 0;
-//		int nodeID = 0;
-//		String nodeName;
-//		float xPosINum = this.voxelsize*(float)(Math.PI);
-//		float yPosINum = this.voxelsize*(float)(Math.PI/2);
-//		
-//		ColorScale scale = new ColorScale();
-//		
-//		g2d.setColor(Color.blue);
-//		
-//		Font f = new Font("Dialog", Font.PLAIN, 12);
-//		g2d.setFont(f);
-//		
-//		if (this.nbhsNodes.size()>0){
-//			for(int i=0; i<this.nbhsNodes.size(); i++){
-//				node = (float[]) this.nbhsNodes.get(i);
-////				System.out.println("0:graphi_id + '\t' + 1:i_num + '\t' + 2:j_num + '\t' + 3:theta + '\t' + 4:phi");
-//				gID = (int) node[0];
-//				iNum = (int) node[1];
-//				jNum = (int) node[2];
-//				xPos = (float) ((Math.PI+node[4]) *this.voxelsize) +this.border;
-//				yPos = node[3]*this.voxelsize +this.border;
-//				jResID = (int) node[5];
-//				jSSType = (int) node[6];
-//				// ---- draw geometric object for each residue
-//				circle = new Ellipse2D.Float( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
-//				switch (jSSType){
-//					case 0: // 'H'
-//						g2d.setColor(Color.magenta); break;
-//					case 1: // 'S'
-//						g2d.setColor(Color.yellow); break;
-//					case 2: // 'O'
-//						g2d.setColor(Color.cyan); break;
-//				}		
-//				g2d.draw(circle);
-//				g2d.fill(circle);
-//				nodeName = Character.toString(this.aas[jResID]) +" "+ String.valueOf(jNum-iNum);
-//				g2d.setColor(Color.black);
-//				g2d.drawString(nodeName, xPos+radius, yPos+radius+this.yBorderThres);	
-//				
-//				while (this.numNodesPerLine[lineID]==0){
-//					lineID++;
-//					nodeID = 0;
-//				}
-//				int j=i+1;
-//				
-//				if (j<this.nbhsNodes.size()){				
-//					// --- gradient color edges between connected nodes
-//					nbNode = (float[]) this.nbhsNodes.get(j);
-//					xPosNB = (float) ((Math.PI+nbNode[4])*this.voxelsize) +this.border;
-//					yPosNB = nbNode[3]*this.voxelsize +this.border;
-//					if (node[0]==nbNode[0] && node[1]==nbNode[1]){
-////						System.out.print(nodeID +"\t" + lineID +"\t" + this.numNodesPerLine[lineID] +"\t");
-//						float ratio = (float)(nodeID+1)/(float)this.numNodesPerLine[lineID];
-//						g2d.setColor(scale.getColor4RGBscale(ratio, 1.0f, 1));
-//						
-//						gIdNB = (int) nbNode[0];
-//						iNumNB = (int) nbNode[1];
-//						jNumNB = (int) nbNode[2];
-//						if (gID==gIdNB && iNum==iNumNB){						
-//							// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
-//							int thres1 = 6; // 1-6:short range  6-25:middle range  25-n:long range
-//							int thres2 = 25;
-//							Color col = Color.black;
-//							if (Math.abs(jNum-iNum)<=thres1){
-//								ratio = +1 * (float)Math.abs(jNum-iNum)/(float)(thres1);
-//								// scale on range 0.2:0.8
-//								ratio = 0.2f + (ratio*(0.8f-0.2f));
-//								col = scale.getColor4GreyValueRange(ratio, 1);
-//							}
-//							else if (Math.abs(jNum-iNum)<=thres2){
-//								if (jNum-iNum < 0)
-//									ratio = -1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
-//								else 
-//									ratio = +1 * (float)(Math.abs(jNum-iNum)-thres1)/(float)(thres2-thres1);
-//								col = scale.getColor4HotColdScale(ratio, 1.0f);
-//							}
-//							else {
-//								if (jNum-iNum < 0)
-//									ratio = -1.0f;
-//								else 
-//									ratio = +1.0f;
-//								col = scale.getColor4HotColdScale(ratio, 1.0f);
-//							}
-//							System.out.print(iNum+"_"+jNum+"_"+Math.abs(jNum-iNum)+":"+ratio +"\t");
-//							g2d.setColor(col);					
-//							
-//							
-//							if (iNum>jNum && iNum<jNumNB && this.paintCentralResidue){
-//								// paint central residue
-//								circle = new Ellipse2D.Float( xPosINum-radius, yPosINum+this.yBorderThres-radius,2*radius, 2*radius);
-//								
-//								line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosINum, yPosINum+this.yBorderThres);		
-//								g2d.draw(line);
-//								line = new Line2D.Float(xPosINum, yPosINum+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//								g2d.draw(line);
-//							}
-//							else {
-//								// -- test for distance
-//								if (Math.abs(xPosNB-xPos) > this.xDim/2){
-//									if (xPos<xPosNB){
-//										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
-//										g2d.draw(line);
-//										line = new Line2D.Float(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//										g2d.draw(line);
-//									}
-//									else{
-//										line = new Line2D.Float(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//										g2d.draw(line);
-//										line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
-//										g2d.draw(line);
-//									}
-//								}
-//								else 
-//								{
-//									line = new Line2D.Float(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//									g2d.draw(line);
-//								}
-//							}	
-//						}									
-//						nodeID++;
-//					}	
-//					else {
-//						lineID++;
-//					    System.out.println();
-//						nodeID = 0;
-//					}
-//
-//				}
-//			}	
-//		}		
-//		
-//	}
-	
 	protected void drawLongitudes(Graphics2D g2d){
 		// Laengengrad
 		g2d.setColor(this.longitudeColor);
@@ -1065,9 +1142,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	protected void drawLongLatCentre(Graphics2D g2d){
-		float bcenterx = (this.origCoordinates.getFirst() * this.voxelsize) + this.border;
-		float bcentery = (this.origCoordinates.getSecond() * this.voxelsize) + this.border;
-		Shape circle = new Ellipse2D.Float(bcenterx-30, bcentery-30, 60, 60);
+		double bcenterx, bcentery;
+		if (this.mapProjection){
+			bcenterx = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getFirst();
+			bcentery = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getSecond();
+		}
+		else {
+			bcenterx = (this.origCoordinates.getFirst() * this.voxelsize) + this.border;
+			bcentery = (this.origCoordinates.getSecond() * this.voxelsize) + this.border;
+		}
+		
+		Shape circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
 		g2d.draw(circle);
 	}
 	
@@ -1165,6 +1250,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public double translateXCoordRespective2Orig(double x){
 		double dx = (this.origCoordinates.getFirst() - Math.PI);
 		double xPos = x + dx;
+//		xPos = (int)(xPos*1000)/1000;
 		if (xPos > 2*Math.PI)
 			xPos -= (2*Math.PI);
 		else if (xPos < 0)
@@ -1175,16 +1261,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public double translateYCoordRespective2Orig(double y){
 		double dy = (this.origCoordinates.getSecond() - (Math.PI/2));
 		double yPos = y + dy;
-		if (yPos > Math.PI)
-			yPos -= Math.PI;
-		else if (yPos < 0)
-			yPos += Math.PI;
+//		yPos = (int)(yPos*1000)/1000;
+//		if (yPos > Math.PI)
+//			yPos -= Math.PI;
+//		else if (yPos < 0)
+//			yPos += Math.PI;
 		return yPos;
 	}
 	
 	public double translateXPixelCoordRespective2Orig(double x){
 		double dx = (this.origCoordinates.getFirst() - Math.PI) * this.voxelsize;
 		double xPos = x + dx;
+		xPos = (int)(xPos*1000)/1000;
 		if (xPos > 2*Math.PI* this.voxelsize)
 			xPos -= (2*Math.PI* this.voxelsize);
 		else if (xPos < 0)
@@ -1195,10 +1283,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public double translateYPixelCoordRespective2Orig(double y){
 		double dy = (this.origCoordinates.getSecond() - (Math.PI/2)) * this.voxelsize;
 		double yPos = y + dy;
-		if (yPos > Math.PI* this.voxelsize)
-			yPos -= Math.PI* this.voxelsize;
-		else if (yPos < 0)
-			yPos += Math.PI* this.voxelsize;
+//		yPos = (int)(yPos*1000)/1000;
+//		if (yPos > Math.PI* this.voxelsize)
+//			yPos -= Math.PI* this.voxelsize;
+//		else if (yPos < 0)
+//			yPos += Math.PI* this.voxelsize;
 		return yPos;
 	}
 	
@@ -1277,7 +1366,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.setBackground(this.backgroundColor);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		drawSphoxels(g2d);
+//		drawSphoxels(g2d);
+		drawSphoxelMap(g2d);
 		drawNBHSTraces(g2d);
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
@@ -1375,6 +1465,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void setMaxAllowedRat(double maxAllowedRat) {
 		this.maxAllowedRat = maxAllowedRat;
+	}
+
+
+	public int getChosenColourScale() {
+		return chosenColourScale;
+	}
+
+	public void setChosenColourScale(int chosenColourScale) {
+		this.chosenColourScale = chosenColourScale;
 	}
 
 	

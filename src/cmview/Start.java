@@ -38,7 +38,7 @@ public class Start {
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
-	public static final String		SPHOXEL_DIR = 			"/resources/sphoxelBG/";	// the directory containing the pre-calculated sphoxel backgrounds
+	public static final String		SPHOXEL_DIR = 			"/src/resources/sphoxelBG/";	// the directory containing the pre-calculated sphoxel backgrounds
 	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
 	/*---------------------------- configuration ---------------------------*/
 	

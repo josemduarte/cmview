@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -33,6 +34,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	protected static final int DEFAULT_WIDTH = 120;
 	protected static final int DEFAULT_HEIGHT = 500;
 	public static final float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
+	protected static final String[] colorStrings = {"BlueRed", "HotCold", "RGB"};
+	protected final static int BLUERED = 0;
+	protected final static int HOTCOLD = 1;
+	protected final static int RGB = 2;
 	
 	/*--------------------------- member variables --------------------------*/	
 	// settings
@@ -66,12 +71,14 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JCheckBox remOutliersButton;
 	private JTextField minRatioField;
 	private JTextField maxRatioField;
+	private JComboBox colorCBox;
 	
 	private boolean radiusRangesFixed = true;
 	private boolean diffSSType = true;
 	private boolean removeOutliers = true;
 	private double minAllowedRatio = ContactPane.defaultMinAllowedRat;
 	private double maxAllowedRatio = ContactPane.defaultMaxAllowedRat;
+	private int chosenColourScale = BLUERED;
 	
 	private final int minSlVal = (int) (radiusThresholds[0]*10);
 	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
@@ -334,7 +341,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		drawPropPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		drawPropPanel.setVisible(true);		
 //		drawPropPanel.setMinimumSize(new Dimension(groupWidth,10));
-		drawPropPanel.setPreferredSize(new Dimension(groupWidth,100));
+		drawPropPanel.setPreferredSize(new Dimension(groupWidth,130));
 		
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
@@ -352,20 +359,29 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		minRatioField.addActionListener(this);
 		maxRatioField.addActionListener(this);
 		JLabel minLabel = new JLabel("min=  ");
-		JLabel maxLabel = new JLabel("max= ");
+		JLabel maxLabel = new JLabel("max= ");		
+
+		colorCBox = new JComboBox(colorStrings);
+		colorCBox.setSelectedItem(chosenColourScale);
+		colorCBox.addActionListener(this);
+		JPanel colorPanel = new JPanel();
+		colorPanel.setLayout(new BoxLayout(colorPanel,BoxLayout.LINE_AXIS));
 		
 		buttonLinePanel.add(remOutliersButton, BorderLayout.LINE_START);
 		minLinePanel.add(minLabel, BorderLayout.LINE_START);
 		minLinePanel.add(minRatioField, BorderLayout.LINE_END);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxRatioField, BorderLayout.LINE_END);
+		colorPanel.add(colorCBox, BorderLayout.LINE_START);
 		drawPropPanel.add(buttonLinePanel);
 		drawPropPanel.add(minLinePanel);
 		drawPropPanel.add(maxLinePanel);
+		drawPropPanel.add(colorPanel);
 //		drawPropPanel.add(remOutliersButton);
 //		drawPropPanel.add(minRatioField);
 //		drawPropPanel.add(maxRatioField);
-		sphoxelGroup.add(drawPropPanel);		
+		sphoxelGroup.add(drawPropPanel);	
+		
 	}
 	/**
 	 * Toggles the visibility of the drawProp panel on or off.
@@ -447,10 +463,18 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		this.minAllowedRatio = Double.valueOf(minRatioField.getText());
-		this.maxAllowedRatio = Double.valueOf(maxRatioField.getText());
-		controller.handleChangeOutlierThresholds(this.minAllowedRatio, this.maxAllowedRatio);
-		System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);		
+		if (e.getSource() == this.colorCBox){
+//			this.chosenColourScale = colorStrings
+			this.chosenColourScale = this.colorCBox.getSelectedIndex();
+			controller.handleChangeColourScale(this.chosenColourScale);
+			System.out.println(this.colorCBox.getSelectedItem()+"  "+this.colorCBox.getSelectedIndex());
+		}
+		if (e.getSource()==this.minRatioField || e.getSource()==this.maxRatioField){
+			this.minAllowedRatio = Double.valueOf(minRatioField.getText());
+			this.maxAllowedRatio = Double.valueOf(maxRatioField.getText());
+			controller.handleChangeOutlierThresholds(this.minAllowedRatio, this.maxAllowedRatio);
+			System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);			
+		}
 	}
 	
 	private void updateRadiusValues(){

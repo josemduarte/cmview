@@ -4,9 +4,13 @@ import java.awt.Color;
 
 public class ColorScale {
 	
+	/*
+	 * BlueRedScale maps negative values onto blue and positive onto red colour with opacity alpha.
+	 * Alpha is scaled on a range from minAlpha:1.0
+	 * */
 	public Color getColor4BlueRedScale(double val, float alpha, float minAlpha){
 		float alphaScaled = minAlpha + (1-minAlpha)*alpha;
-		return getColor4HotColdScale(val, alphaScaled);
+		return getColor4BlueRedScale(val, alphaScaled);
 	}
 	
 	public Color getColor4BlueRedScale(double val, float alpha){
@@ -27,6 +31,11 @@ public class ColorScale {
 		return color;
 	}
 	
+	/*
+	 * HotColdScale maps negative values onto blue and positive onto red colour scale with opacity alpha.
+	 * The absolute value of val defines the blue/red shade.
+	 * Alpha is scaled on a range from minAlpha:1.0
+	 * */
 	public Color getColor4HotColdScale(double val, float alpha, float minAlpha){
 		float alphaScaled = minAlpha + (1-minAlpha)*alpha;
 		return getColor4HotColdScale(val, alphaScaled);
@@ -52,6 +61,7 @@ public class ColorScale {
 			blueComp = (minNegBC+((maxNegBC-minNegBC)*(float)(val)))/255;
 		}
 		else if (val>0){
+			val = 1-val;
 			// --> Mapping on red scale
 			redComp = (minPosRC+((maxPosRC-minPosRC)*(float)(val)))/255;
 			greenComp = (minPosGC+((maxPosGC-minPosGC)*(float)(val)))/255;
@@ -65,6 +75,9 @@ public class ColorScale {
 		return color;
 	}
 	
+	/*
+	 * YellowRedScale maps the values [0:1] onto a colour scale from yellow to red opacity alpha.
+	 * */
 	public Color getColor4YellowRedScale (float val, float alpha){
 		Color color;
 		float redComp=1.0f, greenComp=1.0f, blueComp=1.0f;
@@ -81,16 +94,35 @@ public class ColorScale {
 		return color;
 	}
 	
+	/*
+	 * YellowRedScale maps the values [0:1] onto a colour scale from yellow to red opacity alpha.
+	 * Alpha is scaled on a range from minAlpha:1.0
+	 * */
+	public Color getColor4YellowRedScale (float val, float alpha, float minAlpha){
+		float alphaScaled = minAlpha + (1-minAlpha)*alpha;
+		Color color = getColor4YellowRedScale(val, alphaScaled);
+		return color;
+	}
+	
+	/*
+	 * GreyValueRange maps the values [0:1] onto a grey value range with opacity alpha.
+	 * */
 	public Color getColor4GreyValueRange(float val, float alpha){
 		Color color = getColor4GreyValueRange(val, alpha, +1);
 		return color;
 	}
 	
+	/*
+	 * GreyValueRange maps the values [0:1] onto a grey value range with direction dir.
+	 * */
 	public Color getColor4GreyValueRange(float val, int dir){
 		Color color = getColor4GreyValueRange(val, 1.0f, dir);
 		return color;
 	}
 	
+	/*
+	 * GreyValueRange maps the values [0:1] onto a grey value range with direction dir and with opacity alpha.
+	 * */
 	public Color getColor4GreyValueRange(float val, float alpha, int dir){
 		Color color;
 		if (dir<0)
@@ -101,11 +133,29 @@ public class ColorScale {
 		return color;
 	}
 	
+	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * */
 	public Color getColor4RGBscale(float val, float alpha){
 		Color color = getColor4RGBscale(val, alpha, +1);
 		return color;
 	}
 	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * Alpha is scaled on a range from minAlpha:1.0
+	 * */
+	public Color getColor4RGBscale(float val, float alpha, float minAlpha){
+		float alphaScaled = minAlpha + (1-minAlpha)*alpha;
+		Color color = getColor4RGBscale(val, alphaScaled, +1);
+		return color;
+	}
+	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * RBG scale with certain direction dir>0:red-green-blue or dir<0:blue-green-red.
+	 * */
 	public Color getColor4RGBscale(float val, float alpha, int dir){
 		float rC=0, gC=0, bC=0;
 		float midpoint = 0.5f;
@@ -133,11 +183,32 @@ public class ColorScale {
 		return color;
 	}
 	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * Values val are mapped on a range green-blue or green-red (val<0 or val>0).
+	 * */
 	public Color getColor4RGBscalePolar(float val, float alpha){
 		Color color = getColor4RGBscalePolar(val, alpha, +1);
 		return color;
 	}
 	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * Values val are mapped on a range green-blue or green-red (val<0 or val>0).
+	 * Depending on dir --> val is inverted.
+	 * Alpha is scaled on a range from minAlpha:1.0
+	 * */
+	public Color getColor4RGBscalePolar(float val, float alpha, int dir, float minAlpha){
+		float alphaScaled = minAlpha + (1-minAlpha)*alpha;
+		Color color = getColor4RGBscalePolar(val, alphaScaled, dir);
+		return color;
+	}
+	
+	/*
+	 * RGBscale maps the values [0:1] onto RGB-colour range with opacity alpha.
+	 * Values val are mapped on a range green-blue or green-red (val<0 or val>0).
+	 * Depending on dir --> val is inverted.
+	 * */
 	public Color getColor4RGBscalePolar(float val, float alpha, int dir){
 		float rC=0, gC=0, bC=0;
 		float midpoint = 0.5f;
@@ -172,7 +243,7 @@ public class ColorScale {
 			bC = 0;
 		}
 		
-		System.out.println(val+":"+rC+"_"+gC+"_"+bC);
+//		System.out.println(val+":"+rC+"_"+gC+"_"+bC);
 		Color color = new Color(rC, gC, bC, alpha);
 		return color;
 	}

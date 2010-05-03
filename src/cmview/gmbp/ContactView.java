@@ -315,7 +315,7 @@ public class ContactView extends JFrame implements ActionListener{
 				File chosenFile = Start.getFileChooser().getSelectedFile();
 				if (confirmOverwrite(chosenFile)) {
 					// Create a buffered image in which to draw
-					BufferedImage bufferedImage = new BufferedImage(cmPane.getWidth(), cmPane.getHeight(), BufferedImage.TYPE_INT_RGB);
+					BufferedImage bufferedImage = new BufferedImage(cPane.getWidth(), cPane.getHeight(), BufferedImage.TYPE_INT_RGB);
 
 					// Create a graphics contents on the buffered image
 					Graphics2D g2d = bufferedImage.createGraphics();
@@ -447,6 +447,15 @@ public class ContactView extends JFrame implements ActionListener{
 	public void handleChangeOutlierThresholds(double min, double max) {
 		this.cPane.setMinAllowedRat(min);
 		this.cPane.setMaxAllowedRat(max);
+		this.cPane.repaint();
+	}
+	
+	/**
+	 * Handles the user action to change type of colour scaling
+	 * @param type --> int
+	 */
+	public void handleChangeColourScale(int type) {
+		this.cPane.setChosenColourScale(type);
 		this.cPane.repaint();
 	}
 	
