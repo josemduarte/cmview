@@ -671,6 +671,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.fill(shape);
 				
 		// ----- color representation -----
+//		for(int i=0;i<2;i++){
 		for(int i=0;i<ratios.length;i++){
 //			if (i==ratios.length - 2){
 //				int test = 0;
@@ -1045,21 +1046,21 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				else {
 					// -- test for distance
-//					if (Math.abs(xPosNB-xPos) > this.xDim/2){
-//						if (xPos<xPosNB){
-//							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
-//							g2d.draw(line);
-//							line = new Line2D.Double(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//							g2d.draw(line);
-//						}
-//						else{
-//							line = new Line2D.Double(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
-//							g2d.draw(line);
-//							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
-//							g2d.draw(line);
-//						}
-//					}
-//					else 
+					if (this.mapProjType==cylindricalMapProj && Math.abs(xPosNB-xPos)>this.xDim/2){
+						if (xPos<xPosNB){
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB-this.xDim, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+							line = new Line2D.Double(xPos+this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+						}
+						else{
+							line = new Line2D.Double(xPos-this.xDim, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
+							g2d.draw(line);
+						}
+					}
+					else 
 					{
 						line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
 						g2d.draw(line);
@@ -1487,14 +1488,24 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		float tmax = Math.max(upperLeft.getSecond(),lowerRight.getSecond());
 
 //		System.out.println("squareSelect "+pmin+"-"+pmax+" , "+tmin+"-"+tmax);
-		
-		this.tmpPhiRange = new Pair<Float>(pmin, pmax);
-		this.tmpThetaRange = new Pair<Float>(tmin, tmax);
-//		this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
-		this.tmpSelContact = new Pair<Integer>(this.iNum,this.jNum);
-		
-		this.tmpAngleComb = new Pair<Float>(pmax, tmax);
-
+//		boolean valid = true;
+//		if (angleWithinValidRange(pmin, tmin) || angleWithinValidRange(pmax, tmax))
+//			valid = false;
+//		if (!valid){
+//			pmin = 0;
+//			tmin = 0;
+//			pmax = 0;
+//			tmax = 0;
+//		}
+//		if (valid)
+		{
+			this.tmpPhiRange = new Pair<Float>(pmin, pmax);
+			this.tmpThetaRange = new Pair<Float>(tmin, tmax);
+//			this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
+			this.tmpSelContact = new Pair<Integer>(this.iNum,this.jNum);
+			
+			this.tmpAngleComb = new Pair<Float>(pmax, tmax);
+		}
 	}
 	
 //	/** Called by ResidueRuler to enable display of ruler "crosshair" */	
@@ -1764,19 +1775,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			case RECT:
 				if (dragging){
 //					squareSelect();
-					if (this.selContacts.size()>0 && 
-							this.selContacts.lastElement().getFirst()==this.tmpSelContact.getFirst() && 
-							this.selContacts.lastElement().getSecond()==this.tmpSelContact.getSecond()){
-						this.phiRanges.removeElementAt(this.phiRanges.size()-1);
-						this.thetaRanges.removeElementAt(this.thetaRanges.size()-1);
-						this.selContacts.removeElementAt(this.selContacts.size()-1);						
+					boolean valid = true; // = angleWithinValidRange(this.tmpSelContact.getFirst(), this.tmpSelContact.getSecond());
+					if (!angleWithinValidRange(tmpPhiRange.getFirst(), tmpThetaRange.getFirst()) 
+							|| !angleWithinValidRange(tmpPhiRange.getSecond(), tmpThetaRange.getSecond()))
+						valid = false;
+					if (valid){
+						if (this.selContacts.size()>0 && 
+								this.selContacts.lastElement().getFirst()==this.tmpSelContact.getFirst() && 
+								this.selContacts.lastElement().getSecond()==this.tmpSelContact.getSecond()){
+							this.phiRanges.removeElementAt(this.phiRanges.size()-1);
+							this.thetaRanges.removeElementAt(this.thetaRanges.size()-1);
+							this.selContacts.removeElementAt(this.selContacts.size()-1);						
+						}
+						this.phiRanges.add(this.tmpPhiRange);
+						this.thetaRanges.add(this.tmpThetaRange);
+						this.selContacts.add(this.tmpSelContact);
+						updateAngleRange();
+						System.out.println("mouseReleased "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond()
+								+" , "+this.tmpThetaRange.getFirst()+"-"+this.tmpThetaRange.getSecond());						
 					}
-					this.phiRanges.add(this.tmpPhiRange);
-					this.thetaRanges.add(this.tmpThetaRange);
-					this.selContacts.add(this.tmpSelContact);
-					updateAngleRange();
-					System.out.println("mouseReleased "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond()
-							+" , "+this.tmpThetaRange.getFirst()+"-"+this.tmpThetaRange.getSecond());
 				}				
 				dragging = false;
 //				this.repaint();
@@ -1856,6 +1873,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void mouseClicked(MouseEvent evt) {
 	}
 
+	public boolean angleWithinValidRange(double xPos, double yPos){
+		boolean valid = true;
+		if (this.mapProjType==kavrayskiyMapProj){
+			if (xPos<0 || xPos>2*Math.PI)
+				valid = false;
+		}
+		return valid;
+	}
+	
 	public void mouseMoved(MouseEvent evt) {
 //		System.out.println("mouseMoved");
 		double xPos, yPos;
@@ -1871,7 +1897,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		xPos -= (this.origCoordinates.getFirst()-Math.PI);
 //		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
-		this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
+		boolean valid = angleWithinValidRange(xPos, yPos);
+		if (valid)
+			this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
+		else 
+			this.tmpAngleComb = new Pair<Float>(0.0f, 0.0f);
 		this.repaint();
 	}
 

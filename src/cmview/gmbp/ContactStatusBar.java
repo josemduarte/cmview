@@ -123,6 +123,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		this.add(deltaRadiusGroup, BorderLayout.LINE_START); //.PAGE_END
 //		this.add(resolutionGroup, BorderLayout.LINE_START);
 		
+		this.removeOutliers = this.controller.cPane.isRemoveOutliers();
+		
 		initDeltaRadiusPanel();
 		initResolutionPanel();
 		initSSTypePanel();
@@ -363,11 +365,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		maxLinePanel.setLayout(new BoxLayout(maxLinePanel,BoxLayout.LINE_AXIS));
 		
 		remOutliersButton = new JCheckBox("Remove        ");
-		remOutliersButton.setSelected(true);
+		remOutliersButton.setSelected(this.removeOutliers);
 		remOutliersButton.addItemListener(this);
 		
 		minRatioField = new JTextField(String.valueOf(this.minAllowedRatio));
 		maxRatioField = new JTextField(String.valueOf(this.maxAllowedRatio));
+		minRatioField.setEnabled(this.removeOutliers);
+		maxRatioField.setEnabled(this.removeOutliers);
 		minRatioField.addActionListener(this);
 		maxRatioField.addActionListener(this);
 		JLabel minLabel = new JLabel("min=  ");
@@ -513,16 +517,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			controller.handleChangeDiffSSType(this.diffSSType);
 		}
 		if (e.getItemSelectable() == remOutliersButton){
-			if (e.getStateChange() == ItemEvent.SELECTED){
+			if (e.getStateChange() == ItemEvent.SELECTED)
 				this.removeOutliers = true;
-				this.minRatioField.setEnabled(true);
-				this.maxRatioField.setEnabled(true);
-			}
-			else{
+			else
 				this.removeOutliers = false;
-				this.minRatioField.setEnabled(false);
-				this.maxRatioField.setEnabled(false);
-			}
+			minRatioField.setEnabled(this.removeOutliers);
+			maxRatioField.setEnabled(this.removeOutliers);
 			controller.handleChangeRemOutliers(this.removeOutliers);	
 		}
 	}
@@ -546,15 +546,15 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		}
 		if (e.getSource()==this.cylProjRadioButton || e.getSource()==this.pseudoCylProjRadioButton){
 			if (e.getActionCommand()==projStrings[0]){
-				System.out.println("Cyl");	
+//				System.out.println("Cyl");	
 				chosenProjection = this.controller.cPane.cylindricalMapProj; // ContactPane.cylindricalMapProj;
 			}
 			else if (e.getActionCommand()==projStrings[1]){
-				System.out.println("PCyl");
+//				System.out.println("PCyl");
 				chosenProjection = this.controller.cPane.kavrayskiyMapProj; //ContactPane.kavrayskiyMapProj;
 			}
 			controller.handleChangeProjectionType(chosenProjection);
-			System.out.println(e.getActionCommand());
+//			System.out.println(e.getActionCommand());
 //			System.out.println(e.getSource());
 		}
 	}

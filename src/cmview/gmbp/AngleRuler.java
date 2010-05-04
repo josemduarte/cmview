@@ -81,7 +81,7 @@ public class AngleRuler extends JPanel {
 		Graphics2D g2d = (Graphics2D) g.create();
 			
 		this.cpane.repaint();
-		System.out.println("paintComponentRuler");
+//		System.out.println("paintComponentRuler");
 		
 //		System.out.println("CView HxB: "+this.cview.getSize().height+"x"+this.cview.getSize().width);
 //		System.out.println("CPane HxB: "+this.cpane.getSize().height+"x"+this.cpane.getSize().width);
