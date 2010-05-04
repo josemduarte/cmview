@@ -40,6 +40,7 @@ public class AngleRuler extends JPanel {
 //	private Dimension panelSize;
 //	private double ratioX, ratioY;
 	private int offSetX, offSetY;
+	private double deltaOffSetX, deltaOffSetXEnd, deltaOffSetXCenter;
 	
 	private int location; 
 	
@@ -60,7 +61,7 @@ public class AngleRuler extends JPanel {
 //			this.rulerWidth = this.cview.getSize().height;
 			this.offSetX = this.rulerWidth;
 			this.offSetY = 0;
-			this.rulerLength = this.cpane.getSize().width + this.offSetX;
+			this.rulerLength = this.cpane.getSize().width + (int)this.offSetX;
 			this.rulerSize = new Dimension(this.rulerLength, this.rulerWidth);
 			this.setSize(new Dimension(this.rulerLength, this.rulerWidth));
 		}
@@ -78,8 +79,9 @@ public class AngleRuler extends JPanel {
 	
 	protected synchronized void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g.create();
-		
+			
 		this.cpane.repaint();
+		System.out.println("paintComponentRuler");
 		
 //		System.out.println("CView HxB: "+this.cview.getSize().height+"x"+this.cview.getSize().width);
 //		System.out.println("CPane HxB: "+this.cpane.getSize().height+"x"+this.cpane.getSize().width);
@@ -92,7 +94,21 @@ public class AngleRuler extends JPanel {
 		if (this.location == TOP || this.location == BOTTOM){
 //			this.rulerLength = this.cview.getSize().width;
 //			this.rulerWidth = this.cview.getSize().height;
-			this.offSetX = this.rulerWidth;
+			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){ //(this.mapProjType==kavrayskiyMapProj){
+				this.offSetX = this.rulerWidth; // + (int)this.deltaOffSetX;
+//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
+				this.deltaOffSetX = this.cpane.getDeltaOffSetX() + this.offSetX;
+				this.deltaOffSetXEnd = this.cpane.getDeltaOffSetXEnd() + this.offSetX;
+				this.deltaOffSetXCenter = this.cpane.getDeltaOffSetXCenter() + this.offSetX;
+//				this.deltaOffSetX = 409.3648026452222 + this.offSetX;
+//				this.deltaOffSetXEnd = 1030.2930269270032 + this.offSetX;
+			}
+			else if(this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
+				this.offSetX = this.rulerWidth;
+//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
+				this.deltaOffSetX = 0 + this.offSetX;
+				this.deltaOffSetXEnd = this.rulerLength;
+			}
 			this.offSetY = 0;
 //			this.rulerLength = this.cpane.getSize().width + this.offSetX;
 			this.rulerLength = this.cpane.getPanelSize().width + this.offSetX;
@@ -145,9 +161,15 @@ public class AngleRuler extends JPanel {
 //			Color col = new Color(255, 0, 0, 255);
 			Color col = new Color(255, 255, 255, 255);
 			g2d.setColor(col);
-			numTicks = DEGREES_PHI/DEGREE_RESOL;	
-			delta = (float) (this.rulerLength-this.offSetX) / (float) numTicks;
-			shape = new Rectangle2D.Float(xS-this.offSetX, yS, xE-xS, yE-yS);			
+			numTicks = DEGREES_PHI/DEGREE_RESOL;				
+			shape = new Rectangle2D.Float(xS-this.offSetX, yS, xE-xS, yE-yS);	
+			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){
+				delta = (float) (this.rulerLength-this.offSetX-(2*this.deltaOffSetX)) / (float) numTicks;
+				delta = (float) ((this.deltaOffSetXEnd-this.deltaOffSetX)/ (float)(numTicks));
+			}
+			else if(this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
+				delta = (float) (this.rulerLength-this.offSetX) / (float) numTicks;
+			}
 		}
 		else { // this.location == LEFT || RIGHT
 			xS = 0.0f + this.offSetX;
@@ -177,19 +199,23 @@ public class AngleRuler extends JPanel {
 		int i=0;
 		float xPosOrig = this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize(); //(this.origCoordinates.getFirst() * this.voxelsize)
 		float yPosOrig = this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize(); //(this.origCoordinates.getSecond() * this.voxelsize)
+		this.deltaOffSetXCenter = this.cpane.getDeltaOffSetXCenter() + this.offSetX;
+		xPosOrig = (float) this.deltaOffSetXCenter;
 		int count = 0;
 		i=numTicks/2;
 		while (count<=numTicks){
 			if (this.location == TOP || this.location == BOTTOM){
 				if (count==0){
 					xS = xPosOrig;
-					xS += this.offSetX;
+//					xS += (this.offSetX); //+this.deltaOffSetX);
 				}
 				else
 					xS += delta;
-				if (xS>this.rulerLength){
-					xS -= this.rulerLength;
-					xS += this.offSetX;
+				if (xS>this.deltaOffSetXEnd){
+//				if (xS>this.rulerLength){
+//					xS -= this.rulerLength;
+					xS -= this.deltaOffSetXEnd;
+					xS += this.deltaOffSetX; //+this.offSetX
 				}
 				xE = xS;
 				yS = this.rulerWidth - (this.rulerWidth/4);
@@ -215,7 +241,11 @@ public class AngleRuler extends JPanel {
 			if (this.location == TOP || this.location == BOTTOM){
 				xS -= d;
 				yS = this.rulerWidth - (this.rulerWidth/3); 
-				g2d.drawString(degreeS, xS, yS);
+				if (this.cpane.getMapProjType()==this.cpane.kavrayskiyMapProj && i%2==0){
+					g2d.drawString(degreeS, xS, yS);
+				}
+				else if(this.cpane.getMapProjType() == this.cpane.cylindricalMapProj)
+					g2d.drawString(degreeS, xS, yS);
 				xS += d;
 			}
 			else { // this.location == LEFT || RIGHT

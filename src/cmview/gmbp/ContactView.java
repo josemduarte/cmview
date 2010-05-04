@@ -189,7 +189,6 @@ public class ContactView extends JFrame implements ActionListener{
 		svP = new JPanel(new BorderLayout()); 		// panel holding the cmPane and (optionally) the ruler panes
 		phiRul = new JPanel(new BorderLayout()); 	// panel holding the phi (top) ruler
 		thetaRul = new JPanel(new BorderLayout()); 	// panel holding the theta (left) ruler
-		contStatBar = new ContactStatusBar(this);	// pass reference to 'this' for handling gui actions
 		
 //		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
@@ -249,6 +248,7 @@ public class ContactView extends JFrame implements ActionListener{
 		// Creating contact map pane and ruler if model loaded
 		if(mod != null) {	
 			cPane = new ContactPane(this.mod, this.cmPane, this);
+			contStatBar = new ContactStatusBar(this);	// pass reference to 'this' for handling gui actions
 			cPane.setStatusBar(contStatBar);
 			svP.add(cPane, BorderLayout.CENTER);
 			
@@ -429,6 +429,16 @@ public class ContactView extends JFrame implements ActionListener{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Handles the user action to change flag map projection should be used
+	 * @param projType --> int
+	 */
+	public void handleChangeProjectionType(int type) {
+		this.cPane.setMapProjType(type);
+		this.cPane.repaint();
+		this.phiRuler.repaint();
 	}
 	
 	/**

@@ -17,10 +17,13 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -48,6 +51,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected static final float g2dRatio = 0.5f; // H/W
 	protected static final double defaultMinAllowedRat = -3;
 	protected static final double defaultMaxAllowedRat = 1;
+	protected final int cylindricalMapProj = 0;
+	protected final int kavrayskiyMapProj = 1;
+	protected final int defaultProjType = kavrayskiyMapProj;
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
@@ -155,13 +161,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private float pixelHeight = this.pixelWidth; //5*36/this.numSteps;	
 	private float voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI); //pixelWidth;
 
-	private boolean removeOutliers = true;
+	private boolean removeOutliers = false; //true;
 	private double minAllowedRat = defaultMinAllowedRat;
 	private double maxAllowedRat = defaultMaxAllowedRat;
 	private int chosenColourScale = ContactStatusBar.BLUERED;
 	
 	private boolean paintCentralResidue = true;
-	private boolean mapProjection = false;
+//	private boolean mapProjection = false;
+	private int mapProjType = defaultProjType;
+	private double deltaOffSetX, deltaOffSetXEnd, deltaOffSetXCenter; // = this.getScreenPosFromRad(0, 0).getFirst();
 	
 	private int xDim=0;
 	private int yDim=0;
@@ -184,8 +192,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.contactView = contactView;		
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		this.setFocusable(true);
-		this.addKeyListener(this);
+//		this.setFocusable(true);
+		addKeyListener(this);
 
 		this.setOpaque(true); // make this component opaque
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -238,6 +246,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
 		this.tmpAngleComb = new Pair<Float>(0.0f, 0.0f);
 		this.origCoordinates = new Pair<Float>((float)(Math.PI), (float)(Math.PI/2));
+		this.deltaOffSetX = this.getOffSet(0.0, 0.0); //this.getScreenPosFromRad(0, 0).getFirst();
+		this.deltaOffSetXEnd = this.getOffSet(2*Math.PI, 0.0); //this.getScreenPosFromRad(2*Math.PI, 0.0).getFirst();
+		this.deltaOffSetXCenter = this.getOffSet(Math.PI, 0.0);
 		
 //		setOutputSize(screenSize.width, screenSize.height);
 //		System.out.println("outputsize= "+this.outputSize);
@@ -377,15 +388,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			else if (this.minr==this.radiusThresholds[2] && this.maxr==this.radiusThresholds[3])
 				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[2];
 			
-			String fn = Start.SPHOXEL_DIR; // "/Users/vehlow/Documents/workspace/outputFiles/sphoxelBG/";
+			File dir1 = new File (".");		
+			String fn = "/Users/vehlow/Documents/workspace/CMView"+Start.SPHOXEL_DIR; // 
+//			fn = "/Users/vehlow/Documents/workspace/outputFiles/sphoxelBG/";
+			try {
+				fn = dir1.getCanonicalPath() + Start.SPHOXEL_DIR;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String archiveFN = fn + "SphoxelBGs.zip";
+			ZipFile zipfile = null;
+			try {
+				zipfile = new ZipFile(archiveFN);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			fn = "";
+			
 			fn = fn+"sphoxelBG_"+this.iRes+"-"+String.valueOf(this.iSSType).toLowerCase()+"_"+this.jRes+"-"
 				+String.valueOf(CMPdb_sphoxel.AnySStype).toLowerCase()+"_"+this.radiusPrefix+".csv";
 			System.out.println("Filename= "+fn);
-			fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
+//			fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
+			
+			ZipEntry zipentry = zipfile.getEntry(fn);
 			
 			CSVhandler csv = new CSVhandler();
 			try {
-				this.bayesRatios = csv.readCSVfile3Ddouble(fn);
+//				this.bayesRatios = csv.readCSVfile3Ddouble(fn);
+				this.bayesRatios = csv.readCSVfile3Ddouble(zipfile, zipentry);
 				setNumSteps(this.bayesRatios.length);
 				this.ratios = new double[this.bayesRatios.length][this.bayesRatios[0].length];
 				for (int i=0; i<this.bayesRatios.length; i++){
@@ -563,9 +595,33 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return shape;
 	}
 	
-	public double phiKavrayskiy(double phiRad, double thetaRad){
+	public double phi2Kavrayskiy(double phiRad, double thetaRad){
 		double phi = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
+//		double test = (2*Math.PI*phi) / (3*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad))) ;
 		return phi;
+	}
+	public double phiFromKavrayskiy(double phiRad, double thetaRad){
+//		double phi = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
+		double phi = (2*Math.PI*phiRad) / (3*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad))) ;
+		return phi;
+	}
+	
+	public double getOffSet(double phiRad, double thetaRad){
+//		double phiRad = 0;
+		double xPos=0;	
+		if (this.mapProjType==kavrayskiyMapProj){
+//			phiRad = translateXCoordRespective2Orig(phiRad);
+			phiRad -= Math.PI;
+			thetaRad -= (Math.PI/2);
+			
+			xPos = phi2Kavrayskiy(phiRad, thetaRad);		
+			xPos = ( (Math.PI+xPos) *this.voxelsize )+this.border;
+		}
+		else if (this.mapProjType==cylindricalMapProj){
+			phiRad -= Math.PI;
+			xPos = ( (Math.PI+phiRad) *this.voxelsize )+this.border;
+		}
+		return xPos;
 	}
 	
 	/*
@@ -574,20 +630,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * */
 	public Pair<Double> getScreenPosFromRad(double phiRad, double thetaRad){
 		Pair<Double> pos; // = new Pair(0,0);
-		double xPos, yPos;	
+		double xPos=0, yPos=0;	
 		
-		if (this.mapProjection){
+		if (this.mapProjType==kavrayskiyMapProj){
 			thetaRad = translateYCoordRespective2Orig(thetaRad);
 			phiRad = translateXCoordRespective2Orig(phiRad);
 			phiRad -= Math.PI;
 			thetaRad -= (Math.PI/2);
 			
 			yPos = thetaRad +(Math.PI/2);
-			xPos = phiKavrayskiy(phiRad, thetaRad);		
+			xPos = phi2Kavrayskiy(phiRad, thetaRad);		
 			xPos = ( (Math.PI+xPos) *this.voxelsize )+this.border;
 			yPos = (yPos*this.voxelsize) +this.border;				
 		}
-		else {
+		else if (this.mapProjType==cylindricalMapProj){
 			phiRad -= Math.PI;
 			xPos = translateXPixelCoordRespective2Orig( (Math.PI+phiRad) *this.voxelsize )+this.border;
 			yPos = translateYPixelCoordRespective2Orig(thetaRad*this.voxelsize) +this.border;
@@ -621,43 +677,48 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //				int ff = test;
 //			}
 			for(int j=0;j<ratios[i].length;j++){
-//				thetaDeg = i*deltaDeg;
-				thetaRad = (i*deltaRad);
-//				phiDeg = 180 - (j*deltaDeg);
-				phiRad = (j*deltaRad);
-//				phiD = (j*deltaDeg);
-//				phiRad = (j*deltaRad);
+//				if (j==ratios[i].length/2 -1){
+//					int a = 0;
+//					int b = a;
+//				}
 				
-//				xPos1 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
-//				yPos1 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
-//				xPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
-//				yPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();	
-//				thetaRad += deltaRad;
-//				xPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
-//				yPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();
-//				xPos4 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
-//				yPos4 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
-//				thetaRad -= deltaRad;
-//				shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
-				
-				if (this.mapProjection){
+				if (this.mapProjType==kavrayskiyMapProj){
+//					thetaDeg = i*deltaDeg;
+					thetaRad = (i*deltaRad);
+//					phiDeg = 180 - (j*deltaDeg);
+					phiRad = (j*deltaRad);
+//					phiD = (j*deltaDeg);
+//					phiRad = (j*deltaRad);
+					
+//					xPos1 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+//					yPos1 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
+//					xPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+//					yPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();	
+//					thetaRad += deltaRad;
+//					xPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+//					yPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();
+//					xPos4 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+//					yPos4 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
+//					thetaRad -= deltaRad;
+//					shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
+					
 					thetaRad = translateYCoordRespective2Orig(thetaRad);
 					phiRad = translateXCoordRespective2Orig(phiRad);
 					phiRad -= Math.PI;
 					thetaRad -= (Math.PI/2);
 					
 					yPos1 = thetaRad +(Math.PI/2);
-					xPos1 = phiKavrayskiy(phiRad, thetaRad);
+					xPos1 = phi2Kavrayskiy(phiRad, thetaRad);
 //					xPos1 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
 					yPos2 = yPos1;
-					xPos2 = phiKavrayskiy(phiRad+deltaRad, thetaRad);
+					xPos2 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);
 //					xPos2 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
 					thetaRad += deltaRad;
 					yPos3 = thetaRad +(Math.PI/2);
-					xPos3 = phiKavrayskiy(phiRad+deltaRad, thetaRad);
+					xPos3 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);
 //					xPos3 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
 					yPos4 = yPos3;
-					xPos4 = phiKavrayskiy(phiRad, thetaRad);
+					xPos4 = phi2Kavrayskiy(phiRad, thetaRad);
 //					xPos4 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
 					
 					xPos1 = ( (Math.PI+xPos1) *this.voxelsize )+this.border;
@@ -668,10 +729,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					yPos3 = (yPos3*this.voxelsize) +this.border;
 					xPos4 = ( (Math.PI+xPos4) *this.voxelsize )+this.border;
 					yPos4 = (yPos4*this.voxelsize) +this.border;
-
+//
 					shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);								
 				}
-				else {
+				else if (this.mapProjType==cylindricalMapProj){
 //					xPos = translateXPixelCoordRespective2Orig( (Math.PI+phiRad) *this.voxelsize )+this.border;
 //					yPos = translateYPixelCoordRespective2Orig(thetaRad*this.voxelsize) +this.border;				
 					xPos1 = j*pixelWidth;
@@ -1082,29 +1143,70 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// Laengengrad
 		g2d.setColor(this.longitudeColor);
 		double xS, xE, yS, yE;
+		double thetaRad, phiRad;
+		double deltaRad = Math.PI/this.numSteps;
 		Shape line;
-
-		yS = ((0.0) *this.voxelsize) +this.border;
-		yE = (Math.PI *this.voxelsize) +this.border;
-//		yS = (translateYCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
-//		yE = (translateYCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
 		
-		xS = (translateXCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (translateXCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (translateXCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS = (translateXCoordRespective2Orig(3*Math.PI/2) *this.voxelsize) +this.border;
-		xE = xS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
+		if (this.mapProjType==kavrayskiyMapProj){			
+			for(int i=0;i<ratios.length;i++){
+				thetaRad = (i*deltaRad);
+				yS = (thetaRad *this.voxelsize) +this.border;
+				yE = ((thetaRad+deltaRad) *this.voxelsize) +this.border;
+				phiRad = 0.0;
+				xS = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+				xE = getScreenPosFromRad(phiRad, thetaRad+deltaRad).getFirst();
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
+				phiRad = Math.PI/2;
+				xS = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+				xE = getScreenPosFromRad(phiRad, thetaRad+deltaRad).getFirst();
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
+				phiRad = Math.PI;
+				xS = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+				xE = getScreenPosFromRad(phiRad, thetaRad+deltaRad).getFirst();
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
+				phiRad = 3*Math.PI/2;
+				xS = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+				xE = getScreenPosFromRad(phiRad, thetaRad+deltaRad).getFirst();
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
+				phiRad = 2*Math.PI;
+				xS = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+				xE = getScreenPosFromRad(phiRad, thetaRad+deltaRad).getFirst();
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
+			}
+		}
+		else if (this.mapProjType==cylindricalMapProj){
+			yS = ((0.0) *this.voxelsize) +this.border;
+			yE = (Math.PI *this.voxelsize) +this.border;
+//			yS = (translateYCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
+//			yE = (translateYCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
+			
+			xS = (translateXCoordRespective2Orig(0.0) *this.voxelsize) +this.border;
+			xE = xS;
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+			xS = (translateXCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;
+			xE = xS;
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+			xS = (translateXCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;
+			xE = xS;
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+			xS = (translateXCoordRespective2Orig(3*Math.PI/2) *this.voxelsize) +this.border;
+			xE = xS;
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+			xS = (translateXCoordRespective2Orig(2*Math.PI) *this.voxelsize) +this.border;
+			xE = xS;
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+		}
+					
 	}
 	
 	protected void drawLatitudes(Graphics2D g2d){
@@ -1131,23 +1233,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		line = new Line2D.Double(xS,yS,xE,yE);
 		g2d.draw(line);
 		
-		yS = (translateYCoordRespective2Orig(Math.PI-0.01) *this.voxelsize) +this.border;
-		yE = yS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-		yS = (translateYCoordRespective2Orig(0+0.01) *this.voxelsize) +this.border;
-		yE = yS;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
+//		yS = (translateYCoordRespective2Orig(Math.PI-0.01) *this.voxelsize) +this.border;
+//		yE = yS;
+//		line = new Line2D.Double(xS,yS,xE,yE);
+//		g2d.draw(line);
+//		yS = (translateYCoordRespective2Orig(0+0.01) *this.voxelsize) +this.border;
+//		yE = yS;
+//		line = new Line2D.Double(xS,yS,xE,yE);
+//		g2d.draw(line);
 	}
 	
 	protected void drawLongLatCentre(Graphics2D g2d){
-		double bcenterx, bcentery;
-		if (this.mapProjection){
-			bcenterx = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getFirst();
-			bcentery = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getSecond();
+		double bcenterx=0, bcentery=0;
+		if (this.mapProjType==kavrayskiyMapProj){
+//			bcenterx = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getFirst();
+//			bcentery = getScreenPosFromRad(this.origCoordinates.getFirst(), this.origCoordinates.getSecond()).getSecond();
+			bcenterx = getScreenPosFromRad(Math.PI, Math.PI/2).getFirst();
+			bcentery = getScreenPosFromRad(Math.PI, Math.PI/2).getSecond();
 		}
-		else {
+		else if (this.mapProjType==cylindricalMapProj){
 			bcenterx = (this.origCoordinates.getFirst() * this.voxelsize) + this.border;
 			bcentery = (this.origCoordinates.getSecond() * this.voxelsize) + this.border;
 		}
@@ -1183,6 +1287,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void drawOccupiedAngleRanges(Graphics2D g2d){
 		Shape shape;
+		double xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4;
+//		double xPos1;
 //		System.out.println(phiRanges.size()+"=?"+thetaRanges.size()+"=?"+selContacts.size());
 //		System.out.println("Coordinates Occupied Rectangle:");
 		Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
@@ -1193,18 +1299,74 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			Pair<Float> phi = (Pair<Float>) itrP.next();
 			Pair<Float> theta = (Pair<Float>) itrT.next();
 //			Pair<Integer> con = (Pair<Integer>) itrC.next();
-//			System.out.println("COR "+con.getFirst()+"_"+con.getSecond()+": "+phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());			
-			float xS = phi.getFirst() * this.voxelsize;
-			float xE = phi.getSecond() * this.voxelsize;
-			float yS = theta.getFirst() * this.voxelsize;
-			float yE = theta.getSecond() * this.voxelsize;
-//			System.out.println(xS+","+yS+" to "+xE+","+yE);
-			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
+//			System.out.println("COR "+con.getFirst()+"_"+con.getSecond()+": "+phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());		
+			
+//			float xS = phi.getFirst() * this.voxelsize;
+//			float xE = phi.getSecond() * this.voxelsize;
+//			float yS = theta.getFirst() * this.voxelsize;
+//			float yE = theta.getSecond() * this.voxelsize;
+////			System.out.println(xS+","+yS+" to "+xE+","+yE);
+//			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
+			
+			float xS = phi.getFirst();
+			float xE = phi.getSecond();
+			float yS = theta.getFirst();
+			float yE = theta.getSecond();
+			xPos1 = getScreenPosFromRad(xS, yS).getFirst();
+			yPos1 = getScreenPosFromRad(xS, yS).getSecond();
+			xPos2 = getScreenPosFromRad(xE, yS).getFirst();
+			yPos2 = getScreenPosFromRad(xE, yS).getSecond();
+			xPos3 = getScreenPosFromRad(xE, yE).getFirst();
+			yPos3 = getScreenPosFromRad(xE, yE).getSecond();
+			xPos4 = getScreenPosFromRad(xS, yE).getFirst();
+			yPos4 = getScreenPosFromRad(xS, yE).getSecond();
+			shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);			
+			
 			g2d.draw(shape);
 //			g2d.fill(shape);
 		}
 //		for(Pair<Float> phi:phiRanges) {}
 		
+	}
+	
+	private void drawSelectedAngleRange(Graphics2D g2d){
+		if (dragging && contactView.getGUIState().getSelectionMode()==ContactGUIState.SelMode.RECT) {
+			double xS, yS, xE, yE;
+			double xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4;
+			g2d.setColor(squareSelColor);
+//			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
+//			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
+//			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
+//			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
+//			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
+			
+			Pair<Float> posP = screen2A(mousePressedPos);
+			Pair<Float> posD = screen2A(mouseDraggingPos);
+			xS = posP.getFirst();
+			yS = posP.getSecond();
+			xE = posD.getFirst();
+			yE = posD.getSecond();
+			if (this.mapProjType==kavrayskiyMapProj){
+				xS = phiFromKavrayskiy(xS-Math.PI, yS-(Math.PI/2)) + Math.PI;
+				xE = phiFromKavrayskiy(xE-Math.PI, yE-(Math.PI/2)) + Math.PI;
+			}
+			xS -= (this.origCoordinates.getFirst()-Math.PI);
+			xE -= (this.origCoordinates.getFirst()-Math.PI);
+//			this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
+//			this.tmpAngleComb = new Pair<Float>((float)xS, (float)yS);
+			
+			xPos1 = getScreenPosFromRad(xS, yS).getFirst();
+			yPos1 = getScreenPosFromRad(xS, yS).getSecond();
+			xPos2 = getScreenPosFromRad(xE, yS).getFirst();
+			yPos2 = getScreenPosFromRad(xE, yS).getSecond();
+			xPos3 = getScreenPosFromRad(xE, yE).getFirst();
+			yPos3 = getScreenPosFromRad(xE, yE).getSecond();
+			xPos4 = getScreenPosFromRad(xS, yE).getFirst();
+			yPos4 = getScreenPosFromRad(xS, yE).getSecond();
+			Shape shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
+			
+			g2d.draw(shape);
+		} 
 	}
 	
 	private void drawSelectedAngleRange(){
@@ -1298,14 +1460,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void squareSelect(){
 		Pair<Float> upperLeft = screen2A(mousePressedPos);
 		Pair<Float> lowerRight = screen2A(mouseDraggingPos);
+		double xPosUL, yPosUL, xPosLR, yPosLR;
 		// we reset the tmpContacts list so every new mouse selection starts
 		// from a blank list
 //		tmpContacts = new IntPairSet();
+		
+		xPosUL = upperLeft.getFirst();
+		yPosUL = upperLeft.getSecond();
+		xPosLR = lowerRight.getFirst();
+		yPosLR = lowerRight.getSecond();
+		if (this.mapProjType==kavrayskiyMapProj){
+			xPosUL = phiFromKavrayskiy(xPosUL-Math.PI, yPosUL-(Math.PI/2)) + Math.PI;
+			xPosLR = phiFromKavrayskiy(xPosLR-Math.PI, yPosLR-(Math.PI/2)) + Math.PI;
+		}
+		xPosUL -= (this.origCoordinates.getFirst()-Math.PI);
+		xPosLR -= (this.origCoordinates.getFirst()-Math.PI);
 
-		float pmin = Math.min(upperLeft.getFirst(),lowerRight.getFirst());
-		float tmin = Math.min(upperLeft.getSecond(),lowerRight.getSecond());
-		float pmax = Math.max(upperLeft.getFirst(),lowerRight.getFirst());
-		float tmax = Math.max(upperLeft.getSecond(),lowerRight.getSecond());
+		float pmin = Math.min((float)xPosUL, (float)xPosLR);
+		float tmin = Math.min((float)yPosUL, (float)yPosLR);
+		float pmax = Math.max((float)xPosUL, (float)xPosLR);
+		float tmax = Math.max((float)yPosUL, (float)yPosLR);
+		
+//		float pmin = Math.min(upperLeft.getFirst(),lowerRight.getFirst());
+//		float tmin = Math.min(upperLeft.getSecond(),lowerRight.getSecond());
+//		float pmax = Math.max(upperLeft.getFirst(),lowerRight.getFirst());
+//		float tmax = Math.max(upperLeft.getSecond(),lowerRight.getSecond());
 
 //		System.out.println("squareSelect "+pmin+"-"+pmax+" , "+tmin+"-"+tmax);
 		
@@ -1326,16 +1505,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //	public void hideRulerCoordinate() {
 //		showRulerCoord = false;
 //	}
-
-	/**
-	 * Main method to draw the component on screen. This method is called each
-	 * time the component has to be (re) drawn on screen. It is called
-	 * automatically by Swing or by explicitly calling cmpane.repaint().
-	 */
-	@Override
-	protected synchronized void paintComponent(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g.create();
-		
+	
+	public void updateDimensions(){
 		this.screenSize = this.contactView.getScreenSize();
 //		System.out.println("ContactPane paintComponent HxW: "+this.screenSize.height+"x"+this.screenSize.width);
 //		System.out.println("ContactPane pC HxW: "+this.getSize().height+"x"+this.getSize().width+"  --> ratio="+(float)(this.getSize().height)/(float)(this.getSize().width));
@@ -1363,6 +1534,48 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.voxelsize = (float) ((float)(this.numSteps*this.pixelWidth)/Math.PI);
 //		System.out.println("NumSteps= "+this.numSteps+"  PixelSize: "+this.pixelHeight+"x"+this.pixelWidth+" VoxelS:"+this.voxelsize);
 		
+	}
+
+	/**
+	 * Main method to draw the component on screen. This method is called each
+	 * time the component has to be (re) drawn on screen. It is called
+	 * automatically by Swing or by explicitly calling cmpane.repaint().
+	 */
+	@Override
+	protected synchronized void paintComponent(Graphics g) {
+//		System.out.println("paintComponent");
+		
+		Graphics2D g2d = (Graphics2D) g.create();
+		
+		updateDimensions();
+		
+//		this.screenSize = this.contactView.getScreenSize();
+////		System.out.println("ContactPane paintComponent HxW: "+this.screenSize.height+"x"+this.screenSize.width);
+////		System.out.println("ContactPane pC HxW: "+this.getSize().height+"x"+this.getSize().width+"  --> ratio="+(float)(this.getSize().height)/(float)(this.getSize().width));
+//		
+//		if ((float)(this.getSize().height)/(float)(this.getSize().width) > g2dRatio){
+//			this.xDim = this.getSize().width;
+//			this.yDim = (int) (this.xDim*g2dRatio);
+//		}
+//		else{
+//			this.yDim = this.getSize().height;
+//			this.xDim = (int) (this.yDim/g2dRatio);			
+//		}
+//		this.g2dSize.setSize(new Dimension(this.xDim, this.yDim));
+//		this.setSize(this.g2dSize);
+//		
+////		System.out.println("CPane g2dSize HxB: "+this.g2dSize.height+"x"+this.g2dSize.width);
+//		
+////		Dimension dim = this.contactView.getSize();		
+////		this.xDim = (int) dim.getWidth();
+////		this.yDim = (int) dim.getHeight();
+//		
+//		// update pixel dimensions
+//		this.pixelWidth = (float)(this.xDim-2*this.border)/(float)(2*this.numSteps) ;
+//		this.pixelHeight =  this.pixelWidth; //(this.yDim-2*this.border-this.yBorderThres)/(2*this.numSteps);
+//		this.voxelsize = (float) ((float)(this.numSteps*this.pixelWidth)/Math.PI);
+////		System.out.println("NumSteps= "+this.numSteps+"  PixelSize: "+this.pixelHeight+"x"+this.pixelWidth+" VoxelS:"+this.voxelsize);
+		
 		g2d.setBackground(this.backgroundColor);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
@@ -1371,19 +1584,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		drawNBHSTraces(g2d);
 		// drawing selection rectangle if dragging mouse and showing temp
 		// selection in red (tmpContacts)
-		if (dragging && contactView.getGUIState().getSelectionMode()==ContactGUIState.SelMode.RECT) {
-			g2d.setColor(squareSelColor);
-			int xmin = Math.min(mousePressedPos.x,mouseDraggingPos.x);
-			int ymin = Math.min(mousePressedPos.y,mouseDraggingPos.y);
-			int xmax = Math.max(mousePressedPos.x,mouseDraggingPos.x);
-			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
-			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
-		} 
+		
 		drawCrosshair(g2d);
 		drawLongitudes(g2d);
 		drawLatitudes(g2d);
 		drawLongLatCentre(g2d);
 		drawOccupiedAngleRanges(g2d);
+		drawSelectedAngleRange(g2d);
 		drawSelectedAngleRange();
 	}
 	
@@ -1476,6 +1683,44 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.chosenColourScale = chosenColourScale;
 	}
 
+	public int getMapProjType() {
+		return mapProjType;
+	}
+
+	public void setMapProjType(int mapProjType) {
+		this.mapProjType = mapProjType;
+	}
+
+	public void setDeltaOffSetX(double deltaOffSetX) {
+		this.deltaOffSetX = deltaOffSetX;
+	}
+
+	public double getDeltaOffSetX() {
+		updateDimensions();
+		this.deltaOffSetX = getOffSet(0.0, 0.0);
+		return deltaOffSetX;
+	}
+	
+	public void setDeltaOffSetXEnd(double deltaOffSetXEnd) {
+		this.deltaOffSetXEnd = deltaOffSetXEnd;
+	}
+
+	public double getDeltaOffSetXEnd() {
+		updateDimensions();
+		this.deltaOffSetXEnd = getOffSet(2*Math.PI, 0.0);
+		return deltaOffSetXEnd;
+	}
+	
+	public void setDeltaOffSetXCenter(double deltaOffSetXC) {
+		this.deltaOffSetXCenter = deltaOffSetXC;
+	}
+
+	public double getDeltaOffSetXCenter() {
+		updateDimensions();
+		// this.origCoordinates = new Pair<Float>((float)(Math.PI), (float)(Math.PI/2));
+		this.deltaOffSetXCenter = getOffSet(this.origCoordinates.getFirst(), 0.0);
+		return deltaOffSetXCenter;
+	}
 	
 //	/**
 //	 * Sets the output size and updates the ratio and contact square size. This
@@ -1534,7 +1779,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							+" , "+this.tmpThetaRange.getFirst()+"-"+this.tmpThetaRange.getSecond());
 				}				
 				dragging = false;
-				this.repaint();
+//				this.repaint();
 				return;
 				
 			case CLUSTER:
@@ -1556,7 +1801,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				this.contactView.thetaRuler.repaint();
 				System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
 				System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
-				this.repaint();
+//				this.repaint();
 				return;
 			}
 			
@@ -1613,17 +1858,54 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void mouseMoved(MouseEvent evt) {
 //		System.out.println("mouseMoved");
-
+		double xPos, yPos;
 		mousePos = evt.getPoint();
 		
 		Pair<Float> pos = screen2A(mousePos);
-		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
+		xPos = pos.getFirst();
+		yPos = pos.getSecond();
+		if (this.mapProjType==kavrayskiyMapProj){
+			xPos -= Math.PI;
+			xPos = phiFromKavrayskiy(xPos, yPos-(Math.PI/2));
+			xPos += Math.PI;
+		}
+		xPos -= (this.origCoordinates.getFirst()-Math.PI);
+//		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
+		this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
 		this.repaint();
 	}
 
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("keyPressed");
+//		//-- Process arrow "virtual" keys
+//    	float first = this.origCoordinates.getFirst();
+//    	float second = this.origCoordinates.getSecond();
+//    	float fac = (float) (Math.PI / 20);
+//        switch (e.getKeyCode()) {
+//            case KeyEvent.VK_LEFT : first-=fac; break;
+//            case KeyEvent.VK_RIGHT: first+=fac; break;
+//            case KeyEvent.VK_UP   : second-=fac;   break;
+//            case KeyEvent.VK_DOWN : second+=fac; break;
+//        }
+//        if (first<0)
+//        	first += 2*Math.PI;
+//        if (first>2*Math.PI)
+//        	first -= 2*Math.PI;
+//        if (second<0)
+//        	first += Math.PI;
+//        if (second>Math.PI)
+//        	first -= Math.PI;
+//        
+//        second = (float) (Math.PI/2);   // --> panning just horizontally     	
+//		this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+//		this.contactView.phiRuler.repaint();
+//		this.contactView.thetaRuler.repaint();		
+	}
+
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased");
 		//-- Process arrow "virtual" keys
     	float first = this.origCoordinates.getFirst();
     	float second = this.origCoordinates.getSecond();
@@ -1646,30 +1928,27 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
         second = (float) (Math.PI/2);   // --> panning just horizontally     	
 		this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
 		this.contactView.phiRuler.repaint();
-		this.contactView.thetaRuler.repaint();		
-	}
-
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-		System.out.println("keyReleased");
-		int id = e.getID();
-        String keyString;
-        if (id == KeyEvent.KEY_TYPED) {
-            char c = e.getKeyChar();
-            keyString = "key character = '" + c + "'";
-        } else {
-            int keyCode = e.getKeyCode();
-            keyString = "key code = " + keyCode
-                    + " ("
-                    + KeyEvent.getKeyText(keyCode)
-                    + ")";
-        }
-        System.out.println("keyString= "+keyString);
+		this.contactView.thetaRuler.repaint();	
+		
+//		int id = e.getID();
+//        String keyString;
+//        if (id == KeyEvent.KEY_TYPED) {
+//            char c = e.getKeyChar();
+//            keyString = "key character = '" + c + "'";
+//        } else {
+//            int keyCode = e.getKeyCode();
+//            keyString = "key code = " + keyCode
+//                    + " ("
+//                    + KeyEvent.getKeyText(keyCode)
+//                    + ")";
+//        }
+//        System.out.println("keyString= "+keyString);
 	}
 
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub	
-		System.out.println("keyReleased");	
+		System.out.println("keyTyped");	
 	}
+
 
 }
