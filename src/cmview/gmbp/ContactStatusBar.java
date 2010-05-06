@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -78,6 +79,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JTextField minRatioField;
 	private JTextField maxRatioField;
 	private JComboBox colorCBox;
+	private JButton colorScale;
 	private JRadioButton cylProjRadioButton;
 	private JRadioButton pseudoCylProjRadioButton;
 	private ButtonGroup projButtonGroup; 
@@ -355,7 +357,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		outliersPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		outliersPanel.setVisible(true);		
 //		outliersPanel.setMinimumSize(new Dimension(groupWidth,10));
-		outliersPanel.setPreferredSize(new Dimension(groupWidth,130));
+		outliersPanel.setPreferredSize(new Dimension(groupWidth,150));
 		
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
@@ -383,16 +385,24 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		JPanel colorPanel = new JPanel();
 		colorPanel.setLayout(new BoxLayout(colorPanel,BoxLayout.LINE_AXIS));
 		
+		colorScale = new JButton("ShowScale");
+		colorScale.setEnabled(true);
+		colorScale.addActionListener(this);
+		JPanel scaleButtonPanel = new JPanel();
+		scaleButtonPanel.setLayout(new BoxLayout(scaleButtonPanel, BoxLayout.LINE_AXIS));
+		
 		buttonLinePanel.add(remOutliersButton, BorderLayout.LINE_START);
 		minLinePanel.add(minLabel, BorderLayout.LINE_START);
 		minLinePanel.add(minRatioField, BorderLayout.LINE_END);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxRatioField, BorderLayout.LINE_END);
 		colorPanel.add(colorCBox, BorderLayout.LINE_START);
+		scaleButtonPanel.add(colorScale, BorderLayout.LINE_START);
 		outliersPanel.add(buttonLinePanel);
 		outliersPanel.add(minLinePanel);
 		outliersPanel.add(maxLinePanel);
 		outliersPanel.add(colorPanel);
+		outliersPanel.add(scaleButtonPanel);
 //		outliersPanel.add(remOutliersButton);
 //		outliersPanel.add(minRatioField);
 //		outliersPanel.add(maxRatioField);
@@ -536,6 +546,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //			this.chosenColourScale = colorStrings
 			this.chosenColourScale = this.colorCBox.getSelectedIndex();
 			controller.handleChangeColourScale(this.chosenColourScale);
+//			controller.handleChangeShowColourScale(this.chosenColourScale);
 			System.out.println(this.colorCBox.getSelectedItem()+"  "+this.colorCBox.getSelectedIndex());
 		}
 		if (e.getSource()==this.minRatioField || e.getSource()==this.maxRatioField){
@@ -556,6 +567,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			controller.handleChangeProjectionType(chosenProjection);
 //			System.out.println(e.getActionCommand());
 //			System.out.println(e.getSource());
+		}
+		if (e.getSource() == this.colorScale){
+			controller.handleChangeShowColourScale(this.chosenColourScale);			
 		}
 	}
 	

@@ -595,6 +595,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return shape;
 	}
 	
+	public boolean angleWithinValidRange(double xPos, double yPos){
+		boolean valid = true;
+		if (this.mapProjType==kavrayskiyMapProj){
+			if (xPos<0 || xPos>2*Math.PI)
+				valid = false;
+		}
+		return valid;
+	}
+	
 	public double phi2Kavrayskiy(double phiRad, double thetaRad){
 		double phi = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
 //		double test = (2*Math.PI*phi) / (3*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad))) ;
@@ -759,6 +768,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					else if (val>this.maxAllowedRat)
 						val = this.maxAllowedRat;
 				}
+				
+				if ((val<0 && ratios[i][j]>0) || (val>0 && ratios[i][j]<0)){
+					val = val*1;
+				}
 								
 				// ----- compute alpha and set color	
 				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
@@ -768,16 +781,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				else
 					val = val/maxRatio2Use;
-				if (alpha>1.0f) alpha=1.0f;
-				if (alpha<0.0f) alpha=0.0f;
+//				if (alpha>1.0f) alpha=1.0f;
+//				if (alpha<0.0f) alpha=0.0f;
 //				val = -val;
 				switch (this.chosenColourScale){
 				case ContactStatusBar.BLUERED:
 					col = scale.getColor4BlueRedScale(val,alpha); break;
 				case ContactStatusBar.HOTCOLD:
-					col = scale.getColor4HotColdScale(val, alpha);
+					col = scale.getColor4HotColdScale(val,alpha); break;
 				case ContactStatusBar.RGB:
-					col = scale.getColor4RGBscalePolar((float)val, alpha, -1);
+					col = scale.getColor4RGBscalePolar((float)val, alpha, -1); break;
 				}
 				
 				g2d.setColor(col);
@@ -1004,7 +1017,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //				g2d.setColor(scale.getColor4RGBscalePolar(ratio, 1.0f, 1));
 				
 				// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
-				int thres1 = 6; // 1-6:short range  6-25:middle range  25-n:long range
+				int thres1 = 9; // 1-9:short range  9-25:middle range  25-n/9-n:long range
 				int thres2 = 25;
 				col = Color.black;
 				if (Math.abs(jNum-iNum)<=thres1){
@@ -1059,6 +1072,29 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB+this.xDim, yPosNB+this.yBorderThres);		
 							g2d.draw(line);
 						}
+					}
+					else if (this.mapProjType==kavrayskiyMapProj && Math.abs(xPosNB-xPos)>this.xDim/4){
+						double thetaRadM = thetaRad + (thetaRadNB-thetaRad)/2;
+//						double test = this.origCoordinates.getFirst()-Math.PI;
+						double borderXPos = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst(), thetaRadM).getFirst();
+						double borderYPos = getScreenPosFromRad(phiRadNB, thetaRadM).getSecond();
+						if (xPos<xPosNB){
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, borderXPos, borderYPos+this.yBorderThres);		
+							g2d.draw(line);
+							borderXPos = getScreenPosFromRad((3*Math.PI)-this.origCoordinates.getFirst(), thetaRadM).getFirst();
+							line = new Line2D.Double(xPosNB, yPosNB+this.yBorderThres, borderXPos, borderYPos+this.yBorderThres);		
+							g2d.draw(line);							
+						}
+						else {
+							line = new Line2D.Double(xPosNB, yPosNB+this.yBorderThres, borderXPos, borderYPos+this.yBorderThres);		
+							g2d.draw(line);	
+							borderXPos = getScreenPosFromRad((3*Math.PI)-this.origCoordinates.getFirst(), thetaRadM).getFirst();	
+							line = new Line2D.Double(xPos, yPos+this.yBorderThres, borderXPos, borderYPos+this.yBorderThres);		
+							g2d.draw(line);					
+						}
+//						g2d.setColor(Color.black);
+//						line = new Line2D.Double(xPos, yPos+this.yBorderThres, xPosNB, yPosNB+this.yBorderThres);		
+//						g2d.draw(line);
 					}
 					else 
 					{
@@ -1692,6 +1728,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void setChosenColourScale(int chosenColourScale) {
 		this.chosenColourScale = chosenColourScale;
+		// show actual colour scale
 	}
 
 	public int getMapProjType() {
@@ -1731,6 +1768,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// this.origCoordinates = new Pair<Float>((float)(Math.PI), (float)(Math.PI/2));
 		this.deltaOffSetXCenter = getOffSet(this.origCoordinates.getFirst(), 0.0);
 		return deltaOffSetXCenter;
+	}
+
+	public double getMinRatio() {
+		return minRatio;
+	}
+
+	public void setMinRatio(double minRatio) {
+		this.minRatio = minRatio;
+	}
+
+	public double getMaxRatio() {
+		return maxRatio;
+	}
+
+	public void setMaxRatio(double maxRatio) {
+		this.maxRatio = maxRatio;
 	}
 	
 //	/**
@@ -1806,14 +1859,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 				
 			case PAN:
-				float resol = (float) (Math.PI/this.numSteps);
-				int fac = (int) Math.ceil(this.tmpAngleComb.getFirst()/resol);
-				float first = fac*resol; //this.tmpAngleComb.getFirst();
-				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
-				float second = fac*resol;
-				
-				second = (float) (Math.PI/2);   // --> panning just horizontally
-				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+				Pair<Float> pos = screen2A(mousePos);
+				double xPos = pos.getFirst();
+				double yPos = (float) (Math.PI/2); //pos.getSecond();
+				if (this.mapProjType==kavrayskiyMapProj){
+					xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+				}
+				this.origCoordinates = new Pair<Float>((float)xPos, (float)yPos);
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
@@ -1844,14 +1896,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				squareSelect();
 				break;
 			case PAN:
-				float resol = (float) (Math.PI/this.numSteps);
-				int fac = (int) Math.ceil(this.tmpAngleComb.getFirst()/resol);
-				float first = fac*resol; //this.tmpAngleComb.getFirst();
-				fac = (int) Math.ceil(this.tmpAngleComb.getSecond()/resol);
-				float second = fac*resol;
-				
-				second = (float) (Math.PI/2);   // --> panning just horizontally
-				this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+				Pair<Float> pos = screen2A(mousePos);
+				double xPos = pos.getFirst();
+				double yPos = (float) (Math.PI/2); //pos.getSecond();
+				if (this.mapProjType==kavrayskiyMapProj){
+					xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+				}
+				this.origCoordinates = new Pair<Float>((float)xPos, (float)yPos);
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				break;
@@ -1872,15 +1923,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void mouseClicked(MouseEvent evt) {
 	}
-
-	public boolean angleWithinValidRange(double xPos, double yPos){
-		boolean valid = true;
-		if (this.mapProjType==kavrayskiyMapProj){
-			if (xPos<0 || xPos>2*Math.PI)
-				valid = false;
-		}
-		return valid;
-	}
 	
 	public void mouseMoved(MouseEvent evt) {
 //		System.out.println("mouseMoved");
@@ -1891,17 +1933,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		xPos = pos.getFirst();
 		yPos = pos.getSecond();
 		if (this.mapProjType==kavrayskiyMapProj){
-			xPos -= Math.PI;
-			xPos = phiFromKavrayskiy(xPos, yPos-(Math.PI/2));
-			xPos += Math.PI;
+			xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
 		}
-		xPos -= (this.origCoordinates.getFirst()-Math.PI);
-//		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
 		boolean valid = angleWithinValidRange(xPos, yPos);
+		xPos -= (this.origCoordinates.getFirst()-Math.PI);
+		if (xPos<0)
+			xPos += (2*Math.PI);
+		else if (xPos>2*Math.PI)
+			xPos -= (2*Math.PI);
+		
+//		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
+//		boolean valid = angleWithinValidRange(xPos, yPos);
 		if (valid)
 			this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
 		else 
 			this.tmpAngleComb = new Pair<Float>(0.0f, 0.0f);
+//		this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
 		this.repaint();
 	}
 

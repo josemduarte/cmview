@@ -91,6 +91,7 @@ public class ContactView extends JFrame implements ActionListener{
 	public ContactPane cPane;
 	public AngleRuler phiRuler;
 	public AngleRuler thetaRuler;
+	public ColorScaleView colView;
 	
 	/** Create a new View object */
 	public ContactView(Model mod, String title, ContactMapPane cmPane) {
@@ -448,6 +449,8 @@ public class ContactView extends JFrame implements ActionListener{
 	public void handleChangeRemOutliers(boolean rem) {
 		this.cPane.setRemoveOutliers(rem);
 		this.cPane.repaint();
+		if (colView!=null)
+			colView.repaint();
 	}
 	
 	/**
@@ -458,6 +461,8 @@ public class ContactView extends JFrame implements ActionListener{
 		this.cPane.setMinAllowedRat(min);
 		this.cPane.setMaxAllowedRat(max);
 		this.cPane.repaint();
+		if (colView!=null)
+			colView.repaint();
 	}
 	
 	/**
@@ -467,8 +472,22 @@ public class ContactView extends JFrame implements ActionListener{
 	public void handleChangeColourScale(int type) {
 		this.cPane.setChosenColourScale(type);
 		this.cPane.repaint();
+		if (colView!=null){
+			colView.setChosenColourScale(type);
+			colView.repaint();
+		}
 	}
 	
+	/**
+	 * Handles the user action to change type of colour scaling
+	 * @param type --> int
+	 */
+	public void handleChangeShowColourScale(int type) {		
+//		if (colView==null)
+			colView = new ColorScaleView(this.cPane);
+		colView.setChosenColourScale(type);
+		colView.repaint();
+	}
 	
 	/**
 	 * Handles the user action to change the radius range 
