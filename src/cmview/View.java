@@ -1556,7 +1556,7 @@ public class View extends JFrame implements ActionListener {
 			if(JOptionPane.showConfirmDialog(this,msg,title,JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 				
 				// show JPred dialog and run secondary structure prediction
-				JPredDialog jpredDialog = new JPredDialog(this,"");
+				JPredDialog jpredDialog = new JPredDialog(this);
 				SecondaryStructure result = null;
 				jpredDialog.runJPred(mod.getSequence());	// this will wait until result is returned
 				jpredDialog.showGui();	// this will block until dialog is disposed

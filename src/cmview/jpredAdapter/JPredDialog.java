@@ -1,7 +1,6 @@
 package cmview.jpredAdapter;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -10,31 +9,35 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 
 import cmview.Start;
 
-import owl.core.connections.JPredConnection;
 import owl.core.connections.JPredProgressRetriever;
 import owl.core.connections.JPredStopNotifier;
 import owl.core.structure.features.SecondaryStructure;
 
 public class JPredDialog extends JDialog implements ActionListener {
 
+	// constants
 	private static final long serialVersionUID = 1L;
+	private static final String WINDOW_TITLE="Running JPred...";
+	private static final String LABEL_CONNECTING="Connecting to server";
+	private static final String LABEL_WAITING="Job waiting in queue";
+	private static final String LABEL_RUNNING="Job running";
+	private static final String LABEL_DONE="Job finished";
+	private static final String LABEL_ERROR="Connection Error";
 	
 	// gui components
 	JFrame parent;
-	JPanel progressPanel;
-	JPanel buttonBar;
 	JButton cancelButton;
-	JProgressBar progressBar;
-	JLabel label;
+	ImageIcon iconOpen, iconProgress, iconDone, iconWait, iconError;
+	JLabel labelConnecting, labelWaiting, labelRunning, labelDone, labelError;
 	
 	// JPred related veriables
 	JPredStopNotifier jpredStopNotifier;	// object to notify JPredConnection to stop
@@ -48,43 +51,77 @@ public class JPredDialog extends JDialog implements ActionListener {
 	 * @param title the dialog title (actually ignored)
 	 * @param sequence the sequence for which secondary structure prediction will be performed
 	 */
-	public JPredDialog(JFrame parent, String title) {
+	public JPredDialog(JFrame parent) {
 		
-		super(parent, title, true);
+		super(parent, WINDOW_TITLE, true);
+		
+		// init members
+
+		this.parent = parent;
+		this.result = null;
+		jpredStopNotifier = new JPredStopNotifier();
 		
 		// init gui
 		
-		this.result = null;
-		jpredStopNotifier = new JPredStopNotifier();
-		this.parent = parent;
+		this.setResizable(false);
+		this.setModal(true);
 		
-		this.setTitle("Secondary Structure Prediction");
-		
-		label = new JLabel("Idle");
-		progressBar = new JProgressBar(0,JPredProgressRetriever.Status.values().length-1);
-
-		progressPanel = new JPanel();
-		progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.PAGE_AXIS));
-		progressPanel.add(Box.createRigidArea(new Dimension(500, 20)));
-		progressPanel.add(label);
-		progressPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-		progressPanel.add(progressBar);
-		progressPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(this);
-		cancelButton.setAlignmentX(RIGHT_ALIGNMENT);
+
+		JPanel inputPane = new JPanel();
 		
-		buttonBar = new JPanel();
-		buttonBar.setLayout(new BoxLayout(buttonBar, BoxLayout.LINE_AXIS));
-		buttonBar.setAlignmentX(RIGHT_ALIGNMENT);
-		buttonBar.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		buttonBar.add(cancelButton);
-			
+		iconDone = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "tick.png"));
+		iconProgress = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
+		iconOpen = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "lightning.png"));
+		iconWait = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cup.png"));
+		iconError = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "exclamation.png"));
+		
+		labelConnecting = new JLabel(LABEL_CONNECTING,iconOpen,JLabel.LEFT);
+		labelWaiting = new JLabel(LABEL_WAITING,iconOpen,JLabel.LEFT);
+		labelRunning = new JLabel(LABEL_RUNNING,iconOpen,JLabel.LEFT);
+		labelDone = new JLabel(LABEL_DONE,iconOpen,JLabel.LEFT);
+		labelError = new JLabel(LABEL_ERROR,iconError,JLabel.LEFT);
+		
+		labelConnecting.setEnabled(false);
+		labelWaiting.setEnabled(false);
+		labelRunning.setEnabled(false);
+		labelDone.setEnabled(false);
+		labelError.setVisible(false);
+		
+		inputPane.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPane.add(labelConnecting);
+		inputPane.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPane.add(labelWaiting);
+		inputPane.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPane.add(labelRunning);
+		inputPane.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPane.add(labelDone);
+		inputPane.add(Box.createRigidArea(new Dimension(0, 8)));
+		inputPane.add(labelError);
+
+		inputPane.setLayout(new BoxLayout(inputPane,BoxLayout.PAGE_AXIS));
+
+		JPanel selectionPane = new JPanel();
+		selectionPane.setLayout(new BoxLayout(selectionPane, BoxLayout.PAGE_AXIS));
+		
+		// selectionPane.add(labelPane);
+		inputPane.setAlignmentX(CENTER_ALIGNMENT);
+		selectionPane.add(inputPane);
+		selectionPane.add(Box.createRigidArea(new Dimension(250, 10)));
+		selectionPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		// Lay out the buttons from left to right.
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
+		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(Box.createHorizontalGlue());
+		buttonPane.add(cancelButton);
+
 		// Put everything together, using the content pane's BorderLayout.
 		Container contentPane = getContentPane();
-		contentPane.add(progressPanel, BorderLayout.CENTER);
-		contentPane.add(buttonBar, BorderLayout.PAGE_END);	
+		contentPane.add(selectionPane, BorderLayout.CENTER);
+		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 			
 	}
 
@@ -150,14 +187,33 @@ public class JPredDialog extends JDialog implements ActionListener {
 	// callback methods
 	
 	public void updateStatus(JPredProgressRetriever.Status stat) {
-		this.label.setText(stat.toString());
-		this.progressBar.setValue(stat.ordinal());
+		
+		switch(stat) {
+		case SENDING:
+			labelConnecting.setEnabled(true);
+			labelConnecting.setIcon(iconProgress);
+			break;
+		case WAITING:
+			labelConnecting.setIcon(iconDone);
+			labelWaiting.setEnabled(true);
+			labelWaiting.setIcon(iconWait);
+			break;
+		case RUNNING:
+			labelWaiting.setIcon(iconDone);
+			labelRunning.setEnabled(true);
+			labelRunning.setIcon(iconProgress);
+			break;
+		case RESULT:
+			labelRunning.setIcon(iconDone);
+			labelDone.setEnabled(true);
+			labelDone.setIcon(iconProgress);
+		}
+		this.repaint();
 	}
 	
 	public void setError(Throwable e) {
-		this.label.setForeground(Color.red);
-		this.label.setText("Error: \n" + e.getMessage());
-		this.progressBar.setForeground(Color.red);
+		labelError.setVisible(true);
+		this.repaint();
 		System.err.println(e.getMessage());
 	}
 	
@@ -189,8 +245,8 @@ public class JPredDialog extends JDialog implements ActionListener {
 		frame.pack();
 		frame.setVisible(false);
 		
-		JPredDialog diag = new JPredDialog(frame, "Test");
-		diag.runJPred(JPredConnection.SAMPLE_QUERY);
+		JPredDialog diag = new JPredDialog(frame);
+		//diag.runJPred(JPredConnection.SAMPLE_QUERY);
 		diag.showGui();
 		SecondaryStructure ss = diag.getResult();
 		if(ss == null) {
