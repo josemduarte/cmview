@@ -39,6 +39,7 @@ import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import owl.core.structure.*;
+import owl.core.structure.features.SecondaryStructure;
 import owl.core.util.FileFormatError;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
@@ -1512,6 +1513,7 @@ public class View extends JFrame implements ActionListener {
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from sequence", new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
+						actLoadDialog.dispose();
 						View view = (View) o;
 						view.doLoadFromSequence(f, seq, secondModel);
 					}
@@ -1551,7 +1553,14 @@ public class View extends JFrame implements ActionListener {
 					     " time to connect to the JPred server and retrieve the result)";
 			String title = "Secondary Structure";
 			if(JOptionPane.showConfirmDialog(this,msg,title,JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-				mod.assignJPredSecondaryStructure();	
+				
+				// show JPred dialog and run secondary structure prediction
+				JPredDialog jpredDialog = new JPredDialog(this,"");
+				SecondaryStructure result = null;
+				jpredDialog.runJPred(mod.getSequence());	// this will wait until result is returned
+				jpredDialog.showGui();	// this will block until dialog is disposed
+				result = jpredDialog.getResult();
+				if(result != null) mod.setSecondaryStructure(result);
 			}
 			
 			// apply new model
@@ -1566,7 +1575,7 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		}
 	}
-
+	
 	public void doLoadFromCmFile(String f, boolean secondModel) {
 		System.out.println("Loading from contact map file "+f);
 		try {
