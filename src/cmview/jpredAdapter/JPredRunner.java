@@ -1,4 +1,4 @@
-package cmview;
+package cmview.jpredAdapter;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;

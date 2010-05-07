@@ -45,7 +45,7 @@ public abstract class ToolDialog extends JDialog implements ActionListener {
     JButton cancelButton;
     JButton preferencesButton;
     
-    JProgressBar progressBar;
+    protected JProgressBar progressBar;
     
     // status information of the dialog
     /** dialog is in idle mode, nothing to do so far */

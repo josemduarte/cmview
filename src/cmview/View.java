@@ -22,6 +22,7 @@ import javax.help.*;
 
 import cmview.datasources.*;
 import cmview.gmbp.ContactView;
+import cmview.jpredAdapter.JPredDialog;
 import cmview.sadpAdapter.SADPDialog;
 import cmview.sadpAdapter.SADPDialogDoneNotifier;
 import cmview.sadpAdapter.SADPResult;

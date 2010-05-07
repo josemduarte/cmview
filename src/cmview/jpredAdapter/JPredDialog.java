@@ -1,4 +1,4 @@
-package cmview;
+package cmview.jpredAdapter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,6 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+
+import cmview.Start;
 
 import owl.core.connections.JPredConnection;
 import owl.core.connections.JPredProgressRetriever;
@@ -174,6 +176,7 @@ public class JPredDialog extends JDialog implements ActionListener {
 	
 	@Override
 	public void finalize() {
+		// TODO: This is apparently never called. Do we have a memory leak here?
 		System.out.println("JPredDialog will be Garbage Collected");
 	}
 	
