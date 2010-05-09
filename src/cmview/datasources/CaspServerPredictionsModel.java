@@ -38,7 +38,7 @@ public class CaspServerPredictionsModel extends Model {
 		RIGraph rig;
 		LinkedList<SecondaryStructure> ssList = new LinkedList<SecondaryStructure>();
 		int caspModNum = 0;
-		int numRes = 0;
+		//int numRes = 0;
 		String sequence = null;
 		RIGEnsemble rigs = new RIGEnsemble(edgeType, distCutoff);
 		boolean dsspError = false;
@@ -61,7 +61,7 @@ public class CaspServerPredictionsModel extends Model {
 				// extract meta data
 				if(sequence==null || pdb.getObsSequence().length() > sequence.length()) {
 					sequence = pdb.getObsSequence();
-					numRes = pdb.getObsLength();
+					//numRes = pdb.getObsLength();
 				}
 				//if(numRes==0) numRes = pdb.getObsLength();
 				if(caspModNum==0) caspModNum = pdb.getCaspModelNum();
