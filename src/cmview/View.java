@@ -84,6 +84,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_PDBASE = "Pdbase...";
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
 	private static final String LABEL_LOAD_SEQ = "Sequence...";
+	private static final String LABEL_CASP_SERVER_MOD = "Casp Server Models...";
 	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
@@ -170,8 +171,8 @@ public class View extends JFrame implements ActionListener {
 	// P -> "popup menu"
 	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp, mmLoadSeq;
-	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp, mmLoadSeq, mmLoadCaspServerMods;
+	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2, mmLoadCaspServerMods2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
@@ -541,6 +542,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmLoadCaspRR = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		mmLoadSeq = makeMenuItem(LABEL_LOAD_SEQ, null, submenu);
+		mmLoadCaspServerMods = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
@@ -622,6 +624,7 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb2 = makeMenuItem(LABEL_PDB_FILE, null, submenu);
 		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmLoadCaspRR2 = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
+		mmLoadCaspServerMods2 = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
 		menu.addSeparator();
 		mmShowCommon = makeMenuItem(LABEL_SHOW_COMMON, icon_selected, menu);
 		mmShowFirst = makeMenuItem(LABEL_SHOW_FIRST, icon_selected, menu);
@@ -1032,6 +1035,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmLoadSeq) {
 			handleLoadFromSequence(FIRST_MODEL);
+		}
+		if(e.getSource() == mmLoadCaspServerMods) {
+			handleLoadFromCaspServerMods(FIRST_MODEL);
 		}		
 
 		// Save
@@ -1198,6 +1204,9 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmLoadCaspRR2) {
 			handleLoadFromCaspRRFile(SECOND_MODEL);
+		}
+		if(e.getSource() == mmLoadCaspServerMods2) {
+			handleLoadFromCaspServerMods(SECOND_MODEL);
 		}
 
 		if(e.getSource() == mmShowCommon || e.getSource() == tbShowCommon) {
@@ -1503,6 +1512,22 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+	public void doLoadFromCmFile(String f, boolean secondModel) {
+		System.out.println("Loading from contact map file "+f);
+		try {
+			Model mod = new ContactMapFileModel(f);
+			if(secondModel == SECOND_MODEL) {
+				//handleLoadSecondModel(mod);
+				mod2 = mod;
+				handlePairwiseAlignment();
+			} else {
+				this.spawnNewViewWindow(mod);
+			}
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
+	}
+	
 	/**
 	 * This method is being called when 'Load from sequence' was chosen in the menu.
 	 * @param secondModel whether the function was invoked from the 'Load second contact map' menu.
@@ -1547,8 +1572,6 @@ public class View extends JFrame implements ActionListener {
 				mod = new SequenceModel(new File(f));
 			}
 			
-			// TODO: assign secondary structure by JPredConnection
-			
 			String msg = "\nDo you want to assign predicted secondary structure using JPred?\n\n" +
 					     "(This requires an active internet connection and may take some\n" +
 					     " time to connect to the JPred server and retrieve the result)";
@@ -1577,12 +1600,39 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
-	public void doLoadFromCmFile(String f, boolean secondModel) {
-		System.out.println("Loading from contact map file "+f);
+	private void handleLoadFromCaspServerMods(boolean secondModel) {
+		if (secondModel == SECOND_MODEL && mod == null){
+			this.showNoContactMapWarning();
+		} else{
+			try {
+				LoadDialog dialog = new LoadDialog(this, "Load Casp Server Models", new LoadAction(secondModel) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
+						View view = (View) o;
+						view.doLoadFromCaspServerModels(f, ct, dist, minss, maxss, secondModel);
+					}
+				}, "", null, null, null, null, Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null, null);
+				actLoadDialog = dialog;
+				dialog.showIt();
+			} catch (LoadDialogConstructionError e) {
+				System.err.println("Failed to load the load-dialog.");
+			}	
+		}
+	}
+	
+	public void doLoadFromCaspServerModels(String f, String ct, double dist, int minss, int maxss, boolean secondModel) {
+		boolean firstModOnly = true;
+		double consSSThresh = 0.5;
+		System.out.println("Loading Casp Server Models");
+		System.out.println("Filename:\t" + f);
+		System.out.println("Contact type:\t" + ct);
+		System.out.println("Dist. cutoff:\t" + dist);	
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
+		System.out.println("Load only first models:\t" + (firstModOnly?"yes":"no"));
+		
 		try {
-			Model mod = new ContactMapFileModel(f);
+			Model mod = new CaspServerPredictionsModel(new File(f), ct, dist, minss, maxss, firstModOnly,consSSThresh);
 			if(secondModel == SECOND_MODEL) {
-				//handleLoadSecondModel(mod);
 				mod2 = mod;
 				handlePairwiseAlignment();
 			} else {
