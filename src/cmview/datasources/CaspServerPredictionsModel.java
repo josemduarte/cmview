@@ -80,6 +80,7 @@ public class CaspServerPredictionsModel extends Model {
 				}
 				
 				// create graph
+				System.out.println(pdb.getObsLength() + " " + pdb.getSequence().length());
 				if(sequence.equals(pdb.getObsSequence())) {
 					rig = pdb.getRIGraph(edgeType, distCutoff);
 					rigs.addRIG(rig);
@@ -132,6 +133,16 @@ public class CaspServerPredictionsModel extends Model {
 	@Override
 	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
 		return;
+	}
+	
+	/**
+	 * Main method for testing and debugging
+	 * @param args
+	 * @throws ModelConstructionError 
+	 */
+	public static void main(String[] args) throws ModelConstructionError {
+		File fileDir = new File("/home/stehr/Desktop/T0387");
+		Model mod = new CaspServerPredictionsModel(fileDir, "Cb", 8.0, 0, 0, true, 0.5);
 	}
 	
 }
