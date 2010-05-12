@@ -90,7 +90,7 @@ public class CaspServerPredictionsModel extends Model {
 			consensusSS.print();
 			this.setSecondaryStructure(consensusSS);
 		} else {
-			System.out.println("Could not assign consensus secondary structure");
+			System.out.println("Consensus secondary structure not assigned");
 		}
 		
 		// assign a loadedGraphId to this model

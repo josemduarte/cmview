@@ -1581,7 +1581,7 @@ public class View extends JFrame implements ActionListener {
 				// show JPred dialog and run secondary structure prediction
 				JPredDialog jpredDialog = new JPredDialog(this);
 				SecondaryStructure result = null;
-				jpredDialog.runJPred(mod.getSequence());	// this will wait until result is returned
+				jpredDialog.runJPred(mod.getSequence()); // start JPred connection in thread
 				jpredDialog.showGui();	// this will block until dialog is disposed
 				result = jpredDialog.getResult();
 				if(result != null) mod.setSecondaryStructure(result);
@@ -1608,6 +1608,7 @@ public class View extends JFrame implements ActionListener {
 				Start.getFileChooser().setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				LoadDialog dialog = new LoadDialog(this, "Load Casp Server Models", new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
+						actLoadDialog.dispose();
 						View view = (View) o;
 						view.doLoadFromCaspServerModels(f, ct, dist, minss, maxss, secondModel);
 					}
@@ -1625,6 +1626,15 @@ public class View extends JFrame implements ActionListener {
 	public void doLoadFromCaspServerModels(String f, String ct, double dist, int minss, int maxss, boolean secondModel) {
 		boolean firstModOnly = true;
 		double consSSThresh = 0.5;
+
+		String msg = "\nDo you want to assign consensus secondary structure from the server models?\n" +
+	     "(This requires DSSP to be properly set up in your cmview.cfg)\n\n";
+		String title = "Secondary Structure";
+		
+		if(JOptionPane.showConfirmDialog(this,msg,title,JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+			consSSThresh = 0.0;
+		}
+		
 		System.out.println("Loading Casp Server Models");
 		System.out.println("Directory:\t" + f);
 		System.out.println("Contact type:\t" + ct);
