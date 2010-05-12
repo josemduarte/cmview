@@ -19,11 +19,18 @@ import owl.graphAveraging.GraphAveragerError;
 
 public class CaspServerPredictionsModel extends Model {
 
+	/*--------------------------- member variables --------------------------*/
+	int caspTargetNum;	// stores the number of the target for which
+						// predictions are being loaded
+	
+	/*----------------------------- constructors ----------------------------*/
+	
 	public CaspServerPredictionsModel(File modelDirectory, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, boolean onlyFirstModels, double consensusSSthresh) throws ModelConstructionError {
 		if(!modelDirectory.exists() || !modelDirectory.isDirectory()
 									|| !modelDirectory.canRead()) {
 			throw new ModelConstructionError("Can not access directory " + modelDirectory);
-		}		
+		}
+		caspTargetNum = 0;
 		//loadFromDirectory(modelDirectory, edgeType,distCutoff, minSeqSep, maxSeqSep, onlyFirstModels, consensusSSthresh);
 		loadUsingRIGEnsembl(modelDirectory, edgeType,distCutoff, minSeqSep, maxSeqSep, onlyFirstModels, consensusSSthresh);
 	}
@@ -32,6 +39,12 @@ public class CaspServerPredictionsModel extends Model {
 		super(mod);
 	}
 
+	/*---------------------------- private methods --------------------------*/
+	
+	/**
+	 * Loads the prediction files and updates the members of this model with the weighted contact map
+	 * and associated data.
+	 */
 	private void loadUsingRIGEnsembl(File modelDirectory, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, boolean onlyFirstModels, double consensusSSthresh) throws ModelConstructionError {
 		
 		// load sequence
@@ -39,6 +52,7 @@ public class CaspServerPredictionsModel extends Model {
 		if(seq == null) throw new ModelConstructionError("Could not find sequence information in files.");
 		
 		// create RIGEnsemble
+		System.out.println("Loading prediction files...");
 		int numLoaded = 0;
 		RIGEnsemble ensemble = new RIGEnsemble(edgeType, distCutoff);
 		if(onlyFirstModels) ensemble.loadOnlyFirstModels();
@@ -70,13 +84,21 @@ public class CaspServerPredictionsModel extends Model {
 //		this.setSecondaryStructure(SecondaryStructure.getConsensusSecondaryStructure(sequence, ssList, consensusSSthresh));
 		
 		// assign a loadedGraphId to this model
-		String name = String.format("T%04d ensemble",0);
+		String name = String.format("T%04d_ensemble", caspTargetNum);
 		this.loadedGraphID = Start.setLoadedGraphID(name, this);
 		
 		// print results
 		System.out.println("Loaded " + numLoaded + (onlyFirstModels?" first":"") + " models");
 	}
 	
+	/**
+	 * Scans all prediction files in the given directory to obtain the full sequence. This is assumed
+	 * to be the longest sequence found in any of the files.
+	 * Side effect: Sets the caspTargetNum from information found in the files.
+	 * @param modelDirectory the directory where the predictions are to be loaded from
+	 * @param onlyFirstModels whether only predictions assigned as model 1 are to be considered
+	 * @return the longest sequence found in any of the considered prediction files
+	 */
 	private String loadSequenceFromDirectory(File modelDirectory, boolean onlyFirstModels) {
 		// load files
 		String newSeq = "";
@@ -84,6 +106,7 @@ public class CaspServerPredictionsModel extends Model {
 		int numLoaded = 0;
 		int pdbErrors = 0;
 		Pdb pdb;
+		System.out.println("Loading sequence information...");
 		System.out.println("Files in directory: " + files.length);
 		for(File f:files) {
 			if(f.isFile()) {
@@ -96,12 +119,14 @@ public class CaspServerPredictionsModel extends Model {
 						Integer[] models = pdb.getModels();
 						if(chains==null || models==null || (onlyFirstModels && models[0] != 1)) continue;	// skip if not model 1
 						pdb.load(chains[0], models[0]);	// load first chain and first model
+						if(caspTargetNum <= 0) caspTargetNum = pdb.getTargetNum();
 					} catch (PdbLoadError e) {
 						//System.err.println(e.getMessage());					
 						pdbErrors++;
 						continue;
 					}
 				}
+				numLoaded++;
 					
 				// extract meta data
 				if(pdb.getObsSequence().length() > newSeq.length()) {
@@ -109,8 +134,8 @@ public class CaspServerPredictionsModel extends Model {
 				}
 			}
 		}
-		System.out.println("Structures loaded: " + numLoaded);
-		System.out.println("Pdb errors: " + pdbErrors);
+		//System.out.println("Structures loaded: " + numLoaded);
+		//System.out.println("Pdb errors: " + pdbErrors);
 		System.out.println("Sequence length: " + newSeq.length());
 		return (newSeq.length() > 0?newSeq:null);
 	}
@@ -206,6 +231,8 @@ public class CaspServerPredictionsModel extends Model {
 		if(dsspError) System.err.println("Some errors occured when trying to assign secondary structure with DSSP");
 	}
 	
+	/*-------------------------- implemented methods ------------------------*/
+	
 	@Override
 	public Model copy() {
 	    return new CaspServerPredictionsModel(this);
@@ -222,6 +249,8 @@ public class CaspServerPredictionsModel extends Model {
 	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
 		return;
 	}
+	
+	/*--------------------------------- main --------------------------------*/
 	
 	/**
 	 * Main method for testing and debugging

@@ -84,9 +84,11 @@ public class PdbFileModel extends Model {
 			String name = DEFAULT_LOADEDGRAPHID;
 			if (!this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
 				name = this.graph.getPdbCode()+this.graph.getChainCode();
-			} 
+			} else 
 			if (this.graph.getTargetNum()!=0) {
 				name = String.format("T%04d",this.graph.getTargetNum());
+			} else {
+				name = new File(this.fileName).getName();
 			}
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 
