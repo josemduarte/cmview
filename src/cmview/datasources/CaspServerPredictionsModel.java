@@ -7,12 +7,15 @@ import java.util.LinkedList;
 import cmview.Start;
 
 import owl.core.runners.DsspRunner;
+import owl.core.sequence.Sequence;
 import owl.core.structure.Pdb;
 import owl.core.structure.PdbLoadError;
 import owl.core.structure.PdbfilePdb;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGraph;
+import owl.graphAveraging.GraphAverager;
+import owl.graphAveraging.GraphAveragerError;
 
 public class CaspServerPredictionsModel extends Model {
 
@@ -20,15 +23,99 @@ public class CaspServerPredictionsModel extends Model {
 		if(!modelDirectory.exists() || !modelDirectory.isDirectory()
 									|| !modelDirectory.canRead()) {
 			throw new ModelConstructionError("Can not access directory " + modelDirectory);
-		}
-		
-		loadFromDirectory(modelDirectory, edgeType,distCutoff, minSeqSep, maxSeqSep, onlyFirstModels, consensusSSthresh);
+		}		
+		//loadFromDirectory(modelDirectory, edgeType,distCutoff, minSeqSep, maxSeqSep, onlyFirstModels, consensusSSthresh);
+		loadUsingRIGEnsembl(modelDirectory, edgeType,distCutoff, minSeqSep, maxSeqSep, onlyFirstModels, consensusSSthresh);
 	}
 	
 	public CaspServerPredictionsModel(Model mod) {
 		super(mod);
 	}
 
+	private void loadUsingRIGEnsembl(File modelDirectory, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, boolean onlyFirstModels, double consensusSSthresh) throws ModelConstructionError {
+		
+		// load sequence
+		String seq = loadSequenceFromDirectory(modelDirectory, onlyFirstModels);
+		if(seq == null) throw new ModelConstructionError("Could not find sequence information in files.");
+		
+		// create RIGEnsemble
+		int numLoaded = 0;
+		RIGEnsemble ensemble = new RIGEnsemble(edgeType, distCutoff);
+		if(onlyFirstModels) ensemble.loadOnlyFirstModels();
+		try {
+			numLoaded = ensemble.loadFromFileList(modelDirectory, new Sequence("dummyName", seq));
+		} catch (IOException e) {
+			System.err.println("Could not read from directory: " + e.getMessage());
+			throw new ModelConstructionError(e);
+		}
+		
+		// create graphAverager	
+		GraphAverager ga = null;
+		try {
+		ga = new GraphAverager(ensemble);
+		} catch (GraphAveragerError e) {
+			System.err.println("Could not create graphAverager: " + e.getMessage());
+			throw new ModelConstructionError(e);
+		}
+		
+		// assign model fields
+		this.edgeType = edgeType;
+		this.distCutoff = distCutoff;
+		this.maxSeqSep = maxSeqSep;
+		this.pdb = null;
+		this.graph = ga.getAverageGraph();
+		this.setIsGraphWeighted(true);
+		
+//		// assign consensus secondary structure
+//		this.setSecondaryStructure(SecondaryStructure.getConsensusSecondaryStructure(sequence, ssList, consensusSSthresh));
+		
+		// assign a loadedGraphId to this model
+		String name = String.format("T%04d ensemble",0);
+		this.loadedGraphID = Start.setLoadedGraphID(name, this);
+		
+		// print results
+		System.out.println("Loaded " + numLoaded + (onlyFirstModels?" first":"") + " models");
+	}
+	
+	private String loadSequenceFromDirectory(File modelDirectory, boolean onlyFirstModels) {
+		// load files
+		String newSeq = "";
+		File[] files = modelDirectory.listFiles();
+		int numLoaded = 0;
+		int pdbErrors = 0;
+		Pdb pdb;
+		System.out.println("Files in directory: " + files.length);
+		for(File f:files) {
+			if(f.isFile()) {
+				//System.out.println(f);
+				// load structure
+				pdb = new PdbfilePdb(f.getAbsolutePath());
+				if(pdb==null) pdbErrors++; else {
+					try {
+						String[] chains = pdb.getChains();
+						Integer[] models = pdb.getModels();
+						if(chains==null || models==null || (onlyFirstModels && models[0] != 1)) continue;	// skip if not model 1
+						pdb.load(chains[0], models[0]);	// load first chain and first model
+					} catch (PdbLoadError e) {
+						//System.err.println(e.getMessage());					
+						pdbErrors++;
+						continue;
+					}
+				}
+					
+				// extract meta data
+				if(pdb.getObsSequence().length() > newSeq.length()) {
+					newSeq = pdb.getObsSequence();
+				}
+			}
+		}
+		System.out.println("Structures loaded: " + numLoaded);
+		System.out.println("Pdb errors: " + pdbErrors);
+		System.out.println("Sequence length: " + newSeq.length());
+		return (newSeq.length() > 0?newSeq:null);
+	}
+	
+	@SuppressWarnings("unused")
 	private void loadFromDirectory(File modelDirectory, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, boolean onlyFirstModels, double consensusSSthresh) throws ModelConstructionError {
 
 		// load files
@@ -43,6 +130,7 @@ public class CaspServerPredictionsModel extends Model {
 		RIGEnsemble rigs = new RIGEnsemble(edgeType, distCutoff);
 		boolean dsspError = false;
 		int pdbErrors = 0;
+		System.out.println("Files in directory: " + files.length);
 		for(File f:files) {
 			if(f.isFile() && (!onlyFirstModels || f.getName().indexOf("TS1") >= 0)) {
 				System.out.println(f);
@@ -141,8 +229,11 @@ public class CaspServerPredictionsModel extends Model {
 	 * @throws ModelConstructionError 
 	 */
 	public static void main(String[] args) throws ModelConstructionError {
-		File fileDir = new File("/home/stehr/Desktop/T0387");
+		//String testDir = "/home/stehr/Desktop/T0387";
+		String testDir = "/project/StruPPi/CASP9/server_models/T0515";
+		File fileDir = new File(testDir);
 		Model mod = new CaspServerPredictionsModel(fileDir, "Cb", 8.0, 0, 0, true, 0.5);
+		mod.getSecondaryStructure().print();
 	}
 	
 }

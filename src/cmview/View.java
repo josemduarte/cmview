@@ -1605,6 +1605,7 @@ public class View extends JFrame implements ActionListener {
 			this.showNoContactMapWarning();
 		} else{
 			try {
+				Start.getFileChooser().setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				LoadDialog dialog = new LoadDialog(this, "Load Casp Server Models", new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
@@ -1615,7 +1616,9 @@ public class View extends JFrame implements ActionListener {
 				dialog.showIt();
 			} catch (LoadDialogConstructionError e) {
 				System.err.println("Failed to load the load-dialog.");
-			}	
+			} finally {
+				Start.getFileChooser().setFileSelectionMode(JFileChooser.FILES_ONLY);
+			}
 		}
 	}
 	
@@ -1623,12 +1626,13 @@ public class View extends JFrame implements ActionListener {
 		boolean firstModOnly = true;
 		double consSSThresh = 0.5;
 		System.out.println("Loading Casp Server Models");
-		System.out.println("Filename:\t" + f);
+		System.out.println("Directory:\t" + f);
 		System.out.println("Contact type:\t" + ct);
 		System.out.println("Dist. cutoff:\t" + dist);	
 		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		System.out.println("Load only first models:\t" + (firstModOnly?"yes":"no"));
+		System.out.println("Consensus secondary structure threshold:\t" + (consSSThresh > 0?consSSThresh:"none"));		
 		
 		try {
 			Model mod = new CaspServerPredictionsModel(new File(f), ct, dist, minss, maxss, firstModOnly,consSSThresh);
