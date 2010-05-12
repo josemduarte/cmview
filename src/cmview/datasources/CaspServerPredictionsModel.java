@@ -2,6 +2,7 @@ package cmview.datasources;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import cmview.Start;
@@ -22,6 +23,8 @@ public class CaspServerPredictionsModel extends Model {
 	/*--------------------------- member variables --------------------------*/
 	int caspTargetNum;	// stores the number of the target for which
 						// predictions are being loaded
+	ArrayList<SecondaryStructure> ssList;	// secondary structures annotations
+											// of server predictions
 	
 	/*----------------------------- constructors ----------------------------*/
 	
@@ -47,8 +50,8 @@ public class CaspServerPredictionsModel extends Model {
 	 */
 	private void loadUsingRIGEnsembl(File modelDirectory, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, boolean onlyFirstModels, double consensusSSthresh) throws ModelConstructionError {
 		
-		// load sequence
-		String seq = loadSequenceFromDirectory(modelDirectory, onlyFirstModels);
+		// first scan: find maximal sequence, targte number and load dssp secondary structures
+		String seq = loadSequenceFromDirectory(modelDirectory, onlyFirstModels, consensusSSthresh);
 		if(seq == null) throw new ModelConstructionError("Could not find sequence information in files.");
 		
 		// create RIGEnsemble
@@ -80,8 +83,15 @@ public class CaspServerPredictionsModel extends Model {
 		this.graph = ga.getAverageGraph();
 		this.setIsGraphWeighted(true);
 		
-//		// assign consensus secondary structure
-//		this.setSecondaryStructure(SecondaryStructure.getConsensusSecondaryStructure(sequence, ssList, consensusSSthresh));
+		// assign consensus secondary structure
+		if(ssList != null && ssList.size() > 0) {
+			SecondaryStructure consensusSS = SecondaryStructure.getConsensusSecondaryStructure(seq, ssList, consensusSSthresh);
+			System.out.println("Consensus Secondary Structure:");
+			consensusSS.print();
+			this.setSecondaryStructure(consensusSS);
+		} else {
+			System.out.println("Could not assign consensus secondary structure");
+		}
 		
 		// assign a loadedGraphId to this model
 		String name = String.format("T%04d_ensemble", caspTargetNum);
@@ -94,18 +104,19 @@ public class CaspServerPredictionsModel extends Model {
 	/**
 	 * Scans all prediction files in the given directory to obtain the full sequence. This is assumed
 	 * to be the longest sequence found in any of the files.
-	 * Side effect: Sets the caspTargetNum from information found in the files.
+	 * Side effects: Sets the caspTargetNum and ssList members from information found in the files.
 	 * @param modelDirectory the directory where the predictions are to be loaded from
 	 * @param onlyFirstModels whether only predictions assigned as model 1 are to be considered
 	 * @return the longest sequence found in any of the considered prediction files
 	 */
-	private String loadSequenceFromDirectory(File modelDirectory, boolean onlyFirstModels) {
+	private String loadSequenceFromDirectory(File modelDirectory, boolean onlyFirstModels, double consensusSSthresh) {
 		// load files
 		String newSeq = "";
 		File[] files = modelDirectory.listFiles();
 		int numLoaded = 0;
 		int pdbErrors = 0;
 		Pdb pdb;
+		ssList = new ArrayList<SecondaryStructure>();	// load also secondary structure
 		System.out.println("Loading sequence information...");
 		System.out.println("Files in directory: " + files.length);
 		for(File f:files) {
@@ -120,6 +131,20 @@ public class CaspServerPredictionsModel extends Model {
 						if(chains==null || models==null || (onlyFirstModels && models[0] != 1)) continue;	// skip if not model 1
 						pdb.load(chains[0], models[0]);	// load first chain and first model
 						if(caspTargetNum <= 0) caspTargetNum = pdb.getTargetNum();
+						
+						// extract secondary structure
+						if(Start.isDsspAvailable() && consensusSSthresh > 0) {
+							SecondaryStructure ss = null;
+							try {
+								ss = DsspRunner.runDssp(pdb, Start.DSSP_EXECUTABLE, Start.DSSP_PARAMETERS);
+							} catch (IOException e) {
+								// we don't want to print 50x that DSSP does not work
+							}
+							if(ss != null) {
+								ssList.add(ss);
+							} //else dsspError = true;
+						}
+						
 					} catch (PdbLoadError e) {
 						//System.err.println(e.getMessage());					
 						pdbErrors++;
