@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Hashtable;
@@ -27,7 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ContactStatusBar extends JPanel implements ItemListener, ActionListener, ChangeListener{
+public class ContactStatusBar extends JPanel implements ItemListener, ActionListener, ChangeListener, KeyListener{
 
 	/**
 	 * 
@@ -97,6 +99,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	
 	
 	public ContactStatusBar(ContactView controller) {
+
+//		addKeyListener(this);
 		
 		this.controller = controller;
 		
@@ -501,6 +505,29 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	
 	
 	/*---------------------------- event listening -------------------------*/
+	
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased3");
+		
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased1");
+		
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("keyReleased2");
+		
+	}
+
 	/**
 	 * Handle local item events
 	 */

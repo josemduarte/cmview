@@ -19,6 +19,11 @@ public class ContactGUIState {
 	private ContactView view;					// the parent view
 	private SelMode selectionMode;		// current selection mode, modify using setSelectionMode
 	private boolean showRulers;			// whether showing angle rulers is switched on
+	private boolean showSphoxelBG;		// whether showing the SphoxelBackground is switched on
+	private boolean showNBHStraces;	    // whether showing the NBHStringTraces is switched on
+	private boolean showLongitudes;     // whether showing the longitudes is switched on
+	private boolean showLatitudes;      // whether showing the latitudes is switched on
+	private boolean showLongLatCentre;  // whether showing the longlatcentre is switched on
 
 	/**
 	 * Initializes the GUI state with default values.
@@ -27,6 +32,11 @@ public class ContactGUIState {
 		this.view = view;
 		this.selectionMode = INITIAL_SEL_MODE;
 		this.showRulers=Start.SHOW_RULERS;
+		this.showSphoxelBG = true;
+		this.showNBHStraces = true;
+		this.showLongitudes = true;
+		this.showLatitudes = true;
+		this.showLongLatCentre = true;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -45,6 +55,41 @@ public class ContactGUIState {
 	 */
 	protected boolean getShowRulers() {
 		return showRulers;
+	}
+	
+	/**
+	 * @return the showSphoxelBG
+	 */
+	protected boolean getShowSphoxelBG() {
+		return showSphoxelBG;
+	}
+	
+	/**
+	 * @return the showNBHStraces
+	 */
+	protected boolean getShowNBHStraces() {
+		return showNBHStraces;
+	}
+	
+	/**
+	 * @return the showLongitudes
+	 */
+	protected boolean getShowLongitudes() {
+		return showLongitudes;
+	}
+
+	/**
+	 * @return the showLatitudes
+	 */
+	protected boolean getShowLatitudes() {
+		return showLatitudes;
+	}
+
+	/**
+	 * @return the showLongLatCentre
+	 */
+	protected boolean getShowLongLatCentre() {
+		return showLongLatCentre;
 	}
 	
 	/*---------------- setters ---------------*/
@@ -69,5 +114,19 @@ public class ContactGUIState {
 	 */
 	protected void setShowRulers(boolean showRulers) {
 		this.showRulers = showRulers;
+	}
+	
+	/**
+	 * @param showSphoxelBG the showSphoxelBG to set
+	 */
+	protected void setShowSphoxelBG(boolean showSphoxelBG) {
+		this.showSphoxelBG = showSphoxelBG;
+	}
+	
+	/**
+	 * @param showNBHStraces the showNBHStraces to set
+	 */
+	protected void setShowNBHStraces(boolean showNBHStraces) {
+		this.showNBHStraces = showNBHStraces;
 	}
 }

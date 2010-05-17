@@ -27,16 +27,23 @@ public class AnglePanel extends JPanel {
 	int bottomMargin = 0;		// margin between bg rectable and edge
 	int textYOffset = 23;		// top margin between rectangle and first text
 	int lineHeight = 20;		// offset between lines
-	int totalHeight = 5 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
+	int totalHeight = 6 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
 	
 	private String title1 = "Contact:";
 	private String iRes = "";
 	private String jRes = "";
+	private String iSSType = "";
+	private String jSSType = "";
+	private String nbhs = "";
 	private String title2 = "AngleRange:";
 	private String phiMin = "";
 	private String phiMax = "";
 	private String thetaMin = "";
 	private String thetaMax = "";
+	
+	public AnglePanel() {
+		this.setMinimumSize(new Dimension(width,totalHeight));
+	}
 	
 /*--------------------------   drawing ---------------------------------*/
 	
@@ -81,14 +88,15 @@ public class AnglePanel extends JPanel {
 		int x = firstColumnX;			// where first text will be written
 		int y = baseLineY+textYOffset;	// where first text will be written
 		
-		g2d.drawString(title1, x, y);			// name of contact map
+		g2d.drawString(title1, x, y);			
 		y += this.lineHeight;
-		g2d.drawString(iRes+"-"+jRes, x, y);			// name of contact map
-//		y += this.lineHeight;
+		g2d.drawString(iRes+"_"+iSSType.toLowerCase()+" - "+jRes+"_"+jSSType.toLowerCase(), x, y);	// selected contacts within contact map
+		y += this.lineHeight;
+		g2d.drawString(nbhs, x, y);
 		
 		baseLineY = y;
 		y = baseLineY+this.textYOffset;
-		g2d.drawString(title2, x, y);			// name of contact map
+		g2d.drawString(title2, x, y);			// Angle Range
 		y += this.lineHeight;
 //		y = baseLineY + textYOffset;
 		x = firstColumnX;
@@ -113,9 +121,19 @@ public class AnglePanel extends JPanel {
 	public void setJRes(String string) {
 		this.jRes = string;		
 	}
-
 	public void setIRes(String string) {
 		this.iRes = string;
+	}
+	
+	public void setJSSType(String string) {
+		this.jSSType = string;		
+	}
+	public void setISSType(String string) {
+		this.iSSType = string;
+	}
+	
+	public void setNBHS(String string){
+		this.nbhs = string;
 	}
 	
 	public void setPhiMin(String string){

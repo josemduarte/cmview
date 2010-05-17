@@ -33,24 +33,24 @@ public class ScreenBuffer {
      * The size is not changed.
      */
     public void clear() {
-	if(g2d!=null){
-	    
-		g2d.dispose();
-		g2d=null;
-	    
-	    if(image!=null){
-		image.flush();
-		image=null;
-	    }
-	    System.gc();
-	}
-	this.image=parent.createImage(parent.getPreferredSize().width,parent.getPreferredSize().height);
-	if(image==null) {
-	    System.err.println("Severe Error: Failed to update screen buffer because parent frame is not displayable.");
-	    System.exit(1);
-	} else {
-	    g2d= (Graphics2D) this.image.getGraphics();
-	}
+		if(g2d!=null){
+		    
+			g2d.dispose();
+			g2d=null;
+		    
+		    if(image!=null){
+			image.flush();
+			image=null;
+		    }
+		    System.gc();
+		}
+		this.image=parent.createImage(parent.getPreferredSize().width,parent.getPreferredSize().height);
+		if(image==null) {
+		    System.err.println("Severe Error: Failed to update screen buffer because parent frame is not displayable.");
+		    System.exit(1);
+		} else {
+		    g2d= (Graphics2D) this.image.getGraphics();
+		}
     }
 
     /**

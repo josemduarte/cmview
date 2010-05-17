@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -36,7 +38,7 @@ import cmview.ContactMapPane;
 import cmview.Start;
 import cmview.datasources.Model;
 
-public class ContactView extends JFrame implements ActionListener{
+public class ContactView extends JFrame implements ActionListener{ //, KeyListener{
 	
 	/**
 	 * 
@@ -55,6 +57,8 @@ public class ContactView extends JFrame implements ActionListener{
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	private static final String LABEL_PAN_VIEW_MODE = "Panning Mode";
+	// Show
+	private static final String LABEL_HISTOGRAM_MODE = "Histogram4Selection";
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
@@ -63,6 +67,7 @@ public class ContactView extends JFrame implements ActionListener{
 	JPanel svP; 				// Main panel holding the Contact map pane Sperical Voxel view 
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	ContactStatusBar contStatBar;		// A status bar with metainformation on the right
+	JPopupMenu popup; 		 	// right-click context menu
 	
 	// Toolbar Buttons
 	JToggleButton tbSquareSel, tbClusterSel, tbPanMode;
@@ -78,6 +83,8 @@ public class ContactView extends JFrame implements ActionListener{
 	// Menu items
 	// M -> "menu bar"
 	JMenuItem squareM, clusterM;
+	// P -> "popup menu"
+	JMenuItem histP;
 	// mm -> "main menu"
 	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmQuit;
 	JMenuItem mmSelectAll;
@@ -92,6 +99,26 @@ public class ContactView extends JFrame implements ActionListener{
 	public AngleRuler phiRuler;
 	public AngleRuler thetaRuler;
 	public ColorScaleView colView;
+	public HistogramView histView;
+	
+	private class MyDispatcher implements KeyEventDispatcher {
+		private ContactPane cPane;
+		private MyDispatcher(ContactPane cPane){
+			this.cPane = cPane;
+		}
+	    @Override
+	    public boolean dispatchKeyEvent(KeyEvent e) {
+	    	// -- forward key events --
+	        if (e.getID() == KeyEvent.KEY_PRESSED) {
+	        	this.cPane.keyPressed(e);
+	        } else if (e.getID() == KeyEvent.KEY_RELEASED) {
+	        	this.cPane.keyReleased(e);
+	        } else if (e.getID() == KeyEvent.KEY_TYPED) {
+	        	this.cPane.keyTyped(e);
+	        }
+	        return false;
+	    }
+	}
 	
 	/** Create a new View object */
 	public ContactView(Model mod, String title, ContactMapPane cmPane) {
@@ -102,6 +129,9 @@ public class ContactView extends JFrame implements ActionListener{
 		this.cmPane = cmPane;
 //		Dimension dim = new Dimension(150, 250);
 //		this.setPreferredSize(dim);
+		
+//		addKeyListener(this);
+//		this.setFocusable(true);
 		
 		if(mod == null) {
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
@@ -114,7 +144,10 @@ public class ContactView extends JFrame implements ActionListener{
 		}
 //		this.guiState = new GUIState(this);
 		this.initGUI(); 							// build gui tree and pack
-		setVisible(true);							// show GUI			
+		setVisible(true);							// show GUI	
+
+		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+	    manager.addKeyEventDispatcher(new MyDispatcher(this.cPane));
 		
 		// show status bar groups
 		if(mod != null) {
@@ -144,6 +177,17 @@ public class ContactView extends JFrame implements ActionListener{
 		newItem.addActionListener(this);
 		if(menu != null) menu.add(newItem);
 		return newItem;
+	}
+	
+	/**
+	 * Sets up and returns a new popup menu item with the given icon and label, adds it to the given JPopupMenu and
+	 * registers 'this' as the action listener.
+	 */	
+	private JMenuItem makePopupMenuItem(String label, Icon icon, JPopupMenu menu) {
+		JMenuItem newItem = new JMenuItem(label, icon);
+		newItem.addActionListener(this);
+		menu.add(newItem);
+		return newItem;		
 	}
 	
 	/**
@@ -210,6 +254,10 @@ public class ContactView extends JFrame implements ActionListener{
 		selectionModeButtons.add(tbClusterSel);
 		selectionModeButtons.add(tbPanMode);
 		
+		// Popup menu
+		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		popup = new JPopupMenu();
+		histP = makePopupMenuItem(LABEL_HISTOGRAM_MODE, icon_square_sel_mode, popup);
 		
 		// Main menu
 		JMenuBar menuBar;
@@ -449,8 +497,11 @@ public class ContactView extends JFrame implements ActionListener{
 	public void handleChangeRemOutliers(boolean rem) {
 		this.cPane.setRemoveOutliers(rem);
 		this.cPane.repaint();
+		this.cPane.calcHistogramms();
 		if (colView!=null)
 			colView.repaint();
+		if (histView!=null)
+			histView.repaint();
 	}
 	
 	/**
@@ -461,8 +512,13 @@ public class ContactView extends JFrame implements ActionListener{
 		this.cPane.setMinAllowedRat(min);
 		this.cPane.setMaxAllowedRat(max);
 		this.cPane.repaint();
+//		colView.setMinRatio(min);
+//		colView.setMaxRatio(max);
+		this.cPane.calcHistOfSphoxelMap();
 		if (colView!=null)
 			colView.repaint();
+		if (histView!=null)
+			histView.repaint();
 	}
 	
 	/**
@@ -486,7 +542,23 @@ public class ContactView extends JFrame implements ActionListener{
 //		if (colView==null)
 			colView = new ColorScaleView(this.cPane);
 		colView.setChosenColourScale(type);
-		colView.repaint();
+		this.cPane.calcHistogramms();
+		colView.repaint();	
+		
+//		histView = new HistogramView(this.cPane);
+//		histView.setChosenColourScale(type);
+//		histView.repaint();
+	}
+	
+	/**
+	 * Handles the user action to show histogram for selection
+	 * @param 
+	 */
+	public void handleShowHistogram() {	
+		histView = new HistogramView(this.cPane, "Histograms for occupied angle range "+String.valueOf(cPane.getChosenSelection()+1));		
+		this.cPane.calcHistogramms();	
+		histView.setChosenColourScale(cPane.getChosenColourScale());
+		histView.repaint();
 	}
 	
 	/**
@@ -535,6 +607,22 @@ public class ContactView extends JFrame implements ActionListener{
 	 */
 	protected ContactGUIState getGUIState() {
 		return this.guiState;
+	}
+	
+	public ColorScaleView getColorScaleView(){
+//		if (colView==null){
+//			colView = new ColorScaleView(this.cPane);
+//			colView.repaint();
+//		}
+		return colView;
+	}
+	
+	public HistogramView getHistogramView(){
+//		if (histView==null){
+//			histView = new HistogramView(this.cPane);
+//			histView.repaint();
+//		}
+		return histView;
 	}
 
 	public Dimension getScreenSize(){
@@ -586,17 +674,23 @@ public class ContactView extends JFrame implements ActionListener{
 		if (e.getSource() == tbPanMode) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
 		}
+		
+		/* ---------- RightClick PopupMenu ------------ */
+		// Histogram button clicked
+		if (e.getSource() == histP) {
+			handleShowHistogram();
+		}
 	}
 
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("keyPressed");
+		System.out.println("CV keyPressed");
 		
 	}
 
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("keyReleased");
+		System.out.println("CV keyReleased");
 		int id = e.getID();
         String keyString;
         if (id == KeyEvent.KEY_TYPED) {
@@ -614,7 +708,7 @@ public class ContactView extends JFrame implements ActionListener{
 
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub	
-		System.out.println("keyReleased");	
+		System.out.println("CV keyTyped");	
 	}
 	
 }
