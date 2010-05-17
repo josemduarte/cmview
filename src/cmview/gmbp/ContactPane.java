@@ -40,7 +40,6 @@ import owl.gmbp.CSVhandler;
 import cmview.ContactMapPane;
 import cmview.ScreenBuffer;
 import cmview.Start;
-import cmview.View;
 import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
@@ -59,6 +58,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected final int defaultProjType = kavrayskiyMapProj;
 	protected static final int sphoxelHist = 0;
 	protected static final int tracesHist = 0;
+
+	protected static final Color helixSSTColor = Color.magenta; // color for helix residues
+	protected static final Color sheetSSTColor = Color.yellow;	// color for helix residues
+	protected static final Color otherSSTColor = Color.cyan;	// color for helix residues
+	protected static final Color anySSTColor = Color.blue;		// color for helix residues
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
@@ -118,15 +122,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Color latitudeColor;			// color for latitudes
 	
 	// selections 
-	private Vector<Pair<Float>> phiRanges;			// permanent list of currently selected phi ranges
-	private Vector<Pair<Float>> thetaRanges;       // permanent list of currently selected theta ranges
+	private Vector<Pair<Double>> phiRanges;			// permanent list of currently selected phi ranges
+	private Vector<Pair<Double>> thetaRanges;       // permanent list of currently selected theta ranges
 	private Vector<Pair<Integer>> selContacts;         // permanent list of currently selected and referred contacts
-	private Pair<Float> tmpPhiRange;
-	private Pair<Float> tmpThetaRange;
+	private Pair<Double> tmpPhiRange;
+	private Pair<Double> tmpThetaRange;
 	private Pair<Integer> tmpSelContact;
-	private Pair<Float> tmpAngleComb;
-	private Pair<Float> origCoordinates;    // actual coordinates of origin in angle range x:[0:2*PI] y:[0:PI]
-	private Pair<Float> rightClickAngle;
+	private Pair<Double> tmpAngleComb;
+	private Pair<Double> origCoordinates;    // actual coordinates of origin in angle range x:[0:2*PI] y:[0:PI]
+	private Pair<Double> rightClickAngle;
 	
 	private RIGNode nodeI, nodeJ;
 	
@@ -259,13 +263,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		this.dragging = false;
 		this.selContacts = new Vector<Pair<Integer>>();
-		this.phiRanges = new Vector<Pair<Float>>();
-		this.thetaRanges = new Vector<Pair<Float>>();
+		this.phiRanges = new Vector<Pair<Double>>();
+		this.thetaRanges = new Vector<Pair<Double>>();
 		
-		this.tmpPhiRange = new Pair<Float>(0.0f, 0.0f);
-		this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
-		this.tmpAngleComb = new Pair<Float>(0.0f, 0.0f);
-		this.origCoordinates = new Pair<Float>((float)(Math.PI), (float)(Math.PI/2));
+		this.tmpPhiRange = new Pair<Double>(0.0, 0.0);
+		this.tmpThetaRange = new Pair<Double>(0.0, 0.0);
+		this.tmpAngleComb = new Pair<Double>(0.0, 0.0);
+		this.origCoordinates = new Pair<Double>(Math.PI, Math.PI/2);
 		this.deltaOffSetX = this.getOffSet(0.0, 0.0); //this.getScreenPosFromRad(0, 0).getFirst();
 		this.deltaOffSetXEnd = this.getOffSet(2*Math.PI, 0.0); //this.getScreenPosFromRad(2*Math.PI, 0.0).getFirst();
 		this.deltaOffSetXCenter = this.getOffSet(Math.PI, 0.0);
@@ -617,12 +621,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.histTWholeAngleRange[jSSTypeID][jResID] += 1; 
 			this.histTWholeAngleRange[this.sstypes.length-1][jResID] += 1; 
 			
-			Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
-			Iterator<Pair<Float>> itrT = this.thetaRanges.iterator();
+			Iterator<Pair<Double>> itrP = this.phiRanges.iterator();
+			Iterator<Pair<Double>> itrT = this.thetaRanges.iterator();
 			int index = 0;
 			while (itrP.hasNext()){
-				Pair<Float> phi = (Pair<Float>) itrP.next();
-				Pair<Float> theta = (Pair<Float>) itrT.next();
+				Pair<Double> phi = (Pair<Double>) itrP.next();
+				Pair<Double> theta = (Pair<Double>) itrT.next();
 				tMin = theta.getFirst();
 				tMax = theta.getSecond();
 				pMin = phi.getFirst();
@@ -692,8 +696,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		int[][] counts = new int[this.phiRanges.size()][scale.length];
 		for(int i=0;i<ratios.length;i++){
 			for(int j=0;j<ratios[i].length;j++){	
-				Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
-				Iterator<Pair<Float>> itrT = this.thetaRanges.iterator();
+				Iterator<Pair<Double>> itrP = this.phiRanges.iterator();
+				Iterator<Pair<Double>> itrT = this.thetaRanges.iterator();
 				thetaRad = (i*deltaRad);
 				phiRad = (j*deltaRad);
 				ratio = ratios[i][j];
@@ -707,8 +711,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				int index = 0;
 				while (itrP.hasNext()){
-					Pair<Float> phi = (Pair<Float>) itrP.next();
-					Pair<Float> theta = (Pair<Float>) itrT.next();
+					Pair<Double> phi = (Pair<Double>) itrP.next();
+					Pair<Double> theta = (Pair<Double>) itrT.next();
 					tMin = theta.getFirst();
 					tMax = theta.getSecond();
 					pMin = phi.getFirst();
@@ -752,7 +756,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return shape;
 	}
 	
-	public GeneralPath nGon(Pair<Double> p1, Pair<Double> p2, Pair<Double> p3, Pair<Double> p4){
+	public GeneralPath trapezium(Pair<Double> p1, Pair<Double> p2, Pair<Double> p3, Pair<Double> p4){
 		GeneralPath shape = new GeneralPath();
 		shape.moveTo(p1.getFirst(), p1.getSecond());
 		shape.lineTo(p2.getFirst(), p2.getSecond());
@@ -762,13 +766,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return shape;
 	}
 	
-	public GeneralPath nGon(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4){
+	public GeneralPath trapezium(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4){
 		GeneralPath shape = new GeneralPath();
 		shape.moveTo(x1, y1);
 		shape.lineTo(x2, y2);
 		shape.lineTo(x3, y3);
 		shape.lineTo(x4, y4);
 		shape.lineTo(x1, y1);
+		return shape;
+	}
+	
+	public GeneralPath nGon(double[] x, double[] y){
+		GeneralPath shape = new GeneralPath();
+		if (x.length>0 && x.length==y.length){
+			shape.moveTo(x[0], y[0]);
+			for (int i=1; i<x.length; i++){
+				shape.lineTo(x[i], y[i]);
+			}
+			shape.lineTo(x[0], y[0]);
+		}
+		return shape;
+	}
+	
+	public GeneralPath pathLine(double[] x, double[] y){
+		GeneralPath shape = new GeneralPath();
+		if (x.length>0 && x.length==y.length){
+			shape.moveTo(x[0], y[0]);
+			for (int i=1; i<x.length; i++){
+				shape.lineTo(x[i], y[i]);
+			}
+		}
 		return shape;
 	}
 	
@@ -849,89 +876,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		ColorScale scale = new ColorScale();
 		double deltaRad = Math.PI/this.numSteps;
 //		double deltaDeg = 180/this.numSteps;
-		
-//		g2d.setBackground(backgroundColor);
-//		shape = new Rectangle2D.Float(0, 0, this.pixelWidth*this.ratios[0].length, this.pixelHeight*this.ratios.length);
-//		g2d.setColor(backgroundColor);
-//		g2d.draw(shape);
-//		g2d.fill(shape);
 				
 		// ----- color representation -----
-//		for(int i=0;i<2;i++){
 		for(int i=0;i<ratios.length;i++){
-//			if (i==ratios.length - 2){
-//				int test = 0;
-//				int ff = test;
-//			}
-			for(int j=0;j<ratios[i].length;j++){
-//				if (j==ratios[i].length/2 -1){
-//					int a = 0;
-//					int b = a;
-//				}
-				
-				if (this.mapProjType==kavrayskiyMapProj){
-//					thetaDeg = i*deltaDeg;
-					thetaRad = (i*deltaRad);
-//					phiDeg = 180 - (j*deltaDeg);
-					phiRad = (j*deltaRad);
-//					phiD = (j*deltaDeg);
-//					phiRad = (j*deltaRad);
-					
-//					xPos1 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
-//					yPos1 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
-//					xPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
-//					yPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();	
-//					thetaRad += deltaRad;
-//					xPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
-//					yPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();
-//					xPos4 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
-//					yPos4 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
-//					thetaRad -= deltaRad;
-//					shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
-					
-					thetaRad = translateYCoordRespective2Orig(thetaRad);
-					phiRad = translateXCoordRespective2Orig(phiRad);
-					phiRad -= Math.PI;
-					thetaRad -= (Math.PI/2);
-					
-					yPos1 = thetaRad +(Math.PI/2);
-					xPos1 = phi2Kavrayskiy(phiRad, thetaRad);
-//					xPos1 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
-					yPos2 = yPos1;
-					xPos2 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);
-//					xPos2 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
-					thetaRad += deltaRad;
-					yPos3 = thetaRad +(Math.PI/2);
-					xPos3 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);
-//					xPos3 = (3*(phiRad+deltaRad)/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));	
-					yPos4 = yPos3;
-					xPos4 = phi2Kavrayskiy(phiRad, thetaRad);
-//					xPos4 = (3*phiRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(thetaRad*thetaRad));
-					
-					xPos1 = ( (Math.PI+xPos1) *this.voxelsize )+this.border;
-					yPos1 = (yPos1*this.voxelsize) +this.border;
-					xPos2 = ( (Math.PI+xPos2) *this.voxelsize )+this.border;
-					yPos2 = (yPos2*this.voxelsize) +this.border;
-					xPos3 = ( (Math.PI+xPos3) *this.voxelsize )+this.border;
-					yPos3 = (yPos3*this.voxelsize) +this.border;
-					xPos4 = ( (Math.PI+xPos4) *this.voxelsize )+this.border;
-					yPos4 = (yPos4*this.voxelsize) +this.border;
-//
-					shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);								
-				}
-				else if (this.mapProjType==cylindricalMapProj){
-//					xPos = translateXPixelCoordRespective2Orig( (Math.PI+phiRad) *this.voxelsize )+this.border;
-//					yPos = translateYPixelCoordRespective2Orig(thetaRad*this.voxelsize) +this.border;				
-					xPos1 = j*pixelWidth;
-					yPos1 = i*pixelWidth;
-					xPos1 = translateXPixelCoordRespective2Orig(xPos1) +this.border;
-					yPos1 = translateYPixelCoordRespective2Orig(yPos1) +this.border;			
-					shape = nGon(xPos1, yPos1, xPos1+pixelWidth, yPos1, xPos1+pixelWidth, yPos1+pixelHeight, xPos1, yPos1+pixelHeight);
-//					shape = new Rectangle2D.Double(xPos1, yPos1, pixelWidth, pixelHeight);	
-				}
-				
-				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
-				
+			for(int j=0;j<ratios[i].length;j++){						
+				val = ratios[i][j]; // add some scaling and shifting --> range 0:255				
 				// ----- remove outliers
 				double minRatio2Use = this.minRatio;
 				double maxRatio2Use = this.maxRatio;
@@ -944,12 +893,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						val = this.minAllowedRat;
 					else if (val>this.maxAllowedRat)
 						val = this.maxAllowedRat;
-				}
-				
-				if ((val<0 && ratios[i][j]>0) || (val>0 && ratios[i][j]<0)){
-					val = val*1;
-				}
-								
+				}						
 				// ----- compute alpha and set color	
 				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
 				if(val<0){
@@ -958,9 +902,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				else
 					val = val/maxRatio2Use;
-//				if (alpha>1.0f) alpha=1.0f;
-//				if (alpha<0.0f) alpha=0.0f;
-//				val = -val;
 				switch (this.chosenColourScale){
 				case ContactStatusBar.BLUERED:
 					col = scale.getColor4BlueRedScale(val,alpha); break;
@@ -968,20 +909,88 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					col = scale.getColor4HotColdScale(val,alpha); break;
 				case ContactStatusBar.RGB:
 					col = scale.getColor4RGBscalePolar((float)val, alpha, -1); break;
-				}
+				}	
 				
-				g2d.setColor(col);
-//				g2d.setColor(Color.black); // Test purpose
-				g2d.draw(shape);
-				g2d.setColor(col);
-				g2d.fill(shape);
-//				if (xPos+pixelWidth > this.xDim)
-//					xPos -= xDim;
-//				if (yPos+pixelHeight > this.yDim)
-//					yPos -= yDim;
-//				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
-//				g2d.draw(shape);
-//				g2d.fill(shape);
+				g2d.setColor(col);				
+				// ---- create and draw shape (rectangle or trapezoid)		
+				if (this.mapProjType==kavrayskiyMapProj){
+					thetaRad = (i*deltaRad);
+					phiRad = (j*deltaRad);
+					
+					xPos1 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+					yPos1 = getScreenPosFromRad(phiRad, thetaRad).getSecond();
+					xPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+					yPos2 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();	
+					thetaRad += deltaRad;
+					xPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getFirst();
+					yPos3 = getScreenPosFromRad(phiRad+deltaRad, thetaRad).getSecond();
+					xPos4 = getScreenPosFromRad(phiRad, thetaRad).getFirst();
+					yPos4 = getScreenPosFromRad(phiRad, thetaRad).getSecond();	
+					thetaRad -= deltaRad;
+					
+					if (xPos1>xPos2){
+						double xPosUL=0, xPosLL=0, xPosUR=getSize().getWidth(), xPosLR=getSize().getWidth();
+						xPosUL = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst(), thetaRad).getFirst();
+						xPosLL = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst(), thetaRad+deltaRad).getFirst();
+						xPosUR = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst()+2*Math.PI, thetaRad).getFirst();
+						xPosLR = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst()+2*Math.PI, thetaRad+deltaRad).getFirst();
+						shape = trapezium(xPos1, yPos1, xPosUR, yPos2, xPosLR, yPos3, xPos4, yPos4);	
+						g2d.draw(shape);			
+						g2d.setColor(col);
+						g2d.fill(shape);
+						shape = trapezium(xPosUL, yPos1, xPos2, yPos2, xPos3, yPos3, xPosLL, yPos4);	
+						g2d.draw(shape);			
+						g2d.setColor(col);
+						g2d.fill(shape);
+					}
+					else 
+					{
+						shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
+						g2d.draw(shape);
+						g2d.fill(shape);		
+					}
+					
+//					thetaRad = translateYCoordRespective2Orig(thetaRad);
+//					phiRad = translateXCoordRespective2Orig(phiRad);
+//					phiRad -= Math.PI;
+//					thetaRad -= (Math.PI/2);					
+//					yPos1 = thetaRad +(Math.PI/2);
+//					xPos1 = phi2Kavrayskiy(phiRad, thetaRad);
+//					yPos2 = yPos1;
+//					xPos2 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);	
+//					thetaRad += deltaRad;
+//					yPos3 = thetaRad +(Math.PI/2);
+//					xPos3 = phi2Kavrayskiy(phiRad+deltaRad, thetaRad);
+//					yPos4 = yPos3;
+//					xPos4 = phi2Kavrayskiy(phiRad, thetaRad);					
+//					xPos1 = ( (Math.PI+xPos1) *this.voxelsize )+this.border;
+//					yPos1 = (yPos1*this.voxelsize) +this.border;
+//					xPos2 = ( (Math.PI+xPos2) *this.voxelsize )+this.border;
+//					yPos2 = (yPos2*this.voxelsize) +this.border;
+//					xPos3 = ( (Math.PI+xPos3) *this.voxelsize )+this.border;
+//					yPos3 = (yPos3*this.voxelsize) +this.border;
+//					xPos4 = ( (Math.PI+xPos4) *this.voxelsize )+this.border;
+//					yPos4 = (yPos4*this.voxelsize) +this.border;
+					
+				}
+				else if (this.mapProjType==cylindricalMapProj){				
+					xPos1 = j*pixelWidth;
+					yPos1 = i*pixelWidth;
+					xPos1 = translateXPixelCoordRespective2Orig(xPos1) +this.border;
+					yPos1 = translateYPixelCoordRespective2Orig(yPos1) +this.border;			
+//					shape = trapezium(xPos1, yPos1, xPos1+pixelWidth, yPos1, xPos1+pixelWidth, yPos1+pixelHeight, xPos1, yPos1+pixelHeight);
+					shape = new Rectangle2D.Double(xPos1, yPos1, pixelWidth, pixelHeight);	
+					g2d.draw(shape);
+					g2d.fill(shape);
+					
+					if (xPos1+pixelWidth > this.xDim)
+						xPos1 -= xDim;
+					if (yPos1+pixelHeight > this.yDim)
+						yPos1 -= yDim;
+					shape = new Rectangle2D.Double(xPos1, yPos1, pixelWidth, pixelHeight);
+					g2d.draw(shape);
+					g2d.fill(shape);
+				}
 			}
 		}
 	}
@@ -1009,7 +1018,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;				
 //				shape = new Rectangle2D.Float(xPos+this.border, yPos+this.border+this.yBorderThres, pixelWidth, pixelHeight);
 				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);	
-//				shape = nGon(xPos, yPos, xPos+pixelWidth, yPos, xPos+pixelWidth, yPos+pixelHeight, xPos, yPos+pixelHeight);
+//				shape = trapezium(xPos, yPos, xPos+pixelWidth, yPos, xPos+pixelWidth, yPos+pixelHeight, xPos, yPos+pixelHeight);
 				
 				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
 				
@@ -1072,11 +1081,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		Color col = Color.black;
 		switch (jSSTypeID){
 		case 0: // 'H'
-			col = (Color.magenta); break;
+			col = (helixSSTColor); break;
 		case 1: // 'S'
-			col = (Color.yellow); break;
+			col = (sheetSSTColor); break;
 		case 2: // 'O'
-			col = (Color.cyan); break;
+			col = (otherSSTColor); break;
 		}
 		return col;
 	}
@@ -1532,30 +1541,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void drawOccupiedAngleRanges(Graphics2D g2d){
 		Shape shape;
 		double xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4;
-//		double xPos1;
-//		System.out.println(phiRanges.size()+"=?"+thetaRanges.size()+"=?"+selContacts.size());
-//		System.out.println("Coordinates Occupied Rectangle:");
-		Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
-		Iterator<Pair<Float>> itrT = this.thetaRanges.iterator();
-//		Iterator<Pair<Integer>> itrC = selContacts.iterator();
+		Iterator<Pair<Double>> itrP = this.phiRanges.iterator();
+		Iterator<Pair<Double>> itrT = this.thetaRanges.iterator();
 		while (itrP.hasNext()){
 			g2d.setColor(selAngleRangeColor);
-			Pair<Float> phi = (Pair<Float>) itrP.next();
-			Pair<Float> theta = (Pair<Float>) itrT.next();
-//			Pair<Integer> con = (Pair<Integer>) itrC.next();
-//			System.out.println("COR "+con.getFirst()+"_"+con.getSecond()+": "+phi.getFirst()+","+theta.getFirst()+" to "+phi.getSecond()+","+theta.getSecond());		
+			Pair<Double> phi = (Pair<Double>) itrP.next();
+			Pair<Double> theta = (Pair<Double>) itrT.next();
 			
-//			float xS = phi.getFirst() * this.voxelsize;
-//			float xE = phi.getSecond() * this.voxelsize;
-//			float yS = theta.getFirst() * this.voxelsize;
-//			float yE = theta.getSecond() * this.voxelsize;
-////			System.out.println(xS+","+yS+" to "+xE+","+yE);
-//			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
-			
-			float xS = phi.getFirst();
-			float xE = phi.getSecond();
-			float yS = theta.getFirst();
-			float yE = theta.getSecond();
+			double xS = phi.getFirst();
+			double xE = phi.getSecond();
+			double yS = theta.getFirst();
+			double yE = theta.getSecond();
 			xPos1 = getScreenPosFromRad(xS, yS).getFirst();
 			yPos1 = getScreenPosFromRad(xS, yS).getSecond();
 			xPos2 = getScreenPosFromRad(xE, yS).getFirst();
@@ -1571,25 +1567,30 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				xPosLL = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst(), yE).getFirst();
 				xPosUR = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst()+2*Math.PI, yS).getFirst();
 				xPosLR = getScreenPosFromRad(Math.PI-this.origCoordinates.getFirst()+2*Math.PI, yE).getFirst();
-				shape = nGon(xPos1, yPos1, xPosUR, yPos2, xPosLR, yPos3, xPos4, yPos4);			
+				double[] x = new double[]{xPosUR+1, xPos1, xPos4, xPosLR+1};
+				double[] y = new double[]{yPos2, yPos1, yPos4, yPos3}; 
+				shape = pathLine(x, y);
 				g2d.draw(shape);
-				shape = nGon(xPos1+1, yPos1+1, xPosUR-1, yPos2+1, xPosLR-1, yPos3-1, xPos4+1, yPos4-1);		
+				x = new double[]{xPosUR+1, xPos1+1, xPos4+1, xPosLR+1};
+				y = new double[]{yPos2+1, yPos1+1, yPos4-1, yPos3-1}; 
+				shape = pathLine(x, y);
 				g2d.draw(shape);
-				shape = nGon(xPosUL, yPos1, xPos2, yPos2, xPos3, yPos3, xPosLL, yPos4);			
+				x = new double[]{xPosUL-1, xPos2, xPos3, xPosLL-1};
+				y = new double[]{yPos1, yPos2, yPos3, yPos4}; 
+				shape = pathLine(x, y);
 				g2d.draw(shape);
-				shape = nGon(xPosUL+1, yPos1+1, xPos2-1, yPos2+1, xPos3-1, yPos3-1, xPosLL+1, yPos4-1);		
-				g2d.draw(shape);
-				
-			}
-			else{
-				shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);			
-				g2d.draw(shape);
-				shape = nGon(xPos1+1, yPos1+1, xPos2-1, yPos2+1, xPos3-1, yPos3-1, xPos4+1, yPos4-1);		
+				x = new double[]{xPosUL-1, xPos2+1, xPos3+1, xPosLL-1};
+				y = new double[]{yPos1+1, yPos2+1, yPos3-1, yPos4-1}; 
+				shape = pathLine(x, y);
 				g2d.draw(shape);				
 			}
-//			g2d.fill(shape);
+			else{
+				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);			
+				g2d.draw(shape);
+				shape = trapezium(xPos1+1, yPos1+1, xPos2-1, yPos2+1, xPos3-1, yPos3-1, xPos4+1, yPos4-1);		
+				g2d.draw(shape);				
+			}
 		}
-//		for(Pair<Float> phi:phiRanges) {}
 		
 	}
 	
@@ -1604,8 +1605,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			int ymax = Math.max(mousePressedPos.y,mouseDraggingPos.y);
 //			g2d.drawRect(xmin,ymin,xmax-xmin,ymax-ymin);
 			
-			Pair<Float> posP = screen2A(mousePressedPos);
-			Pair<Float> posD = screen2A(mouseDraggingPos);
+			Pair<Double> posP = screen2A(mousePressedPos);
+			Pair<Double> posD = screen2A(mouseDraggingPos);
 			xS = posP.getFirst();
 			yS = posP.getSecond();
 			xE = posD.getFirst();
@@ -1616,8 +1617,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}
 			xS -= (this.origCoordinates.getFirst()-Math.PI);
 			xE -= (this.origCoordinates.getFirst()-Math.PI);
-//			this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
-//			this.tmpAngleComb = new Pair<Float>((float)xS, (float)yS);
+//			this.tmpAngleComb = new Pair<Double>(pos.getFirst(), pos.getSecond());
+//			this.tmpAngleComb = new Pair<Double>(xS, yS);
 			
 			xPos1 = getScreenPosFromRad(xS, yS).getFirst();
 			yPos1 = getScreenPosFromRad(xS, yS).getSecond();
@@ -1627,7 +1628,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos3 = getScreenPosFromRad(xE, yE).getSecond();
 			xPos4 = getScreenPosFromRad(xS, yE).getFirst();
 			yPos4 = getScreenPosFromRad(xS, yE).getSecond();
-			Shape shape = nGon(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
+			Shape shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
 			
 			g2d.draw(shape);
 		} 
@@ -1661,13 +1662,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * Returns the corresponding theta-phi values in the sphoxelView given screen
 	 * coordinates
 	 */
-	private Pair<Float> screen2A(Point point){
+	private Pair<Double> screen2A(Point point){
 		
-		Pair<Float> floatP = new Pair<Float>((float)(point.x)/this.voxelsize,(float)(point.y)/this.voxelsize);
+		Pair<Double> doubleP = new Pair<Double>((double)point.x/this.voxelsize , (double)point.y/this.voxelsize); 
 //		System.out.println("scree2A_point "+(point.x)+","+(point.y));
 //		System.out.println("scree2A_pair "+(float)(point.x)/this.voxelsize+","+(float)(point.y)/this.voxelsize);
 		
-		return floatP;
+		return doubleP;
 	}
 	
 	public Pair<Double> translateCoordRespective2Orig(Pair<Double> pair){
@@ -1727,8 +1728,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * the upperLeft and lowerRight.
 	 */
 	private void squareSelect(){
-		Pair<Float> upperLeft = screen2A(mousePressedPos);
-		Pair<Float> lowerRight = screen2A(mouseDraggingPos);
+		Pair<Double> upperLeft = screen2A(mousePressedPos);
+		Pair<Double> lowerRight = screen2A(mouseDraggingPos);
 		double xPosUL, yPosUL, xPosLR, yPosLR;
 		// we reset the tmpContacts list so every new mouse selection starts
 		// from a blank list
@@ -1745,10 +1746,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		xPosUL -= (this.origCoordinates.getFirst()-Math.PI);
 		xPosLR -= (this.origCoordinates.getFirst()-Math.PI);
 
-		float pmin = Math.min((float)xPosUL, (float)xPosLR);
-		float tmin = Math.min((float)yPosUL, (float)yPosLR);
-		float pmax = Math.max((float)xPosUL, (float)xPosLR);
-		float tmax = Math.max((float)yPosUL, (float)yPosLR);
+		double pmin = Math.min(xPosUL, xPosLR);
+		double tmin = Math.min(yPosUL, yPosLR);
+		double pmax = Math.max(xPosUL, xPosLR);
+		double tmax = Math.max(yPosUL, yPosLR);
 		
 //		float pmin = Math.min(upperLeft.getFirst(),lowerRight.getFirst());
 //		float tmin = Math.min(upperLeft.getSecond(),lowerRight.getSecond());
@@ -1767,12 +1768,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		}
 //		if (valid)
 		{
-			this.tmpPhiRange = new Pair<Float>(pmin, pmax);
-			this.tmpThetaRange = new Pair<Float>(tmin, tmax);
+			this.tmpPhiRange = new Pair<Double>(pmin, pmax);
+			this.tmpThetaRange = new Pair<Double>(tmin, tmax);
 //			this.tmpSelContact = new Pair<Integer>(this.AAStr.indexOf(this.iRes),this.AAStr.indexOf(this.jRes));
 			this.tmpSelContact = new Pair<Integer>(this.iNum,this.jNum);
 			
-			this.tmpAngleComb = new Pair<Float>(pmax, tmax);
+			this.tmpAngleComb = new Pair<Double>(pmax, tmax);
 		}
 	}
 	
@@ -1888,7 +1889,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 															// not square
 		
 //		g2d.setBackground(backgroundColor);
-//		Shape shape = new Rectangle2D.Float(0, 0, this.pixelWidth*this.ratios[0].length, this.pixelHeight*this.ratios.length);
+//		Shape shape = new Rectangle2D.double(0, 0, this.pixelWidth*this.ratios[0].length, this.pixelHeight*this.ratios.length);
 //		g2d.setColor(backgroundColor);
 ////		g2d.setColor(Color.blue);
 //		g2d.draw(shape);
@@ -1965,7 +1966,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.resol = 180/(float)this.numSteps;
 		System.out.println("numSteps="+this.numSteps+"  --> resol="+this.resol);
 	}	
-	public Pair<Float> getOrigCoord(){
+	public Pair<Double> getOrigCoord(){
 		return this.origCoordinates;
 	}
 	public float getVoxelsize(){
@@ -2112,11 +2113,35 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.histT4SelAngleRange = histT4SelAngleRange;
 	}
 
+	/* ChosenSelection has value [0:numSelections-1].
+	 * If right click outside of any selection, chosen selection = numSelections.
+	 *  */
 	public int getChosenSelection() {
 		return chosenSelection;
 	}
 	public void setChosenSelection(int chosenSelection) {
 		this.chosenSelection = chosenSelection;
+	}
+	
+	public String[] getChosenPTRange(){
+//		double[] range;
+		String[] rangeS;
+		Iterator<Pair<Double>> itrP = this.phiRanges.iterator();
+		Iterator<Pair<Double>> itrT = this.thetaRanges.iterator();
+		int count = 0;
+		Pair<Double> phi=null, theta=null;
+		while (count<=this.chosenSelection && itrP.hasNext()){
+			phi = itrP.next();
+			theta = itrT.next();
+			count++;
+		}
+		double p1 = (double)(Math.round(phi.getFirst()*100))/100;
+		double p2 = (double)(Math.round(phi.getSecond()*100))/100;
+		double t1 = (double)(Math.round(theta.getFirst()*100))/100;
+		double t2 = (double)(Math.round(theta.getSecond()*100))/100; //(float)(Math.round(this.tmpAngleComb.getFirst()*100))/100;
+		rangeS = new String[]{String.valueOf(p1), String.valueOf(p2), String.valueOf(t1), String.valueOf(t2)};
+//		range = new double[]{phi.getFirst(), phi.getSecond(), theta.getFirst(), theta.getSecond()};
+		return rangeS;
 	}
 
 	
@@ -2138,7 +2163,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		this.rightClickAngle = screen2cm(new Point(e.getX(), e.getY()));
 		// determine chosen selection
 		Point point = e.getPoint();
-		Pair<Float> pos = screen2A(point);
+		Pair<Double> pos = screen2A(point);
 		double xPos = pos.getFirst();
 		double yPos = pos.getSecond();
 		
@@ -2146,15 +2171,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
 		}
 		xPos -= (this.origCoordinates.getFirst()-Math.PI);		
-		this.rightClickAngle = new Pair<Float>((float)xPos, (float)yPos);
+		this.rightClickAngle = new Pair<Double>(xPos, yPos);
 		
-		Iterator<Pair<Float>> itrP = this.phiRanges.iterator();
-		Iterator<Pair<Float>> itrT = this.thetaRanges.iterator();
+		Iterator<Pair<Double>> itrP = this.phiRanges.iterator();
+		Iterator<Pair<Double>> itrT = this.thetaRanges.iterator();
 		int count = 0;
 		this.chosenSelection = this.phiRanges.size();
 		while (itrP.hasNext()){
-			Pair<Float> phi = itrP.next();
-			Pair<Float> theta = itrT.next();
+			Pair<Double> phi = itrP.next();
+			Pair<Double> theta = itrT.next();
 			if (rightClickAngle.getFirst()>=phi.getFirst() && rightClickAngle.getFirst()<=phi.getSecond() 
 					&& rightClickAngle.getSecond()>=theta.getFirst() && rightClickAngle.getSecond()<=theta.getSecond()){
 				this.chosenSelection = count;
@@ -2236,13 +2261,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 				
 			case PAN:
-				Pair<Float> pos = screen2A(mousePos);
+				Pair<Double> pos = screen2A(mousePos);
 				double xPos = pos.getFirst();
-				double yPos = (float) (Math.PI/2); //pos.getSecond();
+				double yPos = Math.PI/2; //pos.getSecond();
 				if (this.mapProjType==kavrayskiyMapProj){
 					xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
 				}
-				this.origCoordinates = new Pair<Float>((float)xPos, (float)yPos);
+				this.origCoordinates = new Pair<Double>(xPos, yPos);
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				updateScreenBuffer();
@@ -2252,8 +2277,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 			}
 			
-			this.tmpPhiRange = new Pair<Float>(0.0f, 0.0f);
-			this.tmpThetaRange = new Pair<Float>(0.0f, 0.0f);
+			this.tmpPhiRange = new Pair<Double>(0.0, 0.0);
+			this.tmpThetaRange = new Pair<Double>(0.0, 0.0);
 		}
 	}
 
@@ -2274,13 +2299,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				squareSelect();
 				break;
 			case PAN:
-				Pair<Float> pos = screen2A(mousePos);
+				Pair<Double> pos = screen2A(mousePos);
 				double xPos = pos.getFirst();
-				double yPos = (float) (Math.PI/2); //pos.getSecond();
+				double yPos = Math.PI/2; //pos.getSecond();
+				double fac = 2.5*2*Math.PI/360; //(Math.PI / 20);
 				if (this.mapProjType==kavrayskiyMapProj){
 					xPos = phiFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
 				}
-				this.origCoordinates = new Pair<Float>((float)xPos, (float)yPos);
+				xPos = xPos/fac;
+				xPos = Math.round(xPos);
+				xPos = xPos*fac;
+//				xPos = Math.round/(xPos/fac) * fac;
+				this.origCoordinates = new Pair<Double>(xPos, yPos);
 				this.contactView.phiRuler.repaint();
 				this.contactView.thetaRuler.repaint();
 				updateScreenBuffer();
@@ -2308,7 +2338,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		double xPos, yPos;
 		mousePos = evt.getPoint();
 		
-		Pair<Float> pos = screen2A(mousePos);
+		Pair<Double> pos = screen2A(mousePos);
 		xPos = pos.getFirst();
 		yPos = pos.getSecond();
 		if (this.mapProjType==kavrayskiyMapProj){
@@ -2321,13 +2351,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		else if (xPos>2*Math.PI)
 			xPos -= (2*Math.PI);
 		
-//		this.tmpAngleComb = new Pair<Float>(pos.getFirst(), pos.getSecond());
+//		this.tmpAngleComb = new Pair<Double>(pos.getFirst(), pos.getSecond());
 //		boolean valid = angleWithinValidRange(xPos, yPos);
 		if (valid)
-			this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
+			this.tmpAngleComb = new Pair<Double>(xPos, yPos);
 		else 
-			this.tmpAngleComb = new Pair<Float>(0.0f, 0.0f);
-//		this.tmpAngleComb = new Pair<Float>((float)xPos, (float)yPos);
+			this.tmpAngleComb = new Pair<Double>(0.0, 0.0);
+//		this.tmpAngleComb = new Pair<Double>((float)xPos, (float)yPos);
 		this.repaint();
 	}
 
@@ -2341,9 +2371,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// TODO Auto-generated method stub
 //		System.out.println("keyReleased");
 		//-- Process arrow "virtual" keys
-    	float first = this.origCoordinates.getFirst();
-    	float second = this.origCoordinates.getSecond();
-    	float fac = (float) (Math.PI / 20);
+    	double first = this.origCoordinates.getFirst();
+    	double second = this.origCoordinates.getSecond();
+    	double fac = 2*(2.5*2*Math.PI/360); //(Math.PI / 20);
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT : first-=fac; break;
             case KeyEvent.VK_RIGHT: first+=fac; break;
@@ -2360,7 +2390,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
         	first -= Math.PI;
         
         second = (float) (Math.PI/2);   // --> panning just horizontally     	
-		this.origCoordinates = new Pair<Float>(first,second); // this.tmpAngleComb;
+		this.origCoordinates = new Pair<Double>(first,second); // this.tmpAngleComb;
 		this.contactView.phiRuler.repaint();
 		this.contactView.thetaRuler.repaint();	
 		updateScreenBuffer();

@@ -197,8 +197,8 @@ public class AngleRuler extends JPanel {
 		g2d.setFont(f);
 
 		int i=0;
-		float xPosOrig = this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize(); //(this.origCoordinates.getFirst() * this.voxelsize)
-		float yPosOrig = this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize(); //(this.origCoordinates.getSecond() * this.voxelsize)
+		float xPosOrig = (float)(this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize()); //(this.origCoordinates.getFirst() * this.voxelsize)
+		float yPosOrig = (float)(this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize()); //(this.origCoordinates.getSecond() * this.voxelsize)
 		this.deltaOffSetXCenter = this.cpane.getDeltaOffSetXCenter() + this.offSetX;
 		xPosOrig = (float) this.deltaOffSetXCenter;
 		int count = 0;

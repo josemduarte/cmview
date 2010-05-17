@@ -21,6 +21,8 @@ public class HistogramView extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final Color selColor = Color.green; // color for selected range
+	protected static final Color wholeSelColor = Color.black;	// color for whole range
 
 	public ContactPane cPane;
 	// variables for drawing methods
@@ -43,6 +45,8 @@ public class HistogramView extends JFrame {
 	int bottomMargin = 0;		// margin between bg rectable and edge
 	int textYOffset = 23;		// top margin between rectangle and first text
 	int lineHeight = 20;		// offset between lines
+	int baseLineY = 0;
+	int baseLineX = 0;
 
 	// variables for scale
 	private double minRatio = 0;
@@ -58,8 +62,9 @@ public class HistogramView extends JFrame {
 	private Vector<int[][]> histT4SelAngleRange; // = new Vector<int[]>();
 	private Vector<double[]> minMaxAverT4SelAngleRange;
 	private boolean showHist = false;
-	private int histType = ContactPane.sphoxelHist;	
+//	private int histType = ContactPane.sphoxelHist;	
 	private int chosenSelection = 0;
+	private String[] ptSelRange;
 	
 	private final Color backgroundColor = Color.white;
 	
@@ -90,13 +95,61 @@ public class HistogramView extends JFrame {
 	
 	private void updateDimensions(){
 //		this.dimX = this.steps*this.pixelWidth + 3*this.border;
-		this.dimY = (this.steps-this.start+1)*this.pixelHeight + 2*this.border + yBorderThres;
+		this.dimY = (this.steps-this.start+1)*this.pixelHeight + 2*this.border + yBorderThres + 2*lineHeight;
 		this.dimX = 1*this.pixelWidth + 2*this.border;
 		if (showHist)
-			this.dimX += (3*this.maxHistLineLength + this.border);
+			this.dimX += (2*this.maxHistLineLength + 2*this.border);
 		
 		this.setSize(dimX, dimY);
 		this.setPreferredSize(new Dimension(dimX, dimY));
+	}
+	
+	private void drawHist(Graphics2D g2d){
+//		if (this.histType==ContactPane.sphoxelHist)
+			this.baseLineY = 0; this.baseLineX = 0;
+			drawHistSphoxel(g2d);
+//		else if (this.histType==ContactPane.tracesHist)
+			this.baseLineY = 0; this.baseLineX = 1*pixelWidth + this.maxHistLineLength + (2*border);
+			drawHistTraces(g2d);	
+			drawKeys(g2d);
+	}
+	
+	private void drawKeys(Graphics2D g2d){
+		String s ="Keys histogram sphoxel density";
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(s, x, y);
+		y += lineHeight;	
+		g2d.setColor(selColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("selected range", x + pixelWidth, y);
+		y += lineHeight;	
+		g2d.setColor(wholeSelColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("whole sphoxel", x + pixelWidth, y);
+		y += lineHeight;			
+		s ="Keys histogram traces";
+		g2d.drawString(s, x, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.helixSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("helix", x + pixelWidth, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.sheetSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("sheet", x + pixelWidth, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.otherSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("others", x + pixelWidth, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.anySSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("any (sum)", x + pixelWidth, y);
+		y += lineHeight;
+		baseLineY = y;
+		
 	}
 	
 	private void drawSquares(Graphics2D g2d){
@@ -118,7 +171,7 @@ public class HistogramView extends JFrame {
 		}
 		for(int i=this.start; i<=this.steps; i++){
 			xPos = 0*pixelWidth+border;
-			yPos = (i-this.start)*pixelHeight +border+yBorderThres;
+			yPos = (i-this.start)*pixelHeight + baseLineY; // +border +yBorderThres;
 			
 			shape = new Rectangle2D.Float(xPos, yPos, pixelWidth, pixelHeight);
 			ratio1 = (float)i/this.steps;
@@ -157,13 +210,6 @@ public class HistogramView extends JFrame {
 				
 	}
 	
-	private void drawHist(Graphics2D g2d){
-		if (this.histType==ContactPane.sphoxelHist)
-			drawHistSphoxel(g2d);
-//		else if (this.histType==ContactPane.tracesHist)
-			drawHistTraces(g2d);		
-	}
-	
 	private void drawHistTraces(Graphics2D g2d){
 		int maxHistVal = 0;
 		int maxHistValSS = 0;
@@ -197,10 +243,18 @@ public class HistogramView extends JFrame {
 				}
 			}
 		}
+		// draw title
+		String title = "Histogram for traces";		
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY + textYOffset + yBorderThres;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; y += this.lineHeight;
+		baseLineY = y;
 		// draw surrounding box
 		xS = 1*pixelWidth + this.maxHistLineLength + (2*border);
 		xE = xS+(maxHistLineLength+20);
-		yS = 0*deltaRes +border+yBorderThres;
+		yS = 0*deltaRes +baseLineY; //+border+yBorderThres;
 		yE = yS+(20*deltaRes);
 		g2d.setColor(Color.gray);
 		line = new Line2D.Double(xS, yS, xE, yS);
@@ -209,30 +263,31 @@ public class HistogramView extends JFrame {
 		g2d.draw(line);
 		line = new Line2D.Double(xE, yS, xE, yE);
 		g2d.draw(line);		
-//		// draw 100% marker
+		// draw 100% marker
 //		xPos = 1*pixelWidth + (2*this.maxHistLineLength) + (2*border) + 20;
 //		yPos = border+yBorderThres-5;
-//		line = new Line2D.Double(xPos, yPos, xPos, yPos+5);
-//		g2d.setColor(Color.gray);
-//		g2d.draw(line);
-//		g2d.drawString("100%", (float)xPos, (float)yPos);
+		line = new Line2D.Double(xE, yS, xE, yS-5);
+		g2d.setColor(Color.gray);
+		g2d.draw(line);
+		g2d.drawString(String.valueOf(maxSelHistVal), (float)xE-5, (float)yS-5); //maxHistVal  or  "100%"
 		
 		drawHistLinesTraces(g2d, deltaRes, maxSelHistVal, dY);
 		drawMinMaxAverOfTraces(g2d, (int)xS, (int)yE);
 	}
 	
 	private void drawMinMaxAverOfTraces(Graphics2D g2d, int xStart, int yStart){
-		int baseLineY = yStart;
-		int baseLineX = xStart;
+		baseLineY = yStart;
+		baseLineX = xStart;
 		Iterator<double[]> itr;
-		String title = "Min-Max-Average Values for Theta and Phi";
+//		String title = "Min-Max-Average Values for Theta and Phi";
 		String val2S = "";
 		
 		int x = baseLineX + firstColumnX;			// where first text will be written
 		int y = baseLineY + textYOffset;	// where first text will be written
 		
-		g2d.drawString(title, x, y);			
-		y += this.lineHeight;
+//		g2d.drawString(title, x, y);			
+//		y += this.lineHeight;
+		y += this.lineHeight/2;
 		baseLineY = y;
 		// --- draw min-max-average strings
 		y = baseLineY;
@@ -295,6 +350,7 @@ public class HistogramView extends JFrame {
 		
 //		g2d.drawString(iRes+"_"+iSSType.toLowerCase()+" - "+jRes+"_"+jSSType.toLowerCase(), x, y);	// selected contacts within contact map
 		y += this.lineHeight;
+		baseLineY = y;
 	}
 	
 	private void drawHistLinesTraces(Graphics2D g2d, double deltaRes, int maxSelHistVal, double dY){
@@ -306,7 +362,7 @@ public class HistogramView extends JFrame {
 		// draw Hist for all residues		
 		for (int i=0; i<this.cPane.aas.length; i++){
 			xPos = 1*pixelWidth + this.maxHistLineLength + (2*border);
-			yPos = i*deltaRes +border+yBorderThres;
+			yPos = i*deltaRes + baseLineY; //+border+yBorderThres;
 			// draw residue letter
 			yPos = yPos+(2*deltaRes/3);
 			String residue = String.valueOf(this.cPane.aas[i]);
@@ -328,29 +384,28 @@ public class HistogramView extends JFrame {
 				hist = itrHist.next();
 				count++;
 			}
-				for (int j=0; j<this.cPane.sstypes.length; j++){
-					lineLength = hist[j][i]*this.maxHistLineLength/maxSelHistVal;
-					xS = xPos+20;
-					xE = xS + lineLength;
-					yS += dY;		
-					switch (j){
-					case 0: // 'H'
-						g2d.setColor(Color.magenta); break;
-					case 1: // 'S'
-						g2d.setColor(Color.yellow); break;
-					case 2: // 'O'
-						g2d.setColor(Color.cyan); break;
-					case 3: // 'A'
-						g2d.setColor(Color.blue); break;
-					}
-					line = new Line2D.Double(xS, yS, xE, yS);
-					g2d.draw(line);		
-					line = new Line2D.Double(xS, yS+1, xE, yS+1);
-					g2d.draw(line);
-					line = new Line2D.Double(xS, yS+2, xE, yS+2);
-					g2d.draw(line);	
+			for (int j=0; j<this.cPane.sstypes.length; j++){
+				lineLength = hist[j][i]*this.maxHistLineLength/maxSelHistVal;
+				xS = xPos+20;
+				xE = xS + lineLength;
+				yS += dY;		
+				switch (j){
+				case 0: // 'H'
+					g2d.setColor(ContactPane.helixSSTColor); break;
+				case 1: // 'S'
+					g2d.setColor(ContactPane.sheetSSTColor); break;
+				case 2: // 'O'
+					g2d.setColor(ContactPane.otherSSTColor); break;
+				case 3: // 'A'
+					g2d.setColor(ContactPane.anySSTColor); break;
 				}
-//			}
+				line = new Line2D.Double(xS, yS, xE, yS);
+				g2d.draw(line);		
+				line = new Line2D.Double(xS, yS+1, xE, yS+1);
+				g2d.draw(line);
+				line = new Line2D.Double(xS, yS+2, xE, yS+2);
+				g2d.draw(line);	
+			}
 		}
 	}
 	
@@ -375,14 +430,31 @@ public class HistogramView extends JFrame {
 					maxSelHistVal = counts[i];
 			}
 		}
+		// draw title
+		String title = "Histogram for sphoxel densities";		
+		int x = baseLineX + firstColumnX + border;			// where first text will be written
+		int y = baseLineY + textYOffset + yBorderThres;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight;
+//		double p1 = ptSelRange[0], p2 = ptSelRange[1]; 
+//		double t1 = ptSelRange[2], t2 = ptSelRange[3];
+//		String values = "phi["+p1+":"+p2+"]"+"  theta["+t1+":"+t2+"]";
+		String values = "phi["+ptSelRange[0]+":"+ptSelRange[1]+"]"+"  theta["+ptSelRange[2]+":"+ptSelRange[3]+"]";
+		g2d.drawString(values, x, y);
+		y += this.lineHeight;	
+		baseLineY = y;
+		// draw squares
+		drawSquares(g2d);
 		// draw histogramm for scale
 		for(int i=this.start; i<this.steps; i++){
 			index = i-this.start;
 			lineLength = this.histWholeAngleRange[index]*this.maxHistLineLength/maxHistVal;
 			xS = border+pixelWidth+(5);
 			xE = xS+lineLength;
-			yS = index*pixelHeight +border+yBorderThres + (pixelHeight/5);
-			g2d.setColor(Color.black);
+			yS = index*pixelHeight + (pixelHeight/5); // +border
+			yS += baseLineY;
+			g2d.setColor(wholeSelColor);
 			line = new Line2D.Double(xS, yS, xE, yS);
 			g2d.draw(line);
 			line = new Line2D.Double(xS, yS+1, xE, yS+1);
@@ -390,7 +462,7 @@ public class HistogramView extends JFrame {
 			line = new Line2D.Double(xS, yS+2, xE, yS+2);
 			g2d.draw(line);
 			
-			g2d.setColor(Color.blue);
+			g2d.setColor(selColor);
 			itrHist = this.hist4SelAngleRange.iterator();
 			int[] counts = null;
 			int cnt = 0;
@@ -398,17 +470,16 @@ public class HistogramView extends JFrame {
 				counts = itrHist.next();
 				cnt++;
 			}
-				lineLength = counts[index]*this.maxHistLineLength/maxSelHistVal; //maxHistVal;
-				xE = xS+lineLength;
-				yS += (pixelHeight/3);
+			lineLength = counts[index]*this.maxHistLineLength/maxSelHistVal; //maxHistVal;
+			xE = xS+lineLength;
+			yS += (pixelHeight/3);
 //				yS += dY;
-				line = new Line2D.Double(xS, yS, xE, yS);
-				g2d.draw(line);
-				line = new Line2D.Double(xS, yS+1, xE, yS+1);
-				g2d.draw(line);
-				line = new Line2D.Double(xS, yS+2, xE, yS+2);
-				g2d.draw(line);
-//			}
+			line = new Line2D.Double(xS, yS, xE, yS);
+			g2d.draw(line);
+			line = new Line2D.Double(xS, yS+1, xE, yS+1);
+			g2d.draw(line);
+			line = new Line2D.Double(xS, yS+2, xE, yS+2);
+			g2d.draw(line);
 		}
 	}
 	
@@ -449,8 +520,7 @@ public class HistogramView extends JFrame {
 		if (isOpaque()) {
 			g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 		}
-		drawSquares(g2d);
-		if (this.showHist)
+//		if (this.showHist)
 			drawHist(g2d);
 	}
 	
@@ -461,7 +531,7 @@ public class HistogramView extends JFrame {
 		this.maxRatio = this.cPane.getMaxRatio();
 		this.removeOutliers = this.cPane.isRemoveOutliers();
 		this.showHist = this.cPane.isShowHist();
-		this.histType = this.cPane.getHistType();
+//		this.histType = this.cPane.getHistType();
 		this.histWholeAngleRange = this.cPane.getHistWholeAngleRange();
 		this.hist4SelAngleRange = this.cPane.getHist4SelAngleRange();
 		this.histTWholeAngleRange = this.cPane.getHistTWholeAngleRange();
@@ -471,6 +541,7 @@ public class HistogramView extends JFrame {
 			this.showHist = false;
 		}
 		this.chosenSelection = this.cPane.getChosenSelection();
+		this.ptSelRange = this.cPane.getChosenPTRange();
 	}
 	
 	public double[] getScaleValues(){
