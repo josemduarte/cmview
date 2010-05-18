@@ -105,7 +105,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_SPHOXEL = "Show sphoxel and neighbourhood-traces";
 	private static final String LABEL_RUN_TINKER = "Run distance geometry";
 	private static final String LABEL_MIN_SET = "Minimal subset";
-
+	private static final String LABEL_JPRED = "Predict Secondary Structure";
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
@@ -179,7 +179,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
-	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts;
+	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts,mmJPred;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -602,6 +602,7 @@ public class View extends JFrame implements ActionListener {
 			sphereM = makeMenuItem(LABEL_SHOW_SPHERES_3D, icon_show_sph_3d, menu);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
+				mmJPred = makeMenuItem(LABEL_JPRED,null,menu);
 			}
 			menu.addSeparator();
 		}		
@@ -1179,6 +1180,10 @@ public class View extends JFrame implements ActionListener {
 		// send current edge (only available in popup menu)
 		if(e.getSource() == popupSendEdge) {
 			handleShowDistance3D();
+		}
+		// Predict secondary structure
+		if(e.getSource() == mmJPred) {
+			handleJPred();
 		}
 
 		/* ---------- Comparison Menu ---------- */
@@ -2804,6 +2809,13 @@ public class View extends JFrame implements ActionListener {
 			},mod.hasGMBPConstraints());
 		 
 		 tinkerDialog.createGUI();
+	}
+	
+	private void handleJPred() {
+		if(mod==null) {
+			return;
+		}
+		mod.assignJPredSecondaryStructure();
 	}
 	
 	protected void handleMinimalSet (){

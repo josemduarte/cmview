@@ -1,28 +1,45 @@
 #!/bin/sh
 if [ -z "$3" ]
 then
-    echo "usage: make-cmview-onejar.sh <tempdir> <cmviewtag> <aglappetag>"
-    echo "if instead of a tag, you want the code from trunk, just specify 'trunk' instead of the tag name"
+    echo "usage: make-cmview-onejar.sh <tempdir> <path-to-jars> <cmviewtag> <owltag>"
+    echo "if instead of a tag, you want the code from trunk, just specify 'trunk' instead of the tag name. Path-to-jars could be /project/StruPPi/jars"
     exit
 fi
 
 
 tempdir=$1
-cmviewtag=$2
-aglappetag=$3
+classp=$2
+cmviewtag=$3
+owltag=$4
 
 # compile with Java5 to keep it backward compatible
-JAVAVERSION=1.5.0 
+JAVAVERSION=1.6.0 
 
-CLASSPATH=.:/project/StruPPi/jars/mysql-connector-java.jar:\
-/project/StruPPi/jars/vecmath.jar:\
-/project/StruPPi/jars/Jama-1.0.2.jar:\
-/project/StruPPi/jars/jaligner.jar:\
-/project/StruPPi/jars/java-getopt-1.0.13.jar:\
-/project/StruPPi/jars/collections-generic-4.01.jar:\
-/project/StruPPi/jars/jung/jung-api-2.0-beta1.jar:\
-/project/StruPPi/jars/jung/jung-graph-impl-2.0-beta1.jar:\
-/project/StruPPi/jars/jh.jar
+CLASSPATH=.:$classp/mysql-connector-java.jar:\
+$classp/vecmath.jar:\
+$classp/commons-codec-1.3.jar:\
+$classp/drmaa.jar:\
+$classp/jaligner.jar:\
+$classp/Jama-1.0.2.jar:\
+$classp/java-getopt-1.0.13.jar:\
+$classp/jh.jar:\
+$classp/jJRclient-RE817.jar:\
+$classp/jung/jung-algorithms-2.0-beta1.jar:\
+$classp/jung/jung-api-2.0-beta1.jar:\
+$classp/jung/jung-graph-impl-2.0-beta1.jar:\
+$classp/ws-commons-util-1.0.2.jar:\
+$classp/xmlrpc-client-3.1.jar:\
+$classp/xmlrpc-common-3.1.jar:\
+$classp/uniprot/aopalliance.jar:\
+$classp/uniprot/commons-httpclient.jar:\
+$classp/uniprot/commons-logging.jar:\
+$classp/uniprot/log4j.jar:\
+$classp/uniprot/spring-aop.jar:\
+$classp/uniprot/sprint-beans.jar:\
+$classp/uniprot/spring-core.jar:\
+$classp/uniprot/spring-remoting.jar:\
+$classp/uniprot/uniprotjapi.jar:\
+$classp/jung/collections-generic-4.01.jar
 
 
 license="/*\n\
@@ -50,9 +67,9 @@ license="/*\n\
 
 cd $tempdir
 
-if [ -e "$cmviewtag" ] || [ -e "$aglappetag" ]
+if [ -e "$cmviewtag" ] || [ -e "$owltag" ]
 then
-    echo "File exists with name $cmviewtag or name $aglappetag, can't create directory"
+    echo "File exists with name $cmviewtag or name $owltag, can't create directory"
     exit 1
 fi
 
@@ -62,36 +79,77 @@ echo "Exporting source from svn"
 if [ "$cmviewtag" = "trunk" ]
 then
     cmviewtag="CMView-trunk"
-    svn export file:///project/StruPPi/svn/CMView/trunk/src $cmviewtag
+    svn export svn://black/CMView/trunk/src $cmviewtag
 else
-    svn export file:///project/StruPPi/svn/CMView/tags/$cmviewtag/src $cmviewtag
+    svn export svn://black/CMView/tags/$cmviewtag/src $cmviewtag
 fi
 
-if [ "$aglappetag" = "trunk" ]
+if [ "$owltag" = "trunk" ]
 then
-    aglappetag="aglappe-trunk"
-    svn export file:///project/StruPPi/svn/aglappe/trunk/ $aglappetag
+    owltag="owl-trunk"
+    svn export svn://bioinformatics.org/svnroot/owl/trunk/ $owltag
     # special for CMView distribution: putting a cleaned up contactTypes.dat:
-	svn export file:///project/StruPPi/svn/CMView/trunk/test/config_files/contactTypes.dat $aglappetag/proteinstructure/contactTypes.dat 
+	svn export svn://black/CMView/trunk/test/config_files/contactTypes.dat $owltag/proteinstructure/contactTypes.dat 
 else
-    svn export file:///project/StruPPi/svn/aglappe/tags/$aglappetag
+    svn export svn://bioinformatics.org/svnroot/owl/tags/$owltag
     # special for CMView distribution: putting a cleaned up contactTypes.dat:
-	svn export file:///project/StruPPi/svn/CMView/tags/$cmviewtag/test/config_files/contactTypes.dat $aglappetag/proteinstructure/contactTypes.dat     
+	svn export svn://black/CMView/tags/$cmviewtag/test/config_files/contactTypes.dat $owltag/proteinstructure/contactTypes.dat     
 fi
 
 
-# copying from aglappetag to cmviewtag
-cp -R $aglappetag/proteinstructure $cmviewtag
-mkdir $cmviewtag/tools
-cp $aglappetag/tools/MySQLConnection.java $cmviewtag/tools
-cp -R $aglappetag/sadp $cmviewtag
-cp -R $aglappetag/actionTools $cmviewtag
-rm -rf $aglappetag
+# copying from owltag to cmviewtag
+cp $owltag/src/owl/core/features/*.java $cmviewtag
+cp $owltag/src/owl/core/runners/*.java  $cmviewtag
+cp $owltag/src/owl/core/runners/blast/*.java   $cmviewtag
+cp $owltag/src/owl/core/runners/tinker/*.java   $cmviewtag
+cp $owltag/src/owl/core/sequence/Sequence.java   $cmviewtag
+cp $owltag/src/owl/core/sequence/alignment/*.java   $cmviewtag
+cp $owltag/src/owl/core/structure/*.java   $cmviewtag
+cp $owltag/src/owl/core/structure/alignment/*.java    $cmviewtag
+cp $owltag/src/owl/core/structure/features/*.java   $cmviewtag
+cp $owltag/src/owl/core/structure/graphs/*.java    $cmviewtag
+cp $owltag/src/owl/core/util/*.java   $cmviewtag
+cp $owltag/src/owl/core/util/actionTools/*.java   $cmviewtag
+cp $owltag/src/owl/deltaRank/*.java   $cmviewtag
+cp $owltag/src/owl/sadp/*.java   $cmviewtag
+cp $owltag/src/owl/embed/*.java   $cmviewtag
+cp $owltag/src/owl/embed/contactmaps/*.java   $cmviewtag
+cp $owltag/src/owl/gmbp/*.java   $cmviewtag
+cp $owltag/src/owl/graphAveraging/*.java   $cmviewtag
+cp $owltag/src/owl/core/connections/*.java $cmviewtag
+
+
+cp -R $owltag/src/owl/core/connections/* $cmviewtag
+#cp -R $owltag/src/owl/core/features/* $cmviewtag
+#cp -R $owltag/src/owl/core/runners/* $cmviewtag
+#cp -R $owltag/src/owl/core/runners/blast/* $cmviewtag
+#cp -R $owltag/src/owl/core/runner/gromacs/* $cmviewtag
+#cp -R $owltag/src/owl/core/runners/tinker/* $cmviewtag
+#cp -R $owltag/src/owl/core/sequence/Sequence.java $cmviewtag
+#cp -R $owltag/src/owl/core/sequence/alignment/* $cmviewtag
+#cp -R $owltag/src/owl/core/structure/* $cmviewtag
+#cp -R $owltag/src/owl/core/structure/alignment/* $cmviewtag
+#cp -R $owltag/src/owl/core/structure/features/* $cmviewtag
+#cp -R $owltag/src/owl/core/structure/graphs/* $cmviewtag
+#cp -R $owltag/src/owl/core/structure/scoring/* $cmviewtag
+#cp -R $owltag/src/owl/core/util/* $cmviewtag
+#cp -R $owltag/src/owl/core/util/actionTools/* $cmviewtag
+#cp -R $owltag/src/owl/deltaRank/* $cmviewtag
+#cp -R $owltag/src/owl/sadp/* $cmviewtag
+#cp -R $owltag/src/owl/embed/* $cmviewtag
+#cp -R $owltag/src/owl/embed/contactmaps/* $cmviewtag
+#cp -R $owltag/src/owl/gmbp/* $cmviewtag
+#cp -R $owltag/src/owl/graphAveraging/* $cmviewtag
+#mkdir $cmviewtag/tools
+#cp $owltag/src/owl/core/util/MySQLConnection.java $cmviewtag/tools
+#cp -R $owltag/src/owl/sadp $cmviewtag
+#cp -R $owltag/actionTools $cmviewtag
+#rm -rf $owltag
 
 # adding license headers
 for file in `find $cmviewtag -name "*.java"`
 do
-	echo -e "$license" > $file.tmp
+	echo "$license" > $file.tmp
 	cat $file >> $file.tmp
 	mv -f $file.tmp $file
 done
@@ -99,14 +157,18 @@ done
 # compiling
 echo "Compiling..."
 cd $cmviewtag
-javac -classpath $CLASSPATH cmview/*.java cmview/datasources/*.java cmview/toolUtils/*.java cmview/sadpAdapter/*.java
+# ../$owltag/src/owl/core/structure/scoring/*.java 
+rm  ../$owltag/src/owl/core/util/R.java 
+rm  ../$owltag/src/owl/core/connections/UniProtConnection.java
+/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/javac -classpath $CLASSPATH *.java cmview/*.java cmview/datasources/*.java cmview/gmbp/*.java cmview/jpredAdapter/*.java cmview/tinkerAdapter/*.java  
 
+#javac -classpath $CLASSPATH cmview/Start.java cmview/*.java cmview/datasources/*.java cmview/toolUtils/*.java cmview/sadpAdapter/*.java cmview/*/*.java *.java cmview/gmbp/*.java
 # creating jar file
 echo "Creating jar file: $cmviewtag-StruPPi.jar ..."
-jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
+/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
 echo "Creating jar file: $cmviewtag-MacWin.jar ..."
-jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
+/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
 
 # removing $cmviewtag temp directory
 cd ..
-rm -rf $cmviewtag
+#rm -rf $cmviewtag

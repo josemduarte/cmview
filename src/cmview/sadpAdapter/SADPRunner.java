@@ -9,7 +9,7 @@ import owl.core.structure.graphs.RIGraph;
 import owl.core.util.actionTools.Doer;
 import owl.core.util.actionTools.Retriever;
 import owl.core.util.actionTools.Runner;
-import owl.sadp.ContactMap;
+import owl.sadp.SADPContactMap;
 import owl.sadp.ContactMapConstructorError;
 import owl.sadp.SADP;
 
@@ -76,16 +76,16 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	}
 
 	public SADPResult call() {
-		ContactMap cm1,cm2;
+		SADPContactMap cm1,cm2;
 		
 		try {
-			cm1 = new ContactMap(inG1);
+			cm1 = new SADPContactMap(inG1);
 		} catch( ContactMapConstructorError e ) {
 			System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 			return null;
 		}
 		try {
-			cm2 = new ContactMap(inG2);
+			cm2 = new SADPContactMap(inG2);
 		} catch( ContactMapConstructorError e ) {
 			System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 			return null;
