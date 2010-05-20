@@ -29,6 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+
 public class ContactStatusBar extends JPanel implements ItemListener, ActionListener, ChangeListener, KeyListener{
 
 	/**
@@ -37,7 +38,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private static final long serialVersionUID = 1L;
 	
 	protected static final int DEFAULT_WIDTH = 120;
-	protected static final int DEFAULT_HEIGHT = 650;
+	protected static final int DEFAULT_HEIGHT = 600;
 	public static final float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
 	protected static final String[] colorStrings = {"BlueRed", "HotCold", "RGB"};
 	protected final static int BLUERED = 0;
@@ -50,7 +51,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	/*--------------------------- member variables --------------------------*/	
 	// settings
 	private int width = DEFAULT_WIDTH;						// width of this component, height matches contact map size
-	private int groupWidth = width - 20;			// width of information groups within StatusBar
+	private int groupWidth = width -5; //- 20;			// width of information groups within StatusBar
 	private int height = DEFAULT_HEIGHT;
 	
 	// general members
@@ -69,6 +70,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JPanel sstypePanel;
 	private JPanel outliersPanel;
 	private JPanel projectionPanel;
+	private JPanel nbhsPanel;
+	private NBHSselPanel nbhsSelPanel;
 	
 	// components for multi model group
 	private JSlider radiusSliderLabel;					// to choose a radius-range
@@ -85,6 +88,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JRadioButton cylProjRadioButton;
 	private JRadioButton pseudoCylProjRadioButton;
 	private ButtonGroup projButtonGroup; 
+	private JButton nbhsButton;
 	
 	private boolean radiusRangesFixed = true;
 	private boolean diffSSType = true;
@@ -114,6 +118,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		sstypePanel = new JPanel();
 		outliersPanel = new JPanel();
 		projectionPanel = new JPanel();
+		nbhsPanel = new JPanel();
+		
 		sphoxelGroup.setLayout(new BoxLayout(sphoxelGroup, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
 		sphoxelGroup.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
 		
@@ -132,10 +138,11 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		this.removeOutliers = this.controller.cPane.isRemoveOutliers();
 		
 		initDeltaRadiusPanel();
-		initResolutionPanel();
+//		initResolutionPanel();
 		initSSTypePanel();
 		initDrawPropPanel();
 		initProjPropPanel();
+		initNBHSPanel();
 		initAngleGroup();
 		showAngleGroup(true);
 	}
@@ -151,7 +158,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		deltaRadiusPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		deltaRadiusPanel.setVisible(true);
 		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, height));
-		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,120));
+		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,80));
 		
 		deltaRadiusSliderPanel = new JPanel();
 		deltaRadiusSliderPanel.setLayout(new BoxLayout(deltaRadiusSliderPanel,BoxLayout.LINE_AXIS));
@@ -332,10 +339,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "SSType";
 		sstypePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		sstypePanel.setVisible(true);
-//		sstypePanel.setMinimumSize(new Dimension(groupWidth,10));
+		sstypePanel.setMinimumSize(new Dimension(groupWidth,50));
 		sstypePanel.setPreferredSize(new Dimension(groupWidth,50));
 		
-		diffSSTypeButton = new JCheckBox("DiffSSType   ");
+		diffSSTypeButton = new JCheckBox("DiffSSType    ");
 		diffSSTypeButton.setSelected(true);
 		diffSSTypeButton.addItemListener(this);
 		
@@ -360,8 +367,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Outliers";
 		outliersPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		outliersPanel.setVisible(true);		
-//		outliersPanel.setMinimumSize(new Dimension(groupWidth,10));
-		outliersPanel.setPreferredSize(new Dimension(groupWidth,150));
+		outliersPanel.setMinimumSize(new Dimension(groupWidth,170));
+		outliersPanel.setPreferredSize(new Dimension(groupWidth,170));
 		
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
@@ -430,8 +437,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Projection";
 		projectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		projectionPanel.setVisible(true);		
-//		projectionPanel.setMinimumSize(new Dimension(groupWidth,10));
-		projectionPanel.setPreferredSize(new Dimension(groupWidth,70));
+		projectionPanel.setMinimumSize(new Dimension(groupWidth,80));
+		projectionPanel.setPreferredSize(new Dimension(groupWidth,80));
 		
 		//Create the radio buttons.
 		cylProjRadioButton = new JRadioButton(projStrings[0]+"   ");
@@ -474,6 +481,39 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	public void showProjPropPanel(boolean show){
 		this.projectionPanel.setVisible(show);
+	}
+	
+
+	
+	/**
+	 * Initializes the group for showing coordinates
+	 */
+	public void initNBHSPanel() {
+		nbhsSelPanel = new NBHSselPanel(this.controller.cPane.getNbhString());
+		nbhsButton = new JButton("Traces");
+		nbhsButton.setEnabled(true);
+		nbhsButton.setPreferredSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
+		nbhsButton.addActionListener(this);
+		// init panel
+		nbhsPanel.setLayout(new BoxLayout(nbhsPanel,BoxLayout.Y_AXIS));
+		String title = "NBHString";
+		nbhsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		nbhsPanel.setVisible(true);	
+		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 60));
+		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 60));
+				
+		nbhsPanel.add(nbhsSelPanel, BorderLayout.LINE_START);
+		nbhsPanel.add(nbhsButton, BorderLayout.LINE_START);
+//		nbhsPanel.add(anglePanel);
+		sphoxelGroup.add(nbhsPanel);
+	}
+
+	/**
+	 * Toggles the visibility of the coordinates group on or off.
+	 * @param show whether to show or hide the group
+	 */
+	public void showNBHSPanel(boolean show) {
+		angleGroup.setVisible(show);
 	}
 		
 	
@@ -598,6 +638,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		if (e.getSource() == this.colorScale){
 			controller.handleChangeShowColourScale(this.chosenColourScale);			
 		}
+
+		if (e.getSource() == this.nbhsButton){
+			controller.handleChangeNBHString(this.nbhsSelPanel.getActNbhString());			
+		}
 	}
 	
 	private void updateRadiusValues(){
@@ -666,6 +710,11 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	public AnglePanel getAnglePanel() {
 		return this.anglePanel;
 	}
+	
+	public NBHSselPanel getNBHSPanel(){
+		return this.nbhsSelPanel;
+	}
+	
 	public JSlider getResolSlider(){
 		return this.resolSlider;
 	}

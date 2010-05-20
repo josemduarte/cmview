@@ -11,7 +11,7 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.JPanel;
 
-public class AngleRuler extends JPanel {
+public class AngleRuler extends JPanel{
 	
 	/**
 	 * 
@@ -45,6 +45,7 @@ public class AngleRuler extends JPanel {
 	private int location; 
 	
 	public AngleRuler(ContactView cview, ContactPane cpane, int location){
+		
 //		this.cview = cview;
 		this.cpane = cpane;
 		this.location = location;
@@ -342,5 +343,6 @@ public class AngleRuler extends JPanel {
 	public Dimension getRulerSize(){
 		return this.rulerSize;
 	}
+
 
 }

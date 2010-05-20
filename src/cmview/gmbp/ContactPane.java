@@ -141,11 +141,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
+	private String origNBHString; 
 	private String jAtom = "CA";
 	private char[] nbhsRes;
 	
-	private String db = "bagler_all5p0";
-	
+	private String db = "bagler_all13p0_alledges";
+
 	// Sphoxel-Data
 	private CMPdb_sphoxel sphoxel;
 	private double [][] ratios;
@@ -310,20 +311,49 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void calcTracesParam(){
 		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
 		System.out.println("Edge type: "+this.mod.edgeType);
-		this.jAtom = this.mod.edgeType;
+		this.jAtom = this.mod.edgeType.toUpperCase();
 		this.nbhString = nbhood.getNbString();
 		this.nbhStringL = "%";
 		int count = 0;
+//		int indexOfX = 0;
 		this.nbhsRes = new char[this.nbhString.length()];
 		for (int i=0; i<this.nbhString.length(); i++){
 			this.nbhStringL += this.nbhString.charAt(i);
 			this.nbhStringL += "%";
 			this.nbhsRes[count] = this.nbhString.charAt(i);
+//			if (this.nbhString.charAt(i) == 'x')
+//				indexOfX = count;
 			count++;
 		}
 		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
-
+		this.origNBHString = this.nbhString;
+//		this.origNBHStringL = this.nbhStringL;
+		
+//		String s = "";
+//		computeNBHStringCombinations(0, s);
 	}
+	
+//	private void computeNBHStringCombinations(int index, String s){
+//		String newS = s;
+//		if (this.nbhsRes[index] != 'x'){
+//			// this.nbhsRes[index] --> false
+//			if (index+1 >= this.nbhsRes.length)
+//				System.out.println("String: "+newS);
+//			else
+//				computeNBHStringCombinations(index+1, newS);			
+//		}
+//		// this.nbhsRes[index] --> true
+//		if (index+1 >= this.nbhsRes.length)
+//			System.out.println("String: "+newS);
+//		else
+//			computeNBHStringCombinations(index+1, newS+this.nbhsRes[index]);
+//	}
+//	
+//	private String[] computeNBHStringCombinations(String[] comb, int length){
+//		String[] newComb = new String[comb.length+1];
+//		
+//		return newComb;
+//	}
 	
 	public void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
@@ -491,7 +521,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void setTracesParam(){
 		nbhsTraces.setDiffSSType(this.diffSStype);
+		nbhsTraces.setDiffSSType(false);
 		nbhsTraces.setSSType(this.iSSType);
+		nbhsTraces.setNBHS(this.nbhStringL);
 	}
 	
 	private void calcNbhsTraces() throws SQLException{
@@ -499,34 +531,34 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
 		
-		// FAKE
-		CSVhandler csv = new CSVhandler();
-		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
-		if (sFileName!=null){
-            System.out.println("Chosen path/file:" + sFileName);
-		}
-		else
-            System.out.println("No path chosen!");
-		try {
-			this.nbhsNodes = csv.readCSVfileVector(sFileName);
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		this.nbhString = "CPxHG";
-		this.nbhStringL = "%";
-		int count = 0;
-		this.nbhsRes = new char[this.nbhString.length()];
-		for (int i=0; i<this.nbhString.length(); i++){
-			this.nbhStringL += this.nbhString.charAt(i);
-			this.nbhStringL += "%";
-			this.nbhsRes[count] = this.nbhString.charAt(i);
-			count++;
-		}
-		// END FAKE
+//		// FAKE
+//		CSVhandler csv = new CSVhandler();
+//		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
+//		if (sFileName!=null){
+//            System.out.println("Chosen path/file:" + sFileName);
+//		}
+//		else
+//            System.out.println("No path chosen!");
+//		try {
+//			this.nbhsNodes = csv.readCSVfileVector(sFileName);
+//		} catch (NumberFormatException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		this.nbhString = "CPxHG";
+//		this.nbhStringL = "%";
+//		int count = 0;
+//		this.nbhsRes = new char[this.nbhString.length()];
+//		for (int i=0; i<this.nbhString.length(); i++){
+//			this.nbhStringL += this.nbhString.charAt(i);
+//			this.nbhStringL += "%";
+//			this.nbhsRes[count] = this.nbhString.charAt(i);
+//			count++;
+//		}
+//		// END FAKE
 		
 		// compute nbhstringTraces		
 		if (this.nbhsNodes.size()>0){
@@ -574,12 +606,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}		
 	}
 	
-	public void recalcTraces() throws SQLException{
-		if (this.nbhsTraces.getDiffSSType()!=this.diffSStype || this.nbhsTraces.getSSType()!=this.iSSType){
+	public void recalcTraces(boolean perform) throws SQLException{
+		if (perform){
 			setTracesParam();
 			calcNbhsTraces();
 			
-			updateScreenBuffer();
+			updateScreenBuffer();			
+		}
+	}
+	
+	public void recalcTraces() throws SQLException{
+		if (this.nbhsTraces.getDiffSSType()!=this.diffSStype || this.nbhsTraces.getSSType()!=this.iSSType){
+			recalcTraces(true);
 		}
 	}
 	
@@ -1655,6 +1693,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.contStatBar.repaint();		
 	}
 	
+//	private void updateNBHSSelPanel(){
+//		this.contStatBar.getNBHSPanel().setNbhString(this.nbhString);
+//	}
+	
 	// end drawing methods
 	
 	
@@ -1923,6 +1965,28 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	/*---------------------------- setters and getters -----------------------------*/
+	
+	public String getNbhString() {
+		return nbhString;
+	}
+	public String getOrigNBHString() {
+		return origNBHString;
+	}
+	public void setNbhString(String nbhString) {
+		this.nbhString = nbhString;
+		this.nbhStringL = "%";
+		this.nbhsRes = new char[this.nbhString.length()];
+		int count = 0;
+		this.nbhsRes = new char[this.nbhString.length()];
+		for (int i=0; i<this.nbhString.length(); i++){
+			this.nbhStringL += this.nbhString.charAt(i);
+			this.nbhStringL += "%";
+			this.nbhsRes[count] = this.nbhString.charAt(i);
+			count++;
+		}
+		System.out.println(" Actual NBHS: "+this.nbhString+"-->"+this.nbhStringL);	
+	}
+
 	
 	public void setStatusBar(ContactStatusBar statusBar) {
 		this.contStatBar = statusBar;		

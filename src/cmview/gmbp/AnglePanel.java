@@ -4,11 +4,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.JPanel;
 
-public class AnglePanel extends JPanel {
+public class AnglePanel extends JPanel implements MouseListener{
 	
 /*------------------------- member variables ------------------------*/
 	
@@ -43,9 +46,12 @@ public class AnglePanel extends JPanel {
 	
 	public AnglePanel() {
 		this.setMinimumSize(new Dimension(width,totalHeight));
+		
+//		addMouseListener(this);
+//		addMouseMotionListener(this);
 	}
 	
-/*--------------------------   drawing ---------------------------------*/
+    /*--------------------------   drawing ---------------------------------*/
 	
 	/** Method called by this component to determine its minimum size */
 	@Override
@@ -100,7 +106,7 @@ public class AnglePanel extends JPanel {
 		y += this.lineHeight;
 //		y = baseLineY + textYOffset;
 		x = firstColumnX;
-		g2d.drawString("p:", x,y);					// Phi	
+		g2d.drawString("p:", x, y);					// Phi	
 		x = secondColumnX;
 		g2d.drawString(phiMin, x, y);
 		x = thirdColumnX;
@@ -149,5 +155,43 @@ public class AnglePanel extends JPanel {
 		this.thetaMax = string;
 	}
 	
+	/*----------------Event Handling-----------------------------------------*/
+	
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("mouseClicked");
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("mouseEntered");
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("mouseExited");
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("mousePressed");
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("mouseReleased");
+		Point mousePos = e.getPoint();
+		System.out.println("mousePos: "+mousePos.x+" , "+mousePos.y);
+		
+	}
 
 }

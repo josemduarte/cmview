@@ -551,6 +551,31 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	}
 	
 	/**
+	 * Handles the user action to change the nbhstring to use for traces
+	 * @param type --> string nbhs
+	 */
+	public void handleChangeNBHString(String nbhs) {	
+		this.cPane.setNbhString(nbhs);		
+		try {
+			this.cPane.recalcTraces(true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+////		if (colView==null)
+//			colView = new ColorScaleView(this.cPane);
+//		colView.setChosenColourScale(type);
+//		this.cPane.calcHistogramms();
+//		colView.repaint();	
+		
+//		histView = new HistogramView(this.cPane);
+//		histView.setChosenColourScale(type);
+//		histView.repaint();
+	}
+	
+	
+	/**
 	 * Handles the user action to show histogram for selection
 	 * @param 
 	 */
