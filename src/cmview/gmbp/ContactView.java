@@ -63,8 +63,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
-	JPanel phiRul;				// Panel for top (phi) ruler
-	JPanel thetaRul;			// Panel for left (theta) ruler	
+	JPanel lampdaRul;				// Panel for top (lampda) ruler
+	JPanel phiRul;			// Panel for left (phi) ruler	
 	JPanel svP; 				// Main panel holding the Contact map pane Sperical Voxel view 
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	ContactStatusBar contStatBar;		// A status bar with metainformation on the right
@@ -97,8 +97,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private Model mod;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
+	public AngleRuler lampdaRuler;
 	public AngleRuler phiRuler;
-	public AngleRuler thetaRuler;
 	public ColorScaleView colView;
 	public HistogramView histView;
 	
@@ -233,8 +233,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		// Creating the Panels
 		tbPane = new JPanel(new BorderLayout());	// toolbar panel, holding only toolbar and cmp (all the rest)
 		svP = new JPanel(new BorderLayout()); 		// panel holding the cmPane and (optionally) the ruler panes
-		phiRul = new JPanel(new BorderLayout()); 	// panel holding the phi (top) ruler
-		thetaRul = new JPanel(new BorderLayout()); 	// panel holding the theta (left) ruler
+		lampdaRul = new JPanel(new BorderLayout()); 	// panel holding the lampda (top) ruler
+		phiRul = new JPanel(new BorderLayout()); 	// panel holding the phi (left) ruler
 		
 //		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
@@ -303,22 +303,22 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 			cPane.setStatusBar(contStatBar);
 			svP.add(cPane, BorderLayout.CENTER);
 			
-			phiRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
-			thetaRuler = new AngleRuler(this, cPane, AngleRuler.LEFT);
+			lampdaRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
+			phiRuler = new AngleRuler(this, cPane, AngleRuler.LEFT);
+			lampdaRul.add(lampdaRuler);
+			lampdaRul.setSize(lampdaRuler.getSize());
+			lampdaRul.setPreferredSize(lampdaRuler.getSize());
 			phiRul.add(phiRuler);
 			phiRul.setSize(phiRuler.getSize());
 			phiRul.setPreferredSize(phiRuler.getSize());
-			thetaRul.add(thetaRuler);
-			thetaRul.setSize(thetaRuler.getSize());
-			thetaRul.setPreferredSize(thetaRuler.getSize());
 			
+//			lampdaRul.setBorder(BorderFactory.createLineBorder(Color.black));
 //			phiRul.setBorder(BorderFactory.createLineBorder(Color.black));
-//			thetaRul.setBorder(BorderFactory.createLineBorder(Color.black));
 		}
 //		cPane.setVisible(false);
 		if(guiState.getShowRulers()) {
-			svP.add(phiRul, BorderLayout.NORTH);
-			svP.add(thetaRul, BorderLayout.WEST);
+			svP.add(lampdaRul, BorderLayout.NORTH);
+			svP.add(phiRul, BorderLayout.WEST);
 		}
 	
 		// Add everything to the content pane		
@@ -334,9 +334,9 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
 		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
 		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
-		System.out.println("Size of phiRuler: "+phiRuler.getSize().height+"x"+phiRuler.getSize().width);
-		System.out.println("Size of phiRul: "+phiRul.getSize().height+"x"+phiRul.getSize().width);
-		System.out.println("Size of thetaRuler: "+thetaRuler.getRulerSize().height+"x"+thetaRuler.getRulerSize().width);
+		System.out.println("Size of lampdaRuler: "+lampdaRuler.getSize().height+"x"+lampdaRuler.getSize().width);
+		System.out.println("Size of lampdaRul: "+lampdaRul.getSize().height+"x"+lampdaRul.getSize().width);
+		System.out.println("Size of phiRuler: "+phiRuler.getRulerSize().height+"x"+phiRuler.getRulerSize().width);
 						
 		pack();
 		this.cPane.requestFocus();
@@ -489,7 +489,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	public void handleChangeProjectionType(int type) {
 		this.cPane.setMapProjType(type);
 		this.cPane.repaint();
-		this.phiRuler.repaint();
+		this.lampdaRuler.repaint();
 	}
 	
 	/**

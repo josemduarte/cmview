@@ -106,14 +106,14 @@ public class AnglePanel extends JPanel implements MouseListener{
 		y += this.lineHeight;
 //		y = baseLineY + textYOffset;
 		x = firstColumnX;
-		g2d.drawString("p:", x, y);					// Phi	
+		g2d.drawString("p:", x, y);					// Lampda	
 		x = secondColumnX;
 		g2d.drawString(lampdaMin, x, y);
 		x = thirdColumnX;
 		g2d.drawString("- "+lampdaMax, x, y);
 		y += 20;
 		x = firstColumnX;
-		g2d.drawString("t:", x, y);					// Theta
+		g2d.drawString("t:", x, y);					// Phi
 		x = secondColumnX;
 		g2d.drawString(thetaMin, x, y);
 		x = thirdColumnX;
@@ -142,16 +142,16 @@ public class AnglePanel extends JPanel implements MouseListener{
 		this.nbhs = string;
 	}
 	
-	public void setPhiMin(String string){
+	public void setLampdaMin(String string){
 		this.lampdaMin = string;
 	}
-	public void setPhiMax(String string){
+	public void setLampdaMax(String string){
 		this.lampdaMax = string;
 	}
-	public void setThetaMin(String string){
+	public void setPhiMin(String string){
 		this.thetaMin = string;
 	}
-	public void setThetaMax(String string){
+	public void setPhiMax(String string){
 		this.thetaMax = string;
 	}
 	

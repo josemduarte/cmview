@@ -24,8 +24,8 @@ public class AngleRuler extends JPanel{
 	protected static final int RIGHT = 4; 
 	
 	protected static final int STD_RULER_WIDTH = 30;
-	protected static final int DEGREES_PHI = 360;
-	protected static final int DEGREES_THETA = 180;
+	protected static final int DEGREES_LAMPDA = 360;
+	protected static final int DEGREES_PHI = 180;
 	protected static final int DEGREE_RESOL = 10;
 	
 	private static final Color BACKGROUND_COLOR = Color.yellow;		// if opaque, otherwise transparent
@@ -168,7 +168,7 @@ public class AngleRuler extends JPanel{
 			xE = this.rulerLength + this.offSetX;
 			yS = 0.0f + this.offSetY;
 			yE = this.rulerWidth + this.offSetY;
-			numTicks = DEGREES_PHI/DEGREE_RESOL;				
+			numTicks = DEGREES_LAMPDA/DEGREE_RESOL;				
 			shape = new Rectangle2D.Float(xS-this.offSetX, yS, xE-xS, yE-yS);	
 			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){
 				delta = (float) (this.rulerLength-this.offSetX-(2*this.deltaOffSetX)) / (float) numTicks;
@@ -185,7 +185,7 @@ public class AngleRuler extends JPanel{
 		else { // this.location == LEFT || RIGHT
 			xS = 0.0f + this.offSetX;
 			xE = this.rulerWidth + this.offSetX;
-			numTicks = DEGREES_THETA/DEGREE_RESOL;
+			numTicks = DEGREES_PHI/DEGREE_RESOL;
 			delta = (float) this.rulerLength / (float) numTicks;
 			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 		}
