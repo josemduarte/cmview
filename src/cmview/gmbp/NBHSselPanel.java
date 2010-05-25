@@ -17,7 +17,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	 */
 	private static final long serialVersionUID = 1L;
 	private static final Color residueSwitchedOnCol = Color.black;
-	private static final Color residueSwitchedOffCol = Color.blue;
+	private static final Color residueSwitchedOffCol = Color.gray;
 	private static final Color bgColor = Color.white;
 	
 	// constants / settings
@@ -173,7 +173,8 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		int yI = (this.mousePos.y - (this.textYOffset-this.lineHeight))/this.lineHeight;
 		this.indexClickedRes = xI + (yI * this.numResPerLine);
 		System.out.println("Index = "+xI+","+yI+" -> " +this.indexClickedRes);
-		if (this.nbhsRes[this.indexClickedRes] != 'x')
+		// Test if central residue
+//		if (this.nbhsRes[this.indexClickedRes] != 'x')
 			this.nbhsResFlags[this.indexClickedRes] = !this.nbhsResFlags[this.indexClickedRes];
 		String s = "";
 		for (int i=0; i<this.nbhString.length(); i++){

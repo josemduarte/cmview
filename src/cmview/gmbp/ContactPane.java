@@ -55,6 +55,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected static final double defaultMaxAllowedRat = 1;
 	protected final int cylindricalMapProj = 0;
 	protected final int kavrayskiyMapProj = 1;
+	protected final int azimuthalMapProj = 2;
 	protected final int defaultProjType = kavrayskiyMapProj;
 	protected static final int sphoxelHist = 0;
 	protected static final int tracesHist = 0;
@@ -521,7 +522,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void setTracesParam(){
 		nbhsTraces.setDiffSSType(this.diffSStype);
-		nbhsTraces.setDiffSSType(false);
+//		nbhsTraces.setDiffSSType(false);
 		nbhsTraces.setSSType(this.iSSType);
 		nbhsTraces.setNBHS(this.nbhStringL);
 	}
