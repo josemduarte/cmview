@@ -39,8 +39,8 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private String jSSType = "";
 	private String nbhs = "";
 	private String title2 = "AngleRange:";
-	private String phiMin = "";
-	private String phiMax = "";
+	private String lampdaMin = "";
+	private String lampdaMax = "";
 	private String thetaMin = "";
 	private String thetaMax = "";
 	
@@ -108,9 +108,9 @@ public class AnglePanel extends JPanel implements MouseListener{
 		x = firstColumnX;
 		g2d.drawString("p:", x, y);					// Phi	
 		x = secondColumnX;
-		g2d.drawString(phiMin, x, y);
+		g2d.drawString(lampdaMin, x, y);
 		x = thirdColumnX;
-		g2d.drawString("- "+phiMax, x, y);
+		g2d.drawString("- "+lampdaMax, x, y);
 		y += 20;
 		x = firstColumnX;
 		g2d.drawString("t:", x, y);					// Theta
@@ -143,10 +143,10 @@ public class AnglePanel extends JPanel implements MouseListener{
 	}
 	
 	public void setPhiMin(String string){
-		this.phiMin = string;
+		this.lampdaMin = string;
 	}
 	public void setPhiMax(String string){
-		this.phiMax = string;
+		this.lampdaMax = string;
 	}
 	public void setThetaMin(String string){
 		this.thetaMin = string;

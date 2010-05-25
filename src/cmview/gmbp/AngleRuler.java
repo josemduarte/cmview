@@ -104,7 +104,14 @@ public class AngleRuler extends JPanel{
 //				this.deltaOffSetX = 409.3648026452222 + this.offSetX;
 //				this.deltaOffSetXEnd = 1030.2930269270032 + this.offSetX;
 			}
-			else if(this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
+			else if (this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
+				this.offSetX = this.rulerWidth;
+//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
+				this.deltaOffSetX = 0 + this.offSetX;
+				this.deltaOffSetXEnd = this.rulerLength;
+			}
+			else if (this.cpane.getMapProjType() == this.cpane.azimuthalMapProj){
+				// ToDo: adjust scale!
 				this.offSetX = this.rulerWidth;
 //				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
 				this.deltaOffSetX = 0 + this.offSetX;
@@ -154,14 +161,13 @@ public class AngleRuler extends JPanel{
 		xE = this.rulerLength;
 		yS = 0.0f;
 		yE = this.rulerLength;
+		Color col = new Color(255, 255, 255, 255);
+		g2d.setColor(col);
 		if (this.location == TOP || this.location == BOTTOM){
 			xS = 0.0f + this.offSetX;
 			xE = this.rulerLength + this.offSetX;
 			yS = 0.0f + this.offSetY;
 			yE = this.rulerWidth + this.offSetY;
-//			Color col = new Color(255, 0, 0, 255);
-			Color col = new Color(255, 255, 255, 255);
-			g2d.setColor(col);
 			numTicks = DEGREES_PHI/DEGREE_RESOL;				
 			shape = new Rectangle2D.Float(xS-this.offSetX, yS, xE-xS, yE-yS);	
 			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){
@@ -171,15 +177,14 @@ public class AngleRuler extends JPanel{
 			else if(this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
 				delta = (float) (this.rulerLength-this.offSetX) / (float) numTicks;
 			}
+			else if(this.cpane.getMapProjType() == this.cpane.azimuthalMapProj){
+				// ToDo: adjust
+				delta = (float) (this.rulerLength-this.offSetX) / (float) numTicks;
+			}
 		}
 		else { // this.location == LEFT || RIGHT
 			xS = 0.0f + this.offSetX;
 			xE = this.rulerWidth + this.offSetX;
-//			yS = 0.0f + this.offSetY;
-//			yE = this.rulerLength + this.offSetY;
-//			Color col = new Color(0, 255, 0, 255);
-			Color col = new Color(255, 255, 255, 255);
-			g2d.setColor(col);
 			numTicks = DEGREES_THETA/DEGREE_RESOL;
 			delta = (float) this.rulerLength / (float) numTicks;
 			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
@@ -192,8 +197,6 @@ public class AngleRuler extends JPanel{
 		g2d.fill(shape);
 		
 		g2d.setColor(Color.black);
-//		tick = new Line2D.Float(xS, yS, xE, yE);
-//		g2d.draw(tick);
 		Font f = new Font("Dialog", Font.PLAIN, 10);
 		g2d.setFont(f);
 
@@ -262,60 +265,6 @@ public class AngleRuler extends JPanel{
 				i -= numTicks;
 			count++;
 	    }
-		
-//		for (int j=1; j<=numTicks; j++){
-//			if (j==1){
-//				float val = (float) (j*(DEGREE_RESOL*Math.PI/180));
-//				float transl = 0;
-//				if (this.location == TOP || this.location == BOTTOM){
-//					transl = this.cpane.translateXCoordRespective2Orig(val);				
-//				}
-//				else {
-//					transl = this.cpane.translateYCoordRespective2Orig(val);
-//				}
-//				i = (int) (transl/(DEGREE_RESOL*Math.PI/180));
-//			}
-//			else 
-//				i++;	
-//			if (i>=numTicks)
-//				i -= numTicks;
-//			
-//			if (this.location == TOP || this.location == BOTTOM){
-//				xS = i*delta;
-//				xE = xS;
-//				xS += this.offSetX;
-//				xE += this.offSetX;
-//				yS = this.rulerWidth - (this.rulerWidth/4);
-//				yE = this.rulerWidth;
-//			}
-//			else { // this.location == LEFT || RIGHT
-//				yS = i*delta;
-//				yE = yS;
-//				xS = this.rulerWidth - (this.rulerWidth/4);
-//				xE = this.rulerWidth;
-//			}
-//			tick = new Line2D.Float(xS, yS, xE, yE);			
-//			g2d.draw(tick);
-////			g2d.fill(shape);
-//			
-////			degree = i*DEGREE_RESOL;
-//			degree = j*DEGREE_RESOL;
-//			degreeS = String.valueOf(degree);
-//			float d = 10*((float)degreeS.length()/2);
-//			if (this.location == TOP || this.location == BOTTOM){
-//				xS = i*delta - d;
-//				xS += this.offSetX;
-//				yS = this.rulerWidth - (this.rulerWidth/3); //0;
-//			}
-//			else { // this.location == LEFT || RIGHT
-//				d = 6;
-//				yS = i*delta + d;
-////				xS = this.rulerWidth/2; 
-//				xS = 0;
-//			}
-//			g2d.drawString(degreeS, xS, yS);
-//			
-//		}	
 	}
 	
 	/*-------------------------- overridden methods -------------------------*/

@@ -46,7 +46,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	protected final static int RGB = 2;
 //	private final static String cylProjString = "Cylindrical";
 //	private final static String pseudoCylProjString = "Kavrayskiy";
-	private final static String[] projStrings = new String[] {"Cylindrical", "Kavrayskiy"};
+	private final static String[] projStrings = new String[] {"Cylindrical", "Kavrayskiy", "Azimuthal"};
 	
 	/*--------------------------- member variables --------------------------*/	
 	// settings
@@ -87,6 +87,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JButton colorScale;
 	private JRadioButton cylProjRadioButton;
 	private JRadioButton pseudoCylProjRadioButton;
+	private JRadioButton azimuthProjRadioButton;
 	private ButtonGroup projButtonGroup; 
 	private JButton nbhsButton;
 	
@@ -437,14 +438,16 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Projection";
 		projectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		projectionPanel.setVisible(true);		
-		projectionPanel.setMinimumSize(new Dimension(groupWidth,80));
-		projectionPanel.setPreferredSize(new Dimension(groupWidth,80));
+		projectionPanel.setMinimumSize(new Dimension(groupWidth,100));
+		projectionPanel.setPreferredSize(new Dimension(groupWidth,100));
 		
 		//Create the radio buttons.
 		cylProjRadioButton = new JRadioButton(projStrings[0]+"   ");
 		cylProjRadioButton.setActionCommand(projStrings[0]);
 		pseudoCylProjRadioButton = new JRadioButton(projStrings[1]+"   ");
 		pseudoCylProjRadioButton.setActionCommand(projStrings[1]);
+		azimuthProjRadioButton = new JRadioButton(projStrings[2]+"  ");
+		azimuthProjRadioButton.setActionCommand(projStrings[2]);
 		if (this.controller.cPane.defaultProjType == this.controller.cPane.cylindricalMapProj){
 			cylProjRadioButton.setSelected(true);
 			this.chosenProjection = this.controller.cPane.cylindricalMapProj;
@@ -453,25 +456,35 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			pseudoCylProjRadioButton.setSelected(true);
 			this.chosenProjection = this.controller.cPane.kavrayskiyMapProj;
 		}
+		else if (this.controller.cPane.defaultProjType == this.controller.cPane.azimuthalMapProj){
+			azimuthProjRadioButton.setSelected(true);
+			this.chosenProjection = this.controller.cPane.azimuthalMapProj;
+		}
 		
 		//Group the radio buttons.
         ButtonGroup projButtonGroup = new ButtonGroup();
         projButtonGroup.add(cylProjRadioButton);
         projButtonGroup.add(pseudoCylProjRadioButton);
+        projButtonGroup.add(azimuthProjRadioButton);
         
         //Register a listener for the radio buttons.
         cylProjRadioButton.addActionListener(this);
         pseudoCylProjRadioButton.addActionListener(this);
+        azimuthProjRadioButton.addActionListener(this);
 
         JPanel radioB1 = new JPanel();
         radioB1.setLayout(new BoxLayout(radioB1,BoxLayout.LINE_AXIS));
         JPanel radioB2 = new JPanel();
         radioB2.setLayout(new BoxLayout(radioB2,BoxLayout.LINE_AXIS));
+        JPanel radioB3 = new JPanel();
+        radioB3.setLayout(new BoxLayout(radioB3,BoxLayout.LINE_AXIS));
 		
         radioB1.add(cylProjRadioButton);
         radioB2.add(pseudoCylProjRadioButton);
+        radioB3.add(azimuthProjRadioButton);
         projectionPanel.add(radioB1);
         projectionPanel.add(radioB2);
+        projectionPanel.add(radioB3);
 		
 		sphoxelGroup.add(projectionPanel);		
 	}
@@ -622,15 +635,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			controller.handleChangeOutlierThresholds(this.minAllowedRatio, this.maxAllowedRatio);
 			System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);			
 		}
-		if (e.getSource()==this.cylProjRadioButton || e.getSource()==this.pseudoCylProjRadioButton){
-			if (e.getActionCommand()==projStrings[0]){
-//				System.out.println("Cyl");	
+		if (e.getSource()==this.cylProjRadioButton || e.getSource()==this.pseudoCylProjRadioButton || e.getSource()==this.azimuthProjRadioButton){
+			if (e.getActionCommand()==projStrings[0])
 				chosenProjection = this.controller.cPane.cylindricalMapProj; // ContactPane.cylindricalMapProj;
-			}
-			else if (e.getActionCommand()==projStrings[1]){
-//				System.out.println("PCyl");
+			else if (e.getActionCommand()==projStrings[1])
 				chosenProjection = this.controller.cPane.kavrayskiyMapProj; //ContactPane.kavrayskiyMapProj;
-			}
+			else if (e.getActionCommand()==projStrings[2])
+				chosenProjection = this.controller.cPane.azimuthalMapProj;
 			controller.handleChangeProjectionType(chosenProjection);
 //			System.out.println(e.getActionCommand());
 //			System.out.println(e.getSource());

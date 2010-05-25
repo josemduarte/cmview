@@ -59,6 +59,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_PAN_VIEW_MODE = "Panning Mode";
 	// Show
 	private static final String LABEL_HISTOGRAM_MODE = "Histogram4Selection";
+	private static final String LABEL_DEL_SELECTION = "DeleteSelectedRange";
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
@@ -84,7 +85,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	// M -> "menu bar"
 	JMenuItem squareM, clusterM;
 	// P -> "popup menu"
-	JMenuItem histP;
+	JMenuItem histP, deleteP;
 	// mm -> "main menu"
 	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmQuit;
 	JMenuItem mmSelectAll;
@@ -258,6 +259,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
 		histP = makePopupMenuItem(LABEL_HISTOGRAM_MODE, icon_square_sel_mode, popup);
+		deleteP = makePopupMenuItem(LABEL_DEL_SELECTION, icon_square_sel_mode, popup);
 		
 		// Main menu
 		JMenuBar menuBar;
@@ -586,6 +588,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		histView.repaint();
 	}
 	
+	public void handleDeleteSelection(){
+		this.cPane.deleteSelectedRange();
+	}
+	
 	/**
 	 * Handles the user action to change the radius range 
 	 * @param minR and maxR --> range
@@ -704,6 +710,9 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		// Histogram button clicked
 		if (e.getSource() == histP) {
 			handleShowHistogram();
+		}
+		if (e.getSource() == deleteP){
+			handleDeleteSelection();
 		}
 	}
 
