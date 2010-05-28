@@ -130,7 +130,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Pair<Double> tmpPhiRange;
 	private Pair<Integer> tmpSelContact;
 	private Pair<Double> tmpAngleComb;
-	private Pair<Double> origCoordinates;    // actual coordinates of origin in angle range x:[0:2*PI] y:[0:PI]
+	private Pair<Double> origCoordinates;    // actual coordinates of origin (equator, zero meridian) in angle range x:[0:2*PI] y:[0:PI]
+	private Pair<Double> centerOfProjection; // longitude and latitude of actual centre of projection (depends on origCoordinates)
 	private Pair<Double> rightClickAngle;
 	
 	private RIGNode nodeI, nodeJ;
@@ -185,6 +186,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private float voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI); //pixelWidth;
 	private double deltaRad = Math.PI/this.numSteps;
 	private final double dL = 0.5;
+	private double rSphere;
+	private double maxDistPoints;
 
 	private boolean removeOutliers = false; //true;
 	private double minAllowedRat = defaultMinAllowedRat;
@@ -253,6 +256,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		this.contactView.setPreferredSize(this.screenSize);
 //		this.contactView.setPreferredSize(new Dimension(this.screenSize.width+AngleRuler.STD_RULER_WIDTH, this.screenSize.height+AngleRuler.STD_RULER_WIDTH));
 
+		this.rSphere = g2dSize.getHeight()/2;
+		this.maxDistPoints = distPointsOnSphere(Math.PI, Math.PI/2, Math.PI, 0);
+		
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
 		this.mouseDraggingPos = new Point();
@@ -274,6 +280,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.tmpPhiRange = new Pair<Double>(0.0, 0.0);
 		this.tmpAngleComb = new Pair<Double>(0.0, 0.0);
 		this.origCoordinates = new Pair<Double>(Math.PI, Math.PI/2);
+//		this.centerOfProjection = new Pair<Double>(Math.PI-this.origCoordinates.getFirst(), Math.PI/2-this.origCoordinates.getSecond());
+//		this.centerOfProjection = new Pair<Double>(this.origCoordinates.getFirst()-Math.PI, this.origCoordinates.getSecond()-Math.PI/2);
+		this.centerOfProjection = this.origCoordinates;
 		this.deltaOffSetX = this.getOffSet(0.0, 0.0); //this.getScreenPosFromRad(0, 0).getFirst();
 		this.deltaOffSetXEnd = this.getOffSet(2*Math.PI, 0.0); //this.getScreenPosFromRad(2*Math.PI, 0.0).getFirst();
 		this.deltaOffSetXCenter = this.getOffSet(Math.PI, 0.0);
@@ -851,6 +860,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return valid;
 	}
 	
+	/*
+	 * Pseudocylindrical projection of angle values
+	 * Expects values for phi[-Pi/2:+Pi/2] and lampda[-Pi:Pi]
+	 * */
 	public double lampda2Kavrayskiy(double lampdaRad, double phiRad){
 		double lampda = (3*lampdaRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad));
 //		double test = (2*Math.PI*lampda) / (3*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad))) ;
@@ -860,6 +873,26 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		double lampda = (3*lampdaRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad));
 		double lampda = (2*Math.PI*lampdaRad) / (3*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad))) ;
 		return lampda;
+	}
+	
+	/*
+	 * Orthographic projection of angle values from certain viewpoint
+	 * Expects values for phi[-Pi/2:+Pi/2] and lampda[-Pi:Pi]
+	 * */
+	private Pair<Double> orthoProjOfLP(double lampdaRad, double phiRad){
+		Pair<Double> pos;
+		double xPos=0, yPos=0;	
+//		double lampda0 = this.origCoordinates.getFirst(); //Math.PI;
+//		double phi0 = this.origCoordinates.getSecond(); //Math.PI/2;
+		double lampda0 = this.centerOfProjection.getFirst(); //Math.PI;
+		double phi0 = this.centerOfProjection.getSecond(); //Math.PI/2;
+		lampda0 -= Math.PI;
+		phi0 -= (Math.PI/2);		
+		// values of lampdaRad and phiRad should lie between -Pi:+PI and -PI/2:+PI/2
+		xPos = Math.cos(phiRad)*Math.sin(lampdaRad-lampda0);
+		yPos = (Math.cos(phi0)*Math.sin(phiRad)) - (Math.sin(phi0)*Math.cos(phiRad)*Math.cos(lampdaRad-lampda0));
+		pos = new Pair<Double>(xPos, yPos);
+		return pos;
 	}
 	
 	public double getOffSet(double lampdaRad, double phiRad){
@@ -887,7 +920,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public Pair<Double> getScreenPosFromRad(double lampdaRad, double phiRad){
 		Pair<Double> pos; // = new Pair(0,0);
 		double xPos=0, yPos=0;	
-		// 0:phiRad:PI/2 0:lampdaRad:2PI
+		// 0:lampdaRad:2PI 0:phiRad:PI/2 
 		
 		if (this.mapProjType==kavrayskiyMapProj){
 			phiRad = translateYCoordRespective2Orig(phiRad);
@@ -901,26 +934,40 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos = (yPos*this.voxelsize) +this.border;				
 		}
 		else if (this.mapProjType==cylindricalMapProj){
-			lampdaRad -= Math.PI;
-			xPos = translateXPixelCoordRespective2Orig( (Math.PI+lampdaRad) *this.voxelsize )+this.border;
+			xPos = translateXPixelCoordRespective2Orig( lampdaRad *this.voxelsize )+this.border;
 			yPos = translateYPixelCoordRespective2Orig(phiRad*this.voxelsize) +this.border;
 		}
 		else if (this.mapProjType==azimuthalMapProj){
+//			double R = this.g2dSize.getHeight() / 2;
+			// angles negative and positive values
 			phiRad -= (Math.PI/2);
-			double R = this.g2dSize.getHeight() / 2;
-			xPos = R * Math.cos(Math.abs(phiRad)) * Math.cos(lampdaRad);
-			yPos = R * Math.cos(Math.abs(phiRad)) * Math.sin(lampdaRad);
-			xPos += R;
-			yPos += R;
-			if (phiRad>0){ // north pole				
-			}
-			else { // south pole
-				xPos += (2*R);
-			}
-		}
-		
+			lampdaRad -= Math.PI;	
+			xPos = orthoProjOfLP(lampdaRad, phiRad).getFirst();
+			yPos = orthoProjOfLP(lampdaRad, phiRad).getSecond();
+			xPos = (xPos*this.voxelsize*1.5)+this.border;
+			yPos = (yPos*this.voxelsize*1.5)+this.border;			
+//			xPos = R * Math.cos(Math.abs(phiRad)) * Math.cos(lampdaRad);
+//			yPos = R * Math.cos(Math.abs(phiRad)) * Math.sin(lampdaRad);
+			xPos += this.rSphere; //R;
+			yPos += this.rSphere; //R;
+		}		
 		pos = new Pair<Double>(xPos, yPos);
 		return pos;
+	}
+	
+	private double distPointsOnSphere(double l1, double p1, double l2, double p2){
+		double dist = 0;
+//		double R = this.g2dSize.getHeight() / 2;
+		
+		double x1 = this.rSphere*Math.sin(p1)*Math.cos(l1);
+		double y1 = this.rSphere*Math.sin(p1)*Math.sin(l1);
+		double z1 = this.rSphere*Math.cos(p1);
+		double x2 = this.rSphere*Math.sin(p2)*Math.cos(l2);
+		double y2 = this.rSphere*Math.sin(p2)*Math.sin(l2);
+		double z2 = this.rSphere*Math.cos(p2);
+		
+		dist = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2) + Math.pow(z1-z2,2));
+		return dist;
 	}
 	
 	public void drawSphoxelMap(Graphics2D g2d){
@@ -1029,6 +1076,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			g2d.fill(shape);
 		}
 		else if (this.mapProjType==azimuthalMapProj){	
+//			double R = this.g2dSize.getHeight() / 2;
 //			Pair<Double> pos = getScreenPosFromRad(lampdaRad, phiRad);	
 			xPos1 = getScreenPosFromRad(lampdaRad, phiRad).getFirst();
 			yPos1 = getScreenPosFromRad(lampdaRad, phiRad).getSecond();	
@@ -1038,9 +1086,26 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos3 = getScreenPosFromRad(lampdaRad+deltaRad, phiRad+deltaRad).getSecond();	
 			xPos4 = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getFirst();
 			yPos4 = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getSecond();
-			if (i<(ratios.length/2-1) || i>ratios.length/2){
-//			if (!(phiRad<0 && phiRad+deltaRad>0)){
+//			if (i<(ratios.length/2-1) || i>ratios.length/2)
+//			if (!(phiRad<0 && phiRad+deltaRad>0))
+
+//			if (lampdaRad-Math.PI<this.centerOfProjection.getFirst()+(Math.PI/2) && lampdaRad-Math.PI>this.centerOfProjection.getFirst()-(Math.PI/2) ){
+//					// && phiRad-Math.PI/2<this.centerOfProjection.getSecond()+Math.PI/2 && phiRad-Math.PI/2>this.centerOfProjection.getSecond()-Math.PI/2){
+//				// front view
+//				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
+//			}
+//			else {
+//				// back view
+////				xPos1 += (2*this.rSphere);
+//				shape = trapezium(xPos1+(2*this.rSphere), yPos1, xPos2+(2*this.rSphere), yPos2, xPos3+(2*this.rSphere), yPos3, xPos4+(2*this.rSphere), yPos4);	
+//			}
+			if (isOnFrontView(lampdaRad, phiRad))
+//			if (distPointsOnSphere(lampdaRad-Math.PI, phiRad-Math.PI/2, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()) > this.maxDistPoints)
+				shape = trapezium(xPos1+(2*this.rSphere), yPos1, xPos2+(2*this.rSphere), yPos2, xPos3+(2*this.rSphere), yPos3, xPos4+(2*this.rSphere), yPos4);	
+			else
 				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
+			{
+//				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);	
 //				shape = new Ellipse2D.Double(xPos1, yPos1,5,5);
 				g2d.draw(shape);
 				g2d.fill(shape);				
@@ -1428,14 +1493,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 	}
 	
-	private void drawLatitude(Graphics2D g2d, double lampdaRad, double phiRad){
-		double xS, xE, yS, yE;
-		xS = getScreenPosFromRad(lampdaRad, phiRad).getFirst();
-		xE = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getFirst();
-		yS = getScreenPosFromRad(lampdaRad, phiRad).getSecond();
-		yE = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getSecond();
-		drawThickHorizontalLine(g2d, xS, yS, xE, yE);
-	}
+//	private void drawLatitude(Graphics2D g2d, double lampdaRad, double phiRad){
+//		double xS, xE, yS, yE;
+//		xS = getScreenPosFromRad(lampdaRad, phiRad).getFirst();
+//		xE = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getFirst();
+//		yS = getScreenPosFromRad(lampdaRad, phiRad).getSecond();
+//		yE = getScreenPosFromRad(lampdaRad, phiRad+deltaRad).getSecond();
+//		drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+//	}
 	
 	private void drawThickVerticalLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
 		Shape line;
@@ -1455,15 +1520,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.draw(line);
 	}
 	
-	private void drawThickLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
-		Shape line;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-		xS=xS-dL; xE=xE-dL;
-		yS = yS-dL; yE = yE-dL;
-		line = new Line2D.Double(xS,yS,xE,yE);
-		g2d.draw(line);
-	}
+//	private void drawThickLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
+//		Shape line;
+//		line = new Line2D.Double(xS,yS,xE,yE);
+//		g2d.draw(line);
+//		xS=xS-dL; xE=xE-dL;
+//		yS = yS-dL; yE = yE-dL;
+//		line = new Line2D.Double(xS,yS,xE,yE);
+//		g2d.draw(line);
+//	}
 	
 	private void drawLongitudes(Graphics2D g2d){
 		// Laengengrad
@@ -1550,12 +1615,21 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		else if (this.mapProjType==azimuthalMapProj){
 			bcenterx = getScreenPosFromRad(Math.PI, Math.PI/2).getFirst();
 			bcentery = getScreenPosFromRad(Math.PI, Math.PI/2).getSecond();
+//			if (distPointsOnSphere(Math.PI, Math.PI/2, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()) > this.maxDistPoints)
+			if (isOnFrontView(Math.PI, Math.PI/2))
+				bcenterx += (2*this.rSphere);		
 		}
 		
 		Shape circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
 		g2d.draw(circle);
 		circle = new Ellipse2D.Double(bcenterx-29, bcentery-29, 58, 58);
-		g2d.draw(circle);
+		g2d.draw(circle);		
+
+//		bcenterx = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getFirst();
+//		bcentery = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getSecond();
+//		g2d.setColor(Color.blue);
+//		circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
+//		g2d.draw(circle);
 	}
 	
 	private void drawCrosshair(Graphics2D g2d){
@@ -1708,6 +1782,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	// end drawing methods
 	
+	
+	private boolean isOnFrontView(double lampda, double phi){
+		double dist = distPointsOnSphere(lampda, phi, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
+		if (dist>this.maxDistPoints)
+			return false;
+		else
+			return true;
+	}
 	
 	/**
 	 * Returns the corresponding phi-lampda values in the sphoxelView given screen
@@ -1896,6 +1978,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		this.g2dSize.setSize(new Dimension(this.xDim, this.yDim));
 		this.setSize(this.g2dSize);
+		
+		this.rSphere = g2dSize.getHeight()/2;
+		this.maxDistPoints = distPointsOnSphere(0, 0, 0, Math.PI/2);
+//		System.out.println("MaxDist SpherePoints: "+maxDistPoints);
 		
 //		System.out.println("CPane g2dSize HxB: "+this.g2dSize.height+"x"+this.g2dSize.width);
 		
@@ -2141,6 +2227,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void setMapProjType(int mapProjType) {
 		this.mapProjType = mapProjType;
+		if (this.mapProjType!=azimuthalMapProj)
+			this.origCoordinates = new Pair<Double>(this.origCoordinates.getFirst(), Math.PI/2);
+		else{
+			this.origCoordinates = new Pair<Double>(this.origCoordinates.getFirst(), this.centerOfProjection.getSecond());
+//			this.origCoordinates = this.centerOfProjection;
+			this.centerOfProjection = this.origCoordinates;
+		}
 		this.updateScreenBuffer();
 	}
 
@@ -2381,19 +2474,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 				
 			case PAN:
-				Pair<Double> pos = screen2A(mousePos);
-				double xPos = pos.getFirst();
-				double yPos = Math.PI/2; //pos.getSecond();
-				if (this.mapProjType==kavrayskiyMapProj){
-					xPos = lampdaFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+				if (this.mapProjType != azimuthalMapProj){
+					Pair<Double> pos = screen2A(mousePos);
+					double xPos = pos.getFirst();
+					double yPos = Math.PI/2; //pos.getSecond();
+					if (this.mapProjType==kavrayskiyMapProj){
+						xPos = lampdaFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+					}
+					this.origCoordinates = new Pair<Double>(xPos, yPos);
+//					this.centerOfProjection = new Pair<Double>(this.origCoordinates.getFirst()-Math.PI, this.origCoordinates.getSecond()-Math.PI/2);
+//					this.centerOfProjection = this.origCoordinates;
+					
+					this.contactView.lampdaRuler.repaint();
+					this.contactView.phiRuler.repaint();
+					updateScreenBuffer();
+					System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
+					System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
+					System.out.println("CentreCoord: "+this.centerOfProjection.getFirst()+","+this.centerOfProjection.getSecond());
+//					this.repaint();					
 				}
-				this.origCoordinates = new Pair<Double>(xPos, yPos);
-				this.contactView.lampdaRuler.repaint();
-				this.contactView.phiRuler.repaint();
-				updateScreenBuffer();
-				System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+","+this.tmpAngleComb.getSecond());
-				System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
-//				this.repaint();
 				return;
 			}
 			
@@ -2420,21 +2519,26 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					squareSelect();				
 				break;
 			case PAN:
-				Pair<Double> pos = screen2A(mousePos);
-				double xPos = pos.getFirst();
-				double yPos = Math.PI/2; //pos.getSecond();
-				double fac = 2.5*2*Math.PI/360; //(Math.PI / 20);
-				if (this.mapProjType==kavrayskiyMapProj){
-					xPos = lampdaFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+				if (this.mapProjType != azimuthalMapProj){
+					Pair<Double> pos = screen2A(mousePos);
+					double xPos = pos.getFirst();
+					double yPos = Math.PI/2; //pos.getSecond();
+					double fac = 2.5*2*Math.PI/360; //(Math.PI / 20);
+					if (this.mapProjType==kavrayskiyMapProj){
+						xPos = lampdaFromKavrayskiy(xPos-Math.PI, yPos-(Math.PI/2)) + Math.PI;
+					}
+					xPos = xPos/fac;
+					xPos = Math.round(xPos);
+					xPos = xPos*fac;
+//					xPos = Math.round/(xPos/fac) * fac;
+					this.origCoordinates = new Pair<Double>(xPos, yPos);
+//					this.centerOfProjection = new Pair<Double>(Math.PI-this.origCoordinates.getFirst(), Math.PI/2-this.origCoordinates.getSecond());
+//					this.centerOfProjection = new Pair<Double>(this.origCoordinates.getFirst()-Math.PI, this.origCoordinates.getSecond()-Math.PI/2);
+//					this.centerOfProjection = this.origCoordinates;
+					this.contactView.lampdaRuler.repaint();
+					this.contactView.phiRuler.repaint();
+					updateScreenBuffer();					
 				}
-				xPos = xPos/fac;
-				xPos = Math.round(xPos);
-				xPos = xPos*fac;
-//				xPos = Math.round/(xPos/fac) * fac;
-				this.origCoordinates = new Pair<Double>(xPos, yPos);
-				this.contactView.lampdaRuler.repaint();
-				this.contactView.phiRuler.repaint();
-				updateScreenBuffer();
 				break;
 			}
 		}
@@ -2509,12 +2613,23 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
         if (first>2*Math.PI)
         	first -= 2*Math.PI;
         if (second<0)
-        	first += Math.PI;
+        	second += Math.PI;
         if (second>Math.PI)
-        	first -= Math.PI;
+        	second -= Math.PI;
         
-        second = (float) (Math.PI/2);   // --> panning just horizontally     	
+        if (this.mapProjType!=azimuthalMapProj)
+        	second = (float) (Math.PI/2);   // --> panning just horizontally     	
 		this.origCoordinates = new Pair<Double>(first,second); // this.tmpAngleComb;
+//		this.centerOfProjection = new Pair<Double>(Math.PI-this.origCoordinates.getFirst(), Math.PI/2-this.origCoordinates.getSecond());
+//		this.centerOfProjection = new Pair<Double>(this.origCoordinates.getFirst()-Math.PI, this.origCoordinates.getSecond()-Math.PI/2);
+//		this.centerOfProjection = new Pair<Double>(2*Math.PI-this.origCoordinates.getFirst(), Math.PI-this.origCoordinates.getSecond());
+//		this.centerOfProjection = new Pair<Double>(Math.PI, Math.PI/2);
+		if (this.mapProjType==azimuthalMapProj)
+			this.centerOfProjection = this.origCoordinates;
+
+		System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
+		System.out.println("CentreCoord: "+this.centerOfProjection.getFirst()+","+this.centerOfProjection.getSecond());
+		
 		this.contactView.lampdaRuler.repaint();
 		this.contactView.phiRuler.repaint();	
 		updateScreenBuffer();
