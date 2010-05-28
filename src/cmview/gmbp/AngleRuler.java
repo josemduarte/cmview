@@ -30,36 +30,28 @@ public class AngleRuler extends JPanel{
 	
 	private static final Color BACKGROUND_COLOR = Color.yellow;		// if opaque, otherwise transparent
 	
-//	private ContactView cview;
 	private ContactPane cpane;
 	private int rulerWidth;
 	private int rulerLength;
-//	private int contactMapSize;
 	private Dimension screenSize;			// current size of this component on screen
 	private Dimension rulerSize;
-//	private Dimension panelSize;
-//	private double ratioX, ratioY;
 	private int offSetX, offSetY;
 	private double deltaOffSetX, deltaOffSetXEnd, deltaOffSetXCenter;
 	
 	private int location; 
 	
 	public AngleRuler(ContactView cview, ContactPane cpane, int location){
-		
-//		this.cview = cview;
+
 		this.cpane = cpane;
 		this.location = location;
 		this.offSetX = 0;
 		this.offSetY = 0;		
 		this.screenSize = cview.getSize(); // cview.getScreenSize();
-//		this.panelSize = cpane.getSize(); //cpane.getPanelSize();
 		this.rulerSize = new Dimension(0, 0);
 		
 		this.rulerWidth = STD_RULER_WIDTH;
 		
 		if (this.location == TOP || this.location == BOTTOM){
-//			this.rulerLength = this.cview.getSize().width;
-//			this.rulerWidth = this.cview.getSize().height;
 			this.offSetX = this.rulerWidth;
 			this.offSetY = 0;
 			this.rulerLength = this.cpane.getSize().width + (int)this.offSetX;
@@ -67,8 +59,6 @@ public class AngleRuler extends JPanel{
 			this.setSize(new Dimension(this.rulerLength, this.rulerWidth));
 		}
 		else { // this.location == LEFT || RIGHT
-//			this.rulerLength = this.cview.getSize().height;
-//			this.rulerWidth = this.cview.getSize().width;
 			this.rulerLength = this.cpane.getSize().height;
 			this.offSetX = 0;
 			this.offSetY = this.rulerWidth;
@@ -82,78 +72,49 @@ public class AngleRuler extends JPanel{
 		Graphics2D g2d = (Graphics2D) g.create();
 			
 		this.cpane.repaint();
-//		System.out.println("paintComponentRuler");
 		
-//		System.out.println("CView HxB: "+this.cview.getSize().height+"x"+this.cview.getSize().width);
-//		System.out.println("CPane HxB: "+this.cpane.getSize().height+"x"+this.cpane.getSize().width);
-//		System.out.println("CPane g2dSize HxB: "+this.cpane.getPanelSize().height+"x"+this.cpane.getSize().width);		
-		
-		/// --- Update Ruler Size ----
-		
+		/// --- Update Ruler Size ----		
 		this.rulerWidth = STD_RULER_WIDTH;
 		
 		if (this.location == TOP || this.location == BOTTOM){
-//			this.rulerLength = this.cview.getSize().width;
-//			this.rulerWidth = this.cview.getSize().height;
-			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){ //(this.mapProjType==kavrayskiyMapProj){
-				this.offSetX = this.rulerWidth; // + (int)this.deltaOffSetX;
-//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
+			if (this.cpane.getMapProjType() == this.cpane.kavrayskiyMapProj){ 
+				this.offSetX = this.rulerWidth; 
 				this.deltaOffSetX = this.cpane.getDeltaOffSetX() + this.offSetX;
 				this.deltaOffSetXEnd = this.cpane.getDeltaOffSetXEnd() + this.offSetX;
 				this.deltaOffSetXCenter = this.cpane.getDeltaOffSetXCenter() + this.offSetX;
-//				this.deltaOffSetX = 409.3648026452222 + this.offSetX;
-//				this.deltaOffSetXEnd = 1030.2930269270032 + this.offSetX;
 			}
 			else if (this.cpane.getMapProjType() == this.cpane.cylindricalMapProj){
 				this.offSetX = this.rulerWidth;
-//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
 				this.deltaOffSetX = 0 + this.offSetX;
 				this.deltaOffSetXEnd = this.rulerLength;
 			}
-			else if (this.cpane.getMapProjType() == this.cpane.azimuthalMapProj){
-				// ToDo: adjust scale!
-				this.offSetX = this.rulerWidth;
-//				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
-				this.deltaOffSetX = 0 + this.offSetX;
-				this.deltaOffSetXEnd = this.rulerLength;
-			}
+//			else if (this.cpane.getMapProjType() == this.cpane.azimuthalMapProj){
+//				// ToDo: adjust scale!
+//				this.offSetX = this.rulerWidth;
+////				this.deltaOffSetX = this.cpane.getScreenPosFromRad(0, 0).getFirst();
+//				this.deltaOffSetX = 0 + this.offSetX;
+//				this.deltaOffSetXEnd = this.rulerLength;
+//			}
 			this.offSetY = 0;
-//			this.rulerLength = this.cpane.getSize().width + this.offSetX;
 			this.rulerLength = this.cpane.getPanelSize().width + this.offSetX;
 			this.rulerSize = new Dimension(this.rulerLength, this.rulerWidth);
 			this.setSize(new Dimension(this.rulerLength, this.rulerWidth));
 		}
 		else { // this.location == LEFT || RIGHT
-//			this.rulerLength = this.cview.getSize().height;
-//			this.rulerWidth = this.cview.getSize().width;
-//			this.rulerLength = this.cpane.getSize().height;
 			this.rulerLength = this.cpane.getPanelSize().height;
 			this.offSetX = 0;
 			this.offSetY = this.rulerWidth;
 			this.rulerSize = new Dimension(this.rulerWidth, this.rulerLength);
 			this.setSize(new Dimension(this.rulerWidth,this.rulerLength));
 		}
-		
-//		this.ratioX = (double)this.rulerLength/this.screenSize.width;
-//		this.ratioY = (double)this.rulerWidth/this.screenSize.height;
-		
-//		this.ratioX = (double)this.rulerLength/this.panelSize.width;
-//		this.ratioY = (double)this.rulerWidth/this.panelSize.height;
-		
-		
-//		System.out.println("ratioX= "+this.ratioX+"   ratioY= "+this.ratioY);
-//		System.out.println("offSetX= "+this.offSetX+"   offSetY= "+this.offSetY);
-		
+				
 		g2d.setBackground(BACKGROUND_COLOR);
-
+		
 		drawRulerGrid(g2d);	
 	}
 	
-	public void drawRulerGrid(Graphics2D g2d){
+	private void drawRulerGrid(Graphics2D g2d){
 		Shape shape = null;
-		Shape tick = null;
-		String degreeS = "0";
-		int degree = 0;
 		float xS, xE, yS, yE;
 		float delta = 0;
 		int numTicks = 0;		
@@ -189,20 +150,27 @@ public class AngleRuler extends JPanel{
 			delta = (float) this.rulerLength / (float) numTicks;
 			shape = new Rectangle2D.Float(xS, yS, xE-xS, yE-yS);
 		}
-//		System.out.println("numTicks= "+numTicks);
-//		float delta = (float) this.rulerLength / (float) numTicks;
-//		System.out.println(this.location+"  rlength= "+this.rulerLength+"  numTicks= "+numTicks+"  delta= "+delta+"  Coordinates: "+xS+", "+yS+", "+xE+", "+yE);
 		
 		g2d.draw(shape);
 		g2d.fill(shape);
+
+		if (this.cpane.getMapProjType() != this.cpane.azimuthalMapProj)
+			drawRulerGrid(g2d, delta, numTicks);
+	}
+	
+	private void drawRulerGrid(Graphics2D g2d, float delta, int numTicks){
+		Shape tick = null;
+		String degreeS = "0";
+		int degree = 0;
+		float xS=0, xE, yS=0, yE;
 		
 		g2d.setColor(Color.black);
 		Font f = new Font("Dialog", Font.PLAIN, 10);
 		g2d.setFont(f);
 
 		int i=0;
-		float xPosOrig = (float)(this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize()); //(this.origCoordinates.getFirst() * this.voxelsize)
-		float yPosOrig = (float)(this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize()); //(this.origCoordinates.getSecond() * this.voxelsize)
+		float xPosOrig = (float)(this.cpane.getOrigCoord().getFirst() * this.cpane.getVoxelsize()); 
+		float yPosOrig = (float)(this.cpane.getOrigCoord().getSecond() * this.cpane.getVoxelsize()); 
 		this.deltaOffSetXCenter = this.cpane.getDeltaOffSetXCenter() + this.offSetX;
 		xPosOrig = (float) this.deltaOffSetXCenter;
 		int count = 0;
@@ -211,15 +179,12 @@ public class AngleRuler extends JPanel{
 			if (this.location == TOP || this.location == BOTTOM){
 				if (count==0){
 					xS = xPosOrig;
-//					xS += (this.offSetX); //+this.deltaOffSetX);
 				}
 				else
 					xS += delta;
 				if (xS>this.deltaOffSetXEnd){
-//				if (xS>this.rulerLength){
-//					xS -= this.rulerLength;
 					xS -= this.deltaOffSetXEnd;
-					xS += this.deltaOffSetX; //+this.offSetX
+					xS += this.deltaOffSetX; 
 				}
 				xE = xS;
 				yS = this.rulerWidth - (this.rulerWidth/4);

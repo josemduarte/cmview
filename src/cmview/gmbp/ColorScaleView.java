@@ -4,10 +4,13 @@ import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JFrame;
@@ -37,6 +40,18 @@ public class ColorScaleView extends JFrame {
 	private boolean removeOutliers = false; //true;
 	private double minAllowedRat = ContactPane.defaultMinAllowedRat;
 	private double maxAllowedRat = ContactPane.defaultMaxAllowedRat;
+	
+	private int baseLineY = 0;
+	private int baseLineX = 0;
+	// variables for drawing text 
+	private final int leftMargin = 5;			// margin between bg rectangle and edge
+	private final int firstColumnX = leftMargin + 0;
+//	private final int secondColumnX = leftMargin + 50;	
+//	private final int thirdColumnX = leftMargin + 90;	
+//	private final int fourthColumnX = leftMargin + 130;
+	private final int lineHeight = 20;		// offset between lines
+	private final int textYOffset = 23;		// top margin between rectangle and first text
+	private Font stdFont;
 	
 	private double[] scale;
 	
@@ -68,10 +83,65 @@ public class ColorScaleView extends JFrame {
 	private void updateDimensions(){
 //		this.dimX = this.steps*this.pixelWidth + 3*this.border;
 		this.dimY = (this.steps-this.start+1)*this.pixelHeight + 2*this.border + yBorderThres;
-		this.dimX = 1*this.pixelWidth + 2*this.border;
+		this.dimX = 1*this.pixelWidth + 2*this.border + 200;
 				
 		this.setSize(dimX, dimY);
 		this.setPreferredSize(new Dimension(dimX, dimY));
+	}
+	
+	private void drawLegend(Graphics2D g2d){
+		String s ="Legend traces";
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY + textYOffset;	// where first text will be written	
+		g2d.drawString(s, x, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.helixSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("helix", x + pixelWidth, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.sheetSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("sheet", x + pixelWidth, y);
+		y += lineHeight;
+		g2d.setColor(ContactPane.otherSSTColor);
+		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.setColor(Color.black);	g2d.drawString("others", x + pixelWidth, y);
+		y += lineHeight;
+		y += lineHeight;
+		
+		g2d.drawString("Label for Node-symbol:", x, y);
+		y += lineHeight;
+		g2d.drawString("ResType followed by", x+10, y);
+		y += lineHeight;
+		g2d.drawString("jNum-iNum", x+10, y);
+		y += lineHeight;
+		
+		GeneralPath rhombus = null;
+		Shape circle = null;
+		float radius = 6.f;
+		// create rhombus for residue types contained in nbhstring
+		rhombus = this.cPane.rhombusShape(x+2*radius, y-radius, 2*radius, 2*radius);
+		g2d.setColor(Color.black);
+		g2d.draw(rhombus);
+		g2d.fill(rhombus);
+		Font f = new Font("Dialog", Font.PLAIN, 14);
+		g2d.setFont(f);
+		g2d.drawString("Res € NBHS-Template", x + pixelWidth/2, y);
+		y += lineHeight;
+		
+		radius = 3.f;
+		// create ellipse for residue
+		circle = new Ellipse2D.Double( x+3*radius, y-3*radius,2*radius, 2*radius);
+		g2d.setColor(new Color(70,70,70));
+		g2d.draw(circle);
+		g2d.fill(circle);
+		f = new Font("Dialog", Font.PLAIN, 12);
+		g2d.setFont(f);
+		g2d.drawString("Res not€ NBHS-Template", x + pixelWidth/2, y);
+		y += lineHeight;
+		
+		baseLineY = y;
+		g2d.setFont(this.stdFont);
 	}
 	
 	private void drawSquares(Graphics2D g2d){
@@ -166,6 +236,7 @@ public class ColorScaleView extends JFrame {
 //		System.out.println("paint");
 		Graphics2D g2d = (Graphics2D)g;
 		
+		stdFont = g2d.getFont();
 		g2d.setBackground(Color.white);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
@@ -176,6 +247,9 @@ public class ColorScaleView extends JFrame {
 			g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 		}
 		drawSquares(g2d);
+		this.baseLineY = border + yBorderThres; 
+		this.baseLineX = 1*this.pixelWidth + 2*this.border;
+		drawLegend(g2d);
 	}
 	
 	public void updateParam(){

@@ -36,17 +36,17 @@ public class HistogramView extends JFrame {
 	private int chosenColourScale = ContactStatusBar.BLUERED;	
 	private int maxHistLineLength = 200;
 	// variables for drawing text 
-	int leftMargin = 5;			// margin between bg rectangle and edge
-	int firstColumnX = leftMargin + 0;
-	int secondColumnX = leftMargin + 50;	
-	int thirdColumnX = leftMargin + 90;	
-	int fourthColumnX = leftMargin + 130;
-	int rightMargin = 12;		// margin between bg rectangle and edge
-	int bottomMargin = 0;		// margin between bg rectable and edge
-	int textYOffset = 23;		// top margin between rectangle and first text
-	int lineHeight = 20;		// offset between lines
-	int baseLineY = 0;
-	int baseLineX = 0;
+	private final int leftMargin = 5;			// margin between bg rectangle and edge
+	private final int firstColumnX = leftMargin + 0;
+	private final int secondColumnX = leftMargin + 50;	
+	private final int thirdColumnX = leftMargin + 90;	
+	private final int fourthColumnX = leftMargin + 130;
+//	private final int rightMargin = 12;		// margin between bg rectangle and edge
+//	private final int bottomMargin = 0;		// margin between bg rectable and edge
+	private final int textYOffset = 23;		// top margin between rectangle and first text
+	private final int lineHeight = 20;		// offset between lines
+	private int baseLineY = 0;
+	private int baseLineX = 0;
 
 	// variables for scale
 	private double minRatio = 0;
