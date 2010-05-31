@@ -31,7 +31,7 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private final int textYOffset = 23;		// top margin between rectangle and first text
 	private final int lineHeight = 20;		// offset between lines
 	private final int letterWidth = 10;
-	private int totalHeight = 6 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
+	private int totalHeight = 7 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
 	private final int numResPerLine = 8;
 	
 	private String title1 = "Contact:";
@@ -158,9 +158,10 @@ public class AnglePanel extends JPanel implements MouseListener{
 		int numLines = 1;
 		while (this.nbhs.length() > numLines*this.numResPerLine)
 			numLines++;
-		totalHeight = (6-1+numLines) * lineHeight + bottomMargin + textYOffset;
+		totalHeight = (7-1+numLines) * lineHeight + bottomMargin + textYOffset;
 
 		this.setMinimumSize(new Dimension(width,totalHeight));
+		this.repaint();
 	}
 	
 	public void setLampdaMin(String string){

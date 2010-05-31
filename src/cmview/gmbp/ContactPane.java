@@ -146,7 +146,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private String origNBHString; 
 	private String jAtom = "CA";
 	private char[] nbhsRes;
-	
+	private int maxNumTraces = 100;
+
 	private String db = "bagler_all13p0_alledges";
 
 	// Sphoxel-Data
@@ -534,8 +535,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void setTracesParam(){
 		nbhsTraces.setDiffSSType(this.diffSStype);
-//		nbhsTraces.setDiffSSType(false);
 		nbhsTraces.setSSType(this.iSSType);
+		nbhsTraces.setMaxNumLines(this.maxNumTraces);
 		nbhsTraces.setNBHS(this.nbhStringL);
 	}
 	
@@ -2408,6 +2409,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void setMaxRatio(double maxRatio) {
 		this.maxRatio = maxRatio;
 	}	
+	
+	public int getMaxNumTraces() {
+		return maxNumTraces;
+	}
+
+	public void setMaxNumTraces(int maxNumTraces) {
+		this.maxNumTraces = maxNumTraces;
+	}
 
 	public int[] getHistWholeAngleRange() {
 		return histWholeAngleRange;
