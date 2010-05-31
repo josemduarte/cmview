@@ -22,15 +22,17 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private Color coordinatesBgColor = Color.white;
 	private int width = ContactStatusBar.DEFAULT_WIDTH;
 
-	int leftMargin = 5;			// margin between bg rectangle and edge
-	int firstColumnX = leftMargin + 10;		// from edge
-	int secondColumnX = leftMargin + 25;	// from edge
-	int thirdColumnX = leftMargin + 55;		// second contact map or seq sep
-	int rightMargin = 12;		// margin between bg rectangle and edge
-	int bottomMargin = 0;		// margin between bg rectable and edge
-	int textYOffset = 23;		// top margin between rectangle and first text
-	int lineHeight = 20;		// offset between lines
-	int totalHeight = 6 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
+	private final int leftMargin = 5;			// margin between bg rectangle and edge
+	private final int firstColumnX = leftMargin + 10;		// from edge
+	private final int secondColumnX = leftMargin + 25;	// from edge
+	private final int thirdColumnX = leftMargin + 55;		// second contact map or seq sep
+	private final int rightMargin = 12;		// margin between bg rectangle and edge
+	private final int bottomMargin = 0;		// margin between bg rectable and edge
+	private final int textYOffset = 23;		// top margin between rectangle and first text
+	private final int lineHeight = 20;		// offset between lines
+	private final int letterWidth = 10;
+	private int totalHeight = 6 * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
+	private final int numResPerLine = 8;
 	
 	private String title1 = "Contact:";
 	private String iRes = "";
@@ -44,7 +46,7 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private String thetaMin = "";
 	private String thetaMax = "";
 	
-	public AnglePanel() {
+	public AnglePanel() {		
 		this.setMinimumSize(new Dimension(width,totalHeight));
 		
 //		addMouseListener(this);
@@ -98,7 +100,19 @@ public class AnglePanel extends JPanel implements MouseListener{
 		y += this.lineHeight;
 		g2d.drawString(iRes+"_"+iSSType.toLowerCase()+" - "+jRes+"_"+jSSType.toLowerCase(), x, y);	// selected contacts within contact map
 		y += this.lineHeight;
-		g2d.drawString(nbhs, x, y);
+//		g2d.drawString(nbhs, x, y);
+		String resS;					
+		for (int i=0; i<this.nbhs.length(); i++){
+			resS = String.valueOf(nbhs.charAt(i));
+			if (i%this.numResPerLine==0 && i>0){
+				y += lineHeight;
+				x = firstColumnX;
+			}
+			g2d.drawString(resS, x, y);
+			x += this.letterWidth;
+		}
+		x = firstColumnX;
+//		y += this.lineHeight;
 		
 		baseLineY = y;
 		y = baseLineY+this.textYOffset;
@@ -140,6 +154,13 @@ public class AnglePanel extends JPanel implements MouseListener{
 	
 	public void setNBHS(String string){
 		this.nbhs = string;
+		
+		int numLines = 1;
+		while (this.nbhs.length() > numLines*this.numResPerLine)
+			numLines++;
+		totalHeight = (6-1+numLines) * lineHeight + bottomMargin + textYOffset;
+
+		this.setMinimumSize(new Dimension(width,totalHeight));
 	}
 	
 	public void setLampdaMin(String string){

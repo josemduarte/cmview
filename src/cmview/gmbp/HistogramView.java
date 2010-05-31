@@ -470,6 +470,8 @@ public class HistogramView extends JFrame {
 				counts = itrHist.next();
 				cnt++;
 			}
+			System.out.println("HistSphoxel: lineL = "+counts[index]+"*"+this.maxHistLineLength+"/"+maxSelHistVal
+					+" = "+counts[index]*this.maxHistLineLength/maxSelHistVal);
 			lineLength = counts[index]*this.maxHistLineLength/maxSelHistVal; //maxHistVal;
 			xE = xS+lineLength;
 			yS += (pixelHeight/3);

@@ -55,7 +55,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_TRACES_CSV_FILE = "Traces to CSV File...";
 	// Select
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
-	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
+//	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	private static final String LABEL_PAN_VIEW_MODE = "Panning Mode";
 	// Show
 	private static final String LABEL_HISTOGRAM_MODE = "Histogram4Selection";
@@ -71,7 +71,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	JPopupMenu popup; 		 	// right-click context menu
 	
 	// Toolbar Buttons
-	JToggleButton tbSquareSel, tbClusterSel, tbPanMode;
+	JToggleButton tbSquareSel, tbPanMode; //tbClusterSel, 
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -83,7 +83,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	// Menu items
 	// M -> "menu bar"
-	JMenuItem squareM, clusterM;
+	JMenuItem squareM; //, clusterM;
 	// P -> "popup menu"
 	JMenuItem histP, deleteP;
 	// mm -> "main menu"
@@ -97,7 +97,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private Model mod;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
-	public AngleRuler lampdaRuler;
+	public AngleRuler lambdaRuler;
 	public AngleRuler phiRuler;
 	public ColorScaleView colView;
 	public HistogramView histView;
@@ -238,28 +238,30 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		
 //		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
-		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
-		ImageIcon icon_pan_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
+//		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
+		ImageIcon icon_pan_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "crossarrows.png"));
+		ImageIcon icon_hist_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "histogram.png"));
+		ImageIcon icon_delete_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));
 		
 		// Tool bar
 		toolBar = new JToolBar();
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
 		
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
-		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
+//		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
 		tbPanMode = makeToolBarToggleButton(icon_pan_view_mode, LABEL_PAN_VIEW_MODE, true, true, true);
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
 		selectionModeButtons.add(tbSquareSel);
-		selectionModeButtons.add(tbClusterSel);
+//		selectionModeButtons.add(tbClusterSel);
 		selectionModeButtons.add(tbPanMode);
 		
 		// Popup menu
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		popup = new JPopupMenu();
-		histP = makePopupMenuItem(LABEL_HISTOGRAM_MODE, icon_square_sel_mode, popup);
-		deleteP = makePopupMenuItem(LABEL_DEL_SELECTION, icon_square_sel_mode, popup);
+		histP = makePopupMenuItem(LABEL_HISTOGRAM_MODE, icon_hist_view_mode, popup);
+		deleteP = makePopupMenuItem(LABEL_DEL_SELECTION, icon_delete_sel_mode, popup);
 		
 		// Main menu
 		JMenuBar menuBar;
@@ -292,7 +294,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		menu.setMnemonic(KeyEvent.VK_S);
 		submenu = new JMenu("Selection Mode");
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
-		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
+//		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
 		menu.add(submenu);
 		addToJMenuBar(menu);
 		
@@ -303,11 +305,11 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 			cPane.setStatusBar(contStatBar);
 			svP.add(cPane, BorderLayout.CENTER);
 			
-			lampdaRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
+			lambdaRuler = new AngleRuler(this, cPane, AngleRuler.TOP);
 			phiRuler = new AngleRuler(this, cPane, AngleRuler.LEFT);
-			lampdaRul.add(lampdaRuler);
-			lampdaRul.setSize(lampdaRuler.getSize());
-			lampdaRul.setPreferredSize(lampdaRuler.getSize());
+			lampdaRul.add(lambdaRuler);
+			lampdaRul.setSize(lambdaRuler.getSize());
+			lampdaRul.setPreferredSize(lambdaRuler.getSize());
 			phiRul.add(phiRuler);
 			phiRul.setSize(phiRuler.getSize());
 			phiRul.setPreferredSize(phiRuler.getSize());
@@ -334,7 +336,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
 		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
 		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
-		System.out.println("Size of lampdaRuler: "+lampdaRuler.getSize().height+"x"+lampdaRuler.getSize().width);
+		System.out.println("Size of lambdaRuler: "+lambdaRuler.getSize().height+"x"+lambdaRuler.getSize().width);
 		System.out.println("Size of lampdaRul: "+lampdaRul.getSize().height+"x"+lampdaRul.getSize().width);
 		System.out.println("Size of phiRuler: "+phiRuler.getRulerSize().height+"x"+phiRuler.getRulerSize().width);
 						
@@ -489,7 +491,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	public void handleChangeProjectionType(int type) {
 		this.cPane.setMapProjType(type);
 		this.cPane.repaint();
-		this.lampdaRuler.repaint();
+		this.lambdaRuler.repaint();
 	}
 	
 	/**
@@ -698,10 +700,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if (e.getSource() == squareM || e.getSource() == tbSquareSel ) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
 		}
-		// cluster button clicked
-		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
-			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
-		}
+//		// cluster button clicked
+//		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
+//			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
+//		}
 		if (e.getSource() == tbPanMode) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
 		}
