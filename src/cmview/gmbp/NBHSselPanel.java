@@ -17,7 +17,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	 */
 	private static final long serialVersionUID = 1L;
 	private static final Color residueSwitchedOnCol = Color.black;
-	private static final Color residueSwitchedOffCol = Color.gray;
+	private static final Color residueSwitchedOffCol = new Color(170, 170, 170);
 	private static final Color bgColor = Color.white;
 	
 	// constants / settings
@@ -31,7 +31,8 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	private final int numResPerLine = 8;
 	
 	
-	/*--------------------------- member variables --------------------------*/		
+	/*--------------------------- member variables --------------------------*/	
+	ContactStatusBar contStatBar;
 	private String nbhString;
 	private String actNBHString;
 	private char[] nbhsRes;
@@ -40,9 +41,10 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	private Point mousePos;
 	private int indexClickedRes;
 	
-	public NBHSselPanel(String nbhs){
+	public NBHSselPanel(String nbhs, ContactStatusBar contStatBar){
 		this.nbhString = nbhs;
 		this.actNBHString = nbhs;
+		this.contStatBar = contStatBar;
 //		this.nbhString += nbhs;
 //		this.nbhString += "TRGB";
 		addMouseListener(this);
@@ -116,6 +118,28 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		return actNBHString;
 	}
 	
+	public void setActNbhString(String actS){
+		this.actNBHString = actS;
+		// update nbhsResFlags
+		int count = 0;
+		int index = 0;
+		while (count<this.actNBHString.length()){
+			char res = this.actNBHString.charAt(count);
+			while (this.nbhsRes[index]!=res && index<this.nbhsRes.length){
+				this.nbhsResFlags[index] = false;
+				index++;
+			}
+			this.nbhsResFlags[index] = true;
+			index++;
+			count++;
+		}
+		while (index<this.nbhsResFlags.length){
+			this.nbhsResFlags[index] = false;
+			index++;
+		}
+		repaint();	
+	}
+	
 	/** Method called by this component to determine its minimum size */
 	@Override
 	public Dimension getMinimumSize() {
@@ -180,6 +204,8 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		this.actNBHString = s;
 		System.out.println("Actual NBHString = "+this.actNBHString);
 		this.repaint();
+		
+		this.contStatBar.setChosenString(0);
 	}
 
 }

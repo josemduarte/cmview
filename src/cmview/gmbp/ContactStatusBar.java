@@ -91,6 +91,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private ButtonGroup projButtonGroup; 
 	private JButton nbhsButton;
 	private JTextField maxNumTraces;
+	private JComboBox nbsCBox;
 	
 	private boolean radiusRangesFixed = true;
 	private boolean diffSSType = true;
@@ -100,6 +101,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private int chosenColourScale = BLUERED;
 	private int chosenProjection = 0;
 	private int maxNumNBHStraces = 50;
+	private String actNBHString = "";
+	private String[] setOfOptStrings;
+	private int chosenString = 0;
 	
 	private final int minSlVal = (int) (radiusThresholds[0]*10);
 	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
@@ -128,6 +132,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		
 		sphoxelGroup.setSize(width, height);
 		sphoxelGroup.setPreferredSize(new Dimension(width, height));
+		
 //		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, height));
 //		resolutionPanel.setPreferredSize(new Dimension(groupWidth, height));
 //		sstypePanel.setPreferredSize(new Dimension(groupWidth, 50));
@@ -139,6 +144,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		this.add(resolutionGroup, BorderLayout.LINE_START);
 		
 		this.removeOutliers = this.controller.cPane.isRemoveOutliers();
+		this.actNBHString = this.controller.cPane.getNbhString();
+		this.maxNumNBHStraces = this.controller.cPane.getMaxNumTraces();
+		this.setOfOptStrings = this.controller.cPane.getSetOfOptStrings();
 		
 		initDeltaRadiusPanel();
 //		initResolutionPanel();
@@ -148,6 +156,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		initNBHSPanel();
 		initAngleGroup();
 		showAngleGroup(true);
+		height = this.controller.cPane.getHeight()-(1*this.anglePanel.getTotalHeight())-AngleRuler.STD_RULER_WIDTH;
+		sphoxelGroup.setSize(width, height);
+		sphoxelGroup.setPreferredSize(new Dimension(width, height));
+//		sphoxelGroup.setMinimumSize(new Dimension(width, height));
 	}
 	
 	/**
@@ -160,8 +172,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Radius";
 		deltaRadiusPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		deltaRadiusPanel.setVisible(true);
-		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, height));
-		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,80));
+		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,100));
+		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, 120));
+		resolutionPanel.setMaximumSize(new Dimension(groupWidth,120));
 		
 		deltaRadiusSliderPanel = new JPanel();
 		deltaRadiusSliderPanel.setLayout(new BoxLayout(deltaRadiusSliderPanel,BoxLayout.LINE_AXIS));
@@ -372,6 +385,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		outliersPanel.setVisible(true);		
 		outliersPanel.setMinimumSize(new Dimension(groupWidth,170));
 		outliersPanel.setPreferredSize(new Dimension(groupWidth,170));
+		outliersPanel.setMaximumSize(new Dimension(groupWidth, 170));
 		
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
@@ -442,6 +456,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		projectionPanel.setVisible(true);		
 		projectionPanel.setMinimumSize(new Dimension(groupWidth,100));
 		projectionPanel.setPreferredSize(new Dimension(groupWidth,100));
+		projectionPanel.setMaximumSize(new Dimension(groupWidth,100));
 		
 		//Create the radio buttons.
 		cylProjRadioButton = new JRadioButton(projStrings[0]+"   ");
@@ -508,14 +523,17 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		nbhsLinePanel.setLayout(new BoxLayout(nbhsLinePanel,BoxLayout.LINE_AXIS));
 		JPanel maxLinePanel = new JPanel();
 		maxLinePanel.setLayout(new BoxLayout(maxLinePanel,BoxLayout.LINE_AXIS));	
+		JPanel optStringLinePanel = new JPanel();
+		optStringLinePanel.setLayout(new BoxLayout(optStringLinePanel,BoxLayout.LINE_AXIS));	
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
 		
-		nbhsSelPanel = new NBHSselPanel(this.controller.cPane.getNbhString());
+		nbhsSelPanel = new NBHSselPanel(this.controller.cPane.getNbhString(), this);
 	
 		nbhsButton = new JButton("Traces");
 		nbhsButton.setEnabled(true);
-		nbhsButton.setPreferredSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
+//		nbhsButton.setMinimumSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
+//		nbhsButton.setPreferredSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
 		nbhsButton.addActionListener(this);
 				
 		maxNumTraces = new JTextField(String.valueOf(this.maxNumNBHStraces));
@@ -526,9 +544,21 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		maxNumTraces.addActionListener(this);
 		JLabel maxLabel = new JLabel("max#=  ");
 		
+		String[] optStrings = new String[this.setOfOptStrings.length+1];
+		System.arraycopy(setOfOptStrings, 0, optStrings, 1, setOfOptStrings.length);
+		optStrings[0] = "*";
+		System.out.println("optStrings:");
+		for (int i=0; i<optStrings.length; i++){
+			System.out.println(optStrings[i]);
+		}
+		nbsCBox = new JComboBox(optStrings);
+		nbsCBox.setSelectedItem(chosenString);
+		nbsCBox.addActionListener(this);
+		
 		nbhsLinePanel.add(nbhsSelPanel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxNumTraces, BorderLayout.LINE_END);
+		optStringLinePanel.add(nbsCBox, BorderLayout.LINE_START);
 		buttonLinePanel.add(nbhsButton, BorderLayout.LINE_START);
 
 		// init panel
@@ -536,13 +566,15 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "NBHString";
 		nbhsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		nbhsPanel.setVisible(true);	
-		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 80));
-		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 80));
+		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
+		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
+		nbhsPanel.setMaximumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
 //		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 //		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 		
 		nbhsPanel.add(nbhsLinePanel, BorderLayout.PAGE_START);
 		nbhsPanel.add(maxLinePanel);
+		nbhsPanel.add(optStringLinePanel);
 		nbhsPanel.add(buttonLinePanel, BorderLayout.PAGE_END);
 		
 //		nbhsPanel.add(nbhsSelPanel, BorderLayout.LINE_START);
@@ -680,11 +712,32 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		if (e.getSource() == this.colorScale){
 			controller.handleChangeShowColourScale(this.chosenColourScale);			
 		}
-
+		if (e.getSource() == this.nbsCBox){
+			this.chosenString = this.nbsCBox.getSelectedIndex();
+			if (this.chosenString==0)
+				this.actNBHString = this.nbhsSelPanel.getActNbhString();
+			else
+				this.actNBHString = this.setOfOptStrings[this.chosenString-1];
+			System.out.println("String changed to :"+this.actNBHString);
+			// ToDo: update nbhs-print in nbhsSelPanel
+			if (this.nbhsSelPanel.getActNbhString()!=this.actNBHString){
+				this.nbhsSelPanel.setActNbhString(this.actNBHString);
+				controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces);
+			}
+		}
 		if (e.getSource() == this.nbhsButton){
-			this.maxNumNBHStraces = Integer.valueOf(this.maxNumTraces.getText());
+//			boolean maxNumChanged = false;
+//			boolean stringChanged = false;
+			if (Integer.valueOf(this.maxNumTraces.getText()) != this.maxNumNBHStraces){
+				this.maxNumNBHStraces = Integer.valueOf(this.maxNumTraces.getText());
+//				maxNumChanged = true;
+			}
+			if (this.nbhsSelPanel.getActNbhString() != this.actNBHString){
+				this.actNBHString = this.nbhsSelPanel.getActNbhString();
+//				stringChanged = true;
+			}
 			System.out.println("MaxNumLines= "+this.maxNumNBHStraces);
-			controller.handleChangeTracesParam(this.nbhsSelPanel.getActNbhString(), this.maxNumNBHStraces); //(this.nbhsSelPanel.getActNbhString());			
+			controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces); //(this.nbhsSelPanel.getActNbhString());			
 		}
 	}
 	
@@ -770,5 +823,15 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	public ButtonGroup getProjButtonGroup() {
 		return projButtonGroup;
 	}
+
+	public void setSetOfOptStrings(String[] setOfOptStrings) {
+		this.setOfOptStrings = setOfOptStrings;
+	}
+
+	public void setChosenString(int chosenString) {
+		this.chosenString = chosenString;
+		this.nbsCBox.setSelectedIndex(this.chosenString);
+	}
+
 
 }

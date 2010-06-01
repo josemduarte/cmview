@@ -556,12 +556,18 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	/**
 	 * Handles the user action to change the nbhstring to use for traces
 	 * @param type --> string nbhs
+	 * @param maxNum--> int num
 	 */
 	public void handleChangeTracesParam(String nbhs, int num) {	
+		boolean recalcOptStrings = false;
+		if (this.cPane.getMaxNumTraces()!=num)
+			recalcOptStrings = true;
 		this.cPane.setNbhString(nbhs);	
 		this.cPane.setMaxNumTraces(num);
 		try {
 			this.cPane.recalcTraces(true);
+			if (recalcOptStrings)
+				this.cPane.extractSetOfOptStrings();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -161,7 +161,7 @@ public class AnglePanel extends JPanel implements MouseListener{
 		int numLines = 1;
 		while (this.nbhs.length() > numLines*this.numResPerLine)
 			numLines++;
-		totalHeight = (minNumLines-1+numLines) * lineHeight + bottomMargin + textYOffset;
+//		totalHeight = (minNumLines-1+numLines) * lineHeight + bottomMargin + textYOffset;
 
 		this.setMinimumSize(new Dimension(width,totalHeight));
 		this.repaint();
@@ -178,6 +178,10 @@ public class AnglePanel extends JPanel implements MouseListener{
 	}
 	public void setPhiMax(String string){
 		this.thetaMax = string;
+	}
+	
+	public int getTotalHeight(){
+		return this.totalHeight;
 	}
 	
 	/*----------------Event Handling-----------------------------------------*/

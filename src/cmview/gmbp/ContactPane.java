@@ -36,6 +36,7 @@ import owl.core.structure.graphs.RIGNode;
 import owl.gmbp.CMPdb_nbhString_traces;
 import owl.gmbp.CMPdb_sphoxel;
 import owl.gmbp.CSVhandler;
+import owl.gmbp.OptimalSingleEnv;
 
 import cmview.ContactMapPane;
 import cmview.ScreenBuffer;
@@ -176,7 +177,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int[] numNodesPerLine;
 	private int[] maxDistsJRes, minDistsJRes;
 	private int numLines;
-	
+	private OptimalSingleEnv optNBHString;
+	private Vector<String[]> optNBHStrings;
+	private String[] setOfOptStrings;
+
 	// ---- variables for representation (drawing methods)
 	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
 	private float resol = CMPdb_sphoxel.defaultResol; //CMPdb_sphoxel.getDefaultResol();
@@ -233,6 +237,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		// initialize data
 		this.nbhsNodes = new Vector<float[]>();
+		this.optNBHStrings = new Vector<String[]>();
 		this.ratios = new double[0][0];
 				
 		try {
@@ -320,6 +325,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 		setTracesParam();
 		calcNbhsTraces();	
+		this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+		calcOptNbhStrings();
 	}
 	
 	private void calcTracesParam(){
@@ -538,6 +545,40 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		nbhsTraces.setSSType(this.iSSType);
 		nbhsTraces.setMaxNumLines(this.maxNumTraces);
 		nbhsTraces.setNBHS(this.nbhStringL);
+	}
+	
+	private void calcOptNbhStrings() throws SQLException{
+		optNBHString.run();
+		this.optNBHStrings = optNBHString.getOptNBHStrings();
+		extractSetOfOptStrings();
+		// test output
+		System.out.println("setOfOptStrings");
+		for (int i=0; i<this.setOfOptStrings.length; i++)
+			System.out.println(this.setOfOptStrings[i]);
+		
+		System.out.println("Optimal NBHStrings extracted");		
+	}
+	
+//	public void recalcOptNbhStrings() throws SQLException{
+//		calcOptNbhStrings();
+//	}
+	
+	public void extractSetOfOptStrings(){
+		String[] stringN;
+		int count = 0;
+		this.setOfOptStrings = new String[10];
+		for(int i=0; i<this.optNBHStrings.size(); i++){
+			stringN = (String[]) this.optNBHStrings.get(i);	
+			int support = Integer.valueOf(stringN[2]);
+			if (count<10 && support<=this.maxNumTraces){
+				this.setOfOptStrings[count] = stringN[0];
+				count++;
+			}
+			if (count == 10)
+				i = this.optNBHStrings.size();
+		}
+		if (contStatBar!= null)
+			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);
 	}
 	
 	private void calcNbhsTraces() throws SQLException{
@@ -2335,6 +2376,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	/*---------------------------- setters and getters -----------------------------*/
 	
+	public String[] getSetOfOptStrings() {
+		return setOfOptStrings;
+	}
 	public String getNbhString() {
 		return nbhString;
 	}
@@ -2358,7 +2402,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	
 	public void setStatusBar(ContactStatusBar statusBar) {
-		this.contStatBar = statusBar;		
+		this.contStatBar = statusBar;	
+		if (contStatBar!= null)
+			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);	
 	}
 	public ContactStatusBar getSatusBar(){
 		return this.contStatBar;
