@@ -42,6 +42,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	
 	public NBHSselPanel(String nbhs){
 		this.nbhString = nbhs;
+		this.actNBHString = nbhs;
 //		this.nbhString += nbhs;
 //		this.nbhString += "TRGB";
 		addMouseListener(this);

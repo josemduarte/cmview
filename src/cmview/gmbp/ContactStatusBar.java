@@ -99,7 +99,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private double maxAllowedRatio = ContactPane.defaultMaxAllowedRat;
 	private int chosenColourScale = BLUERED;
 	private int chosenProjection = 0;
-	private int maxNumNBHStraces = 100;
+	private int maxNumNBHStraces = 50;
 	
 	private final int minSlVal = (int) (radiusThresholds[0]*10);
 	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
@@ -512,16 +512,19 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
 		
 		nbhsSelPanel = new NBHSselPanel(this.controller.cPane.getNbhString());
-				
-		maxNumTraces = new JTextField(String.valueOf(this.maxNumNBHStraces));
-		maxNumTraces.setEnabled(true);
-		maxNumTraces.addActionListener(this);
-		JLabel maxLabel = new JLabel("max#=  ");
 	
 		nbhsButton = new JButton("Traces");
 		nbhsButton.setEnabled(true);
 		nbhsButton.setPreferredSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
 		nbhsButton.addActionListener(this);
+				
+		maxNumTraces = new JTextField(String.valueOf(this.maxNumNBHStraces));
+		maxNumTraces.setEnabled(true);
+		maxNumTraces.setMinimumSize(new Dimension(30, 10));
+		maxNumTraces.setPreferredSize(new Dimension(50, 20));
+		maxNumTraces.setMaximumSize(new Dimension(50, 20));
+		maxNumTraces.addActionListener(this);
+		JLabel maxLabel = new JLabel("max#=  ");
 		
 		nbhsLinePanel.add(nbhsSelPanel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
@@ -533,11 +536,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "NBHString";
 		nbhsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		nbhsPanel.setVisible(true);	
-		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 60 + 30));
-		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 60 + 30));
+		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 80));
+		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 80));
+//		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
+//		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 		
 		nbhsPanel.add(nbhsLinePanel, BorderLayout.PAGE_START);
-//		nbhsPanel.add(maxLinePanel);
+		nbhsPanel.add(maxLinePanel);
 		nbhsPanel.add(buttonLinePanel, BorderLayout.PAGE_END);
 		
 //		nbhsPanel.add(nbhsSelPanel, BorderLayout.LINE_START);
