@@ -137,34 +137,29 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 
 	/*----------------Event Handling-----------------------------------------*/
 	
-	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
 //		System.out.println("mouseClicked");
 		
 	}
 
-	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
 //		System.out.println("mouseEntered");
 	}
 
-	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 //		System.out.println("mouseExited");
 		
 	}
 
-	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
 //		System.out.println("mousePressed");
 		
 	}
 
-	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("mouseReleased");

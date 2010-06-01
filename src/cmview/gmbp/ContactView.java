@@ -107,7 +107,6 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		private MyDispatcher(ContactPane cPane){
 			this.cPane = cPane;
 		}
-	    @Override
 	    public boolean dispatchKeyEvent(KeyEvent e) {
 	    	// -- forward key events --
 	        if (e.getID() == KeyEvent.KEY_PRESSED) {
