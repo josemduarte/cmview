@@ -594,21 +594,18 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	/*---------------------------- event listening -------------------------*/
 	
 
-	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("keyReleased3");
 		
 	}
 
-	@Override
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("keyReleased1");
 		
 	}
 
-	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("keyReleased2");
