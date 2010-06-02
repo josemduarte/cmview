@@ -142,6 +142,64 @@ public class ColorScaleView extends JFrame {
 		
 		baseLineY = y;
 		g2d.setFont(this.stdFont);
+		g2d.setColor(Color.black);
+	}
+	
+	private void drawTraceColouring(Graphics2D g2d){
+		Color col;
+		ColorScale scale = new ColorScale();
+		Shape shape = null;
+		// -- shortrange scaling: |jNum-iNum|>ShortRangeThreshold --> blue
+		int thres1 = 9; // 1-9:short range  9-25:middle range  25-n/9-n:long range
+		int thres2 = 25;
+		float ratio;
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY + textYOffset;	// where first text will be written	
+		int dx = 5, dy = 12;
+		
+		g2d.drawString("Colouring of Traces:", x, y);
+		y += lineHeight;
+		x += 10;
+		g2d.drawString("jNum-iNum:", x, y);
+		y += lineHeight;
+		Font f = new Font("Dialog", Font.PLAIN, 10);
+		g2d.setFont(f);
+		for (int i=-26; i<=26; i++){
+			if (Math.abs(i)<=thres1){
+				ratio = +1 * (float)Math.abs(i)/(float)(thres1);
+				// scale on range 0.2:0.8
+				ratio = 0.2f + (ratio*(0.8f-0.2f));
+				col = scale.getColor4GreyValueRange(ratio, 1);
+			}
+			else if (Math.abs(i)<=thres2){
+				if (i < 0)
+					ratio = -1 * (float)(Math.abs(i)-thres1)/(float)(thres2-thres1);
+				else 
+					ratio = +1 * (float)(Math.abs(i)-thres1)/(float)(thres2-thres1);
+				col = scale.getColor4HotColdScale(ratio, 1.0f);
+			}
+			else {
+				if (i < 0)
+					ratio = -1.0f;
+				else 
+					ratio = +1.0f;
+				col = scale.getColor4HotColdScale(ratio, 1.0f);
+			}
+			g2d.setColor(col);	
+			shape = new Rectangle2D.Float(x, y-dy, dx, dy);
+			g2d.draw(shape);
+			g2d.fill(shape);
+			if (i==-26)
+				g2d.drawString("<-25", (x+2*dx), y);
+			else if (i==26)
+				g2d.drawString(">25", (x+2*dx), y);
+			else
+				g2d.drawString(String.valueOf(i), (x+2*dx), y);
+			y+=dy;
+		}
+		baseLineY = y;
+		g2d.setFont(this.stdFont);
+		g2d.setColor(Color.black);
 	}
 	
 	private void drawSquares(Graphics2D g2d){
@@ -250,6 +308,7 @@ public class ColorScaleView extends JFrame {
 		this.baseLineY = border + yBorderThres; 
 		this.baseLineX = 1*this.pixelWidth + 2*this.border;
 		drawLegend(g2d);
+		drawTraceColouring(g2d);
 	}
 	
 	public void updateParam(){

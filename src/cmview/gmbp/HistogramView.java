@@ -38,9 +38,9 @@ public class HistogramView extends JFrame {
 	// variables for drawing text 
 	private final int leftMargin = 5;			// margin between bg rectangle and edge
 	private final int firstColumnX = leftMargin + 0;
-	private final int secondColumnX = leftMargin + 50;	
-	private final int thirdColumnX = leftMargin + 90;	
-	private final int fourthColumnX = leftMargin + 130;
+	private final int secondColumnX = leftMargin + 55;	
+	private final int thirdColumnX = leftMargin + 95;	
+	private final int fourthColumnX = leftMargin + 135;
 //	private final int rightMargin = 12;		// margin between bg rectangle and edge
 //	private final int bottomMargin = 0;		// margin between bg rectable and edge
 	private final int textYOffset = 23;		// top margin between rectangle and first text
@@ -122,30 +122,30 @@ public class HistogramView extends JFrame {
 		g2d.drawString(s, x, y);
 		y += lineHeight;	
 		g2d.setColor(selColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("selected range", x + pixelWidth, y);
 		y += lineHeight;	
 		g2d.setColor(wholeSelColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("whole sphoxel", x + pixelWidth, y);
 		y += lineHeight;			
 		s ="Keys histogram traces";
 		g2d.drawString(s, x, y);
 		y += lineHeight;
 		g2d.setColor(ContactPane.helixSSTColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("helix", x + pixelWidth, y);
 		y += lineHeight;
 		g2d.setColor(ContactPane.sheetSSTColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("sheet", x + pixelWidth, y);
 		y += lineHeight;
 		g2d.setColor(ContactPane.otherSSTColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("others", x + pixelWidth, y);
 		y += lineHeight;
 		g2d.setColor(ContactPane.anySSTColor);
-		g2d.fill(new Rectangle2D.Float(x, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
+		g2d.fill(new Rectangle2D.Float(x+10, y-pixelHeight/2, pixelWidth/2, pixelHeight/2));
 		g2d.setColor(Color.black);	g2d.drawString("any (sum)", x + pixelWidth, y);
 		y += lineHeight;
 		baseLineY = y;
@@ -279,7 +279,7 @@ public class HistogramView extends JFrame {
 		baseLineY = yStart;
 		baseLineX = xStart;
 		Iterator<double[]> itr;
-//		String title = "Min-Max-Average Values for Theta and Lampda";
+//		String title = "Min-Max-Average Values for Theta and Lambda";
 		String val2S = "";
 		
 		int x = baseLineX + firstColumnX;			// where first text will be written
@@ -302,20 +302,20 @@ public class HistogramView extends JFrame {
 		y += this.lineHeight;
 		baseLineY = y;	
 		x = baseLineX + firstColumnX;	
-		g2d.drawString("Lampda", x, y);			
+		g2d.drawString("Lambda", x, y);			
 		y += this.lineHeight;
 		g2d.drawString("Theta", x, y);			
 		y += this.lineHeight;		
 //		x = baseLineX + secondColumnX;
-//		g2d.drawString("minLampda", x, y);			
+//		g2d.drawString("minLambda", x, y);			
 //		y += this.lineHeight;
 //		g2d.drawString("minTheta", x, y);			
 //		y += this.lineHeight;
-//		g2d.drawString("maxLampda", x, y);			
+//		g2d.drawString("maxLambda", x, y);			
 //		y += this.lineHeight;
 //		g2d.drawString("maxTheta", x, y);			
 //		y += this.lineHeight;
-//		g2d.drawString("averLampda", x, y);			
+//		g2d.drawString("averLambda", x, y);			
 //		y += this.lineHeight;
 //		g2d.drawString("averTheta", x, y);
 		
@@ -439,8 +439,8 @@ public class HistogramView extends JFrame {
 		y += this.lineHeight;
 //		double p1 = ptSelRange[0], p2 = ptSelRange[1]; 
 //		double t1 = ptSelRange[2], t2 = ptSelRange[3];
-//		String values = "lampda["+p1+":"+p2+"]"+"  theta["+t1+":"+t2+"]";
-		String values = "lampda["+ptSelRange[0]+":"+ptSelRange[1]+"]"+"  theta["+ptSelRange[2]+":"+ptSelRange[3]+"]";
+//		String values = "lambda["+p1+":"+p2+"]"+"  theta["+t1+":"+t2+"]";
+		String values = "lambda["+ptSelRange[0]+":"+ptSelRange[1]+"]"+"  theta["+ptSelRange[2]+":"+ptSelRange[3]+"]";
 		g2d.drawString(values, x, y);
 		y += this.lineHeight;	
 		baseLineY = y;
@@ -470,8 +470,8 @@ public class HistogramView extends JFrame {
 				counts = itrHist.next();
 				cnt++;
 			}
-			System.out.println("HistSphoxel: lineL = "+counts[index]+"*"+this.maxHistLineLength+"/"+maxSelHistVal
-					+" = "+counts[index]*this.maxHistLineLength/maxSelHistVal);
+//			System.out.println("HistSphoxel: lineL = "+counts[index]+"*"+this.maxHistLineLength+"/"+maxSelHistVal
+//					+" = "+counts[index]*this.maxHistLineLength/maxSelHistVal);
 			lineLength = counts[index]*this.maxHistLineLength/maxSelHistVal; //maxHistVal;
 			xE = xS+lineLength;
 			yS += (pixelHeight/3);
