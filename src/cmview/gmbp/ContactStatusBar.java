@@ -37,7 +37,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final int DEFAULT_WIDTH = 120;
+	protected static final int DEFAULT_WIDTH = 140;
 	protected static final int DEFAULT_HEIGHT = 600;
 	public static final float[] radiusThresholds = new float[] {2.0f, 5.6f, 9.2f, 12.8f};
 	protected static final String[] colorStrings = {"BlueRed", "HotCold", "RGB"};
@@ -72,6 +72,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JPanel projectionPanel;
 	private JPanel nbhsPanel;
 	private NBHSselPanel nbhsSelPanel;
+	private JPanel clusterPanel;
 	
 	// components for multi model group
 	private JSlider radiusSliderLabel;					// to choose a radius-range
@@ -89,9 +90,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JRadioButton pseudoCylProjRadioButton;
 	private JRadioButton azimuthProjRadioButton;
 	private ButtonGroup projButtonGroup; 
+	private JComboBox projCBox;
 	private JButton nbhsButton;
 	private JTextField maxNumTraces;
 	private JComboBox nbsCBox;
+	private JTextField epsilonField;
+	private JTextField minNumNBsField;
+	private JButton clusterButton;
 	
 	private boolean radiusRangesFixed = true;
 	private boolean diffSSType = true;
@@ -104,6 +109,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private String actNBHString = "";
 	private String[] setOfOptStrings;
 	private int chosenString = 0;
+	private int epsilon = 5;
+	private int minNumNBs = 10;
 	
 	private final int minSlVal = (int) (radiusThresholds[0]*10);
 	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
@@ -126,6 +133,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		outliersPanel = new JPanel();
 		projectionPanel = new JPanel();
 		nbhsPanel = new JPanel();
+		clusterPanel = new JPanel();
 		
 		sphoxelGroup.setLayout(new BoxLayout(sphoxelGroup, BoxLayout.Y_AXIS));//BoxLayout.PAGE_AXIS
 		sphoxelGroup.setBorder(BorderFactory.createEmptyBorder(2,5,0,5));
@@ -147,6 +155,14 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		this.actNBHString = this.controller.cPane.getNbhString();
 		this.maxNumNBHStraces = this.controller.cPane.getMaxNumTraces();
 		this.setOfOptStrings = this.controller.cPane.getSetOfOptStrings();
+		this.epsilon = this.controller.cPane.getEpsilon();
+		this.minNumNBs = this.controller.cPane.getMinNumNBs();
+
+		initAngleGroup();
+		showAngleGroup(true);
+		height = this.controller.cPane.getHeight()-(1*this.anglePanel.getTotalHeight())-(2*AngleRuler.STD_RULER_WIDTH);
+		sphoxelGroup.setSize(width, height);
+		sphoxelGroup.setPreferredSize(new Dimension(width, height));
 		
 		initDeltaRadiusPanel();
 //		initResolutionPanel();
@@ -154,11 +170,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		initDrawPropPanel();
 		initProjPropPanel();
 		initNBHSPanel();
-		initAngleGroup();
-		showAngleGroup(true);
-		height = this.controller.cPane.getHeight()-(1*this.anglePanel.getTotalHeight())-AngleRuler.STD_RULER_WIDTH;
-		sphoxelGroup.setSize(width, height);
-		sphoxelGroup.setPreferredSize(new Dimension(width, height));
+		initClusterPanel();
 //		sphoxelGroup.setMinimumSize(new Dimension(width, height));
 	}
 	
@@ -172,7 +184,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Radius";
 		deltaRadiusPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		deltaRadiusPanel.setVisible(true);
-		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,100));
+		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,120));
 		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, 120));
 		resolutionPanel.setMaximumSize(new Dimension(groupWidth,120));
 		
@@ -231,8 +243,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		radiusSliderLabel.setEnabled(false);
 								
 		// adding components to group	
-		deltaRadiusSliderPanel.add(radiusSlider, BorderLayout.LINE_START);
-	    deltaRadiusSliderPanel.add(radiusSliderLabel, BorderLayout.LINE_START);	    
+		deltaRadiusSliderPanel.add(radiusSlider, BorderLayout.LINE_END);
+	    deltaRadiusSliderPanel.add(radiusSliderLabel, BorderLayout.LINE_START);	
+//		deltaRadiusSliderPanel.add(radiusSlider);
+//	    deltaRadiusSliderPanel.add(radiusSliderLabel);	       
 	    deltaRadiusButtonPanel.add(radiusButton, BorderLayout.LINE_START);
 		
 		deltaRadiusPanel.add(deltaRadiusButtonPanel);
@@ -454,54 +468,72 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Projection";
 		projectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		projectionPanel.setVisible(true);		
-		projectionPanel.setMinimumSize(new Dimension(groupWidth,100));
-		projectionPanel.setPreferredSize(new Dimension(groupWidth,100));
-		projectionPanel.setMaximumSize(new Dimension(groupWidth,100));
-		
-		//Create the radio buttons.
-		cylProjRadioButton = new JRadioButton(projStrings[0]+"   ");
-		cylProjRadioButton.setActionCommand(projStrings[0]);
-		pseudoCylProjRadioButton = new JRadioButton(projStrings[1]+"   ");
-		pseudoCylProjRadioButton.setActionCommand(projStrings[1]);
-		azimuthProjRadioButton = new JRadioButton(projStrings[2]+"  ");
-		azimuthProjRadioButton.setActionCommand(projStrings[2]);
-		if (this.controller.cPane.defaultProjType == this.controller.cPane.cylindricalMapProj){
-			cylProjRadioButton.setSelected(true);
-			this.chosenProjection = this.controller.cPane.cylindricalMapProj;
-		}
-		else if (this.controller.cPane.defaultProjType == this.controller.cPane.kavrayskiyMapProj){
-			pseudoCylProjRadioButton.setSelected(true);
-			this.chosenProjection = this.controller.cPane.kavrayskiyMapProj;
-		}
-		else if (this.controller.cPane.defaultProjType == this.controller.cPane.azimuthalMapProj){
-			azimuthProjRadioButton.setSelected(true);
-			this.chosenProjection = this.controller.cPane.azimuthalMapProj;
-		}
-		
-		//Group the radio buttons.
-        ButtonGroup projButtonGroup = new ButtonGroup();
-        projButtonGroup.add(cylProjRadioButton);
-        projButtonGroup.add(pseudoCylProjRadioButton);
-        projButtonGroup.add(azimuthProjRadioButton);
-        
-        //Register a listener for the radio buttons.
-        cylProjRadioButton.addActionListener(this);
-        pseudoCylProjRadioButton.addActionListener(this);
-        azimuthProjRadioButton.addActionListener(this);
+		projectionPanel.setMinimumSize(new Dimension(groupWidth,60));
+		projectionPanel.setPreferredSize(new Dimension(groupWidth,60));
+		projectionPanel.setMaximumSize(new Dimension(groupWidth,60));
 
-        JPanel radioB1 = new JPanel();
-        radioB1.setLayout(new BoxLayout(radioB1,BoxLayout.LINE_AXIS));
-        JPanel radioB2 = new JPanel();
-        radioB2.setLayout(new BoxLayout(radioB2,BoxLayout.LINE_AXIS));
-        JPanel radioB3 = new JPanel();
-        radioB3.setLayout(new BoxLayout(radioB3,BoxLayout.LINE_AXIS));
-		
-        radioB1.add(cylProjRadioButton);
-        radioB2.add(pseudoCylProjRadioButton);
-        radioB3.add(azimuthProjRadioButton);
-        projectionPanel.add(radioB1);
-        projectionPanel.add(radioB2);
-        projectionPanel.add(radioB3);
+
+//		projectionPanel.setMinimumSize(new Dimension(groupWidth,100));
+//		projectionPanel.setPreferredSize(new Dimension(groupWidth,100));
+//		projectionPanel.setMaximumSize(new Dimension(groupWidth,100));
+//		//Create the radio buttons.
+//		cylProjRadioButton = new JRadioButton(projStrings[0]+"   ");
+//		cylProjRadioButton.setActionCommand(projStrings[0]);
+//		pseudoCylProjRadioButton = new JRadioButton(projStrings[1]+"   ");
+//		pseudoCylProjRadioButton.setActionCommand(projStrings[1]);
+//		azimuthProjRadioButton = new JRadioButton(projStrings[2]+"  ");
+//		azimuthProjRadioButton.setActionCommand(projStrings[2]);
+//		if (this.controller.cPane.defaultProjType == this.controller.cPane.cylindricalMapProj){
+//			cylProjRadioButton.setSelected(true);
+//			this.chosenProjection = this.controller.cPane.cylindricalMapProj;
+//		}
+//		else if (this.controller.cPane.defaultProjType == this.controller.cPane.kavrayskiyMapProj){
+//			pseudoCylProjRadioButton.setSelected(true);
+//			this.chosenProjection = this.controller.cPane.kavrayskiyMapProj;
+//		}
+//		else if (this.controller.cPane.defaultProjType == this.controller.cPane.azimuthalMapProj){
+//			azimuthProjRadioButton.setSelected(true);
+//			this.chosenProjection = this.controller.cPane.azimuthalMapProj;
+//		}
+//		
+//		//Group the radio buttons.
+//        ButtonGroup projButtonGroup = new ButtonGroup();
+//        projButtonGroup.add(cylProjRadioButton);
+//        projButtonGroup.add(pseudoCylProjRadioButton);
+//        projButtonGroup.add(azimuthProjRadioButton);
+//                
+//        //Register a listener for the radio buttons.
+//        cylProjRadioButton.addActionListener(this);
+//        pseudoCylProjRadioButton.addActionListener(this);
+//        azimuthProjRadioButton.addActionListener(this);
+//
+//        JPanel radioB1 = new JPanel();
+//        radioB1.setLayout(new BoxLayout(radioB1,BoxLayout.LINE_AXIS));
+//        JPanel radioB2 = new JPanel();
+//        radioB2.setLayout(new BoxLayout(radioB2,BoxLayout.LINE_AXIS));
+//        JPanel radioB3 = new JPanel();
+//        radioB3.setLayout(new BoxLayout(radioB3,BoxLayout.LINE_AXIS));
+//		
+//        radioB1.add(cylProjRadioButton);
+//        radioB2.add(pseudoCylProjRadioButton);
+//        radioB3.add(azimuthProjRadioButton);
+//        projectionPanel.add(radioB1);
+//        projectionPanel.add(radioB2);
+//        projectionPanel.add(radioB3);        
+
+        // Create new ComboBox for projection types
+        projCBox = new JComboBox(projStrings);
+        this.chosenProjection = this.controller.cPane.defaultProjType;
+//        projCBox.setSelectedItem(this.chosenProjection);
+        projCBox.setSelectedIndex(this.chosenProjection);
+        projCBox.addActionListener(this);
+        
+        JPanel projBoxPanel = new JPanel();
+        projBoxPanel.setLayout(new BoxLayout(projBoxPanel,BoxLayout.LINE_AXIS));
+        projBoxPanel.add(projCBox);
+        projectionPanel.add(projBoxPanel);
+        // -- or --
+//        projectionPanel.add(nbsCBox, BorderLayout.LINE_START);
 		
 		sphoxelGroup.add(projectionPanel);		
 	}
@@ -592,9 +624,59 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	 * @param show whether to show or hide the group
 	 */
 	public void showNBHSPanel(boolean show) {
-		angleGroup.setVisible(show);
+		nbhsPanel.setVisible(show);
 	}
+	
+	/**
+	 * Initializes the group for showing coordinates
+	 */
+	public void initClusterPanel() {		
+		clusterPanel.setLayout(new BoxLayout(clusterPanel,BoxLayout.PAGE_AXIS));
+		String title = "Clustering";
+		clusterPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		clusterPanel.setVisible(true);		
+		clusterPanel.setMinimumSize(new Dimension(groupWidth,120));
+		clusterPanel.setPreferredSize(new Dimension(groupWidth,120));
+		clusterPanel.setMaximumSize(new Dimension(groupWidth, 120));
 		
+		JPanel epsLinePanel = new JPanel();
+		epsLinePanel.setLayout(new BoxLayout(epsLinePanel,BoxLayout.LINE_AXIS));
+		JPanel minNRLinePanel = new JPanel();
+		minNRLinePanel.setLayout(new BoxLayout(minNRLinePanel,BoxLayout.LINE_AXIS));
+		JPanel clusterButtonPanel = new JPanel();
+		clusterButtonPanel.setLayout(new BoxLayout(clusterButtonPanel, BoxLayout.LINE_AXIS));
+		
+		epsilonField = new JTextField(String.valueOf(this.epsilon));
+		minNumNBsField = new JTextField(String.valueOf(this.minNumNBs));
+		epsilonField.setEnabled(true);
+		minNumNBsField.setEnabled(true);
+		epsilonField.addActionListener(this);
+		minNumNBsField.addActionListener(this);
+		JLabel epsLabel = new JLabel("eps=    ");
+		JLabel minNrLabel = new JLabel("minNR= ");		
+		
+		clusterButton = new JButton("Cluster");
+		clusterButton.setEnabled(true);
+		clusterButton.addActionListener(this);
+		
+		epsLinePanel.add(epsLabel, BorderLayout.LINE_START);
+		epsLinePanel.add(epsilonField, BorderLayout.LINE_END);
+		minNRLinePanel.add(minNrLabel, BorderLayout.LINE_START);
+		minNRLinePanel.add(minNumNBsField, BorderLayout.LINE_END);
+		clusterButtonPanel.add(clusterButton, BorderLayout.LINE_START);
+		clusterPanel.add(epsLinePanel);
+		clusterPanel.add(minNRLinePanel);
+		clusterPanel.add(clusterButtonPanel);
+		sphoxelGroup.add(clusterPanel);		
+	}
+	/**
+	 * Toggles the visibility of the coordinates group on or off.
+	 * @param show whether to show or hide the group
+	 */
+	public void showClusterPanel(boolean show) {
+		clusterPanel.setVisible(show);
+	}
+	
 	
 	/**
 	 * Initializes the group for showing coordinates
@@ -709,6 +791,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //			System.out.println(e.getActionCommand());
 //			System.out.println(e.getSource());
 		}
+		if (e.getSource() == this.projCBox){
+			this.chosenProjection = this.projCBox.getSelectedIndex();
+			controller.handleChangeProjectionType(chosenProjection);
+		}
 		if (e.getSource() == this.colorScale){
 			controller.handleChangeShowColourScale(this.chosenColourScale);			
 		}
@@ -738,6 +824,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			}
 			System.out.println("MaxNumLines= "+this.maxNumNBHStraces);
 			controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces); //(this.nbhsSelPanel.getActNbhString());			
+		}
+		if (e.getSource() == this.clusterButton){
+			this.epsilon = Integer.valueOf(this.epsilonField.getText());
+			this.minNumNBs = Integer.valueOf(this.minNumNBsField.getText());
+			System.out.println("ClusterParam: eps="+this.epsilon+"  minNr="+this.minNumNBs);
+			controller.handleChangeClusterParam(this.epsilon, this.minNumNBs);
 		}
 	}
 	

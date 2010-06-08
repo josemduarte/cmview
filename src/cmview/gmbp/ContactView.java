@@ -55,7 +55,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_TRACES_CSV_FILE = "Traces to CSV File...";
 	// Select
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
-//	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
+	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
 	private static final String LABEL_PAN_VIEW_MODE = "Panning Mode";
 	// Show
 	private static final String LABEL_HISTOGRAM_MODE = "Histogram4Selection";
@@ -71,7 +71,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	JPopupMenu popup; 		 	// right-click context menu
 	
 	// Toolbar Buttons
-	JToggleButton tbSquareSel, tbPanMode; //tbClusterSel, 
+	JToggleButton tbSquareSel, tbClusterSel, tbPanMode;
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -83,7 +83,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	// Menu items
 	// M -> "menu bar"
-	JMenuItem squareM; //, clusterM;
+	JMenuItem squareM, clusterM;
 	// P -> "popup menu"
 	JMenuItem histP, deleteP;
 	// mm -> "main menu"
@@ -237,7 +237,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		
 //		// Icons
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
-//		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
+		ImageIcon icon_cluster_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cog.png"));
 		ImageIcon icon_pan_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "crossarrows.png"));
 		ImageIcon icon_hist_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "histogram.png"));
 		ImageIcon icon_delete_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));
@@ -247,13 +247,13 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
 		
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
-//		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
+		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
 		tbPanMode = makeToolBarToggleButton(icon_pan_view_mode, LABEL_PAN_VIEW_MODE, true, true, true);
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
 		selectionModeButtons.add(tbSquareSel);
-//		selectionModeButtons.add(tbClusterSel);
+		selectionModeButtons.add(tbClusterSel);
 		selectionModeButtons.add(tbPanMode);
 		
 		// Popup menu
@@ -293,7 +293,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		menu.setMnemonic(KeyEvent.VK_S);
 		submenu = new JMenu("Selection Mode");
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
-//		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
+		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
 		menu.add(submenu);
 		addToJMenuBar(menu);
 		
@@ -378,6 +378,9 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 					cPane.paintComponent(g2d);
 
 					try {
+//						String file = chosenFile.getPath();
+//						if (file.substring(file.length()-4, file.length()-1)!="png")
+//							file+= ".png";
 						ImageIO.write(bufferedImage, "png", chosenFile);
 						System.out.println("File " + chosenFile.getPath() + " saved.");
 					} catch (IOException e) {
@@ -584,6 +587,17 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 //		histView.repaint();
 	}
 	
+	/**
+	 * Handles the user action to change the nbhstring to use for traces
+	 * @param type --> string nbhs
+	 * @param maxNum--> int num
+	 */
+	public void handleChangeClusterParam(int eps, int num) {	
+		this.cPane.setEpsilon(eps);
+		this.cPane.setMinNumNBs(num);
+		this.cPane.runClusterAnalysis();
+	}
+	
 	
 	/**
 	 * Handles the user action to show histogram for selection
@@ -706,10 +720,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if (e.getSource() == squareM || e.getSource() == tbSquareSel ) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.RECT);
 		}
-//		// cluster button clicked
-//		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
-//			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
-//		}
+		// cluster button clicked
+		if (e.getSource() == clusterM || e.getSource() == tbClusterSel ) {
+			guiState.setSelectionMode(ContactGUIState.SelMode.CLUSTER);
+		}
 		if (e.getSource() == tbPanMode) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
 		}

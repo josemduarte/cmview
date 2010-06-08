@@ -36,6 +36,7 @@ import owl.core.structure.graphs.RIGNode;
 import owl.gmbp.CMPdb_nbhString_traces;
 import owl.gmbp.CMPdb_sphoxel;
 import owl.gmbp.CSVhandler;
+import owl.gmbp.NbhString_ClusterAnalysis;
 import owl.gmbp.OptimalSingleEnv;
 
 import cmview.ContactMapPane;
@@ -50,7 +51,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final Dimension defaultDim = new Dimension(1700, 850);
+	protected static final Dimension defaultDim = new Dimension(1800, 900);
 	protected static final float g2dRatio = 0.5f; // H/W
 	protected static final double defaultMinAllowedRat = -3;
 	protected static final double defaultMaxAllowedRat = 1;
@@ -180,6 +181,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private OptimalSingleEnv optNBHString;
 	private Vector<String[]> optNBHStrings;
 	private String[] setOfOptStrings;
+	// Clustering Data
+	private int[] clusterIDs; // contains clusterID for each node of this.nbhsNodes
+	private double[][] clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
+									// lambda[-Pi:+Pi] and phi[0:Pi]
+	private Vector<Integer>[] clusters; //clusters contains a vector of all IDs for noise (background) and each found cluster
 
 	// ---- variables for representation (drawing methods)
 	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
@@ -189,7 +195,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private float pixelWidth = 5*36/this.numSteps; // change in dependence of numSteps
 	private float pixelHeight = this.pixelWidth; //5*36/this.numSteps;	
 	private float voxelsize = (float) (this.numSteps*this.pixelWidth/Math.PI); //pixelWidth;
-	private final double voxelsizeFactor = 1.5;
+	private double voxelsizeFactor = 1.5;
 	private double deltaRad = Math.PI/this.numSteps;
 	private final double dL = 0.5;
 	private double rSphere;
@@ -199,6 +205,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private double minAllowedRat = defaultMinAllowedRat;
 	private double maxAllowedRat = defaultMaxAllowedRat;
 	private int chosenColourScale = ContactStatusBar.BLUERED;
+	
+	private int epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
+	private int minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;
 	
 	private boolean paintCentralResidue = true;
 //	private boolean mapProjection = false;
@@ -239,14 +248,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.nbhsNodes = new Vector<float[]>();
 		this.optNBHStrings = new Vector<String[]>();
 		this.ratios = new double[0][0];
-				
-		try {
-			calcParam();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-		
+			
 		this.xDim = defaultDim.width;
 //		this.yDim = defaultDim.height;
 		// update pixel dimensions
@@ -265,6 +267,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 		this.rSphere = g2dSize.getHeight()/2;
 		this.maxDistPoints = distPointsOnSphere(Math.PI, Math.PI/2, Math.PI, 0);
+				
+		try {
+			calcParam();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 		
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
@@ -582,37 +591,39 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void calcNbhsTraces() throws SQLException{
-		nbhsTraces.run();
+//		nbhsTraces.run();
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
 		
-//		// FAKE
-//		CSVhandler csv = new CSVhandler();
-//		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
-//		if (sFileName!=null){
-//            System.out.println("Chosen path/file:" + sFileName);
-//		}
-//		else
-//            System.out.println("No path chosen!");
-//		try {
-//			this.nbhsNodes = csv.readCSVfileVector(sFileName);
-//		} catch (NumberFormatException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		this.nbhString = "CPxHG";
-//		this.nbhStringL = "%";
-//		int count = 0;
-//		this.nbhsRes = new char[this.nbhString.length()];
-//		for (int i=0; i<this.nbhString.length(); i++){
-//			this.nbhStringL += this.nbhString.charAt(i);
-//			this.nbhStringL += "%";
-//			this.nbhsRes[count] = this.nbhString.charAt(i);
-//			count++;
-//		}
+		// FAKE
+		CSVhandler csv = new CSVhandler();
+		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
+		this.nbhString = "CPxHG";
+		sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_example_%A%K%x%G%L%V%.csv";
+		this.nbhString = "AKxGLV";
+		if (sFileName!=null){
+            System.out.println("Chosen path/file:" + sFileName);
+		}
+		else
+            System.out.println("No path chosen!");
+		try {
+			this.nbhsNodes = csv.readCSVfileVector(sFileName);
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.nbhStringL = "%";
+		int count = 0;
+		this.nbhsRes = new char[this.nbhString.length()];
+		for (int i=0; i<this.nbhString.length(); i++){
+			this.nbhStringL += this.nbhString.charAt(i);
+			this.nbhStringL += "%";
+			this.nbhsRes[count] = this.nbhString.charAt(i);
+			count++;
+		}
 		// END FAKE
 		
 		// compute nbhstringTraces		
@@ -658,7 +669,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //				System.out.print(this.numNodesPerLine[i]+"_"+this.minDistsJRes[i]+"_"+this.maxDistsJRes[i]+"\t");
 			}
 //			System.out.println();
-		}	
+		}
 		
 	}
 	
@@ -829,6 +840,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		ratio = 0;
 	}
 	
+	public void runClusterAnalysis(){
+
+		double alpha = this.epsilon*Math.PI/180;
+		double eps = alpha * this.rSphere;
+		System.out.println("Start Clusteranalysis for "+this.nbhsNodes.size()+" nodes with epsilon="+eps);
+		NbhString_ClusterAnalysis clusterAnal = new NbhString_ClusterAnalysis(this.nbhsNodes,eps,this.minNumNBs,this.rSphere);
+		clusterAnal.runClusterAnalysis();
+		this.clusterIDs = clusterAnal.getClusterN();
+		// ToDo: evaluate clusters
+		clusterAnal.analyseClusters();
+		this.clusters = clusterAnal.getClusters();
+		this.clusterProp = clusterAnal.getClusterProp();
+		
+		this.updateScreenBuffer();
+	}
+	
 	/*------------------------ writing methods --------------------*/
 	public void writeSphoxels(String filename){
 		this.sphoxel.writeSphoxelOutput(filename);
@@ -981,6 +1008,112 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				drawSphoxel(g2d, i, j);
 			}
 		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void drawSphoxelCakeMap(Graphics2D g2d){
+//		double radiusSphere = this.rSphere;
+//		this.rSphere = g2dSize.getHeight()/3;	
+		this.voxelsizeFactor = 1.0;
+		double val;
+		Color col = Color.white; // = new Color(24,116,205,255);
+		ColorScale scale = new ColorScale();
+		Shape shape = null;
+		double xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4;
+		
+		int numSlices = 18; // = 20Grad-Schritte
+		double sliceWidth = 2*Math.PI/numSlices;
+		double deltaLambda = sliceWidth/2;
+		double lCentre = deltaLambda;
+		this.centerOfProjection = new Pair<Double>(lCentre, Math.PI/2);
+		xPos1 = getScreenPosFromRad(lCentre, Math.PI/2).getFirst();
+		xPos2 = getScreenPosFromRad(lCentre+deltaLambda, Math.PI/2).getFirst();
+		double dx = 2* Math.abs(xPos2-xPos1); 
+//		dx = this.g2dSize.getWidth()/numSlices;
+		double xOffset = dx/2;
+		int cntSlice = 0;
+		System.out.println("num="+numSlices+"  width="+sliceWidth+"  deltaL="+deltaLambda+"  xOffset="+xOffset);	
+		
+		for(int j=0;j<ratios[0].length;j++){
+			double lambdaRad = (j*deltaRad); // 0<lambda<2*PI
+			if (lambdaRad > (cntSlice+1)*sliceWidth){
+				cntSlice++;
+				lCentre += sliceWidth;
+				this.centerOfProjection = new Pair<Double>(lCentre, Math.PI/2);
+				xOffset += dx;
+				System.out.println("cnt="+cntSlice+" lCentre="+lCentre+" xOffset="+xOffset+"   lambdaRad="+lambdaRad);
+//				j=ratios[0].length-1;
+			}
+			for(int i=0;i<ratios.length;i++){
+				double phiRad = (i*deltaRad); // 0<phi<2*PI
+				
+				// ----- COMPUTE AND SET COLOUR -------
+				val = ratios[i][j]; // add some scaling and shifting --> range 0:255				
+				// ----- remove outliers
+				double minRatio2Use = this.minRatio;
+				double maxRatio2Use = this.maxRatio;
+				if (this.removeOutliers){
+					if (minRatio2Use<this.minAllowedRat)
+						minRatio2Use = this.minAllowedRat;
+					if (maxRatio2Use>this.maxAllowedRat)
+						maxRatio2Use = this.maxAllowedRat;
+					if (val<this.minAllowedRat)
+						val = this.minAllowedRat;
+					else if (val>this.maxAllowedRat)
+						val = this.maxAllowedRat;
+				}						
+				// ----- compute alpha and set color	
+				float alpha = (float) (Math.abs(val)/Math.abs(maxRatio2Use)); // if val>0
+				if(val<0){
+					alpha = (float) (Math.abs(val)/Math.abs(minRatio2Use));
+					val = -val/minRatio2Use;
+				}
+				else
+					val = val/maxRatio2Use;
+				switch (this.chosenColourScale){
+				case ContactStatusBar.BLUERED:
+					col = scale.getColor4BlueRedScale(val,alpha); break;
+				case ContactStatusBar.HOTCOLD:
+					col = scale.getColor4HotColdScale(val,alpha); break;
+				case ContactStatusBar.RGB:
+					col = scale.getColor4RGBscalePolar((float)val, alpha, -1); break;
+				}					
+				g2d.setColor(col);	
+				
+				// ----- DRAW SPHOXEL -----
+				this.voxelsizeFactor = 1.0;
+				xPos1 = getScreenPosFromRad(lambdaRad, phiRad).getFirst() - this.rSphere + xOffset;
+				xPos2 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getFirst() - this.rSphere + xOffset;
+				xPos3 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad+deltaRad).getFirst() - this.rSphere + xOffset;
+				xPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getFirst() - this.rSphere + xOffset;
+				this.voxelsizeFactor = 1.5;	
+//				yPos1 = getScreenPosFromRad(lambdaRad, phiRad).getSecond();	
+//				yPos2 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getSecond();	
+//				yPos3 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad+deltaRad).getSecond();	
+//				yPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getSecond();
+				yPos1 = (phiRad*this.voxelsize) +this.border;	
+				yPos2 = (phiRad*this.voxelsize) +this.border;	
+				yPos3 = ((phiRad+deltaRad)*this.voxelsize) +this.border;	
+				yPos4 = ((phiRad+deltaRad)*this.voxelsize) +this.border;	
+				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
+				g2d.draw(shape);
+				g2d.fill(shape);
+			}
+		}	
+		this.voxelsizeFactor = 1.5;
+		
+//		this.rSphere = radiusSphere;
+		
+//		phiRad -= (Math.PI/2);
+//		lambdaRad -= Math.PI;	
+//		xPos = orthoProjOfLP(lambdaRad, phiRad).getFirst();
+//		yPos = orthoProjOfLP(lambdaRad, phiRad).getSecond();
+//		xPos = (xPos*this.voxelsize*voxelsizeFactor)+this.border;
+//		yPos = (yPos*this.voxelsize*voxelsizeFactor)+this.border;			
+////		xPos = R * Math.cos(Math.abs(phiRad)) * Math.cos(lambdaRad);
+////		yPos = R * Math.cos(Math.abs(phiRad)) * Math.sin(lambdaRad);
+//		xPos += this.rSphere; //R;
+//		yPos += this.rSphere; //R;
 	}
 	
 	private void drawSphoxel(Graphics2D g2d, int i, int j){
@@ -1154,7 +1287,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return col;
 	}
 	
-	private void drawNBHSNode(Graphics2D g2d, boolean specialRes, float[] node){
+	public Color getNodeColor4SSType(int jSSTypeID, int alpha){
+		Color col = Color.black;
+		switch (jSSTypeID){
+		case 0: // 'H'
+			col = new Color(helixSSTColor.getRed(), helixSSTColor.getGreen(), helixSSTColor.getBlue(), alpha); break;
+		case 1: // 'S'
+			col = new Color(sheetSSTColor.getRed(), sheetSSTColor.getGreen(), sheetSSTColor.getBlue(), alpha); break;
+		case 2: // 'O'
+			col = new Color(otherSSTColor.getRed(), otherSSTColor.getGreen(), otherSSTColor.getBlue(), alpha); break;
+		}
+		return col;
+	}
+	
+	private void drawNBHSNode(Graphics2D g2d, boolean specialRes, boolean isJRes, float[] node, int index){
 		GeneralPath rhombus = null;
 		Shape circle = null;
 		int iNum, jNum, jResID, jSSType;
@@ -1181,9 +1327,24 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		// ---- draw geometric object for each residue
 		Color col = getNodeColor4SSType(jSSType);
+		if (this.clusterIDs != null && this.clusterIDs[index]>0)
+			col = getNodeColor4SSType(jSSType, 255);
+		else
+			col = getNodeColor4SSType(jSSType, 100);
+		
 		g2d.setColor(col);
+		
 		if (specialRes){
 			radius = 6.f;
+			if (this.clusterIDs != null && this.clusterIDs[index]>0){
+				radius = 7.f;
+				g2d.setColor(Color.white);
+				rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
+				g2d.draw(rhombus);
+				g2d.fill(rhombus);
+				radius = 4.f;
+				g2d.setColor(col);
+			}
 			// create rhombus for residue types contained in nbhstring
 			rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
 			g2d.draw(rhombus);
@@ -1192,6 +1353,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		else {
 			radius = 3.f;
+			if (this.clusterIDs != null && this.clusterIDs[index]>0){
+				radius = 4.f;
+				g2d.setColor(Color.white);
+				circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
+				g2d.draw(circle);
+				g2d.fill(circle);
+				radius = 2.f;
+				g2d.setColor(col);
+			}
 			// create ellipse for residue
 			circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
 			g2d.draw(circle);
@@ -1199,9 +1369,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			f = new Font("Dialog", Font.PLAIN, 12);
 		}
 		g2d.setFont(f);
-		nodeName = Character.toString(aas[jResID]) +" "+ String.valueOf(jNum-iNum);
-		if (specialRes)
+		nodeName = Character.toString(aas[jResID]) +" "+ String.valueOf(jNum-iNum);		
+
+//		// test for cluster result
+//		if (this.clusterIDs != null && this.clusterIDs[index]>0){
+//			nodeName = String.valueOf(this.clusterIDs[index]);
+//		}
+//		else 
+//			nodeName = "";
+////		if (this.clusterIDs[index]>1)
+////			nodeName = "";		
+		
+		if (specialRes){
 			g2d.setColor(Color.black);
+//			if (isJRes)
+//				g2d.setColor(Color.red);
+		}
 		else
 			g2d.setColor(new Color(70,70,70));
 		g2d.drawString(nodeName, (float)(xPos+radius), (float)(yPos+radius+this.yBorderThres));
@@ -1471,6 +1654,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 		int nbhsIndexC = 0;
 		boolean specialRes = false;
+		boolean isJRes = false;
 				
 		for(int i=0; i<this.nbhsNodes.size(); i++){
 			
@@ -1481,6 +1665,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			
 			// ---- check if jResType is element of nbhstring
 			specialRes = false;
+			isJRes = false;
 			if (i>0){
 				nbNode = this.nbhsNodes.get(i-1);
 				if (nbNode[0]!=gID || nbNode[1]!=iNum)
@@ -1496,10 +1681,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			if (aas[jResID] == this.nbhsRes[nbhsIndexC]){
 				specialRes = true;
 				nbhsIndexC++;
-			}				
+			}	
+			
+			// --- check if jResType==this.jRes
+			if (aas[jResID] == this.jRes)
+				isJRes = true;
 			
 			// ---- draw geometric object for each residue
-			drawNBHSNode(g2d, specialRes, node);				
+			drawNBHSNode(g2d, specialRes, isJRes, node, i);				
 			
 			// jump over empty traces
 			while (this.numNodesPerLine[lineID]==0){
@@ -1947,6 +2136,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return valid;
 	}
 	
+	private int angleWithinCluster(double lambda, double phi){
+		int index = -1;
+		lambda -= Math.PI; // minL/maxL[-Pi:+Pi]
+		if (this.clusterProp != null){
+			// clusters at i=1 contains IDs of noise nodes
+			for (int i=1; i<this.clusters.length; i++){
+				double minL = this.clusterProp[i-1][0];
+				double maxL = this.clusterProp[i-1][2];
+				double minP = this.clusterProp[i-1][3];
+				double maxP = this.clusterProp[i-1][5];
+				if (lambda>=minL && lambda<=maxL && phi>=minP && phi<=maxP){
+					index = i;
+					return index;
+				}
+			}
+		}
+		return index;
+	}
+	
 	/*
 	 * Pseudocylindrical projection of angle values
 	 * Expects values for phi[-Pi/2:+Pi/2] and lambda[-Pi:Pi]
@@ -2341,6 +2549,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if (this.contactView.getGUIState().getShowSphoxelBG()){
 //			drawSphoxels(g2d);
 			drawSphoxelMap(g2d);
+			
+//			this.mapProjType = azimuthalMapProj;
+//			drawSphoxelCakeMap(g2d);
 		}
 		// neighbourhood-string-traces
 		if (this.contactView.getGUIState().getShowNBHStraces()){
@@ -2560,6 +2771,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void setMaxNumTraces(int maxNumTraces) {
 		this.maxNumTraces = maxNumTraces;
 	}
+	
+	public void setEpsilon(int epsilon) {
+		this.epsilon = epsilon;
+	}
+
+	public int getEpsilon() {
+		return epsilon;
+	}
+
+	public void setMinNumNBs(int minNumNBs) {
+		this.minNumNBs = minNumNBs;
+	}
+
+	public int getMinNumNBs() {
+		return minNumNBs;
+	}
 
 	public int[] getHistWholeAngleRange() {
 		return histWholeAngleRange;
@@ -2732,8 +2959,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				return;
 				
 			case CLUSTER:
-//				// resets selContacts when clicking mouse
+				this.tmpSelContact = new Pair<Integer>(this.iNum,this.jNum);
+				if (angleWithinValidRange(tmpAngleComb.getFirst(), tmpAngleComb.getSecond())){
+					System.out.println("tmpAngleComb: "+this.tmpAngleComb.getFirst()+"-"+this.tmpAngleComb.getSecond());
+					System.out.println("tmpAngleComb: "+(this.tmpAngleComb.getFirst()-Math.PI)+"-"+this.tmpAngleComb.getSecond());
+					// Test if clicked angleComb lies in any of the defined clusters
+					boolean valid = false; //check
+					int index = angleWithinCluster(tmpAngleComb.getFirst(), tmpAngleComb.getSecond());
+					if (index>0)
+						valid = true;
+					if (valid){
+						// use min and max values of chosen cluster
+						this.tmpLambdaRange = new Pair<Double>(this.clusterProp[index-1][0]+Math.PI, this.clusterProp[index-1][2]+Math.PI);
+						this.tmpPhiRange = new Pair<Double>(this.clusterProp[index-1][3], this.clusterProp[index-1][5]);						
+						System.out.println("clusterBasedSelectedRange "+this.tmpLambdaRange.getFirst()+"-"+this.tmpLambdaRange.getSecond()
+								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
+						
+						int oldIndex = checkForSelectedRanges();
+						if (oldIndex>-1){
+							this.lambdaRanges.removeElementAt(oldIndex);
+							this.phiRanges.removeElementAt(oldIndex);
+							this.selContacts.removeElementAt(oldIndex);												
+						}
 
+						this.lambdaRanges.add(this.tmpLambdaRange);
+						this.phiRanges.add(this.tmpPhiRange);
+						this.selContacts.add(this.tmpSelContact);
+						updateAngleRange();	
+					}
+					System.out.println("Chosen cluster: "+index);
+				}
 //				this.repaint();
 				return;
 				
@@ -2932,4 +3187,5 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// TODO Auto-generated method stub
 		
 	}
+
 }

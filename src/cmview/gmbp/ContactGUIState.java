@@ -102,7 +102,7 @@ public class ContactGUIState {
 		// switch on toggle buttons
 		switch(mode) {
 		case RECT: view.tbSquareSel.setSelected(true); break;
-//		case CLUSTER: view.tbClusterSel.setSelected(true); break;
+		case CLUSTER: view.tbClusterSel.setSelected(true); break;
 		case PAN: view.tbPanMode.setSelected(true); break;
 		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
 		}

@@ -28,8 +28,8 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private final int thirdColumnX = leftMargin + 55;		// second contact map or seq sep
 	private final int rightMargin = 12;		// margin between bg rectangle and edge
 	private final int bottomMargin = 0;		// margin between bg rectable and edge
-	private final int textYOffset = 23;		// top margin between rectangle and first text
-	private final int lineHeight = 20;		// offset between lines
+	private final int textYOffset = 20;		// top margin between rectangle and first text
+	private final int lineHeight = 18;		// offset between lines
 	private final int minNumLines = 5;      // 7 if nbhs printed otherwise 5
 //	private final int letterWidth = 10;
 	private int totalHeight = minNumLines * lineHeight + bottomMargin + textYOffset;		// height for basic information and background
@@ -49,6 +49,7 @@ public class AnglePanel extends JPanel implements MouseListener{
 	
 	public AnglePanel() {		
 		this.setMinimumSize(new Dimension(width,totalHeight));
+		this.setPreferredSize(new Dimension(width, totalHeight));
 		
 //		addMouseListener(this);
 //		addMouseMotionListener(this);
