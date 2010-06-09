@@ -123,6 +123,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Color selAngleRangeColor;       // color for selected rectangles
 	private Color longitudeColor;			// color for longitudes
 	private Color latitudeColor;			// color for latitudes
+	private Color arrowColor;
 	
 	// selections 
 	private Vector<Pair<Double>> lambdaRanges;			// permanent list of currently selected lambda ranges
@@ -185,7 +186,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int[] clusterIDs; // contains clusterID for each node of this.nbhsNodes
 	private double[][] clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
 									// lambda[-Pi:+Pi] and phi[0:Pi]
+	private double[][] clusterDirProp; // [][0]:minIncSlope, [][1]:averageIncSlope, [][2]:maxIncSlope, [][3]:minOutSlope, [][4]:averOutSlope, [][5]:maxOutSlope
 	private Vector<Integer>[] clusters; //clusters contains a vector of all IDs for noise (background) and each found cluster
+	private int[] nbCluster;    // holds ID of neighbouring cluster (at the other end of edge); if any neighbouring cluster exists, ID=0
 
 	// ---- variables for representation (drawing methods)
 	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
@@ -286,6 +289,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.selAngleRangeColor = Color.black;
 		this.longitudeColor = Color.black;
 		this.latitudeColor = this.longitudeColor;
+		this.arrowColor = new Color(127,255,127,150);
 		
 		this.dragging = false;
 		this.selContacts = new Vector<Pair<Integer>>();
@@ -852,6 +856,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		clusterAnal.analyseClusters();
 		this.clusters = clusterAnal.getClusters();
 		this.clusterProp = clusterAnal.getClusterProp();
+		clusterAnal.analyseEdgeDirection();
+		this.clusterDirProp = clusterAnal.getClusterDirProp();
+		this.nbCluster = clusterAnal.getNbCluster();
 		
 		this.updateScreenBuffer();
 	}
@@ -882,6 +889,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		shape.lineTo(xC+(width/2), yC+(height/2));
 		shape.lineTo(xC-(width/2), yC+(height/2));
 		shape.lineTo(xC, yC-(height/2));
+		return shape;
+	}
+	
+	public GeneralPath triangleShape(double x1, double y1, double x2, double y2, double x3, double y3){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(x1, y1);
+		shape.lineTo(x2, y2);
+		shape.lineTo(x3, y3);
+		shape.lineTo(x1, y1);
 		return shape;
 	}
 	
@@ -1540,6 +1556,29 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		drawNBHSEdge(g2d, l, p, lE, pE);
 	}
 	
+	/* Lambda[0:2Pi], Phi[0:Pi]
+	 * */
+	private boolean wrapEdge(double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
+		boolean wrap = false;
+		double xPos, xPosNB=0;
+		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
+		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
+			xPos = (4*this.rSphere)-xPos;
+		xPosNB = getScreenPosFromRad(lambdaRadNB, phiRadNB).getFirst();
+		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRadNB, phiRadNB))
+			xPosNB = (4*this.rSphere)-xPosNB;
+		
+		// -- test if edge should be wrapped
+		if (this.mapProjType==cylindricalMapProj && Math.abs(xPosNB-xPos)>this.xDim/2)
+			wrap = true;
+		else if (this.mapProjType==kavrayskiyMapProj && Math.abs(xPosNB-xPos)>this.xDim/3)
+			wrap= true;
+		else if ((this.mapProjType==azimuthalMapProj) && (isOnFrontView(lambdaRad, phiRad) != isOnFrontView(lambdaRadNB, phiRadNB)))
+			wrap = true;
+		
+		return wrap;
+	}
+	
 	private void drawNBHSEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
 		Shape line = null;
 		double xPos, yPos, xPosNB=0, yPosNB=0;
@@ -1717,6 +1756,204 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				nodeID = 0;
 			}		
 		}	
+		
+	}
+	
+	private void drawArrowTriangle(Graphics2D g2d, double lS, double pS, double lE, double pE, double w){
+		GeneralPath triangle;
+		double m = (lE-lS)/(pE-pS);
+		double n = pS - (m*lS);
+		double alpha = Math.atan(Math.abs(m));
+		double dL = (w/2)*Math.cos(alpha);
+		double l1, p1, l2, p2;
+		double x1, y1, x2, y2, x3, y3;
+		l1 = lS + dL;
+		p1 = m*l1 + n;
+		l2 = lS - dL;
+		p2 = m*l2 + n;
+		
+		x1 = getScreenPosFromRad(l1, p1).getFirst();
+		y1 = getScreenPosFromRad(l1, p1).getSecond();
+		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x1, y1))		
+			x1 = (4*this.rSphere)-x1;
+		x2 = getScreenPosFromRad(l2, p2).getFirst();
+		y2 = getScreenPosFromRad(l2, p2).getSecond();
+		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x2, y2))		
+			x2 = (4*this.rSphere)-x2;
+		x3 = getScreenPosFromRad(lE, pE).getFirst();
+		y3 = getScreenPosFromRad(lE, pE).getSecond();
+		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x3, y3))		
+			x3 = (4*this.rSphere)-x3;
+		
+		triangle = triangleShape(x1, y1, x2, y2, x3, y3);
+		g2d.draw(triangle);
+		g2d.fill(triangle);
+	}
+	
+	private void drawEdgeCluster(Graphics2D g2d){
+		double averLS, averLE, averPS, averPE;
+		double lE, pE;
+//		double xPos, yPos;
+//		double radius = 5;
+		// draw arrow for each cluster that has successor-cluster
+		for (int i=0; i<this.nbCluster.length; i++){
+//			int cID = i+1;
+			int nbCID = this.nbCluster[i];
+			if (nbCID>0 || nbCID<0){ // successor exists 
+				if (nbCID<0){ // sucessor=central residue
+					averLE = this.centerOfProjection.getFirst();
+					averPE = this.centerOfProjection.getSecond();					
+				}
+				else {	
+					averLE = this.clusterProp[nbCID-1][1] + Math.PI;
+					averPE = this.clusterProp[nbCID-1][4];	
+				}
+				// clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
+				averLS = this.clusterProp[i][1] + Math.PI;
+				averPS = this.clusterProp[i][4];
+				// wrapEdge(double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
+				if (wrapEdge(averLS, averPS, averLE, averPE)){
+					lE = (averLS+averLE)/2 + Math.PI;
+					if (lE>2*Math.PI)
+						lE -= 2*Math.PI;
+					pE = (averPS+averPE)/2;
+				}
+				else{
+					lE = (averLS+averLE)/2;
+					pE = (averPS+averPE)/2;
+				}				
+//				g2d.setColor(Color.green);
+				g2d.setColor(this.arrowColor);
+				drawArrowTriangle(g2d, averLS, averPS, lE, pE, 0.05);
+//				g2d.setColor(Color.black);
+//				drawNBHSEdge(g2d, averLS, averPS, lE, pE);
+//				
+//				xPos = getScreenPosFromRad(lE, pE).getFirst();
+//				yPos = getScreenPosFromRad(lE, pE).getSecond();
+//				if (this.mapProjType==azimuthalMapProj && !isOnFrontView(xPos, yPos))		
+//					xPos = (4*this.rSphere)-xPos;
+//				Shape circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres, 2*radius, 2*radius);
+//				g2d.draw(circle);
+//				g2d.fill(circle);
+				
+				if (nbCID<0){ // sucessor=central residue
+					averLS = this.centerOfProjection.getFirst();
+					averPS = this.centerOfProjection.getSecond();	
+					nbCID = Math.abs(nbCID);
+					averLE = this.clusterProp[nbCID-1][1] + Math.PI;
+					averPE = this.clusterProp[nbCID-1][4];		
+					lE = (averLS+averLE)/2;
+					pE = (averPS+averPE)/2;
+					drawArrowTriangle(g2d, averLS, averPS, lE, pE, 0.05);
+//					g2d.setColor(Color.black);
+//					drawNBHSEdge(g2d, averLS, averPS, lE, pE);
+//					
+//					xPos = getScreenPosFromRad(lE, pE).getFirst();
+//					yPos = getScreenPosFromRad(lE, pE).getSecond();
+//					if (this.mapProjType==azimuthalMapProj && !isOnFrontView(xPos, yPos))		
+//						xPos = (4*this.rSphere)-xPos;
+//					circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres, 2*radius, 2*radius);
+//					g2d.draw(circle);
+//					g2d.fill(circle);					
+				}
+			}
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void drawEdgeCluster1(Graphics2D g2d){
+		double clusterCentreX, clusterCentreY;
+		double xPosInc, xPosOut, yPosInc, yPosOut;
+		double lCentre, lInc, lOut, pCentre, pInc, pOut;
+		double averIncSlope, averOutSlope;
+		double dX = 0.5;
+		double n;
+		double thresSlopeVar = 10;
+		double arrowWidth = 5;
+		float[] node, nbNode;
+		// clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP	// lambda[-Pi:+Pi] and phi[0:Pi]
+		// clusterDirProp; // [][0]:minIncSlope, [][1]:averageIncSlope, [][2]:maxIncSlope, [][3]:minOutSlope, [][4]:averOutSlope, [][5]:maxOutSlope
+		// clusters; //clusters contains a vector of all IDs for noise (background) and each found cluster
+		for (int i=0; i<this.clusterProp.length; i++){
+			int cID = i+1;
+			lCentre = this.clusterProp[i][1] + Math.PI;
+			pCentre = this.clusterProp[i][4];
+			
+			// take following element (node) within sequence of first node of cluster to determine direction of arrow
+			// i.e. if xPosInc east or west of cluster centre
+			int cnt = 0;
+			int nodeID = this.clusters[cID].get(cnt);
+			while (!(nodeID<this.nbhsNodes.size()-1)){
+				cnt++;
+				nodeID = this.clusters[cID].get(0);
+			}
+			node = (float[]) this.nbhsNodes.get(nodeID);
+			nbNode = (float[]) this.nbhsNodes.get(nodeID+1);
+			if (nbNode[4]+Math.PI < node[4]+Math.PI) // east of startNode
+				dX *= -1;
+			
+			clusterCentreX = getScreenPosFromRad(lCentre, pCentre).getFirst();
+			clusterCentreY = getScreenPosFromRad(lCentre, pCentre).getSecond();
+			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(clusterCentreX, clusterCentreY))		
+				clusterCentreX = (4*this.rSphere)-clusterCentreX;
+			
+			averIncSlope = this.clusterDirProp[i][1];
+			averOutSlope = this.clusterDirProp[i][4];
+			if (Math.abs(this.clusterDirProp[i][2]-this.clusterDirProp[i][0])<thresSlopeVar){
+				n = pCentre - (averIncSlope*lCentre);
+				lInc = lCentre - dX;
+				pInc = (averIncSlope*lInc) + n;
+				xPosInc = getScreenPosFromRad(lInc, pInc).getFirst();
+				yPosInc = getScreenPosFromRad(lInc, pInc).getSecond();
+				g2d.setColor(Color.green);
+				drawArrow(g2d, xPosInc,yPosInc,clusterCentreX,clusterCentreY,arrowWidth);
+			}
+			if (Math.abs(this.clusterDirProp[i][5]-this.clusterDirProp[i][3])<thresSlopeVar){
+				n = pCentre - (averOutSlope*lCentre);
+				lOut = lCentre + dX;
+				pOut = (averOutSlope*lOut) + n;
+				xPosOut = getScreenPosFromRad(lOut, pOut).getFirst();
+				yPosOut = getScreenPosFromRad(lOut, pOut).getSecond();
+				g2d.setColor(Color.yellow);
+				drawArrow(g2d, clusterCentreX,clusterCentreY,xPosOut,yPosOut,arrowWidth);
+
+				averOutSlope = this.clusterDirProp[i][3];
+				n = pCentre - (averOutSlope*lCentre);
+				lOut = lCentre + dX;
+				pOut = (averOutSlope*lOut) + n;
+				xPosOut = getScreenPosFromRad(lOut, pOut).getFirst();
+				yPosOut = getScreenPosFromRad(lOut, pOut).getSecond();
+				g2d.setColor(Color.green);
+				drawArrow(g2d, clusterCentreX,clusterCentreY,xPosOut,yPosOut,arrowWidth);
+				averOutSlope = this.clusterDirProp[i][5];
+				n = pCentre - (averOutSlope*lCentre);
+				lOut = lCentre + dX;
+				pOut = (averOutSlope*lOut) + n;
+				xPosOut = getScreenPosFromRad(lOut, pOut).getFirst();
+				yPosOut = getScreenPosFromRad(lOut, pOut).getSecond();
+				g2d.setColor(Color.green);
+				drawArrow(g2d, clusterCentreX,clusterCentreY,xPosOut,yPosOut,arrowWidth);
+			}
+		}
+	}
+	
+	private void drawArrow(Graphics2D g2d, double xS, double yS, double xE, double yE, double width){
+		Shape line, circle;
+		double radius = width;
+		line = new Line2D.Double(xS,yS,xE,yE);
+		g2d.draw(line);
+		circle = new Ellipse2D.Double( xE-radius, yE-radius+this.yBorderThres,2*radius, 2*radius);
+		g2d.draw(circle);
+		g2d.fill(circle);
+		
+//		xS=xS-2*dL; xE=xE-2*dL;
+//		for (int i=0; i<5; i++){
+//			line = new Line2D.Double(xS,yS,xE,yE);
+//			g2d.draw(line);
+//			xS=xS+dL; xE=xE+dL;
+//		}
+//		xS=xS-3*dL; xE=xE-3*dL;
+		
 		
 	}
 	
@@ -2582,6 +2819,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.contactView.lambdaRuler.repaint();
 			this.contactView.phiRuler.repaint();
 		}
+		if (this.clusterDirProp!=null)
+			drawEdgeCluster(g2d);
 
 		repaint();
 	}
