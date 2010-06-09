@@ -591,40 +591,40 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void calcNbhsTraces() throws SQLException{
-//		nbhsTraces.run();
+		nbhsTraces.run();
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
 		
-		// FAKE
-		CSVhandler csv = new CSVhandler();
-		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
-		this.nbhString = "CPxHG";
-		sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_example_%A%K%x%G%L%V%.csv";
-		this.nbhString = "AKxGLV";
-		if (sFileName!=null){
-            System.out.println("Chosen path/file:" + sFileName);
-		}
-		else
-            System.out.println("No path chosen!");
-		try {
-			this.nbhsNodes = csv.readCSVfileVector(sFileName);
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		this.nbhStringL = "%";
-		int count = 0;
-		this.nbhsRes = new char[this.nbhString.length()];
-		for (int i=0; i<this.nbhString.length(); i++){
-			this.nbhStringL += this.nbhString.charAt(i);
-			this.nbhStringL += "%";
-			this.nbhsRes[count] = this.nbhString.charAt(i);
-			count++;
-		}
-		// END FAKE
+//		// FAKE
+//		CSVhandler csv = new CSVhandler();
+//		String sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_fromDB-bagler_cb8p0_alledges_nbhs-%C%P%x%H%G%_JAtom-CA.csv";
+//		this.nbhString = "CPxHG";
+//		sFileName = "/Users/vehlow/Documents/workspace/outputFiles/NBHSnodes_example_%A%K%x%G%L%V%.csv";
+//		this.nbhString = "AKxGLV";
+//		if (sFileName!=null){
+//            System.out.println("Chosen path/file:" + sFileName);
+//		}
+//		else
+//            System.out.println("No path chosen!");
+//		try {
+//			this.nbhsNodes = csv.readCSVfileVector(sFileName);
+//		} catch (NumberFormatException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		this.nbhStringL = "%";
+//		int count = 0;
+//		this.nbhsRes = new char[this.nbhString.length()];
+//		for (int i=0; i<this.nbhString.length(); i++){
+//			this.nbhStringL += this.nbhString.charAt(i);
+//			this.nbhStringL += "%";
+//			this.nbhsRes[count] = this.nbhString.charAt(i);
+//			count++;
+//		}
+//		// END FAKE
 		
 		// compute nbhstringTraces		
 		if (this.nbhsNodes.size()>0){
@@ -873,6 +873,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		shape.lineTo(xC+(width/2), yC);
 		shape.lineTo(xC, yC+(height/2));
 		shape.lineTo(xC-(width/2), yC);
+		return shape;
+	}
+	
+	public GeneralPath triangleShape(double xC, double yC, double width, double height){
+		GeneralPath shape = new GeneralPath();
+		shape.moveTo(xC, yC-(height/2));
+		shape.lineTo(xC+(width/2), yC+(height/2));
+		shape.lineTo(xC-(width/2), yC+(height/2));
+		shape.lineTo(xC, yC-(height/2));
 		return shape;
 	}
 	
@@ -1302,6 +1311,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void drawNBHSNode(Graphics2D g2d, boolean specialRes, boolean isJRes, float[] node, int index){
 		GeneralPath rhombus = null;
+		GeneralPath triangle = null;
 		Shape circle = null;
 		int iNum, jNum, jResID, jSSType;
 		double xPos, yPos;
@@ -1330,21 +1340,32 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if (this.clusterIDs != null && this.clusterIDs[index]>0)
 			col = getNodeColor4SSType(jSSType, 255);
 		else
-			col = getNodeColor4SSType(jSSType, 100);
-		
+			col = getNodeColor4SSType(jSSType, 100);		
 		g2d.setColor(col);
 		
-		if (specialRes){
-			radius = 6.f;
-			if (this.clusterIDs != null && this.clusterIDs[index]>0){
+		if (this.clusterIDs != null && this.clusterIDs[index]>0){
+			if (specialRes){
 				radius = 7.f;
-				g2d.setColor(Color.white);
-				rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
-				g2d.draw(rhombus);
-				g2d.fill(rhombus);
-				radius = 4.f;
-				g2d.setColor(col);
+				f = new Font("Dialog", Font.PLAIN, 14);
 			}
+			else {
+				radius = 4.f;
+				f = new Font("Dialog", Font.PLAIN, 12);
+			}
+			g2d.setColor(Color.white);
+			// create triangle for residue
+			triangle = triangleShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
+			g2d.draw(triangle);
+			g2d.fill(triangle);
+			radius = radius - 2.f;
+			g2d.setColor(col);
+			triangle = triangleShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
+			g2d.draw(triangle);
+			g2d.fill(triangle);
+			f = new Font("Dialog", Font.PLAIN, 14);
+		}
+		else if (specialRes){
+			radius = 6.f;
 			// create rhombus for residue types contained in nbhstring
 			rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
 			g2d.draw(rhombus);
@@ -1353,15 +1374,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		else {
 			radius = 3.f;
-			if (this.clusterIDs != null && this.clusterIDs[index]>0){
-				radius = 4.f;
-				g2d.setColor(Color.white);
-				circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
-				g2d.draw(circle);
-				g2d.fill(circle);
-				radius = 2.f;
-				g2d.setColor(col);
-			}
 			// create ellipse for residue
 			circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
 			g2d.draw(circle);
@@ -1382,8 +1394,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		if (specialRes){
 			g2d.setColor(Color.black);
-//			if (isJRes)
-//				g2d.setColor(Color.red);
+			if (isJRes)
+				g2d.setColor(Color.red);
 		}
 		else
 			g2d.setColor(new Color(70,70,70));
@@ -2970,8 +2982,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						valid = true;
 					if (valid){
 						// use min and max values of chosen cluster
-						this.tmpLambdaRange = new Pair<Double>(this.clusterProp[index-1][0]+Math.PI, this.clusterProp[index-1][2]+Math.PI);
-						this.tmpPhiRange = new Pair<Double>(this.clusterProp[index-1][3], this.clusterProp[index-1][5]);						
+						double rangeBorder = 0.05;
+						double lS = this.clusterProp[index-1][0]+Math.PI-rangeBorder, lE = this.clusterProp[index-1][2]+Math.PI+rangeBorder;
+						double pS = this.clusterProp[index-1][3]-rangeBorder, pE = this.clusterProp[index-1][5]+rangeBorder; 
+						this.tmpLambdaRange = new Pair<Double>(lS, lE);
+						this.tmpPhiRange = new Pair<Double>(pS, pE);						
 						System.out.println("clusterBasedSelectedRange "+this.tmpLambdaRange.getFirst()+"-"+this.tmpLambdaRange.getSecond()
 								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
 						
