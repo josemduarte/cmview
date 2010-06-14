@@ -428,7 +428,8 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_toggle_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
 		ImageIcon icon_run_tinker = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "plugin_go.png"));
 		ImageIcon icon_min_set  = new ImageIcon(getClass().getResource(Start.ICON_DIR+"arrow_in.png"));	//icon to run cone peeling algorithm
-		ImageIcon icon_sphoxel_traces = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "sphoxel_traces.png"));
+//		ImageIcon icon_sphoxel_traces = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "sphoxel_traces.png"));
+		ImageIcon icon_sphoxel_traces = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "sphere_st.png"));
 		Icon icon_color = getCurrentColorIcon();	// magic icon with current painting color
 		Icon icon_black = getBlackSquareIcon();		// black square icon
 

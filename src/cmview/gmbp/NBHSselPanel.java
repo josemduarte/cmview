@@ -112,6 +112,16 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 
 	public void setNbhString(String nbhString) {
 		this.nbhString = nbhString;
+		this.nbhsRes = new char[this.nbhString.length()];
+		this.nbhsResFlags = new boolean[this.nbhString.length()];
+		for (int i=0; i<this.nbhString.length(); i++){
+			this.nbhsRes[i] = this.nbhString.charAt(i);
+			this.nbhsResFlags[i] = true;
+		}
+		this.actNBHString = nbhString;
+		this.repaint();
+		
+//		setActNbhString(this.nbhString);
 	}
 
 	public String getActNbhString() {
@@ -205,7 +215,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		System.out.println("Actual NBHString = "+this.actNBHString);
 		this.repaint();
 		
-		this.contStatBar.setChosenString(0);
+		this.contStatBar.setChosenStringID(0);
 	}
 
 }

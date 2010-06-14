@@ -32,6 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 //import javax.swing.JToolBar;
 
 import cmview.ContactMapPane;
@@ -53,6 +55,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_PNG_FILE = "PNG File...";
 	private static final String LABEL_SPHOXEL_CSV_FILE = "Sphoxel to CSV File...";
 	private static final String LABEL_TRACES_CSV_FILE = "Traces to CSV File...";
+	private static final String LABEL_SETTINGS_CSV_FILE = "Settings to CSV File...";
+	private static final String LABEL_LSETTINGS_CSV_FILE = "Load Settings";	
 	// Select
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
@@ -60,6 +64,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	// Show
 	private static final String LABEL_HISTOGRAM_MODE = "Histogram4Selection";
 	private static final String LABEL_DEL_SELECTION = "DeleteSelectedRange";
+	private static final String LABEL_RES_INFO = "Switch residue labels on/off";
+	private static final String LABEL_CENTRAL_RES = "Switch central residue on/off";
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
@@ -71,7 +77,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	JPopupMenu popup; 		 	// right-click context menu
 	
 	// Toolbar Buttons
-	JToggleButton tbSquareSel, tbClusterSel, tbPanMode;
+	JToggleButton tbSquareSel, tbClusterSel, tbPanMode, tbResInfo, tbCentralRes;
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -87,7 +93,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	// P -> "popup menu"
 	JMenuItem histP, deleteP;
 	// mm -> "main menu"
-	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmQuit;
+	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmSaveSettings, mmLoadSettings, mmQuit;
 	JMenuItem mmSelectAll;
 	
 	private Dimension screenSize;			// current size of this component on screen
@@ -241,14 +247,20 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		ImageIcon icon_pan_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "crossarrows.png"));
 		ImageIcon icon_hist_view_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "histogram.png"));
 		ImageIcon icon_delete_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));
+		ImageIcon icon_toggle_res_info = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "information.png"));
+		ImageIcon icon_toggle_central_res = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "arrow_in.png"));
 		
 		// Tool bar
 		toolBar = new JToolBar();
 		toolBar.setVisible(Start.SHOW_ICON_BAR);
 		
+		Dimension separatorDim = new Dimension(30,toolBar.getHeight());
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
 		tbPanMode = makeToolBarToggleButton(icon_pan_view_mode, LABEL_PAN_VIEW_MODE, true, true, true);
+		toolBar.addSeparator(separatorDim);
+		tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, true, true);
+		tbCentralRes = makeToolBarToggleButton(icon_toggle_central_res, LABEL_CENTRAL_RES, true, true, true);
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
@@ -282,8 +294,11 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		mmSavePng = makeMenuItem(LABEL_PNG_FILE, null, submenu);
 		mmSaveSCsv = makeMenuItem(LABEL_SPHOXEL_CSV_FILE, null, submenu);
 		mmSaveTCsv = makeMenuItem(LABEL_TRACES_CSV_FILE, null, submenu);
+		mmSaveSettings = makeMenuItem(LABEL_SETTINGS_CSV_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Save", submenu);
+		// Load 
+		mmLoadSettings = makeMenuItem(LABEL_LSETTINGS_CSV_FILE, null, menu);
 //		// Print, Quit
 //		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		addToJMenuBar(menu);
@@ -355,8 +370,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		}
 	}
 	
-
-	
+	// -------- HandleEvents -------------
 	
 	private void handleSaveToPng() {
 		if(this.mod == null) {
@@ -420,11 +434,50 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 				File chosenFile = Start.getFileChooser().getSelectedFile();
 				System.out.println("File " + chosenFile.getPath());
 				System.out.println("chosenFile= "+chosenFile.toString());
+				String filename = chosenFile.toString();
+				System.out.println("Substring: "+filename.substring(filename.length()-4, filename.length()-1));
+				if (filename.substring(filename.length()-4, filename.length()-1) != ".csv")
+					filename += ".csv";
 				if (confirmOverwrite(chosenFile)) {
-					cPane.writeTraces(chosenFile.toString());
+					cPane.writeTraces(filename);
 ;				}
 			}
 		}
+	}
+	
+	private void handleSaveSettingsToCsv(){
+		if(this.mod == null) {
+			showNoContactWarning();
+		} else {
+			int ret = Start.getFileChooser().showSaveDialog(this);
+			if(ret == JFileChooser.APPROVE_OPTION) {
+				File chosenFile = Start.getFileChooser().getSelectedFile();
+				System.out.println("File " + chosenFile.getPath());
+				System.out.println("chosenFile= "+chosenFile.toString());
+				String filename = chosenFile.toString();
+				System.out.println("Substring: "+filename.substring(filename.length()-4, filename.length()-1));
+				if (filename.substring(filename.length()-4, filename.length()-1) != ".csv")
+					filename += ".csv";
+				if (confirmOverwrite(chosenFile)) {
+					cPane.writeSettings(filename);
+;				}
+			}
+		}		
+	}
+	
+	private void handleLoadSettingsFromCsv() throws NumberFormatException, IOException{
+		// open global file-chooser and get the name the alignment file
+		JFileChooser fileChooser = Start.getFileChooser();
+        FileFilter filter = new FileNameExtensionFilter("CSV file", "csv");
+        fileChooser.setFileFilter(filter);		
+		int ret = fileChooser.showOpenDialog(this);
+		File source = null;
+		if(ret == JFileChooser.APPROVE_OPTION) {
+			source = fileChooser.getSelectedFile();
+		} else {
+			return;
+		}
+		cPane.loadSettings(source.getPath());
 	}
 	
 	private void handleInfo() {
@@ -487,6 +540,22 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	}
 	
 	/**
+	 * Handles the user action to change flag whether to show residue labels or not 
+	 * @param show --> boolean flag
+	 */
+	public void handleChangeShowResInfo(boolean show) {
+		this.cPane.setShowResInfo(show);
+	}
+	
+	/**
+	 * Handles the user action to change flag whether to show residue labels or not 
+	 * @param show --> boolean flag
+	 */
+	public void handleChangeShowCentralRes(boolean show) {
+		this.cPane.setPaintCentralResidue(show);
+	}
+	
+	/**
 	 * Handles the user action to change flag map projection should be used
 	 * @param projType --> int
 	 */
@@ -502,8 +571,9 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	 */
 	public void handleChangeRemOutliers(boolean rem) {
 		this.cPane.setRemoveOutliers(rem);
-		this.cPane.repaint();
-		this.cPane.calcHistogramms();
+//		this.cPane.repaint();
+		if (colView!=null || histView!=null)
+			this.cPane.calcHistogramms();
 		if (colView!=null)
 			colView.repaint();
 		if (histView!=null)
@@ -514,13 +584,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	 * Handles the user action to change flag whether to remove outliers in contact density values 
 	 * @param removeOutliers --> boolean flag
 	 */
-	public void handleChangeOutlierThresholds(double min, double max) {
-		this.cPane.setMinAllowedRat(min);
-		this.cPane.setMaxAllowedRat(max);
-		this.cPane.repaint();
-//		colView.setMinRatio(min);
-//		colView.setMaxRatio(max);
-		this.cPane.calcHistOfSphoxelMap();
+	public void handleChangeOutlierThresholds(double val, int type) {
+		if (type == 0)
+			this.cPane.setMinAllowedRat(val);
+		else 
+			this.cPane.setMaxAllowedRat(val);
+//		this.cPane.repaint();
+		if (colView!=null || histView!=null)
+			this.cPane.calcHistOfSphoxelMap();
 		if (colView!=null)
 			colView.repaint();
 		if (histView!=null)
@@ -703,6 +774,22 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(e.getSource() == mmSaveTCsv) {
 			handleSaveTracesToCsv();
 		}
+		if(e.getSource() == mmSaveSettings) {
+			handleSaveSettingsToCsv();
+		}
+		
+		// Load
+		if(e.getSource() == mmLoadSettings) {
+			try {
+				handleLoadSettingsFromCsv();
+			} catch (NumberFormatException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		
 		// Info, Print, Quit
 		if(e.getSource() == mmInfo) {
@@ -726,6 +813,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		}
 		if (e.getSource() == tbPanMode) {
 			guiState.setSelectionMode(ContactGUIState.SelMode.PAN);
+		}
+		
+		if (e.getSource() == tbResInfo) {
+			handleChangeShowResInfo(tbResInfo.isSelected());
+		}
+		
+		if (e.getSource() == tbCentralRes) {
+			handleChangeShowCentralRes(tbCentralRes.isSelected());
 		}
 		
 		/* ---------- RightClick PopupMenu ------------ */

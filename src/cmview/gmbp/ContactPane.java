@@ -1,5 +1,6 @@
 package cmview.gmbp;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -14,6 +15,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
@@ -61,11 +63,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected final int defaultProjType = kavrayskiyMapProj;
 	protected static final int sphoxelHist = 0;
 	protected static final int tracesHist = 0;
+	protected static final int defaultMaxNrTraces = 50;
 
 	protected static final Color helixSSTColor = Color.magenta; // color for helix residues
 	protected static final Color sheetSSTColor = Color.yellow;	// color for helix residues
 	protected static final Color otherSSTColor = Color.cyan;	// color for helix residues
 	protected static final Color anySSTColor = Color.blue;		// color for helix residues
+	
+	protected static final BasicStroke defaultBasicStroke = new BasicStroke(1);
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
@@ -121,9 +126,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Color squareSelColor;	  		// color of selection rectangle
 	private Color crosshairColor;     		// color of crosshair	
 	private Color selAngleRangeColor;       // color for selected rectangles
+	private Color actSelAngleRangeColor;	// color for selected rectangle of actual chosen contact i_j
 	private Color longitudeColor;			// color for longitudes
 	private Color latitudeColor;			// color for latitudes
 	private Color arrowColor;
+	private BasicStroke selRangeStroke = new BasicStroke(2);
+	private BasicStroke longLatStroke = new BasicStroke(2);
+	private BasicStroke crosshairStroke = new BasicStroke(2);
 	
 	// selections 
 	private Vector<Pair<Double>> lambdaRanges;			// permanent list of currently selected lambda ranges
@@ -149,7 +158,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private String origNBHString; 
 	private String jAtom = "CA";
 	private char[] nbhsRes;
-	private int maxNumTraces = 50;
+	private int maxNumTraces;
 
 	private String db = "bagler_all13p0_alledges";
 
@@ -209,6 +218,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private double maxAllowedRat = defaultMaxAllowedRat;
 	private int chosenColourScale = ContactStatusBar.BLUERED;
 	
+	private boolean showResInfo = false;
+	
 	private int epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
 	private int minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;
 	
@@ -224,6 +235,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //	private final String AAStr = new String(aas); 
 	public final char[] sstypes = new char[]{'H','S','O','A'};
 //	private final String SSTStr = new String(sstypes);
+	
+	private Vector<String[]> settings;
 	
 	/*----------------------------- constructors ----------------------------*/
 
@@ -270,13 +283,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 		this.rSphere = g2dSize.getHeight()/2;
 		this.maxDistPoints = distPointsOnSphere(Math.PI, Math.PI/2, Math.PI, 0);
-				
-		try {
-			calcParam();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
 		
 		this.mousePos = new Point();
 		this.mousePressedPos = new Point();
@@ -286,7 +292,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.backgroundColor = Color.white;
 		this.squareSelColor = Color.gray;	
 		this.crosshairColor = Color.green;
-		this.selAngleRangeColor = Color.black;
+		this.selAngleRangeColor = new Color(100, 100, 100); //Color.black;
+		this.actSelAngleRangeColor = Color.black;
 		this.longitudeColor = Color.black;
 		this.latitudeColor = this.longitudeColor;
 		this.arrowColor = new Color(127,255,127,150);
@@ -295,6 +302,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.selContacts = new Vector<Pair<Integer>>();
 		this.lambdaRanges = new Vector<Pair<Double>>();
 		this.phiRanges = new Vector<Pair<Double>>();
+		this.settings = new Vector<String[]>();
 		
 		this.tmpLambdaRange = new Pair<Double>(0.0, 0.0);
 		this.tmpPhiRange = new Pair<Double>(0.0, 0.0);
@@ -307,8 +315,123 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.deltaOffSetXEnd = this.getOffSet(2*Math.PI, 0.0); //this.getScreenPosFromRad(2*Math.PI, 0.0).getFirst();
 		this.deltaOffSetXCenter = this.getOffSet(Math.PI, 0.0);
 		
+		// initialise parameters
+		this.minAllowedRat = defaultMinAllowedRat;
+		this.maxAllowedRat = defaultMaxAllowedRat;
+		this.removeOutliers = false;
+		this.maxNumTraces = defaultMaxNrTraces;
+		this.epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
+		this.minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;		
+		
+		try {
+			calcParam();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		
 //		setOutputSize(screenSize.width, screenSize.height);
 //		System.out.println("outputsize= "+this.outputSize);
+	}
+	
+	public void commitSettings(){
+		if (this.selContacts.size()>0){
+			String[] actSettings = {String.valueOf(this.iNum), String.valueOf(this.jNum), 
+					this.nbhString, String.valueOf(this.contStatBar.getChosenStringID()), String.valueOf(this.maxNumTraces), 
+					String.valueOf(this.epsilon), String.valueOf(minNumNBs), 
+					String.valueOf(this.centerOfProjection.getFirst()), String.valueOf(this.centerOfProjection.getSecond()), 
+					String.valueOf(this.removeOutliers), String.valueOf(minAllowedRat), String.valueOf(maxAllowedRat),
+					String.valueOf(this.tmpLambdaRange.getFirst()), String.valueOf(this.tmpLambdaRange.getSecond()),
+					String.valueOf(this.tmpPhiRange.getFirst()), String.valueOf(this.tmpPhiRange.getSecond())};
+			int index = contactElemOfSettings(this.iNum, this.jNum);
+			if (index>-1){
+				// replace settings
+				this.settings.removeElementAt(index);
+			}
+			// add settings to vector
+			this.settings.add(actSettings);
+		}
+	}
+	
+	public void updateSettings(){
+		if (this.selContacts.size()>0){
+			int index = contactElemOfSettings(this.iNum, this.jNum);
+			int stringID = 0;
+			if (index>-1){
+				// load settings for contact i_j
+				String[] set = this.settings.elementAt(index);
+				this.nbhString = set[2];
+//				this.nbhStringL = set[3];
+				this.nbhStringL = "%";
+				for (int i=0; i<this.nbhString.length(); i++){
+					this.nbhStringL += this.nbhString.charAt(i);
+					this.nbhStringL += "%";
+				}
+				stringID = Integer.valueOf(set[3]);
+				this.maxNumTraces = Integer.valueOf(set[4]);
+				this.epsilon = Integer.valueOf(set[5]);
+				this.minNumNBs = Integer.valueOf(set[6]);
+				this.centerOfProjection = new Pair<Double>( Double.valueOf(set[7]), Double.valueOf(set[8]));
+				this.removeOutliers = Boolean.valueOf(set[9]);
+				this.minAllowedRat = Double.valueOf(set[10]);
+				this.maxAllowedRat = Double.valueOf(set[11]);
+//				this.tmpLambdaRange = new Pair<Double>(Double.valueOf(set[12]), Double.valueOf(set[13]));
+//				this.tmpPhiRange = new Pair<Double>(Double.valueOf(set[14]), Double.valueOf(set[15]));
+//				updateSelections();
+				// -- update contact status bar (menu)
+				updateContactStatusBar(stringID);
+			}
+			else {
+				setDefaultSettings();
+			}	
+		}
+	}
+	
+	private void setDefaultSettings(){
+		// set default settings
+		int stringID = 0;
+		this.centerOfProjection = this.origCoordinates;
+		this.removeOutliers = false;
+		this.minAllowedRat = defaultMinAllowedRat;
+		this.maxAllowedRat = defaultMaxAllowedRat;
+		this.nbhString = this.origNBHString;
+		this.maxNumTraces = defaultMaxNrTraces;
+		this.epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
+		this.minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;
+		this.tmpLambdaRange = new Pair<Double>(0.0, 0.0);
+		this.tmpPhiRange = new Pair<Double>(0.0, 0.0);
+		// update contact status bar (menu)
+		updateContactStatusBar(stringID);
+	}
+	
+	private void updateContactStatusBar(int stringID){
+		// update contact status bar (menu)
+		if (contStatBar!= null){
+			this.contStatBar.getNBHSPanel().setActNbhString(this.nbhString);
+			this.contStatBar.setChosenStringID(stringID);
+			this.contStatBar.setMaxNumTraces(maxNumTraces);
+			this.contStatBar.setEpsilon(this.epsilon);
+			this.contStatBar.setMinNumNBs(this.minNumNBs);
+			this.contStatBar.setRemoveOutliers(this.removeOutliers);
+			this.contStatBar.setMinAllowedRatio(this.minAllowedRat);
+			this.contStatBar.setMaxAllowedRatio(this.maxAllowedRat);
+		}			
+	}
+	
+	private void updateSelections(){
+		updateSelections(this.iNum, this.jNum);
+	}
+	
+	private void updateSelections(int iNum, int jNum){
+		int index = checkForSelectedRanges(iNum, jNum);
+		if (index>-1){
+			this.lambdaRanges.removeElementAt(index);
+			this.phiRanges.removeElementAt(index);
+			this.selContacts.removeElementAt(index);												
+		}
+		this.lambdaRanges.add(this.tmpLambdaRange);
+		this.phiRanges.add(this.tmpPhiRange);
+		this.selContacts.add(this.tmpSelContact);
 	}
 
 	private void updateAngleRange(){
@@ -342,7 +465,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcOptNbhStrings();
 	}
 	
-	private void calcTracesParam(){
+	public void calcTracesParam(){
 		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
 		System.out.println("Edge type: "+this.mod.edgeType);
 		this.jAtom = this.mod.edgeType.toUpperCase();
@@ -361,10 +484,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
 		this.origNBHString = this.nbhString;
-//		this.origNBHStringL = this.nbhStringL;
 		
-//		String s = "";
-//		computeNBHStringCombinations(0, s);
 	}
 	
 //	private void computeNBHStringCombinations(int index, String s){
@@ -450,6 +570,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// Standard jSStype=any --> no differentiation made
 		this.jSSType = CMPdb_sphoxel.AnySStype;
 //		System.out.println("j secStrucElement: "+this.jSSType);	
+		
 	}
 	
 	private void setSphoxelParam(){
@@ -571,11 +692,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		System.out.println("Optimal NBHStrings extracted");		
 	}
-	
-//	public void recalcOptNbhStrings() throws SQLException{
-//		calcOptNbhStrings();
-//	}
-	
+
 	public void extractSetOfOptStrings(){
 		String[] stringN;
 		int count = 0;
@@ -590,11 +707,15 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			if (count == 10)
 				i = this.optNBHStrings.size();
 		}
-		if (contStatBar!= null)
-			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);
 	}
 	
 	private void calcNbhsTraces() throws SQLException{
+		this.clusterIDs = null;
+		this.clusterDirProp = null;
+		this.clusters = null;
+		this.clusterProp = null;
+		this.nbCluster = null;
+		
 		nbhsTraces.run();
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
@@ -630,7 +751,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		}
 //		// END FAKE
 		
-		// compute nbhstringTraces		
+		// compute nbhstringTrace properties	
 		if (this.nbhsNodes.size()>0){
 			System.out.println("this.nbhsNodes.size(): "+this.nbhsNodes.size());
 			float[] node, nbNode;
@@ -675,6 +796,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			System.out.println();
 		}
 		
+	}
+	
+	public void recalcOptNBHStrings() throws SQLException{
+		this.optNBHString.setFullNBHString(this.origNBHString);
+		this.optNBHString.setiRes(this.iRes);
+		calcOptNbhStrings();
+		
+		// Update menu (contact status bar)
+		if (contStatBar!= null){
+			this.contStatBar.getNBHSPanel().setNbhString(this.origNBHString);
+			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);
+			this.contStatBar.setChosenStringID(0);
+		}
 	}
 	
 	public void recalcTraces(boolean perform) throws SQLException{
@@ -869,6 +1003,52 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	public void writeTraces(String filename){
 		this.nbhsTraces.writeNbhsTracesOutput(filename);
+	}
+	public void writeSettings(String filename){
+		CSVhandler csv = new CSVhandler();
+		csv.generateFile(this.settings, filename);
+	}
+	
+	public void loadSettings(String filename) throws NumberFormatException, IOException{
+		setDefaultSettings();
+		CSVhandler csv = new CSVhandler();
+		this.settings = csv.readCsvFile(filename);
+		
+		this.selContacts = new Vector<Pair<Integer>>();
+		this.lambdaRanges = new Vector<Pair<Double>>();
+		this.phiRanges = new Vector<Pair<Double>>();
+		for (int i=0; i<this.settings.size(); i++){
+			// load settings for contact i_j
+			String[] set = this.settings.elementAt(i);
+			int iNum = Integer.valueOf(set[0]);
+			int jNum = Integer.valueOf(set[1]);
+			if (this.iNum==iNum && this.jNum==jNum){
+				this.nbhString = set[2];
+//				this.nbhStringL = set[3];
+				this.nbhStringL = "%";
+				for (int j=0; j<this.nbhString.length(); j++){
+					this.nbhStringL += this.nbhString.charAt(j);
+					this.nbhStringL += "%";
+				}
+				int stringID = Integer.valueOf(set[3]);
+				this.maxNumTraces = Integer.valueOf(set[4]);
+				this.epsilon = Integer.valueOf(set[5]);
+				this.minNumNBs = Integer.valueOf(set[6]);
+				this.centerOfProjection = new Pair<Double>( Double.valueOf(set[7]), Double.valueOf(set[8]));
+				this.removeOutliers = Boolean.valueOf(set[9]);
+				this.minAllowedRat = Double.valueOf(set[10]);
+				this.maxAllowedRat = Double.valueOf(set[11]);
+				
+				this.tmpLambdaRange = new Pair<Double>(Double.valueOf(set[12]), Double.valueOf(set[13]));
+				this.tmpPhiRange = new Pair<Double>(Double.valueOf(set[14]), Double.valueOf(set[15]));
+				this.tmpSelContact = new Pair<Integer>(iNum,jNum);
+				
+				updateContactStatusBar(stringID);
+			}
+			this.lambdaRanges.add(new Pair<Double>(Double.valueOf(set[12]), Double.valueOf(set[13])));
+			this.phiRanges.add(new Pair<Double>(Double.valueOf(set[14]), Double.valueOf(set[15])));
+			this.selContacts.add(new Pair<Integer>(iNum,jNum));
+		}
 	}
 	
 	/*------------------------ drawing methods --------------------*/
@@ -1415,7 +1595,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		else
 			g2d.setColor(new Color(70,70,70));
-		g2d.drawString(nodeName, (float)(xPos+radius), (float)(yPos+radius+this.yBorderThres));
+		if (showResInfo)
+			g2d.drawString(nodeName, (float)(xPos+radius), (float)(yPos+radius+this.yBorderThres));
 	}
 	
 	private void drawNBHSEdges(Graphics2D g2d, float[] node, int nodeID, int lineID, int j){
@@ -1759,6 +1940,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 	}
 	
+	/*  Draw an ellipse that is surrounded by the trapezium, given through the points
+	 *  xCoord and yCoord. Coordinates should be in clockwise order starting with the upper left corner.
+	 *  xCoord and yCoord should both be of length=4.
+	 * */
+	private void drawVarEllipse(Graphics2D g2d, double[] xCoord, double[] yCoord){
+		if (xCoord.length==yCoord.length && xCoord.length==4){
+			double x1 = xCoord[0], x2 = xCoord[1], x3 = xCoord[2], x4 = xCoord[3];
+			double y1 = yCoord[0], y2 = yCoord[1], y3 = yCoord[2], y4 = yCoord[3];
+			// intermediate points
+			double x12 = (x1+x2)/2, x23 = (x2+x3)/2, x34 = (x3+x4)/2, x41 = (x4+x1)/2;
+			double y12 = (y1+y2)/2, y23 = (y2+y3)/2, y34 = (y3+y4)/2, y41 = (y4+y1)/2;
+			//g2.draw(new Arc2D.Double(x, y, rectwidth, rectheight, start angle, angular extent, Arc2D.OPEN));
+			g2d.draw(new Arc2D.Double(x41, y12, 2*Math.abs(x12-x41), 2*Math.abs(y12-y41), 90, 90, Arc2D.OPEN));
+			g2d.draw(new Arc2D.Double(x12-Math.abs(x12-x23), y12, 2*Math.abs(x12-x23), 2*Math.abs(y12-y23), 0, 90, Arc2D.OPEN));
+			g2d.draw(new Arc2D.Double(x34-Math.abs(x34-x23), y23-Math.abs(y34-y23), 2*Math.abs(x23-x34), 2*Math.abs(y23-y34), 270, 90, Arc2D.OPEN));
+			g2d.draw(new Arc2D.Double(x41, y41-Math.abs(y34-y41), 2*Math.abs(x34-x41), 2*Math.abs(y34-y41), 180, 90, Arc2D.OPEN));
+		}
+	}
+	
 	private void drawArrowTriangle(Graphics2D g2d, double lS, double pS, double lE, double pE, double w){
 		GeneralPath triangle;
 		double m = (lE-lS)/(pE-pS);
@@ -1860,6 +2060,41 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
+	private void drawClusterBoundaries(Graphics2D g2d){
+		double minL, maxL, minP, maxP;
+		double x1, x2, x3, x4, y1, y2, y3, y4;
+		double[] xCoord, yCoord;
+		g2d.setColor(selAngleRangeColor);
+		g2d.setStroke(selRangeStroke);
+		for (int i=0; i<this.clusterProp.length; i++){
+			minL = this.clusterProp[i][0] + Math.PI;
+			maxL = this.clusterProp[i][2] + Math.PI;
+			minP = this.clusterProp[i][3];
+			maxP = this.clusterProp[i][5];
+			
+			x1 = getScreenPosFromRad(minL, minP).getFirst();
+			y1 = getScreenPosFromRad(minL, minP).getSecond();
+			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x1, y1))		
+				x1 = (4*this.rSphere)-x1;
+			x2 = getScreenPosFromRad(maxL, minP).getFirst();
+			y2 = getScreenPosFromRad(maxL, minP).getSecond();
+			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x2, y2))		
+				x2 = (4*this.rSphere)-x2;
+			x3 = getScreenPosFromRad(maxL, maxP).getFirst();
+			y3 = getScreenPosFromRad(maxL, maxP).getSecond();
+			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x3, y3))		
+				x3 = (4*this.rSphere)-x3;
+			x4 = getScreenPosFromRad(minL, maxP).getFirst();
+			y4 = getScreenPosFromRad(minL, maxP).getSecond();
+			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x4, y4))		
+				x4 = (4*this.rSphere)-x4;
+			xCoord = new double[]{x1,x2,x3,x4};
+			yCoord = new double[]{y1,y2,y3,y4};
+			drawVarEllipse(g2d, xCoord, yCoord);
+		}
+		g2d.setStroke(defaultBasicStroke);
+	}
+	
 	@SuppressWarnings("unused")
 	private void drawEdgeCluster1(Graphics2D g2d){
 		double clusterCentreX, clusterCentreY;
@@ -1959,6 +2194,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void drawLongitude(Graphics2D g2d, double lambdaRad, double phiRad){
 		double xS, xE, yS, yE;
+		Shape line;
 		xS = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
 		xE = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getFirst();
 		yS = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
@@ -1966,37 +2202,40 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if (this.mapProjType==azimuthalMapProj){
 			if (isOnFrontView(lambdaRad, phiRad)==isOnFrontView(lambdaRad+deltaRad, phiRad)){
 				if (!isOnFrontView(lambdaRad, phiRad)){
-//					xS += (2*this.rSphere);
-//					xE += (2*this.rSphere);
 					xS = (4*this.rSphere)-xS;
 					xE = (4*this.rSphere)-xE;
 				}
-				drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//				drawThickVerticalLine(g2d, xS, yS, xE, yE);
+				line = new Line2D.Double(xS,yS,xE,yE);
+				g2d.draw(line);
 			}
 		}
-		else 
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+		else {
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+		}
 	}
 	
 	private void drawLatitude(Graphics2D g2d, double lambdaRad, double phiRad){
 		double xS, xE, yS, yE;
+		Shape line;
 		xS = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
 		xE = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getFirst();
 		yS = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
 		yE = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getSecond();
 		if (this.mapProjType==azimuthalMapProj && (isOnFrontView(lambdaRad, phiRad)==isOnFrontView(lambdaRad+deltaRad, phiRad))){
 			if (!isOnFrontView(lambdaRad, phiRad)){
-//				xS += (2*this.rSphere);
-//				xE += (2*this.rSphere);
 				xS = (4*this.rSphere)-xS;
 				xE = (4*this.rSphere)-xE;
 			}
-			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
-		}
-//		else
 //			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
+		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void drawThickVerticalLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
 		Shape line;
 		line = new Line2D.Double(xS,yS,xE,yE);
@@ -2006,6 +2245,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.draw(line);	
 	}
 	
+	@SuppressWarnings("unused")
 	private void drawThickHorizontalLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
 		Shape line;
 		line = new Line2D.Double(xS,yS,xE,yE);
@@ -2015,22 +2255,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.draw(line);
 	}
 	
-//	private void drawThickLine(Graphics2D g2d, double xS, double yS, double xE, double yE){
-//		Shape line;
-//		line = new Line2D.Double(xS,yS,xE,yE);
-//		g2d.draw(line);
-//		xS=xS-dL; xE=xE-dL;
-//		yS = yS-dL; yE = yE-dL;
-//		line = new Line2D.Double(xS,yS,xE,yE);
-//		g2d.draw(line);
-//	}
-	
 	private void drawLongitudes(Graphics2D g2d){
 		// Laengengrad
 		g2d.setColor(this.longitudeColor);
+		g2d.setStroke(longLatStroke);
 		double xS, xE, yS, yE;
 		double phiRad, lambdaRad;
-		
+		Shape line;
 		
 		if (this.mapProjType==kavrayskiyMapProj || this.mapProjType==azimuthalMapProj){			
 			for(int i=0;i<ratios.length;i++){
@@ -2052,26 +2283,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yE = (Math.PI *this.voxelsize) +this.border;
 			
 			xS = (translateXCoordRespective2Orig(0.0) *this.voxelsize) +this.border;  xE=xS;
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;  xE=xS;
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;  xE=xS;
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(3*Math.PI/2) *this.voxelsize) +this.border;  xE=xS;
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(2*Math.PI) *this.voxelsize) +this.border;  xE=xS;
-			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 		}
-//		else if (this.mapProjType==azimuthalMapProj){
-//			
-//		}
-					
+
+		g2d.setStroke(defaultBasicStroke);		
 	}
 	
 	private void drawLatitudes(Graphics2D g2d){
 		// Breitengrad
 		g2d.setColor(this.latitudeColor);
+		g2d.setStroke(longLatStroke);
 		double xS, xE, yS, yE; //yE = yS;
+		Shape line;
 		
 		if (this.mapProjType==azimuthalMapProj){
 			double phiRad, lambdaRad;			
@@ -2090,12 +2331,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			xS = ((0.0f) *this.voxelsize) +this.border;
 			xE = (((2*Math.PI)) *this.voxelsize) +this.border;
 			yS = (translateYCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border; yE = yS;
-			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			yS = (translateYCoordRespective2Orig(Math.PI/4) *this.voxelsize) +this.border; yE = yS;
-			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);
 			yS = (translateYCoordRespective2Orig(3*Math.PI/4) *this.voxelsize) +this.border; yE = yS;
-			drawThickHorizontalLine(g2d, xS, yS, xE, yE);		
+//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);	
+			line = new Line2D.Double(xS,yS,xE,yE);
+			g2d.draw(line);	
 		}
+		g2d.setStroke(defaultBasicStroke);
 	}
 	
 	private void drawLongLatCentre(Graphics2D g2d){
@@ -2116,11 +2364,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //				bcenterx += (2*this.rSphere);		
 				bcenterx = (4*this.rSphere)-bcenterx;
 		}
-		
+		g2d.setColor(longitudeColor);
+		g2d.setStroke(longLatStroke);
 		Shape circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
 		g2d.draw(circle);
-		circle = new Ellipse2D.Double(bcenterx-29, bcentery-29, 58, 58);
-		g2d.draw(circle);		
+		g2d.setStroke(defaultBasicStroke);
+//		circle = new Ellipse2D.Double(bcenterx-29, bcentery-29, 58, 58);
+//		g2d.draw(circle);		
 
 //		bcenterx = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getFirst();
 //		bcentery = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getSecond();
@@ -2133,10 +2383,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// only in case of range selection we draw a diagonal cursor
 		// drawing the cross-hair
 		g2d.setColor(crosshairColor);
+		g2d.setStroke(crosshairStroke);
 		g2d.drawLine(mousePos.x, 0, mousePos.x, g2dSize.height);
 		g2d.drawLine(0, mousePos.y, g2dSize.width, mousePos.y);	
-		g2d.drawLine(mousePos.x-1, 0, mousePos.x-1, g2dSize.height);
-		g2d.drawLine(0, mousePos.y-1, g2dSize.width, mousePos.y-1);	
+		g2d.setStroke(defaultBasicStroke);
+//		g2d.drawLine(mousePos.x-1, 0, mousePos.x-1, g2dSize.height);
+//		g2d.drawLine(0, mousePos.y-1, g2dSize.width, mousePos.y-1);	
 	}
 
 //	private void drawRulerCrosshair(Graphics2D g2d) {
@@ -2156,6 +2408,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		g2d.drawLine(x1, y1, x2, y2);
 //	}
 	
+	
 	private void drawOccupiedAngleRanges(Graphics2D g2d){
 		Shape shape;
 		
@@ -2164,10 +2417,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		double yPosUL=0, yPosLL=0, yPosUR=getSize().getWidth(), yPosLR=getSize().getWidth();
 		Iterator<Pair<Double>> itrP = this.lambdaRanges.iterator();
 		Iterator<Pair<Double>> itrT = this.phiRanges.iterator();
+		Iterator<Pair<Integer>> itrC = this.selContacts.iterator(); // holds residue numbers for each contact Pair(iNum, jNum)
 		while (itrP.hasNext()){
-			g2d.setColor(selAngleRangeColor);
 			Pair<Double> lambda = (Pair<Double>) itrP.next();
 			Pair<Double> phi = (Pair<Double>) itrT.next();
+			Pair<Integer> contact = itrC.next();
+			
+			g2d.setColor(selAngleRangeColor);
+			// if contact complies currently selected contact
+			int iNumber = contact.getFirst();
+			int jNumber = contact.getSecond();
+			if (iNumber==this.iNum && jNumber==this.jNum)
+				g2d.setColor(actSelAngleRangeColor);
 			
 			double xS = lambda.getFirst();
 			double xE = lambda.getSecond();
@@ -2626,7 +2887,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.selContacts.removeElementAt(this.chosenSelection);	
 	}
 	
+	@SuppressWarnings("unused")
 	private int checkForSelectedRanges(){
+		int index = -1;	
+		
+		index = checkForSelectedRanges(this.iNum, this.jNum);
+//		int index2 = checkForSelectedRanges(this.tmpSelContact.getFirst(), this.tmpSelContact.getSecond());
+//		if (index!= index2)
+//			System.out.println("       checkForSelectedRanges _ iNum/jNum != this.tmpSelContact                 ______");
+		
+		return index;
+	}
+	
+	private int checkForSelectedRanges(int iNum, int jNum){
 		int index = -1;	
 		int count = 0;
 
@@ -2634,7 +2907,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			Iterator<Pair<Integer>> itrS = this.selContacts.iterator();
 			while (itrS.hasNext()){
 				Pair<Integer> sel = itrS.next();
-				if (sel.getFirst()==this.tmpSelContact.getFirst() && sel.getSecond()==this.tmpSelContact.getSecond()){
+				if (sel.getFirst()==iNum && sel.getSecond()==jNum){
 					index = count; 
 					break;
 				}
@@ -2642,6 +2915,37 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}			
 		}
 	
+		return index;
+	}
+	
+
+	@SuppressWarnings("unused")
+	private boolean contactElemOfSelContacts(int iNum, int jNum){
+		boolean isElem = false;
+		Iterator<Pair<Integer>> itrC = this.selContacts.iterator(); // holds residue numbers for each contact Pair(iNum, jNum)
+		while (itrC.hasNext()){
+			Pair<Integer> contact = itrC.next();
+			int iNumber = contact.getFirst();
+			int jNumber = contact.getSecond();
+			if (iNumber==iNum && jNumber==jNum)
+				isElem = true;
+		}
+		return isElem;
+	}
+	
+	private int contactElemOfSettings(int iNum, int jNum){
+		int index = -1;
+		int count = 0;
+		Iterator<String[]> itrS = this.settings.iterator(); // holds settings for each contact Pair(iNum, jNum)
+		while (itrS.hasNext()){
+			String[] set = itrS.next();
+			int iNumber = Integer.valueOf(set[0]);
+			int jNumber = Integer.valueOf(set[1]);
+			if (iNumber==iNum && jNumber==jNum){
+				index = count; break;
+			}
+			count++;
+		}
 		return index;
 	}
 	
@@ -2773,7 +3077,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * Repaint the screen buffer because something in the underlying data has
 	 * changed.
 	 */
-	private synchronized void updateScreenBuffer() {
+	public synchronized void updateScreenBuffer() {
 
 		if(screenBuffer == null) {
 			screenBuffer = new ScreenBuffer(this);
@@ -2821,6 +3125,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		if (this.clusterDirProp!=null)
 			drawEdgeCluster(g2d);
+		if (this.clusterProp!=null)
+			drawClusterBoundaries(g2d);
 
 		repaint();
 	}
@@ -2854,8 +3160,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	public void setStatusBar(ContactStatusBar statusBar) {
 		this.contStatBar = statusBar;	
-		if (contStatBar!= null)
-			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);	
+//		if (contStatBar!= null)
+//			this.contStatBar.setSetOfOptStrings(this.setOfOptStrings);	
 	}
 	public ContactStatusBar getSatusBar(){
 		return this.contStatBar;
@@ -2919,6 +3225,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 
 	public void setRemoveOutliers(boolean removeOutliers) {
 		this.removeOutliers = removeOutliers;
+		updateScreenBuffer();
+	}
+	
+	public void setShowResInfo(boolean show){
+		this.showResInfo = show;
+		this.updateScreenBuffer();
+	}
+	
+	public void setPaintCentralResidue(boolean show){
+		this.paintCentralResidue = show;
+		this.updateScreenBuffer();
 	}
 
 	public double getMinAllowedRat() {
@@ -3190,16 +3507,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						System.out.println("mouseReleased "+this.tmpLambdaRange.getFirst()+"-"+this.tmpLambdaRange.getSecond()
 								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
 						if (valid){
-							int index = checkForSelectedRanges();
-							if (index>-1){
-								this.lambdaRanges.removeElementAt(index);
-								this.phiRanges.removeElementAt(index);
-								this.selContacts.removeElementAt(index);												
-							}
-							this.lambdaRanges.add(this.tmpLambdaRange);
-							this.phiRanges.add(this.tmpPhiRange);
-							this.selContacts.add(this.tmpSelContact);
+							updateSelections();
+//							int index = checkForSelectedRanges();
+//							if (index>-1){
+//								this.lambdaRanges.removeElementAt(index);
+//								this.phiRanges.removeElementAt(index);
+//								this.selContacts.removeElementAt(index);												
+//							}
+//							this.lambdaRanges.add(this.tmpLambdaRange);
+//							this.phiRanges.add(this.tmpPhiRange);
+//							this.selContacts.add(this.tmpSelContact);
 							updateAngleRange();	
+							commitSettings();
 							System.out.println("mouseReleased pos valid");					
 						}
 					}				
@@ -3221,24 +3540,24 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						valid = true;
 					if (valid){
 						// use min and max values of chosen cluster
-						double rangeBorder = 0.05;
+						double rangeBorder = 0; //0.05;
 						double lS = this.clusterProp[index-1][0]+Math.PI-rangeBorder, lE = this.clusterProp[index-1][2]+Math.PI+rangeBorder;
 						double pS = this.clusterProp[index-1][3]-rangeBorder, pE = this.clusterProp[index-1][5]+rangeBorder; 
 						this.tmpLambdaRange = new Pair<Double>(lS, lE);
 						this.tmpPhiRange = new Pair<Double>(pS, pE);						
 						System.out.println("clusterBasedSelectedRange "+this.tmpLambdaRange.getFirst()+"-"+this.tmpLambdaRange.getSecond()
 								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
-						
-						int oldIndex = checkForSelectedRanges();
-						if (oldIndex>-1){
-							this.lambdaRanges.removeElementAt(oldIndex);
-							this.phiRanges.removeElementAt(oldIndex);
-							this.selContacts.removeElementAt(oldIndex);												
-						}
-
-						this.lambdaRanges.add(this.tmpLambdaRange);
-						this.phiRanges.add(this.tmpPhiRange);
-						this.selContacts.add(this.tmpSelContact);
+						updateSelections();
+//						int oldIndex = checkForSelectedRanges();
+//						if (oldIndex>-1){
+//							this.lambdaRanges.removeElementAt(oldIndex);
+//							this.phiRanges.removeElementAt(oldIndex);
+//							this.selContacts.removeElementAt(oldIndex);												
+//						}
+//						this.lambdaRanges.add(this.tmpLambdaRange);
+//						this.phiRanges.add(this.tmpPhiRange);
+//						this.selContacts.add(this.tmpSelContact);
+						commitSettings();
 						updateAngleRange();	
 					}
 					System.out.println("Chosen cluster: "+index);

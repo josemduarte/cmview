@@ -92,7 +92,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private ButtonGroup projButtonGroup; 
 	private JComboBox projCBox;
 	private JButton nbhsButton;
-	private JTextField maxNumTraces;
+	private JTextField maxNumTracesField;
 	private JComboBox nbsCBox;
 	private JTextField epsilonField;
 	private JTextField minNumNBsField;
@@ -108,10 +108,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private int maxNumNBHStraces = 50;
 	private String actNBHString = "";
 	private String[] setOfOptStrings;
-	private int chosenString = 0;
+	private int chosenStringID = 0;
 	private int epsilon = 5;
 	private int minNumNBs = 10;
-	
+
 	private final int minSlVal = (int) (radiusThresholds[0]*10);
 	private final int maxSlVal = (int) (radiusThresholds[radiusThresholds.length-1]*10);			
 	
@@ -568,12 +568,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		nbhsButton.setPreferredSize(new Dimension(nbhsSelPanel.getPreferredSize().width, nbhsButton.getSize().height));
 		nbhsButton.addActionListener(this);
 				
-		maxNumTraces = new JTextField(String.valueOf(this.maxNumNBHStraces));
-		maxNumTraces.setEnabled(true);
-		maxNumTraces.setMinimumSize(new Dimension(30, 10));
-		maxNumTraces.setPreferredSize(new Dimension(50, 20));
-		maxNumTraces.setMaximumSize(new Dimension(50, 20));
-		maxNumTraces.addActionListener(this);
+		maxNumTracesField = new JTextField(String.valueOf(this.maxNumNBHStraces));
+		maxNumTracesField.setEnabled(true);
+		maxNumTracesField.setMinimumSize(new Dimension(30, 10));
+		maxNumTracesField.setPreferredSize(new Dimension(50, 20));
+		maxNumTracesField.setMaximumSize(new Dimension(50, 20));
+		maxNumTracesField.addActionListener(this);
 		JLabel maxLabel = new JLabel("max#=  ");
 		
 		String[] optStrings = new String[this.setOfOptStrings.length+1];
@@ -584,12 +584,12 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			System.out.println(optStrings[i]);
 		}
 		nbsCBox = new JComboBox(optStrings);
-		nbsCBox.setSelectedItem(chosenString);
+		nbsCBox.setSelectedItem(chosenStringID);
 		nbsCBox.addActionListener(this);
 		
 		nbhsLinePanel.add(nbhsSelPanel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
-		maxLinePanel.add(maxNumTraces, BorderLayout.LINE_END);
+		maxLinePanel.add(maxNumTracesField, BorderLayout.LINE_END);
 		optStringLinePanel.add(nbsCBox, BorderLayout.LINE_START);
 		buttonLinePanel.add(nbhsButton, BorderLayout.LINE_START);
 
@@ -774,10 +774,14 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //			controller.handleChangeShowColourScale(this.chosenColourScale);
 			System.out.println(this.colorCBox.getSelectedItem()+"  "+this.colorCBox.getSelectedIndex());
 		}
-		if (e.getSource()==this.minRatioField || e.getSource()==this.maxRatioField){
+		if (e.getSource()==this.minRatioField){
 			this.minAllowedRatio = Double.valueOf(minRatioField.getText());
+			controller.handleChangeOutlierThresholds(this.minAllowedRatio, 0);
+			System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);			
+		}
+		if (e.getSource()==this.maxRatioField){
 			this.maxAllowedRatio = Double.valueOf(maxRatioField.getText());
-			controller.handleChangeOutlierThresholds(this.minAllowedRatio, this.maxAllowedRatio);
+			controller.handleChangeOutlierThresholds(this.maxAllowedRatio, 1);
 			System.out.println("Thresholds: "+this.minAllowedRatio+" : "+this.maxAllowedRatio);			
 		}
 		if (e.getSource()==this.cylProjRadioButton || e.getSource()==this.pseudoCylProjRadioButton || e.getSource()==this.azimuthProjRadioButton){
@@ -799,23 +803,25 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 			controller.handleChangeShowColourScale(this.chosenColourScale);			
 		}
 		if (e.getSource() == this.nbsCBox){
-			this.chosenString = this.nbsCBox.getSelectedIndex();
-			if (this.chosenString==0)
-				this.actNBHString = this.nbhsSelPanel.getActNbhString();
-			else
-				this.actNBHString = this.setOfOptStrings[this.chosenString-1];
-			System.out.println("String changed to :"+this.actNBHString);
-			// ToDo: update nbhs-print in nbhsSelPanel
-			if (this.nbhsSelPanel.getActNbhString()!=this.actNBHString){
-				this.nbhsSelPanel.setActNbhString(this.actNBHString);
-				controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces);
+			if (this.nbsCBox.getSelectedIndex()>-1){
+				this.chosenStringID = this.nbsCBox.getSelectedIndex();
+				if (this.chosenStringID==0)
+					this.actNBHString = this.nbhsSelPanel.getActNbhString();
+				else
+					this.actNBHString = this.setOfOptStrings[this.chosenStringID-1];
+				System.out.println("String changed to :"+this.actNBHString);
+				// ToDo: update nbhs-print in nbhsSelPanel
+				if (this.nbhsSelPanel.getActNbhString()!=this.actNBHString){
+					this.nbhsSelPanel.setActNbhString(this.actNBHString);
+					controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces);
+				}				
 			}
 		}
 		if (e.getSource() == this.nbhsButton){
 //			boolean maxNumChanged = false;
 //			boolean stringChanged = false;
-			if (Integer.valueOf(this.maxNumTraces.getText()) != this.maxNumNBHStraces){
-				this.maxNumNBHStraces = Integer.valueOf(this.maxNumTraces.getText());
+			if (Integer.valueOf(this.maxNumTracesField.getText()) != this.maxNumNBHStraces){
+				this.maxNumNBHStraces = Integer.valueOf(this.maxNumTracesField.getText());
 //				maxNumChanged = true;
 			}
 			if (this.nbhsSelPanel.getActNbhString() != this.actNBHString){
@@ -918,11 +924,68 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 
 	public void setSetOfOptStrings(String[] setOfOptStrings) {
 		this.setOfOptStrings = setOfOptStrings;
+		String[] optStrings = new String[this.setOfOptStrings.length+1];
+		System.arraycopy(setOfOptStrings, 0, optStrings, 1, setOfOptStrings.length);
+		optStrings[0] = "*";
+		System.out.println("optStrings:");
+		for (int i=0; i<optStrings.length; i++){
+			System.out.println(optStrings[i]);
+		}
+		nbsCBox.removeAllItems();
+		for (int i=0; i<optStrings.length; i++)
+			nbsCBox.addItem(optStrings[i]);
+//		nbsCBox = new JComboBox(optStrings);
+//		nbsCBox.setSelectedItem(chosenStringID);
+//		nbsCBox.addActionListener(this);
 	}
 
-	public void setChosenString(int chosenString) {
-		this.chosenString = chosenString;
-		this.nbsCBox.setSelectedIndex(this.chosenString);
+	public void setChosenStringID(int chosenStringID) {
+		if (chosenStringID>=0 && chosenStringID<this.setOfOptStrings.length)
+			this.chosenStringID = chosenStringID;
+		else
+			this.chosenStringID = 0;
+		this.nbsCBox.setSelectedIndex(this.chosenStringID);
+		if (this.chosenStringID==0)
+			this.actNBHString = this.controller.cPane.getNbhString();
+		else
+			this.actNBHString = this.setOfOptStrings[this.chosenStringID-1];		
+		if (this.actNBHString != this.nbhsSelPanel.getActNbhString())
+			this.nbhsSelPanel.setActNbhString(this.actNBHString);		
+		
+	}
+	
+	public int getChosenStringID(){
+		return this.chosenStringID;
+	}
+
+	public void setEpsilon(int epsilon) {
+		this.epsilon = epsilon;
+		this.epsilonField.setText(String.valueOf(this.epsilon));
+	}
+	
+	public void setMinNumNBs(int minNumNBs) {
+		this.minNumNBs = minNumNBs;
+		this.minNumNBsField.setText(String.valueOf(this.minNumNBs));
+	}
+
+	public void setMaxNumTraces(int maxNumTraces) {
+		this.maxNumNBHStraces = maxNumTraces;
+		this.maxNumTracesField.setText(String.valueOf(this.maxNumNBHStraces));
+	}
+
+	public void setRemoveOutliers(boolean removeOutliers) {
+		this.removeOutliers = removeOutliers;
+		this.remOutliersButton.setSelected(this.removeOutliers);
+	}
+
+	public void setMinAllowedRatio(double minAllowedRatio) {
+		this.minAllowedRatio = minAllowedRatio;
+		this.minRatioField.setText(String.valueOf(this.minAllowedRatio));
+	}
+
+	public void setMaxAllowedRatio(double maxAllowedRatio) {
+		this.maxAllowedRatio = maxAllowedRatio;
+		this.maxRatioField.setText(String.valueOf(this.maxAllowedRatio));
 	}
 
 

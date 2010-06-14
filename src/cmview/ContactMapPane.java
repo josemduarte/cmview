@@ -1259,16 +1259,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// only if release after left click (BUTTON1)
 		if (evt.getButton()==MouseEvent.BUTTON1) {
 			
-			if (view.contView != null){
+			if (view.contView!=null && view.contView.isDisplayable()){ // view.contView==null if closed?
 				Pair<Integer> c = screen2cm(mousePressedPos); 
 				System.out.println("CMPane MouseReleased first:"+c.getFirst()+"  second:"+c.getSecond());
+				view.contView.cPane.commitSettings();
 				view.contView.cPane.calcSphoxelParam(c);
+				view.contView.cPane.calcTracesParam();
 				try {
 					view.contView.cPane.recalcSphoxel();
+					view.contView.cPane.recalcTraces(true);
+					view.contView.cPane.recalcOptNBHStrings();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				view.contView.cPane.updateSettings();
 			}
 
 			switch (view.getGUIState().getSelectionMode()) {
