@@ -571,6 +571,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.jSSType = CMPdb_sphoxel.AnySStype;
 //		System.out.println("j secStrucElement: "+this.jSSType);	
 		
+//		this.iRes = 'A';
+//		this.jRes = 'G';
+//		this.iSSType = SecStrucElement.STRAND;
 	}
 	
 	private void setSphoxelParam(){
@@ -911,15 +914,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.minMaxAverT4SelAngleRange.add(averLambda);
 		this.minMaxAverT4SelAngleRange.add(averPhi);
 		tMin =0;
-//		switch (jSSTypeID){
-//		case 0: // 'H'
-////			col = (Color.magenta); break;
-//		case 1: // 'S'
-////			col = (Color.yellow); break;
-//		case 2: // 'O'
-////			col = (Color.cyan); break;
-//		case 3: // 'A'
-//		}
 	}
 	
 	public void calcHistOfSphoxelMap(){
@@ -1686,27 +1680,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				// --- put central residue to central screen position (always in centre of view) 
 				if (!useGeodesic){
 					// --- straight line
-					drawNBHSEdge(g2d, lambdaRad, phiRad, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
-					drawNBHSEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaRadNB, phiRadNB);						
+					drawNBHSDirectEdge(g2d, lambdaRad, phiRad, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
+					drawNBHSDirectEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaRadNB, phiRadNB);	
+//					drawNBHSEdge(g2d, lambdaRad, phiRad, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
+//					drawNBHSEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaRadNB, phiRadNB);						
 				}
 				else {
 					// --- draw geodesics
 					drawNBHSGeodesicEdge(g2d, lambdaRad, phiRad, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
-					drawNBHSGeodesicEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaRadNB, phiRadNB);						
+					drawNBHSGeodesicEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaRadNB, phiRadNB);					
 				}
 			}
 			else {
 				if (!useGeodesic)
-					drawNBHSEdge(g2d, lambdaRad, phiRad, lambdaRadNB, phiRadNB);
+					drawNBHSDirectEdge(g2d, lambdaRad, phiRad, lambdaRadNB, phiRadNB);
+//					drawNBHSEdge(g2d, lambdaRad, phiRad, lambdaRadNB, phiRadNB);
 				else 
 					drawNBHSGeodesicEdge(g2d, lambdaRad, phiRad, lambdaRadNB, phiRadNB);
 			}	
 
 			nodeID++;
-		}		
+		}	
 	}
 	
-	private void drawNBHSGeodesicEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
+	@SuppressWarnings("unused")
+	private void drawNBHSDirectEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
 		// line equation:   y = ((y2-y1)/(x2-x1))*(x-x1) + y1;
 		double l, p, lE=0, pE=0, dL = 0.1;
 		if (lambdaRad>lambdaRadNB) { // swap
@@ -1737,6 +1735,123 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		drawNBHSEdge(g2d, l, p, lE, pE);
 	}
 	
+	/**
+	  Computes and draw Geodesic between two different points on sphere.
+	  @param g2d
+	  @param lambdaRad ellipsoidal longitude (in rad:[0:2Pi]) of first point
+	  @param phiRad ellipsoidal latitude (in rad:[0:Pi]) of first point
+	  @param lambdaRadNB ellipsoidal longitude (in rad[0:2Pi]) of second point
+	  @param phiRadNB ellipsoidal latitude (in rad[0:Pi]) of second point
+	  */
+	private void drawNBHSGeodesicEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
+//		System.out.println();
+//		System.out.println("phi1rad="+phiRad+" phi2rad="+phiRadNB+" lam1rad="+lambdaRad+" lam2rad="+lambdaRadNB);
+		phiRad -= (Math.PI/2);
+		phiRadNB -= (Math.PI/2);
+		int factor = 1;
+		if (lambdaRad>lambdaRadNB) {
+			double help = phiRad;
+			phiRad = phiRadNB;
+			phiRadNB = help;
+			help = lambdaRad;
+			lambdaRad = lambdaRadNB;
+			lambdaRadNB = help;
+		}
+//		System.out.println("phi1rad="+phiRad+" phi2rad="+phiRadNB+" lam1rad="+lambdaRad+" lam2rad="+lambdaRadNB);
+		if (phiRad>phiRadNB)
+			factor *= -1;
+		double dLambda = Math.abs(lambdaRad-lambdaRadNB); // lambdaRadNB-lambdaRad; // or other way round?
+	    Ellipsoid ell = Ellipsoid.BESSEL;
+	    Geodesic gTest = new Geodesic(ell, phiRad, phiRadNB, lambdaRadNB-lambdaRad);
+	    double stepSize = 0.05; //5.72degree //(phi2rad-phi1rad)/steps;
+	    int numSteps = (int) (Math.abs(phiRad-phiRadNB)/stepSize);
+	    double lS, pS, lE, pE, dL;
+	    double dLS, dLE;
+	    double corrFacL = 0;
+//	    System.out.println("Edge");
+
+	    pS = phiRad;
+	    dLS = gTest.Lambda(pS);
+	    pE = phiRadNB;
+	    dLE = gTest.Lambda(pE);
+//	    System.out.println(Math.abs(dLS-dLE)+" =? "+dLambda);
+	    
+	    pS = phiRad;
+	    dL = (gTest.Lambda(pS));
+	    lS = getLambdaOfGeod(dL, phiRad, phiRadNB, lambdaRad, lambdaRadNB, dLambda, dLS, dLE);
+//    	System.out.println((pS+(Math.PI/2)) +" -> "+gTest.Lambda(pS)+" -> "+lS+" -> "+lS+"=?"+lambdaRad);
+    	if (lS<lambdaRad)
+    		corrFacL = lambdaRad-lS;
+    	else if (lS>lambdaRad)
+    		corrFacL = -(lS-lambdaRad);
+//    	System.out.println((lS+corrFacL)+"=?"+lambdaRad);
+	    lS = lambdaRad;
+    	pE = pS + (factor*stepSize);
+	    dL = (gTest.Lambda(pE));	    
+	    lE = getLambdaOfGeod(dL, phiRad, phiRadNB, lambdaRad, lambdaRadNB, dLambda, dLS, dLE);
+	    lE+=corrFacL;
+
+	    for (int i=0; i<numSteps; i++){
+	    	if ((factor==1 && pE<phiRadNB) || (factor==-1 && pE>phiRadNB)){
+//		    	System.out.println(pE +" -> "+(lE-lambdaRad)+" -> "+lE);
+//		    	System.out.println((pE+(Math.PI/2)) +" -> "+gTest.Lambda(pE)+" -> "+(lE-corrFacL)+" -> "+lE);
+		    	drawNBHSEdge(g2d, lS, pS+(Math.PI/2), lE, pE+(Math.PI/2));
+		    	pS = pE;
+		    	lS = lE;
+			    pE = pS + (factor*stepSize);
+			    dL = (gTest.Lambda(pE));
+			    lE = getLambdaOfGeod(dL, phiRad, phiRadNB, lambdaRad, lambdaRadNB, dLambda, dLS, dLE);
+			    lE+=corrFacL;
+	    	}
+	    }
+	    pE = phiRadNB;
+	    dL = (gTest.Lambda(pE));
+	    lE = getLambdaOfGeod(dL, phiRad, phiRadNB, lambdaRad, lambdaRadNB, dLambda, dLS, dLE);
+	    lE+=corrFacL;
+//    	System.out.println((pE+(Math.PI/2)) +" -> "+gTest.Lambda(pE)+" -> "+(lE-corrFacL)+" -> "+lE+"=?"+lambdaRadNB);
+    	lE = lambdaRadNB;
+	    drawNBHSEdge(g2d, lS, pS+(Math.PI/2), lE, pE+(Math.PI/2));
+	}
+	
+	private double getLambdaOfGeod(double dL, double p1, double p2, double l1, double l2, double dLambda, double dLS, double dLE){		
+		double l=0;
+		boolean swap = false;
+		int factor = 1;
+	    double dLGeod = Math.abs(dLS-dLE);
+		if (Math.abs(dLambda-dLGeod) > Math.PI)
+			swap = true;
+		double scale = 1.0;
+		if (!swap && dLGeod>0)
+			scale = dLambda/dLGeod;
+//		dL = scale*dL;
+		if (p1<0 && p2<0){
+			if (swap)
+				factor *= -1;
+			if (p1<p2)
+				l = l2 - factor*scale*(Math.abs(dL));
+			else //if (p1>p2)
+				l = l1 + factor*scale*(Math.abs(dL));
+		}
+		else if (p1<0 || p2<0){			
+			if (swap)
+				factor *= -1;
+			if (p1<p2)
+				l = l1 + factor*scale*((dL)); //l = l1 + factor*scale*(Math.abs(dL)+corrFacL);
+			else //if (p1>p2)
+				l = l2 - factor*scale*((dL));	//l = l2 - factor*scale*(Math.abs(dL)+corrFacL);			
+		}
+		else { // if (p1>0 && p2>0)			
+			if (swap)
+				factor *= -1;
+			if (p1<p2)
+				l = l1 + factor*scale*(Math.abs(dL));
+			else //if (p1>p2)
+				l = l2 - factor*scale*(Math.abs(dL));			
+		}
+		return l;
+	}
+
+	
 	/* Lambda[0:2Pi], Phi[0:Pi]
 	 * */
 	private boolean wrapEdge(double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
@@ -1763,6 +1878,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void drawNBHSEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
 		Shape line = null;
 		double xPos, yPos, xPosNB=0, yPosNB=0;
+		// check for correct range
+		if (lambdaRad<0)
+			lambdaRad+=(2*Math.PI);
+		if (lambdaRadNB<0)
+			lambdaRadNB+=(2*Math.PI);
+		if (lambdaRad>2*Math.PI)
+			lambdaRad-=(2*Math.PI);
+		if (lambdaRadNB>2*Math.PI)
+			lambdaRadNB-=(2*Math.PI);
+		
 		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
 		yPos = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
 		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
@@ -1936,7 +2061,46 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				lineID++;
 				nodeID = 0;
 			}		
-		}	
+		}
+		
+
+//		g2d.setStroke(longLatStroke);
+//		//drawNBHSGeodesicEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
+//		System.out.println("phi above equator phi<PI/2");
+////		drawNBHSGeodesicEdge(g2d, 0.5, 0.3, 1.5, 1.3);
+////		drawNBHSGeodesicEdge(g2d, 0.8, 0.5, 2.5, 1.5);
+////		drawNBHSGeodesicEdge(g2d, 2.0, 1.3, 3.5, 0.5);
+////		drawNBHSGeodesicEdge(g2d, 3.0, 1.0, 5.5, 0.2);
+////		drawNBHSGeodesicEdge(g2d, 0.5, 1.5, 5.5, 0.5);
+//		g2d.setColor(Color.cyan);
+//		System.out.println("phi above and below equator phi<>PI/2");
+////		drawNBHSGeodesicEdge(g2d, 0.5, 1.3, 1.5, 2.5);
+////		drawNBHSGeodesicEdge(g2d, 0.8, 1.1, 2.5, 2.8);
+////		drawNBHSGeodesicEdge(g2d, 2.0, 2.5, 3.5, 1.2);
+////		drawNBHSGeodesicEdge(g2d, 3.0, 3.1, 5.5, 1.1);
+////		drawNBHSGeodesicEdge(g2d, 0.5, 1.1, 5.5, 2.5);
+////		drawNBHSGeodesicEdge(g2d, 0.0, 2.0, 0.5, 3.0);
+////		drawNBHSGeodesicEdge(g2d, 0.0, 3.0, 0.5, 2.0);
+//		g2d.setColor(Color.green);
+//		System.out.println("phi below equator phi>PI/2");
+////		drawNBHSGeodesicEdge(g2d, 0.5, 1.9, 1.5, 3.0);
+////		drawNBHSGeodesicEdge(g2d, 0.8, 2.0, 2.5, 2.8);
+////		drawNBHSGeodesicEdge(g2d, 2.0, 3.0, 3.5, 2.0);
+////		drawNBHSGeodesicEdge(g2d, 3.0, 2.8, 5.5, 1.8);
+////		drawNBHSGeodesicEdge(g2d, 0.5, 2.0, 5.5, 2.9);
+//		
+//		g2d.setColor(Color.red);
+//		drawNBHSGeodesicEdge(g2d, 3.5, 1.3, 3.5, 2.5);
+//		drawNBHSGeodesicEdge(g2d, 1.5, 0.8, 1.5, 1.4);
+//		drawNBHSGeodesicEdge(g2d, 5.0, 1.8, 5.0, 2.5);
+//		drawNBHSGeodesicEdge(g2d, 0.0, 1.5, 1.5, 1.5);
+//		
+//		
+//////		drawNBHSGeodesicEdge(g2d, 0.0, 1.2, 1.0, 1.2);
+//////		drawNBHSGeodesicEdge(g2d, 0.5, 0.5, 0.5, 1.5);
+////		g2d.setColor(Color.green);
+////		drawNBHSGeodesicEdge(g2d, 0.0, 1.5, 0.5, 0.5);
+//		g2d.setStroke(defaultBasicStroke);
 		
 	}
 	
