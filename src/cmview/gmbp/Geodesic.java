@@ -60,8 +60,8 @@ public class Geodesic {
 		 @return the mapping latitude v in radians
 		 */		  
 	  public double beta2v(double beta){
-          if(beta > betamax() || beta < -betamax())
-        	  System.out.println("beta2v "+" invalid beta="+beta+" rad"+" betaMax="+betamax());
+//          if(beta > betamax() || beta < -betamax())
+//        	  System.out.println("beta2v "+" invalid beta="+beta+" rad"+" betaMax="+betamax());
 //                  throw new Msg("beta2v","invalid beta="+beta+" rad");
           return(Math.asin(Math.sin(beta)/Math.sqrt(1.-h()*h())));
 	  }
