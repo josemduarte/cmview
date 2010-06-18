@@ -18,6 +18,7 @@ import owl.core.structure.PdbLoadError;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGCommonNbhood;
 import owl.core.structure.graphs.RIGEdge;
+import owl.core.structure.graphs.RIGGeometry;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
 import owl.core.structure.graphs.RIGraph;
@@ -63,6 +64,9 @@ public abstract class Model {
 									// temporary changes are applied.
 									// Currently used for discretization of
 									// weighted contact maps.
+	protected RIGGeometry graphGeom; // based on graph of loaded pdb-file  
+									// geometries (translated and rotated contacts) 
+									// are computed and saved within HashMap<Integer[],Vector3d> for each edge
 	protected boolean isGraphWeighted;	// whether the graph is weighted
 									// initialized on load, changed only when
 									// graph is discretized.

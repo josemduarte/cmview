@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import owl.core.structure.*;
 import owl.core.structure.graphs.RIGEnsemble;
+import owl.core.structure.graphs.RIGGeometry;
 import cmview.Start;
 
 
@@ -79,6 +80,10 @@ public class PdbFileModel extends Model {
 					throw new ModelConstructionError("Error loading ensemble graph: " + e1.getMessage());
 				}
 			}
+			
+			// this.graph and this.residues are now available
+			//TODO 4Corinna compute graph geometry and hand it over to ContactView
+			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
 
 			// assign a loadedGraphId to this model
 			String name = DEFAULT_LOADEDGRAPHID;
