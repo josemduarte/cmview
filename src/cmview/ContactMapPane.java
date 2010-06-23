@@ -28,6 +28,7 @@ import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGCommonNbhood;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
+import owl.core.structure.scoring.ResidueContactScoringFunction;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
 
@@ -832,6 +833,36 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 	}
 	
+
+	/**
+	 * @param g2d
+	 */
+	private void drawResidueScoringFunctionMap(Graphics2D g2d, boolean bottom) {
+		// assuming that delta Rank matrix has values from [-38,38], -100 indicates no data 
+		Color c;
+		double v;
+		int size = this.contactMapSize;
+		for(int i = 0; i < size; i++) {
+			for(int j = i; j < size; j++) {
+				String fn = view.getGUIState().getResidueScoringFunctionName(bottom);
+				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+				v = f.getScore(i, j);
+				if (v == -1) {
+					c= backgroundColor;
+				} else {
+					c = colorMapScaledHeatmap(v,0.5);
+				}
+				System.out.println(v);
+				if(!c.equals(backgroundColor)) {
+					g2d.setColor(c);
+					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
+					drawContact(g2d, cont, bottom);
+				}
+			}
+		}
+	}
+	
+	
 	private void drawDiffDistMap(Graphics2D g2d, boolean secondMap) {
 		// this actually contains all cells in matrix so is doing a
 		// full loop on all cells
@@ -1526,6 +1557,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawDeltaRankMap(g2d, false);
 		}
 		
+		if(view.getGUIState().getShowResidueScoringMap()) {
+			drawResidueScoringFunctionMap(g2d,false);
+		}
+		
 		// common nbh sizes or contact map
 		if (view.getGUIState().getShowNbhSizeMap()){
 			drawNbhSizeMap(g2d, false);
@@ -1549,6 +1584,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// Delta Rank Map
 		if(view.getGUIState().getShowBottomDeltaRankMap()) {
 			drawDeltaRankMap(g2d, true);
+		}
+		
+		if(view.getGUIState().getShowBottomResidueScoringMap()) {
+			drawResidueScoringFunctionMap(g2d,true);
 		}
 		
 		// common nbh sizes or contact map
@@ -2068,7 +2107,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 	}
-
+	
 
 	/**
 	 * Show/hide distance map TODO: Make this work the same as density map/nbh
@@ -2756,6 +2795,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		  float tmp = Math.round(Rval);
 		  return (float)tmp/p;
 	}
+
+
 
 
 } 

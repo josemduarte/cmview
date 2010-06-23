@@ -29,6 +29,9 @@ public class GUIState {
 	private boolean showNbhSizeMap;		// whether showing the common neighbourhood size map is switched on 
 	private boolean showDensityMap;		// whether showing the density map is switched on
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
+	private boolean showResidueScoringMap; // whether one of the generic residue scoring function maps is switched on
+	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
+	private boolean showDeltaRankMap; 	// whether showing the delta rank map is switched on
 	
 	// Maps for the bottom-left contact map background
 	
@@ -37,6 +40,10 @@ public class GUIState {
 	private boolean showBottomDistanceMap;
 	private boolean showBottomDeltaRankMap;
 	private boolean showBottomDiffDistMap;
+	private boolean showBottomResidueScoringMap;
+	
+	private String bottomResidueScoringFunctionName;
+	private String residueScoringFunctionName;
 	
 	// compare mode
 	private boolean compareMode;		// whether we are in pairwise comparison mode (i.e. a second structure has been loaded)
@@ -44,8 +51,6 @@ public class GUIState {
 	private boolean showCommon;			// when true, common contacts displayed in compare mode (and selections are only for common)
 	private boolean showFirst; 			// when true, contacts unique to first structure displayed in compare mode (and selections are only for first)
 	private boolean showSecond; 		// when true, contacts unique to second structure displayed in compare mode (and selections are only for second)
-	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
-	private boolean showDeltaRankMap; 	// whether showing the delta rank map is switched on
 	/*----------------------------- constructors ----------------------------*/
 	
 	/**
@@ -68,13 +73,14 @@ public class GUIState {
 		this.showSecond= true;
 		this.showDiffDistMap = false;
 		this.showDeltaRankMap = false;
+		this.showResidueScoringMap = false;
 		
 		this.showBottomNbhSizeMap = false;
 		this.showBottomDensityMap = false;
 		this.showBottomDistanceMap = false;
 		this.showBottomDiffDistMap = false;
 		this.showBottomDeltaRankMap = false;
-		
+		this.showBottomResidueScoringMap = false;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -155,6 +161,22 @@ public class GUIState {
 	
 	protected boolean getShowBottomDistanceMap() {
 		return showBottomDistanceMap;
+	}
+	
+	/**
+	 * @return indicates whether a generic residueScoringFunctionMap is shown in the first background 
+	 */
+	
+	protected boolean getShowResidueScoringMap() {
+		return showResidueScoringMap;
+	}
+	
+	/**
+	 * @return indicates whether a generic residueScoringFunctionMap is shown in the second background 
+	 */
+	
+	protected boolean getShowBottomResidueScoringMap() {
+		return showBottomResidueScoringMap;
 	}
 	
 	/**
@@ -277,6 +299,14 @@ public class GUIState {
 		this.showBottomDistanceMap= b;
 	}
 	
+	protected void setShowResidueScoringMap(boolean b) {
+		this.showResidueScoringMap = b;
+	}
+	
+	protected void setShowBottomResidueScoringMap(boolean b) {
+		this.showBottomResidueScoringMap = b;
+	}
+	
 	/**
 	 * @param compareMode the compareMode to set
 	 */
@@ -334,10 +364,26 @@ public class GUIState {
 	}
 
 	public boolean getShowBackground() {
-		return showDeltaRankMap || showDensityMap || showDiffDistMap || showDistanceMap;
+		return showDeltaRankMap || showDensityMap || showDiffDistMap || showDistanceMap || showResidueScoringMap;
 	}
 	public boolean getShowBottomBackground() {
-		return showBottomDeltaRankMap || showBottomDensityMap || showBottomDiffDistMap || showBottomDistanceMap;
+		return showBottomDeltaRankMap || showBottomDensityMap || showBottomDiffDistMap || showBottomDistanceMap || showBottomResidueScoringMap;
+	}
+
+	public void setResidueScoringFunctionName(boolean bottom, String name) {
+		if (bottom) {
+			bottomResidueScoringFunctionName = name;
+		} else {
+			residueScoringFunctionName = name;
+		}
+	}
+	
+	public String getResidueScoringFunctionName(boolean bottom) {
+		if (bottom) {
+			return bottomResidueScoringFunctionName;
+		} else {
+			return residueScoringFunctionName;
+		}
 	}
 	
 }

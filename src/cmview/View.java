@@ -41,6 +41,7 @@ import owl.core.sequence.alignment.PairwiseSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
 import owl.core.structure.*;
 import owl.core.structure.features.SecondaryStructure;
+import owl.core.structure.scoring.ResidueContactScoringFunction;
 import owl.core.util.FileFormatError;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
@@ -2645,6 +2646,58 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+	private void handleShowResidueScoringMap(boolean secondView) {
+		if(mod == null) {
+			showNoContactMapWarning();
+			return;
+		}
+		
+		if(secondView) {
+			guiState.setShowBottomResidueScoringMap(!guiState.getShowBottomResidueScoringMap());
+			if (guiState.getShowBottomResidueScoringMap()) {
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				String fn = guiState.getResidueScoringFunctionName(secondView);
+				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		} else {
+			guiState.setShowResidueScoringMap(!guiState.getShowResidueScoringMap());
+			if (guiState.getShowResidueScoringMap()) {
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				String fn = guiState.getResidueScoringFunctionName(secondView);
+				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		}
+		
+		
+		cmPane.revalidate();
+		cmPane.updateScreenBuffer();
+	}
+	
+	private void updateScoringFunctions() {
+		if (guiState.getShowResidueScoringMap() || guiState.getShowBottomResidueScoringMap()) {
+			if (guiState.getShowResidueScoringMap()) {
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				String fn = guiState.getResidueScoringFunctionName(false);
+				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+				f.updateData(null,mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb());
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+			if (guiState.getShowBottomResidueScoringMap()) {
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+				String fn = guiState.getResidueScoringFunctionName(true);
+				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+				f.updateData(null,mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb());
+				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+			cmPane.revalidate();
+			cmPane.updateScreenBuffer();
+		}
+	}
+	
 	/**
 	 * 
 	 */
@@ -2992,6 +3045,7 @@ public class View extends JFrame implements ActionListener {
 			}
 			cmPane.resetSelections();
 			cmPane.reloadContacts();	// will update screen buffer and repaint
+			updateScoringFunctions();
 			updateTitle();
 		}
 	}
@@ -3008,6 +3062,7 @@ public class View extends JFrame implements ActionListener {
 		}
 		cmPane.resetSelections();
 		cmPane.reloadContacts();
+		updateScoringFunctions();
 		updateTitle();
 	}
 	
@@ -3503,7 +3558,14 @@ public class View extends JFrame implements ActionListener {
 			handleShowDeltaRankMap(secondView);
 		} else if (selectedItem == BgOverlayType.DIFF_DIST.getItem()) {
 			handleShowDiffDistMap(secondView);
+		} else {
+			this.guiState.setResidueScoringFunctionName(secondView, selectedItem.toString());
+			handleShowResidueScoringMap(secondView);
+			String x = selectedItem.toString();
+			System.out.println(x);
+
 		}
+		
 	}
 	
 	private void clearBackgrounds(boolean secondView) {
@@ -3523,6 +3585,9 @@ public class View extends JFrame implements ActionListener {
 			if(guiState.getShowBottomDiffDistMap()) {
 				handleShowDiffDistMap(secondView);
 			}
+			if(guiState.getShowBottomResidueScoringMap()) {
+				//handleShowResidueScoringMap(secondView);
+			}
 		} else {
 			if(guiState.getShowNbhSizeMap()) {
 				handleShowNbhSizeMap(secondView);
@@ -3539,11 +3604,10 @@ public class View extends JFrame implements ActionListener {
 			if(guiState.getShowDiffDistMap()) {
 				handleShowDiffDistMap(secondView);
 			}			
+			if(guiState.getShowResidueScoringMap()) {
+				//handleShowResidueScoringMap(secondView);
+			}
 		}
-		if (guiState.getShowBottomDeltaRankMap() && !guiState.getShowDeltaRankMap()) {
-			
-		}
-		
 	}
 	
 	/**

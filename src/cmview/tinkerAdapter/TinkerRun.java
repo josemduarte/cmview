@@ -40,6 +40,8 @@ public class TinkerRun implements Runnable {
 		if (parallel == TinkerRunner.PARALLEL.CLUSTER) {
 			runner.stop();
 		} 
+		
+		
 	}
 	
 	

@@ -20,6 +20,9 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import owl.core.structure.scoring.DRToThree;
+import owl.core.structure.scoring.ResidueContactScoringFunction;
+
 import cmview.datasources.Model;
 
 
@@ -62,6 +65,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	private int width = 182;						// width of this component, height matches contact map size
 	private int groupWidth = width - 20;			// width of information groups within StatusBar
 	
+	
 	// general members
 	private View controller; 						// controller which is notified as a response to gui actions
 	
@@ -93,6 +97,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	private JCheckBox l5checkBox;							// to choose length/5 contacts for discretization
 	private JButton discretizeButton;						// to permanently apply discretization
 	
+	private ResidueContactScoringFunction[] scoringFunctions = new ResidueContactScoringFunction[1];
 	/**
 	 * Initializes the status bar
 	 * @param controller the controller which is notified on gui actions in the status bar
@@ -100,6 +105,8 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	public StatusBar(View controller) {
 		
 		this.controller = controller;
+		
+		scoringFunctions[0] = new DRToThree();
 		
 		// init basic border layout
 		this.setLayout(new BorderLayout(0,0));
@@ -113,6 +120,15 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		initOverlayGroup();
 		initDeltaRankGroup();
 		initMultiModelGroup();	
+	}
+	
+	public ResidueContactScoringFunction getScoringFunctionWithName(String name) {
+		for (ResidueContactScoringFunction f : scoringFunctions) {
+			if (name == f.getMethodName()) {
+				return f;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -137,13 +153,19 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 			firstViewCB.addItem(t.getItem());
 			secondViewCB.addItem(t.getItem());
 		}
+		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
 			for (View.BgOverlayType t: viewOptions2) {
 				firstViewCB.addItem(t.getItem());
 				secondViewCB.addItem(t.getItem());
-			}			
+			}
+			for (ResidueContactScoringFunction f : scoringFunctions) {
+				firstViewCB.addItem(f.getMethodName());
+				secondViewCB.addItem(f.getMethodName());
+			}
 		}
+		
 		firstViewCB.setEditable(true); // this should actually be false, but we want the white background
 		secondViewCB.setEditable(true);
 		firstViewCB.setSize(150, 20);
@@ -287,6 +309,40 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 			if(show) calculateHistogram(mod);
 			this.multiModelGroup.setVisible(show);
 		}
+	}
+	
+	
+	/**
+	 * initializes controls for a generic residue scoring function background
+	 */
+	
+	public JPanel buildResidueScoringFunctionGroup(ResidueContactScoringFunction f) {
+		JPanel rfGroup = new JPanel();
+		rfGroup.setLayout(new BoxLayout(rfGroup,BoxLayout.PAGE_AXIS));
+		String title = f.getMethodName();
+		rfGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
+		JLabel rfLable = new JLabel(" ");
+		rfLable.setAlignmentX(CENTER_ALIGNMENT);
+		JButton addBestButton = new JButton("add best");
+		addBestButton.addActionListener(this);
+		addBestButton.setMaximumSize(new Dimension(120,50));
+		addBestButton.setAlignmentX(CENTER_ALIGNMENT);
+		JButton removeWorstButton = new JButton("remove worst");
+		removeWorstButton.setMaximumSize(new Dimension(120,50));
+		removeWorstButton.addActionListener(this);
+		removeWorstButton.setAlignmentX(CENTER_ALIGNMENT);
+		
+		rfGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));	// defines component width
+		rfGroup.add(rfLable);
+		rfGroup.add(Box.createRigidArea(new Dimension(0,10)));
+		rfGroup.add(addBestButton);
+		rfGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		rfGroup.add(removeWorstButton);
+		rfGroup.add(Box.createRigidArea(new Dimension(0,5)));
+		
+		// add group to StatusBar
+		rfGroup.setVisible(true);
+		return rfGroup;
 	}
 	
 	/**
@@ -482,5 +538,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	public void calculateHistogram(Model mod) {
 		this.histogramPanel.calculateHistogram(mod);
 	}
+	
+	
 	
 }

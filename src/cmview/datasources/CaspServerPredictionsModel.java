@@ -87,7 +87,6 @@ public class CaspServerPredictionsModel extends Model {
 		if(ssList != null && ssList.size() > 0) {
 			SecondaryStructure consensusSS = SecondaryStructure.getConsensusSecondaryStructure(seq, ssList, consensusSSthresh);
 			System.out.println("Consensus Secondary Structure:");
-			consensusSS.print();
 			this.setSecondaryStructure(consensusSS);
 		} else {
 			System.out.println("Consensus secondary structure not assigned");
