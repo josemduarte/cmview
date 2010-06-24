@@ -290,6 +290,11 @@ public abstract class Model {
 	public RIGraph getGraph() {
 		return this.graph;
 	}
+	
+	/** Returns the geometry object */
+	public RIGGeometry getGraphGeometry() {
+		return this.graphGeom;
+	}
 
 	/** Returns the number of contacts */
 	public int getNumberOfContacts() {

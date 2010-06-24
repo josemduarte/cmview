@@ -1311,6 +1311,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			case COMNBH:
 				Pair<Integer> c = screen2cm(mousePressedPos); 
 				this.currCommonNbh = mod.getCommonNbhood (mapAl2Seq(mod.getLoadedGraphID(),c.getFirst()),mapAl2Seq(mod.getLoadedGraphID(),c.getSecond()));
+				
 				dragging = false;
 				showCommonNbs = true;
 				this.repaint();
@@ -1398,6 +1399,16 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				return;
 
 			case NBH:
+
+				// Test output
+				Pair<Integer> cNB = screen2cm(mousePressedPos);
+				int iNum = cNB.getFirst();
+				RIGNode nodeI = this.mod.getNodeFromSerial(iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
+				System.out.println("ResidueNr:"+iNum+" "+nodeI.getResidueType()+" NB:"+this.mod.getGraph().getNbhood(nodeI).getNbString());
+				int jNum = cNB.getSecond();
+				RIGNode nodeJ = this.mod.getNodeFromSerial(jNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
+				System.out.println("ResidueNr:"+jNum+" "+nodeJ.getResidueType()+" NB:"+this.mod.getGraph().getNbhood(nodeJ).getNbString());
+				
 				dragging = false;
 				// resets selContacts when clicking mouse
 				if (!isControlDown(evt)){

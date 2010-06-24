@@ -23,6 +23,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -30,8 +31,10 @@ import java.util.zip.ZipFile;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.vecmath.Vector3d;
 
 import owl.core.structure.features.SecStrucElement;
+import owl.core.structure.graphs.RIGGeometry;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
 
@@ -155,12 +158,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
+	private int[] nbSerials;
 	private String origNBHString; 
-	private String jAtom = "CA";
+//	private String jAtom = "CA";
 	private char[] nbhsRes;
 	private int maxNumTraces;
+	private String atomType = "CA"; // 4traces: plot only atompositions of type atomtype
 
-	private String db = "bagler_all13p0_alledges";
+	private String db = "bagler_cb8p0_alledges"; //"bagler_all13p0_alledges";
 
 	// Sphoxel-Data
 	private CMPdb_sphoxel sphoxel;
@@ -191,6 +196,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private OptimalSingleEnv optNBHString;
 	private Vector<String[]> optNBHStrings;
 	private String[] setOfOptStrings;
+	
 	// Clustering Data
 	private int[] clusterIDs; // contains clusterID for each node of this.nbhsNodes
 	private double[][] clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
@@ -220,6 +226,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int chosenColourScale = ContactStatusBar.BLUERED;
 	
 	private boolean showResInfo = false;
+	private boolean showNBHStemplateTrace = false;
 	
 	private int epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
 	private int minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;
@@ -335,6 +342,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		System.out.println("outputsize= "+this.outputSize);
 	}
 	
+	/**
+	 Save so far chosen settings locally.
+	 */	
 	public void commitSettings(){
 		if (this.selContacts.size()>0){
 			String[] actSettings = {String.valueOf(this.iNum), String.valueOf(this.jNum), 
@@ -354,6 +364,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
+	/**
+	 Load settings if contact has been chosen before.
+	 */	
 	public void updateSettings(){
 		if (this.selContacts.size()>0){
 			int index = contactElemOfSettings(this.iNum, this.jNum);
@@ -388,6 +401,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
+	/**
+	 Set default settings (parameters).
+	 */	
 	private void setDefaultSettings(){
 		// set default settings
 		int stringID = 0;
@@ -405,6 +421,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		updateContactStatusBar(stringID);
 	}
 	
+	/**
+	 Handover all parameters to menu.
+	 @param stringID of actual chosen nbhString
+	 */	
 	private void updateContactStatusBar(int stringID){
 		// update contact status bar (menu)
 		if (contStatBar!= null){
@@ -419,10 +439,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}			
 	}
 	
+	/**
+	 Saves actual chosen range for lambda and phi for actual chosen contact.
+	 */	
 	private void updateSelections(){
 		updateSelections(this.iNum, this.jNum);
 	}
 	
+	/**
+	 Saves actual chosen range for lambda and phi for a certain contact.
+	 @param iNum of central residue
+	 @param jNum of contacting residue
+	 */	
 	private void updateSelections(int iNum, int jNum){
 		int index = checkForSelectedRanges(iNum, jNum);
 		if (index>-1){
@@ -435,6 +463,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.selContacts.add(this.tmpSelContact);
 	}
 
+	/**
+	 Hands over all defined angle ranges Gmbp class. 
+	 */	
 	private void updateAngleRange(){
 //		RIGEdge edge = this.mod.getGraph().getEdgeFromSerials(this.tmpSelContact.getFirst(), this.tmpSelContact.getSecond());		
 //		edge.setPhiPsi(this.tmpLambdaRange.getFirst(), this.tmpLambdaRange.getSecond(), this.tmpPhiRange.getFirst(), this.tmpPhiRange.getSecond());		
@@ -442,6 +473,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.mod.getGmbp().setPhiRanges(this.phiRanges);
 		this.mod.getGmbp().setSelContacts(this.selContacts);
 	}
+	
+	// ________ Update and compute all necessary parameters based on selected contact in CMap ___________
 	
 	public void updateQueryParam(int type){
 		switch (type){
@@ -459,7 +492,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcSphoxel();
 
 		calcTracesParam();	
-		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
+//		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
+		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.db);
 		setTracesParam();
 		calcNbhsTraces();	
 		this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
@@ -469,8 +503,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void calcTracesParam(){
 		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
 		System.out.println("Edge type: "+this.mod.edgeType);
-		this.jAtom = this.mod.edgeType.toUpperCase();
+//		this.jAtom = this.mod.edgeType.toUpperCase();
+		// Manual change jAtom --> bagler_cb8p0 or always CA
+		this.atomType = this.mod.getGraphGeometry().getAtomType(); //"CA";
+		
 		this.nbhString = nbhood.getNbString();
+		this.nbSerials = new int[nbhood.getSize()];
+		int cnt=0;
+		for (RIGNode node:nbhood.getNeighbors()){
+			int resSer = node.getResidueSerial();
+			this.nbSerials[cnt] = resSer;
+			cnt++;
+			System.out.print(resSer+"_"+node.getResidueType()+"\t");
+//			System.out.print(resSer+"_"+this.mod.getNodeFromSerial(resSer).getResidueType()+"\t");
+		}
+		System.out.println();
+		
 		this.nbhStringL = "%";
 		int count = 0;
 //		int indexOfX = 0;
@@ -487,28 +535,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.origNBHString = this.nbhString;
 		
 	}
-	
-//	private void computeNBHStringCombinations(int index, String s){
-//		String newS = s;
-//		if (this.nbhsRes[index] != 'x'){
-//			// this.nbhsRes[index] --> false
-//			if (index+1 >= this.nbhsRes.length)
-//				System.out.println("String: "+newS);
-//			else
-//				computeNBHStringCombinations(index+1, newS);			
-//		}
-//		// this.nbhsRes[index] --> true
-//		if (index+1 >= this.nbhsRes.length)
-//			System.out.println("String: "+newS);
-//		else
-//			computeNBHStringCombinations(index+1, newS+this.nbhsRes[index]);
-//	}
-//	
-//	private String[] computeNBHStringCombinations(String[] comb, int length){
-//		String[] newComb = new String[comb.length+1];
-//		
-//		return newComb;
-//	}
 	
 	public void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
@@ -532,7 +558,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		this.jResType = this.nodeJ.getResidueType();
 //		System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
 
-		// Definition of sstype and jatom
+		// Definition of sstype
 		SecStrucElement iSSelem = this.nodeI.getSecStrucElement();
 //		type = this.nodeI.getSecStrucElement().getType(); 
 		if (iSSelem == null){
@@ -588,6 +614,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.sphoxel.setMaxr(this.maxr);
 //		this.ratios = new double [this.numSteps][2*this.numSteps];
 	}
+	
+	// ________ Update and compute the Sphoxel and nbhStringTraces data ___________
 	
 	private void calcSphoxel() throws SQLException{
 		this.ratios = new double [this.numSteps][2*this.numSteps];
@@ -690,11 +718,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.optNBHStrings = optNBHString.getOptNBHStrings();
 		extractSetOfOptStrings();
 		// test output
-		System.out.println("setOfOptStrings");
-		for (int i=0; i<this.setOfOptStrings.length; i++)
-			System.out.println(this.setOfOptStrings[i]);
+//		System.out.println("setOfOptStrings");
+//		for (int i=0; i<this.setOfOptStrings.length; i++)
+//			System.out.println(this.setOfOptStrings[i]);
 		
-		System.out.println("Optimal NBHStrings extracted");		
+//		System.out.println("Optimal NBHStrings extracted");		
 	}
 
 	public void extractSetOfOptStrings(){
@@ -758,7 +786,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		// compute nbhstringTrace properties	
 		if (this.nbhsNodes.size()>0){
-			System.out.println("this.nbhsNodes.size(): "+this.nbhsNodes.size());
+//			System.out.println("this.nbhsNodes.size(): "+this.nbhsNodes.size());
 			float[] node, nbNode;
 			int numNodes = 1, minDist = 1, maxDist = 1;
 			Vector<Integer> numNodesL = new Vector<Integer>();	
@@ -791,7 +819,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.numNodesPerLine = new int[this.numLines];
 			this.minDistsJRes = new int[this.numLines];
 			this.maxDistsJRes = new int[this.numLines];
-			System.out.println(this.numLines +" =? "+numNodesL.size());
+//			System.out.println(this.numLines +" =? "+numNodesL.size());
 			for(int i=0; i<numNodesL.size(); i++){
 				this.numNodesPerLine[i] = (int) numNodesL.get(i);
 				this.minDistsJRes[i] = (int) minDists.get(i);
@@ -1006,6 +1034,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		csv.generateFile(this.settings, filename);
 	}
 	
+	/*------------------------ loading methods --------------------*/
 	public void loadSettings(String filename) throws NumberFormatException, IOException{
 		setDefaultSettings();
 		CSVhandler csv = new CSVhandler();
@@ -1122,10 +1151,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	public double getOffSet(double lambdaRad, double phiRad){
-//		double lambdaRad = 0;
 		double xPos=0;	
 		if (this.mapProjType==kavrayskiyMapProj){
-//			lambdaRad = translateXCoordRespective2Orig(lambdaRad);
 			lambdaRad -= Math.PI;
 			phiRad -= (Math.PI/2);
 			
@@ -1141,7 +1168,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private double distPointsOnSphere(double l1, double p1, double l2, double p2){
 		double dist = 0;
-//		double R = this.g2dSize.getHeight() / 2;
 		
 		double x1 = this.rSphere*Math.sin(p1)*Math.cos(l1);
 		double y1 = this.rSphere*Math.sin(p1)*Math.sin(l1);
@@ -1165,11 +1191,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void drawSphoxelMap(Graphics2D g2d){
 		double val;
-//		double phiDeg, lambdaDeg; 
-//		double phiRad, lambdaRad;
-		Color col = Color.white; // = new Color(24,116,205,255);
+		Color col = Color.white; 
 		ColorScale scale = new ColorScale();
-		//		double deltaDeg = 180/this.numSteps;
 				
 		// ----- color representation -----
 		for(int i=0;i<ratios.length;i++){
@@ -1214,8 +1237,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	@SuppressWarnings("unused")
 	private void drawSphoxelCakeMap(Graphics2D g2d){
-//		double radiusSphere = this.rSphere;
-//		this.rSphere = g2dSize.getHeight()/3;	
 		this.voxelsizeFactor = 1.0;
 		double val;
 		Color col = Color.white; // = new Color(24,116,205,255);
@@ -1231,7 +1252,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		xPos1 = getScreenPosFromRad(lCentre, Math.PI/2).getFirst();
 		xPos2 = getScreenPosFromRad(lCentre+deltaLambda, Math.PI/2).getFirst();
 		double dx = 2* Math.abs(xPos2-xPos1); 
-//		dx = this.g2dSize.getWidth()/numSlices;
 		double xOffset = dx/2;
 		int cntSlice = 0;
 		System.out.println("num="+numSlices+"  width="+sliceWidth+"  deltaL="+deltaLambda+"  xOffset="+xOffset);	
@@ -1244,7 +1264,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				this.centerOfProjection = new Pair<Double>(lCentre, Math.PI/2);
 				xOffset += dx;
 				System.out.println("cnt="+cntSlice+" lCentre="+lCentre+" xOffset="+xOffset+"   lambdaRad="+lambdaRad);
-//				j=ratios[0].length-1;
 			}
 			for(int i=0;i<ratios.length;i++){
 				double phiRad = (i*deltaRad); // 0<phi<2*PI
@@ -1289,10 +1308,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				xPos3 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad+deltaRad).getFirst() - this.rSphere + xOffset;
 				xPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getFirst() - this.rSphere + xOffset;
 				this.voxelsizeFactor = 1.5;	
-//				yPos1 = getScreenPosFromRad(lambdaRad, phiRad).getSecond();	
-//				yPos2 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getSecond();	
-//				yPos3 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad+deltaRad).getSecond();	
-//				yPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getSecond();
 				yPos1 = (phiRad*this.voxelsize) +this.border;	
 				yPos2 = (phiRad*this.voxelsize) +this.border;	
 				yPos3 = ((phiRad+deltaRad)*this.voxelsize) +this.border;	
@@ -1303,19 +1318,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}
 		}	
 		this.voxelsizeFactor = 1.5;
-		
-//		this.rSphere = radiusSphere;
-		
-//		phiRad -= (Math.PI/2);
-//		lambdaRad -= Math.PI;	
-//		xPos = orthoProjOfLP(lambdaRad, phiRad).getFirst();
-//		yPos = orthoProjOfLP(lambdaRad, phiRad).getSecond();
-//		xPos = (xPos*this.voxelsize*voxelsizeFactor)+this.border;
-//		yPos = (yPos*this.voxelsize*voxelsizeFactor)+this.border;			
-////		xPos = R * Math.cos(Math.abs(phiRad)) * Math.cos(lambdaRad);
-////		yPos = R * Math.cos(Math.abs(phiRad)) * Math.sin(lambdaRad);
-//		xPos += this.rSphere; //R;
-//		yPos += this.rSphere; //R;
+
 	}
 	
 	private void drawSphoxel(Graphics2D g2d, int i, int j){
@@ -1384,11 +1387,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos3 = getScreenPosFromRad(lambdaRad+deltaRad, phiRad+deltaRad).getSecond();	
 			xPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getFirst();
 			yPos4 = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getSecond();
-			if (isOnFrontView(lambdaRad, phiRad))
-				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
-			else
-//				shape = trapezium(xPos1+(2*this.rSphere), yPos1, xPos2+(2*this.rSphere), yPos2, xPos3+(2*this.rSphere), yPos3, xPos4+(2*this.rSphere), yPos4);
-				shape = trapezium((4*this.rSphere)-xPos1, yPos1, (4*this.rSphere)-xPos2, yPos2, (4*this.rSphere)-xPos3, yPos3, (4*this.rSphere)-xPos4, yPos4);		
+
+			if (!isOnFrontView(lambdaRad, phiRad) || !isOnFrontView(lambdaRad+deltaRad, phiRad) || 
+					!isOnFrontView(lambdaRad+deltaRad, phiRad+deltaRad) || !isOnFrontView(lambdaRad, phiRad+deltaRad)){
+				if (xPos1<2*this.rSphere) //if (isOnFrontView(lambdaRad, phiRad))
+					xPos1 = (4*this.rSphere)-xPos1;
+				if (xPos2<2*this.rSphere) //if (isOnFrontView(lambdaRad+deltaRad, phiRad))
+					xPos2 = (4*this.rSphere)-xPos2;
+				if (xPos3<2*this.rSphere) //if (isOnFrontView(lambdaRad+deltaRad, phiRad+deltaRad))
+					xPos3 = (4*this.rSphere)-xPos3;
+				if (xPos4<2*this.rSphere) //if (isOnFrontView(lambdaRad, phiRad+deltaRad))
+					xPos4 = (4*this.rSphere)-xPos4;
+				if (!(xPos1>2*this.rSphere && xPos2>2*this.rSphere && xPos3>2*this.rSphere && xPos4>2*this.rSphere))
+					System.out.println("!!!!");
+			}
+//			if (xPos1>2*this.rSphere || xPos2>2*this.rSphere || xPos3>2*this.rSphere || xPos4>2*this.rSphere)
+//				System.out.println("!!!!");
+//			if (!(xPos1<2*this.rSphere && xPos2<2*this.rSphere && xPos3<2*this.rSphere && xPos4<2*this.rSphere))
+//				System.out.println("!!!!");
+			shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
+							
+//			if (isOnFrontView(lambdaRad, phiRad))
+//				shape = trapezium(xPos1, yPos1, xPos2, yPos2, xPos3, yPos3, xPos4, yPos4);
+//			else
+//				shape = trapezium((4*this.rSphere)-xPos1, yPos1, (4*this.rSphere)-xPos2, yPos2, (4*this.rSphere)-xPos3, yPos3, (4*this.rSphere)-xPos4, yPos4);
+			
 			g2d.draw(shape);
 			g2d.fill(shape);	
 		}
@@ -1412,13 +1435,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// ----- color representation -----
 		for(int i=0;i<ratios.length;i++){
 			for(int j=0;j<ratios[i].length;j++){
-//				xPos = j*pixelWidth +this.border;
-//				yPos = i*pixelHeight +this.border;
 				xPos = translateXPixelCoordRespective2Orig(j*pixelWidth) +this.border;
-				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;				
-//				shape = new Rectangle2D.Float(xPos+this.border, yPos+this.border+this.yBorderThres, pixelWidth, pixelHeight);
+				yPos = translateYPixelCoordRespective2Orig(i*pixelHeight) +this.border;			
 				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);	
-//				shape = trapezium(xPos, yPos, xPos+pixelWidth, yPos, xPos+pixelWidth, yPos+pixelHeight, xPos, yPos+pixelHeight);
 				
 				val = ratios[i][j]; // add some scaling and shifting --> range 0:255
 				
@@ -1426,10 +1445,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				double minRatio2Use = this.minRatio;
 				double maxRatio2Use = this.maxRatio;
 				if (this.removeOutliers){
-//					if (this.minRatio<this.minAllowedRat)
-//						this.minRatio = this.minAllowedRat;
-//					if (this.maxRatio>this.maxAllowedRat)
-//						this.maxRatio = this.maxAllowedRat;
 					if (minRatio2Use<this.minAllowedRat)
 						minRatio2Use = this.minAllowedRat;
 					if (maxRatio2Use>this.maxAllowedRat)
@@ -1450,7 +1465,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					val = val/maxRatio2Use;
 				if (alpha>1.0f) alpha=1.0f;
 				if (alpha<0.0f) alpha=0.0f;
-//				val = -val;
+				
 				switch (this.chosenColourScale){
 				case ContactStatusBar.BLUERED:
 					col = scale.getColor4BlueRedScale(val,alpha); break;
@@ -1461,9 +1476,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				}
 				
 				g2d.setColor(col);
-//				g2d.setColor(Color.black); // Test purpose
 				g2d.draw(shape);
-//				g2d.setColor(col);
 				g2d.fill(shape);
 				if (xPos+pixelWidth > this.xDim)
 					xPos -= xDim;
@@ -1471,7 +1484,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					yPos -= yDim;
 				shape = new Rectangle2D.Double(xPos, yPos, pixelWidth, pixelHeight);
 				g2d.draw(shape);
-//				g2d.setColor(col);
 				g2d.fill(shape);
 			}
 		}
@@ -1503,31 +1515,68 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return col;
 	}
 	
-	private void drawNBHSNode(Graphics2D g2d, boolean specialRes, boolean isJRes, float[] node, int index){
+	private void drawNBHSNode(Graphics2D g2d, double lambdaRad, double phiRad, boolean specialRes, boolean isJRes, String resType){
 		GeneralPath rhombus = null;
-		GeneralPath triangle = null;
 		Shape circle = null;
-		int iNum, jNum, jResID, jSSType;
-		double xPos, yPos;
-		double phiRad, lambdaRad;
 		Font f = new Font("Dialog", Font.PLAIN, 12);
 		float radius = 3.f;
-		String nodeName;
+		double xPos, yPos;
+		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
+		yPos = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
+//			xPos = (4*this.rSphere)-xPos;
+		
+		// ---- draw geometric object for each residue
+		g2d.setColor(Color.black);
+		if (specialRes){
+			radius = 6.f;
+			// create rhombus for residue types contained in nbhstring
+			rhombus = rhombusShape(xPos, yPos+this.yBorderThres, 2*radius, 2*radius);
+			g2d.draw(rhombus);
+			g2d.fill(rhombus);
+			f = new Font("Dialog", Font.PLAIN, 14);
+		}
+		else {
+			radius = 3.f;
+			// create ellipse for residue
+			circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres,2*radius, 2*radius);
+			g2d.draw(circle);
+			g2d.fill(circle);
+			f = new Font("Dialog", Font.PLAIN, 12);
+		}
+		g2d.setFont(f);
+		String nodeName = resType; //Character.toString(aas[jResID]) +" "+ String.valueOf(jNum-iNum);		
+		
+		if (specialRes && isJRes)
+				g2d.setColor(Color.blue);
+//		if (showResInfo)
+			g2d.drawString(nodeName, (float)(xPos+radius), (float)(yPos+radius+this.yBorderThres));
+	}
+	
+	private void drawNBHSNode(Graphics2D g2d, boolean specialRes, boolean isJRes, float[] node, int index){
+		int iNum, jNum,jResID, jSSType;
+		double phiRad, lambdaRad;
 		
 		iNum = (int) node[1];
 		jNum = (int) node[2];
 		phiRad = node[3];
 		lambdaRad = node[4];
 		jResID = (int) node[5];
-		jSSType = (int) node[6];
-		
+		jSSType = (int) node[6];		
 		lambdaRad += Math.PI;
+
+		GeneralPath rhombus = null;
+		GeneralPath triangle = null;
+		Shape circle = null;
+		Font f = new Font("Dialog", Font.PLAIN, 12);
+		float radius = 3.f;
+		String nodeName;
+		double xPos, yPos;
 		
 		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
 		yPos = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
-//			xPos += 2*this.rSphere;		
-			xPos = (4*this.rSphere)-xPos;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
+//			xPos = (4*this.rSphere)-xPos;
 		
 		// ---- draw geometric object for each residue
 		Color col = getNodeColor4SSType(jSSType);
@@ -1576,15 +1625,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		}
 		g2d.setFont(f);
 		nodeName = Character.toString(aas[jResID]) +" "+ String.valueOf(jNum-iNum);		
-
-//		// test for cluster result
-//		if (this.clusterIDs != null && this.clusterIDs[index]>0){
-//			nodeName = String.valueOf(this.clusterIDs[index]);
-//		}
-//		else 
-//			nodeName = "";
-////		if (this.clusterIDs[index]>1)
-////			nodeName = "";		
 		
 		if (specialRes){
 			g2d.setColor(Color.black);
@@ -1861,11 +1901,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		boolean wrap = false;
 		double xPos, xPosNB=0;
 		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
-			xPos = (4*this.rSphere)-xPos;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
+//			xPos = (4*this.rSphere)-xPos;
 		xPosNB = getScreenPosFromRad(lambdaRadNB, phiRadNB).getFirst();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRadNB, phiRadNB))
-			xPosNB = (4*this.rSphere)-xPosNB;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRadNB, phiRadNB))
+//			xPosNB = (4*this.rSphere)-xPosNB;
 		
 		// -- test if edge should be wrapped
 		if (this.mapProjType==cylindricalMapProj && Math.abs(xPosNB-xPos)>this.xDim/2)
@@ -1875,6 +1915,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		else if ((this.mapProjType==azimuthalMapProj) && (isOnFrontView(lambdaRad, phiRad) != isOnFrontView(lambdaRadNB, phiRadNB)))
 			wrap = true;
 		
+		return wrap;
+	}
+	
+	/* Lambda[0:2Pi], Phi[0:Pi]
+	 * */
+	private boolean doWrapEdge(double lambdaRad, double lambdaRadNB){
+		boolean wrap = false;
+		// -- test if edge should be wrapped
+		if (Math.abs(lambdaRad-lambdaRadNB)>Math.PI)
+			wrap = true;		
 		return wrap;
 	}
 	
@@ -1893,14 +1943,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		xPos = getScreenPosFromRad(lambdaRad, phiRad).getFirst();
 		yPos = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
-//			xPos += (2*this.rSphere);
-			xPos = (4*this.rSphere)-xPos;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRad, phiRad))
+//			xPos = (4*this.rSphere)-xPos;
 		xPosNB = getScreenPosFromRad(lambdaRadNB, phiRadNB).getFirst();
 		yPosNB = getScreenPosFromRad(lambdaRadNB, phiRadNB).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRadNB, phiRadNB))
-//			xPosNB += (2*this.rSphere);
-			xPosNB = (4*this.rSphere)-xPosNB;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lambdaRadNB, phiRadNB))
+//			xPosNB = (4*this.rSphere)-xPosNB;
 		
 		// -- test if edge should be wrapped
 		if (this.mapProjType==cylindricalMapProj && Math.abs(xPosNB-xPos)>this.xDim/2){
@@ -1943,7 +1991,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				Pair<Double> intermP = intermediatePointAzim(lambdaRad, phiRad, lambdaRadNB, phiRadNB);
 				borderXFront = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getFirst(); //intermP.getFirst();
 				borderYFront = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getSecond(); //intermP.getSecond();
-//				borderXBack = borderXFront + (2*this.rSphere);
 				borderXBack = (4*this.rSphere)- borderXFront;
 				borderYBack = borderYFront;
 				if (isOnFrontView(lambdaRad, phiRad)){
@@ -2006,6 +2053,61 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		return lp;
 	}
 	
+	private void drawNBHSTemplateTrace(Graphics2D g2d){
+		RIGGeometry graphGeom = this.mod.getGraphGeometry();
+		if (graphGeom!=null){
+			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
+//			System.out.println("contactCoord.size()"+contactCoord.size());
+			g2d.setStroke(new BasicStroke(3));
+			if (contactCoord!=null && this.nbSerials!=null){
+				for(int i=0; i<this.nbSerials.length; i++){
+					int jNum = this.nbSerials[i];
+					String resType = this.mod.getNodeFromSerial(jNum).getResidueType();
+					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
+//					System.out.print(this.iNum+"_"+jNum+contactCoord.containsKey(key)+"\t");
+					Vector3d coord_sph;
+//					if (contactCoord.containsKey(new Integer[]{this.iNum,jNum}))	
+						coord_sph = contactCoord.get(key); // (r, phi, lambda)
+//					else
+//						coord_sph = contactCoord.get(new Integer[]{jNum,this.iNum}); // (r, phi, lambda) 
+					double lambda = coord_sph.z;
+					double phi = coord_sph.y;
+					lambda += Math.PI;
+					boolean isJRes = false;
+					if (jNum==this.jNum)
+						isJRes = true;
+					// draw node
+					drawNBHSNode(g2d, lambda, phi, true, isJRes, resType);
+					if (i+1<this.nbSerials.length){
+						int jNumNB = this.nbSerials[i+1];
+						key = String.valueOf(this.iNum)+"_"+String.valueOf(jNumNB);
+						Vector3d coord_sph_nb;
+//						if (contactCoord.containsKey(new Integer[]{this.iNum,jNumNB}))
+							coord_sph_nb = contactCoord.get(key); // (r, phi, lambda)
+//						else
+//							coord_sph_nb = contactCoord.get(new Integer[]{jNumNB,this.iNum}); // (r, phi, lambda)
+						double lambdaNB = coord_sph_nb.z;
+						double phiNB = coord_sph_nb.y;
+						lambdaNB += Math.PI;
+						// draw edge
+						g2d.setColor(Color.black);
+						if (this.paintCentralResidue && this.nbSerials[i]<this.iNum && this.nbSerials[i+1]>this.iNum){
+							// include central residue						
+							// --- draw geodesics
+							drawNBHSGeodesicEdge(g2d, lambda, phi, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
+							drawNBHSGeodesicEdge(g2d, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond(), lambdaNB, phiNB);	
+						}
+						else {
+							// draw edge directly
+							drawNBHSGeodesicEdge(g2d, lambda, phi, lambdaNB, phiNB);
+						}
+					}
+				}			
+			}
+			g2d.setStroke(defaultBasicStroke);			
+		}
+	}
+	
 	private void drawNBHSTraces(Graphics2D g2d){
 		int gID, iNum, jResID;
 		float[] node, nbNode;
@@ -2066,45 +2168,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}		
 		}
 		
-
-//		g2d.setStroke(longLatStroke);
-//		//drawNBHSGeodesicEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
-//		System.out.println("phi above equator phi<PI/2");
-////		drawNBHSGeodesicEdge(g2d, 0.5, 0.3, 1.5, 1.3);
-////		drawNBHSGeodesicEdge(g2d, 0.8, 0.5, 2.5, 1.5);
-////		drawNBHSGeodesicEdge(g2d, 2.0, 1.3, 3.5, 0.5);
-////		drawNBHSGeodesicEdge(g2d, 3.0, 1.0, 5.5, 0.2);
-////		drawNBHSGeodesicEdge(g2d, 0.5, 1.5, 5.5, 0.5);
-//		g2d.setColor(Color.cyan);
-//		System.out.println("phi above and below equator phi<>PI/2");
-////		drawNBHSGeodesicEdge(g2d, 0.5, 1.3, 1.5, 2.5);
-////		drawNBHSGeodesicEdge(g2d, 0.8, 1.1, 2.5, 2.8);
-////		drawNBHSGeodesicEdge(g2d, 2.0, 2.5, 3.5, 1.2);
-////		drawNBHSGeodesicEdge(g2d, 3.0, 3.1, 5.5, 1.1);
-////		drawNBHSGeodesicEdge(g2d, 0.5, 1.1, 5.5, 2.5);
-////		drawNBHSGeodesicEdge(g2d, 0.0, 2.0, 0.5, 3.0);
-////		drawNBHSGeodesicEdge(g2d, 0.0, 3.0, 0.5, 2.0);
-//		g2d.setColor(Color.green);
-//		System.out.println("phi below equator phi>PI/2");
-////		drawNBHSGeodesicEdge(g2d, 0.5, 1.9, 1.5, 3.0);
-////		drawNBHSGeodesicEdge(g2d, 0.8, 2.0, 2.5, 2.8);
-////		drawNBHSGeodesicEdge(g2d, 2.0, 3.0, 3.5, 2.0);
-////		drawNBHSGeodesicEdge(g2d, 3.0, 2.8, 5.5, 1.8);
-////		drawNBHSGeodesicEdge(g2d, 0.5, 2.0, 5.5, 2.9);
-//		
-//		g2d.setColor(Color.red);
-//		drawNBHSGeodesicEdge(g2d, 3.5, 1.3, 3.5, 2.5);
-//		drawNBHSGeodesicEdge(g2d, 1.5, 0.8, 1.5, 1.4);
-//		drawNBHSGeodesicEdge(g2d, 5.0, 1.8, 5.0, 2.5);
-//		drawNBHSGeodesicEdge(g2d, 0.0, 1.5, 1.5, 1.5);
-//		
-//		
-//////		drawNBHSGeodesicEdge(g2d, 0.0, 1.2, 1.0, 1.2);
-//////		drawNBHSGeodesicEdge(g2d, 0.5, 0.5, 0.5, 1.5);
-////		g2d.setColor(Color.green);
-////		drawNBHSGeodesicEdge(g2d, 0.0, 1.5, 0.5, 0.5);
-//		g2d.setStroke(defaultBasicStroke);
-		
 	}
 	
 	/*  Draw an ellipse that is surrounded by the trapezium, given through the points
@@ -2118,7 +2181,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			// intermediate points
 			double x12 = (x1+x2)/2, x23 = (x2+x3)/2, x34 = (x3+x4)/2, x41 = (x4+x1)/2;
 			double y12 = (y1+y2)/2, y23 = (y2+y3)/2, y34 = (y3+y4)/2, y41 = (y4+y1)/2;
-			//g2.draw(new Arc2D.Double(x, y, rectwidth, rectheight, start angle, angular extent, Arc2D.OPEN));
+			
 			g2d.draw(new Arc2D.Double(x41, y12, 2*Math.abs(x12-x41), 2*Math.abs(y12-y41), 90, 90, Arc2D.OPEN));
 			g2d.draw(new Arc2D.Double(x12-Math.abs(x12-x23), y12, 2*Math.abs(x12-x23), 2*Math.abs(y12-y23), 0, 90, Arc2D.OPEN));
 			g2d.draw(new Arc2D.Double(x34-Math.abs(x34-x23), y23-Math.abs(y34-y23), 2*Math.abs(x23-x34), 2*Math.abs(y23-y34), 270, 90, Arc2D.OPEN));
@@ -2145,16 +2208,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		x1 = getScreenPosFromRad(l1, p1).getFirst();
 		y1 = getScreenPosFromRad(l1, p1).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(l1, p1))		
-			x1 = (4*this.rSphere)-x1;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(l1, p1))		
+//			x1 = (4*this.rSphere)-x1;
 		x2 = getScreenPosFromRad(l2, p2).getFirst();
 		y2 = getScreenPosFromRad(l2, p2).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(l2, p2))		
-			x2 = (4*this.rSphere)-x2;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(l2, p2))		
+//			x2 = (4*this.rSphere)-x2;
 		x3 = getScreenPosFromRad(lE, pE).getFirst();
 		y3 = getScreenPosFromRad(lE, pE).getSecond();
-		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lE, pE))		
-			x3 = (4*this.rSphere)-x3;
+//		if (this.mapProjType==azimuthalMapProj && !isOnFrontView(lE, pE))		
+//			x3 = (4*this.rSphere)-x3;
 		
 		boolean paint = true;
 		if (this.mapProjType!=azimuthalMapProj && Math.abs(x1-x3)>(this.g2dSize.width/3))
@@ -2177,27 +2240,29 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void drawEdgeClusterDir(Graphics2D g2d){
 		double averLS, averLE, averPS, averPE;
 		double factor = 0.3;
-//		double radius = 5;
 		for (int i=0; i<this.clusterAverDirec.size(); i++)
 //		int i=3;
 		{		
+			int nbCID = this.nbCluster[i];
 			// clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
 			averLS = this.clusterProp[i][1] + Math.PI;
 			averPS = this.clusterProp[i][4];
 			double[] dir = this.clusterAverDirec.get(i);
-			averLE = averLS + factor*dir[0];
+			if (nbCID>0 || nbCID<0){ // successor exists 
+				nbCID = Math.abs(nbCID);
+				averLE = this.clusterProp[nbCID-1][1] + Math.PI;
+				averPE = this.clusterProp[nbCID-1][4];
+				if (doWrapEdge(averLS, averLE))
+//				if (wrapEdge(averLS, averPS, averLE, averPE))
+					averLE = averLS -factor*dir[0];
+				else
+					averLE = averLS + factor*dir[0];				
+			}
+			else
+				averLE = averLS + factor*dir[0];
 			averPE = averPS + factor*dir[1];
 			g2d.setColor(this.arrowColor);
-			drawArrowTriangle(g2d, averLS, averPS, averLE, averPE, 0.15);
-			
-//			double x1 = getScreenPosFromRad(averLE, averPE).getFirst();
-//			double y1 = getScreenPosFromRad(averLE, averPE).getSecond();
-//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(x1, y1))		
-//				x1 = (4*this.rSphere)-x1;
-//			Shape circle = new Ellipse2D.Double( x1-radius, y1-radius+this.yBorderThres, 2*radius, 2*radius);
-//			g2d.setColor(Color.black);
-//			g2d.draw(circle);
-//			g2d.fill(circle);
+			drawArrowTriangle(g2d, averLS, averPS, averLE, averPE, 0.15);			
 		}
 	}
 	
@@ -2205,11 +2270,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void drawEdgeCluster(Graphics2D g2d){
 		double averLS, averLE, averPS, averPE;
 		double lE, pE;
-//		double xPos, yPos;
-//		double radius = 5;
 		// draw arrow for each cluster that has successor-cluster
 		for (int i=0; i<this.nbCluster.length; i++){
-//			int cID = i+1;
 			int nbCID = this.nbCluster[i];
 			if (nbCID>0 || nbCID<0){ // successor exists 
 				if (nbCID<0){ // sucessor=central residue
@@ -2223,7 +2285,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				// clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
 				averLS = this.clusterProp[i][1] + Math.PI;
 				averPS = this.clusterProp[i][4];
-				// wrapEdge(double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
 				if (wrapEdge(averLS, averPS, averLE, averPE)){
 					lE = (averLS+averLE)/2 + Math.PI;
 					if (lE>2*Math.PI)
@@ -2234,19 +2295,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					lE = (averLS+averLE)/2;
 					pE = (averPS+averPE)/2;
 				}				
-//				g2d.setColor(Color.green);
 				g2d.setColor(this.arrowColor);
 				drawArrowTriangle(g2d, averLS, averPS, lE, pE, 0.05);
-//				g2d.setColor(Color.black);
-//				drawNBHSEdge(g2d, averLS, averPS, lE, pE);
-//				
-//				xPos = getScreenPosFromRad(lE, pE).getFirst();
-//				yPos = getScreenPosFromRad(lE, pE).getSecond();
-//				if (this.mapProjType==azimuthalMapProj && !isOnFrontView(xPos, yPos))		
-//					xPos = (4*this.rSphere)-xPos;
-//				Shape circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres, 2*radius, 2*radius);
-//				g2d.draw(circle);
-//				g2d.fill(circle);
 				
 				if (nbCID<0){ // sucessor=central residue
 					averLS = this.centerOfProjection.getFirst();
@@ -2257,16 +2307,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					lE = (averLS+averLE)/2;
 					pE = (averPS+averPE)/2;
 					drawArrowTriangle(g2d, averLS, averPS, lE, pE, 0.05);
-//					g2d.setColor(Color.black);
-//					drawNBHSEdge(g2d, averLS, averPS, lE, pE);
-//					
-//					xPos = getScreenPosFromRad(lE, pE).getFirst();
-//					yPos = getScreenPosFromRad(lE, pE).getSecond();
-//					if (this.mapProjType==azimuthalMapProj && !isOnFrontView(xPos, yPos))		
-//						xPos = (4*this.rSphere)-xPos;
-//					circle = new Ellipse2D.Double( xPos-radius, yPos-radius+this.yBorderThres, 2*radius, 2*radius);
-//					g2d.draw(circle);
-//					g2d.fill(circle);					
 				}
 			}
 		}
@@ -2286,20 +2326,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			
 			x1 = getScreenPosFromRad(minL, minP).getFirst();
 			y1 = getScreenPosFromRad(minL, minP).getSecond();
-			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(minL, minP))		
-				x1 = (4*this.rSphere)-x1;
+//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(minL, minP))		
+//				x1 = (4*this.rSphere)-x1;
 			x2 = getScreenPosFromRad(maxL, minP).getFirst();
 			y2 = getScreenPosFromRad(maxL, minP).getSecond();
-			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(maxL, minP))		
-				x2 = (4*this.rSphere)-x2;
+//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(maxL, minP))		
+//				x2 = (4*this.rSphere)-x2;
 			x3 = getScreenPosFromRad(maxL, maxP).getFirst();
 			y3 = getScreenPosFromRad(maxL, maxP).getSecond();
-			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(maxL, maxP))		
-				x3 = (4*this.rSphere)-x3;
+//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(maxL, maxP))		
+//				x3 = (4*this.rSphere)-x3;
 			x4 = getScreenPosFromRad(minL, maxP).getFirst();
 			y4 = getScreenPosFromRad(minL, maxP).getSecond();
-			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(minL, maxP))		
-				x4 = (4*this.rSphere)-x4;
+//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(minL, maxP))		
+//				x4 = (4*this.rSphere)-x4;
 			xCoord = new double[]{x1,x2,x3,x4};
 			yCoord = new double[]{y1,y2,y3,y4};
 			
@@ -2333,9 +2373,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		double thresSlopeVar = 10;
 		double arrowWidth = 5;
 		float[] node, nbNode;
-		// clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP	// lambda[-Pi:+Pi] and phi[0:Pi]
-		// clusterDirProp; // [][0]:minIncSlope, [][1]:averageIncSlope, [][2]:maxIncSlope, [][3]:minOutSlope, [][4]:averOutSlope, [][5]:maxOutSlope
-		// clusters; //clusters contains a vector of all IDs for noise (background) and each found cluster
+		
 		for (int i=0; i<this.clusterProp.length; i++){
 			int cID = i+1;
 			lCentre = this.clusterProp[i][1] + Math.PI;
@@ -2356,8 +2394,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			
 			clusterCentreX = getScreenPosFromRad(lCentre, pCentre).getFirst();
 			clusterCentreY = getScreenPosFromRad(lCentre, pCentre).getSecond();
-			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(clusterCentreX, clusterCentreY))		
-				clusterCentreX = (4*this.rSphere)-clusterCentreX;
+//			if (this.mapProjType==azimuthalMapProj && !isOnFrontView(clusterCentreX, clusterCentreY))		
+//				clusterCentreX = (4*this.rSphere)-clusterCentreX;
 			
 			averIncSlope = this.clusterDirProp[i][1];
 			averOutSlope = this.clusterDirProp[i][4];
@@ -2427,18 +2465,22 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		yS = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
 		yE = getScreenPosFromRad(lambdaRad, phiRad+deltaRad).getSecond();
 		if (this.mapProjType==azimuthalMapProj){
-			if (isOnFrontView(lambdaRad, phiRad)==isOnFrontView(lambdaRad+deltaRad, phiRad)){
-				if (!isOnFrontView(lambdaRad, phiRad)){
-					xS = (4*this.rSphere)-xS;
-					xE = (4*this.rSphere)-xE;
+			if (isOnFrontView(lambdaRad, phiRad)==isOnFrontView(lambdaRad, phiRad+deltaRad)){
+				if (!isOnFrontView(lambdaRad, phiRad) || !isOnFrontView(lambdaRad, phiRad+deltaRad)){
+					if (xS<2*this.rSphere) //if (isOnFrontView(lambdaRad, phiRad))
+						xS = (4*this.rSphere)-xS;
+					if (xE<2*this.rSphere) //if (isOnFrontView(lambdaRad, phiRad+deltaRad))
+						xE = (4*this.rSphere)-xE;
 				}
-//				drawThickVerticalLine(g2d, xS, yS, xE, yE);
+//				if (!isOnFrontView(lambdaRad, phiRad)){
+//					xS = (4*this.rSphere)-xS;
+//					xE = (4*this.rSphere)-xE;
+//				}
 				line = new Line2D.Double(xS,yS,xE,yE);
 				g2d.draw(line);
 			}
 		}
 		else {
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 		}
@@ -2452,11 +2494,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		yS = getScreenPosFromRad(lambdaRad, phiRad).getSecond();
 		yE = getScreenPosFromRad(lambdaRad+deltaRad, phiRad).getSecond();
 		if (this.mapProjType==azimuthalMapProj && (isOnFrontView(lambdaRad, phiRad)==isOnFrontView(lambdaRad+deltaRad, phiRad))){
-			if (!isOnFrontView(lambdaRad, phiRad)){
-				xS = (4*this.rSphere)-xS;
-				xE = (4*this.rSphere)-xE;
+			if (!isOnFrontView(lambdaRad, phiRad) || !isOnFrontView(lambdaRad+deltaRad, phiRad)){
+				if (xS<2*this.rSphere) //if (isOnFrontView(lambdaRad, phiRad))
+					xS = (4*this.rSphere)-xS;
+				if (xE<2*this.rSphere) //if (isOnFrontView(lambdaRad+deltaRad, phiRad))
+					xE = (4*this.rSphere)-xE;
 			}
-//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
+//			if (!isOnFrontView(lambdaRad, phiRad)){
+//				xS = (4*this.rSphere)-xS;
+//				xE = (4*this.rSphere)-xE;
+//			}
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 		}
@@ -2510,23 +2557,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yE = (Math.PI *this.voxelsize) +this.border;
 			
 			xS = (translateXCoordRespective2Orig(0.0) *this.voxelsize) +this.border;  xE=xS;
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border;  xE=xS;
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(Math.PI) *this.voxelsize) +this.border;  xE=xS;
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(3*Math.PI/2) *this.voxelsize) +this.border;  xE=xS;
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			xS = (translateXCoordRespective2Orig(2*Math.PI) *this.voxelsize) +this.border;  xE=xS;
-//			drawThickVerticalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 		}
@@ -2558,15 +2600,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			xS = ((0.0f) *this.voxelsize) +this.border;
 			xE = (((2*Math.PI)) *this.voxelsize) +this.border;
 			yS = (translateYCoordRespective2Orig(Math.PI/2) *this.voxelsize) +this.border; yE = yS;
-//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			yS = (translateYCoordRespective2Orig(Math.PI/4) *this.voxelsize) +this.border; yE = yS;
-//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);
 			yS = (translateYCoordRespective2Orig(3*Math.PI/4) *this.voxelsize) +this.border; yE = yS;
-//			drawThickHorizontalLine(g2d, xS, yS, xE, yE);	
 			line = new Line2D.Double(xS,yS,xE,yE);
 			g2d.draw(line);	
 		}
@@ -2587,23 +2626,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			bcenterx = getScreenPosFromRad(Math.PI, Math.PI/2).getFirst();
 			bcentery = getScreenPosFromRad(Math.PI, Math.PI/2).getSecond();
 //			if (distPointsOnSphere(Math.PI, Math.PI/2, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()) > this.maxDistPoints)
-			if (!isOnFrontView(Math.PI, Math.PI/2))
-//				bcenterx += (2*this.rSphere);		
-				bcenterx = (4*this.rSphere)-bcenterx;
+//			if (!isOnFrontView(Math.PI, Math.PI/2))	
+//				bcenterx = (4*this.rSphere)-bcenterx;
 		}
 		g2d.setColor(longitudeColor);
 		g2d.setStroke(longLatStroke);
 		Shape circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
 		g2d.draw(circle);
 		g2d.setStroke(defaultBasicStroke);
-//		circle = new Ellipse2D.Double(bcenterx-29, bcentery-29, 58, 58);
-//		g2d.draw(circle);		
-
-//		bcenterx = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getFirst();
-//		bcentery = getScreenPosFromRad(this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond()).getSecond();
-//		g2d.setColor(Color.blue);
-//		circle = new Ellipse2D.Double(bcenterx-30, bcentery-30, 60, 60);
-//		g2d.draw(circle);
 	}
 	
 	private void drawCrosshair(Graphics2D g2d){
@@ -2614,8 +2644,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		g2d.drawLine(mousePos.x, 0, mousePos.x, g2dSize.height);
 		g2d.drawLine(0, mousePos.y, g2dSize.width, mousePos.y);	
 		g2d.setStroke(defaultBasicStroke);
-//		g2d.drawLine(mousePos.x-1, 0, mousePos.x-1, g2dSize.height);
-//		g2d.drawLine(0, mousePos.y-1, g2dSize.width, mousePos.y-1);	
 	}
 
 //	private void drawRulerCrosshair(Graphics2D g2d) {
@@ -2671,31 +2699,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos4 = getScreenPosFromRad(xS, yE).getSecond();
 			
 			if (this.mapProjType==azimuthalMapProj){
-				if (!isOnFrontView(xS, yS))
-//					xPos1 += (2*this.rSphere);
-					xPos1 = (4*this.rSphere)-xPos1;
-				if (!isOnFrontView(xE, yS))
-//					xPos2 += (2*this.rSphere);
-					xPos2 = (4*this.rSphere)-xPos2;
-				if (!isOnFrontView(xE, yE))
-//					xPos3 += (2*this.rSphere);
-					xPos3 = (4*this.rSphere)-xPos3;
-				if (!isOnFrontView(xS, yE))
-//					xPos4 += (2*this.rSphere);
-					xPos4 = (4*this.rSphere)-xPos4;
+//				if (!isOnFrontView(xS, yS))
+//					xPos1 = (4*this.rSphere)-xPos1;
+//				if (!isOnFrontView(xE, yS))
+//					xPos2 = (4*this.rSphere)-xPos2;
+//				if (!isOnFrontView(xE, yE))
+//					xPos3 = (4*this.rSphere)-xPos3;
+//				if (!isOnFrontView(xS, yE))
+//					xPos4 = (4*this.rSphere)-xPos4;
 				
 				if (isOnFrontView(xS, yS) != isOnFrontView(xE, yE)){
 					// compute border positions of front and back view
 					Pair<Double> intermP = intermediatePointAzim(xS, yS, xE, yS);
 					xPosUL = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getFirst(); //intermP.getFirst();
 					yPosUL = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getSecond(); //intermP.getSecond();
-//					xPosUR = xPosUL + (2*this.rSphere);
 					xPosUR = (4*this.rSphere)-xPosUL;
 					yPosUR = yPosUL;
 					intermP = intermediatePointAzim(xS, yE, xE, yE);
 					xPosLL = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getFirst(); //intermP.getFirst();
 					yPosLL = getScreenPosFromRad(intermP.getFirst(), intermP.getSecond()).getSecond(); //intermP.getSecond();
-//					xPosLR = xPosLL + (2*this.rSphere);
 					xPosLR = (4*this.rSphere)-xPosLL;
 					yPosLR = yPosLL;
 					
@@ -2898,11 +2920,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 * */
 	public double lambda2Kavrayskiy(double lambdaRad, double phiRad){
 		double lambda = (3*lambdaRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad));
-//		double test = (2*Math.PI*lambda) / (3*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad))) ;
 		return lambda;
 	}
 	public double lambdaFromKavrayskiy(double lambdaRad, double phiRad){
-//		double lambda = (3*lambdaRad/(2*Math.PI))*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad));
 		double lambda = (2*Math.PI*lambdaRad) / (3*Math.sqrt((Math.PI*Math.PI/3)-(phiRad*phiRad))) ;
 		return lambda;
 	}
@@ -2947,6 +2967,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		lp = new Pair<Double>(l, p);
 		return lp;
 	}
+	
 	/*
 	 * Calculates original spherical coordinates from
 	 * orthographic projection of angle values from certain viewpoint
@@ -3005,19 +3026,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			yPos = translateYPixelCoordRespective2Orig(phiRad*this.voxelsize) +this.border;
 		}
 		else if (this.mapProjType==azimuthalMapProj){
-//			double R = this.g2dSize.getHeight() / 2;
 			// angles negative and positive values
 			phiRad -= (Math.PI/2);
 			lambdaRad -= Math.PI;	
 			xPos = orthoProjOfLP(lambdaRad, phiRad).getFirst();
 			yPos = orthoProjOfLP(lambdaRad, phiRad).getSecond();
 			xPos = (xPos*this.voxelsize*voxelsizeFactor)+this.border;
-			yPos = (yPos*this.voxelsize*voxelsizeFactor)+this.border;			
-//			xPos = R * Math.cos(Math.abs(phiRad)) * Math.cos(lambdaRad);
-//			yPos = R * Math.cos(Math.abs(phiRad)) * Math.sin(lambdaRad);
+			yPos = (yPos*this.voxelsize*voxelsizeFactor)+this.border;	
 			xPos += this.rSphere; //R;
 			yPos += this.rSphere; //R;
-		}		
+			if (!isOnFrontView(lambdaRad+Math.PI, phiRad+(Math.PI/2)))
+				xPos = (4*this.rSphere)-xPos;
+		}	
+		
 		pos = new Pair<Double>(xPos, yPos);
 		return pos;
 	}
@@ -3036,11 +3057,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private Pair<Double> screen2spherCoord(Point point){
 		
-		Pair<Double> doubleP; // = new Pair<Double>((double)point.x/this.voxelsize , (double)point.y/this.voxelsize); 
+		Pair<Double> doubleP;  
 		if (this.mapProjType==azimuthalMapProj){
 			double x = point.x, y = point.y;
 			if (x>(2*this.rSphere))
-//				x -= (2*this.rSphere);
 				x = (4*this.rSphere) - x;
 			x -= this.rSphere;
 			y -= this.rSphere; //R;
@@ -3074,11 +3094,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private double translateYCoordRespective2Orig(double y){
 		double dy = (this.origCoordinates.getSecond() - (Math.PI/2));
 		double yPos = y + dy;
-//		yPos = (int)(yPos*1000)/1000;
-//		if (yPos > Math.PI)
-//			yPos -= Math.PI;
-//		else if (yPos < 0)
-//			yPos += Math.PI;
 		return yPos;
 	}
 	
@@ -3096,11 +3111,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private double translateYPixelCoordRespective2Orig(double y){
 		double dy = (this.origCoordinates.getSecond() - (Math.PI/2)) * this.voxelsize;
 		double yPos = y + dy;
-//		yPos = (int)(yPos*1000)/1000;
-//		if (yPos > Math.PI* this.voxelsize)
-//			yPos -= Math.PI* this.voxelsize;
-//		else if (yPos < 0)
-//			yPos += Math.PI* this.voxelsize;
 		return yPos;
 	}
 	
@@ -3116,13 +3126,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	@SuppressWarnings("unused")
 	private int checkForSelectedRanges(){
-		int index = -1;	
-		
-		index = checkForSelectedRanges(this.iNum, this.jNum);
-//		int index2 = checkForSelectedRanges(this.tmpSelContact.getFirst(), this.tmpSelContact.getSecond());
-//		if (index!= index2)
-//			System.out.println("       checkForSelectedRanges _ iNum/jNum != this.tmpSelContact                 ______");
-		
+		int index = -1;			
+		index = checkForSelectedRanges(this.iNum, this.jNum);		
 		return index;
 	}
 	
@@ -3182,35 +3187,23 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private void squareSelect(){
 		Pair<Double> upperLeft = screen2spherCoord(mousePressedPos);
-//		Pair<Double> lowerRight = screen2spherCoord(mouseDraggingPos);
 		double lUL=0, pUL=0, lLR=0, pLR=0;
 		double xPosUL, yPosUL; 
-//		double xPosLR, yPosLR;
-		// we reset the tmpContacts list so every new mouse selection starts
-		// from a blank list
-//		tmpContacts = new IntPairSet();
+		// we reset the tmpContacts list so every new mouse selection starts from a blank list
 		
 		xPosUL = upperLeft.getFirst();
 		yPosUL = upperLeft.getSecond();
-//		xPosLR = lowerRight.getFirst();
-//		yPosLR = lowerRight.getSecond();
 		lUL = xPosUL;
 		pUL = yPosUL;
-//		lLR = xPosLR;
-//		pLR = yPosLR;
 		if (this.mapProjType==kavrayskiyMapProj){
 			lUL = lambdaFromKavrayskiy(xPosUL-Math.PI, yPosUL-(Math.PI/2)) + Math.PI;
-//			lLR = lambdaFromKavrayskiy(xPosLR-Math.PI, yPosLR-(Math.PI/2)) + Math.PI;
 		}
 		else if (this.mapProjType==azimuthalMapProj){
 			lUL = lpFromOrthoProj(xPosUL, yPosUL, mousePressedPos).getFirst();
-			pUL = lpFromOrthoProj(xPosUL, yPosUL, mousePressedPos).getSecond();		
-//			lLR = lpFromOrthoProj(xPosLR, yPosLR, mouseDraggingPos).getFirst();
-//			pLR = lpFromOrthoProj(xPosLR, yPosLR, mouseDraggingPos).getSecond();			
+			pUL = lpFromOrthoProj(xPosUL, yPosUL, mousePressedPos).getSecond();			
 		}
 		if (this.mapProjType!=azimuthalMapProj){
 			lUL -= (this.origCoordinates.getFirst()-Math.PI);
-//			lLR -= (this.origCoordinates.getFirst()-Math.PI);
 		}
 		if (lUL<0)
 			lUL += (2*Math.PI);
@@ -3336,6 +3329,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// neighbourhood-string-traces
 		if (this.contactView.getGUIState().getShowNBHStraces()){
 			drawNBHSTraces(g2d);
+			if (this.showNBHStemplateTrace)
+				drawNBHSTemplateTrace(g2d);
 		}
 		if (this.contactView.getGUIState().getShowLongitudes()){
 			drawLongitudes(g2d);
@@ -3464,6 +3459,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	public void setPaintCentralResidue(boolean show){
 		this.paintCentralResidue = show;
+		this.updateScreenBuffer();
+	}
+
+	public void setShowNBHStemplateTrace(boolean show) {
+		this.showNBHStemplateTrace = show;
 		this.updateScreenBuffer();
 	}
 
@@ -3737,15 +3737,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
 						if (valid){
 							updateSelections();
-//							int index = checkForSelectedRanges();
-//							if (index>-1){
-//								this.lambdaRanges.removeElementAt(index);
-//								this.phiRanges.removeElementAt(index);
-//								this.selContacts.removeElementAt(index);												
-//							}
-//							this.lambdaRanges.add(this.tmpLambdaRange);
-//							this.phiRanges.add(this.tmpPhiRange);
-//							this.selContacts.add(this.tmpSelContact);
 							updateAngleRange();	
 							commitSettings();
 							System.out.println("mouseReleased pos valid");					
@@ -3777,15 +3768,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						System.out.println("clusterBasedSelectedRange "+this.tmpLambdaRange.getFirst()+"-"+this.tmpLambdaRange.getSecond()
 								+" , "+this.tmpPhiRange.getFirst()+"-"+this.tmpPhiRange.getSecond());
 						updateSelections();
-//						int oldIndex = checkForSelectedRanges();
-//						if (oldIndex>-1){
-//							this.lambdaRanges.removeElementAt(oldIndex);
-//							this.phiRanges.removeElementAt(oldIndex);
-//							this.selContacts.removeElementAt(oldIndex);												
-//						}
-//						this.lambdaRanges.add(this.tmpLambdaRange);
-//						this.phiRanges.add(this.tmpPhiRange);
-//						this.selContacts.add(this.tmpSelContact);
 						commitSettings();
 						updateAngleRange();	
 					}
@@ -3892,8 +3874,6 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			p = yPos;
 		}
 		else if (this.mapProjType==azimuthalMapProj){
-//			l = lpFromOrthoProj(xPos-Math.PI, yPos-(Math.PI/2)).getFirst();
-//			p = lpFromOrthoProj(xPos-Math.PI, yPos-(Math.PI/2)).getSecond();
 			l = lpFromOrthoProj(xPos, yPos, mousePos).getFirst();
 			p = lpFromOrthoProj(xPos, yPos, mousePos).getSecond();
 		}
@@ -3952,9 +3932,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
             if (this.mapProjType!=azimuthalMapProj)
             	second = (float) (Math.PI/2);   // --> panning just horizontally     	
     		this.origCoordinates = new Pair<Double>(first,second); // this.tmpAngleComb;
-//    		if (this.mapProjType==azimuthalMapProj)
-//    			this.centerOfProjection = this.origCoordinates;
-    			this.centerOfProjection = new Pair<Double>(2*Math.PI-this.origCoordinates.getFirst(), Math.PI-this.origCoordinates.getSecond());
+    		this.centerOfProjection = new Pair<Double>(2*Math.PI-this.origCoordinates.getFirst(), Math.PI-this.origCoordinates.getSecond());
     		
     		System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
     		System.out.println("CentreCoord: "+this.centerOfProjection.getFirst()+","+this.centerOfProjection.getSecond());

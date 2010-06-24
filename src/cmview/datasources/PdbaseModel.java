@@ -3,6 +3,7 @@ import java.sql.SQLException;
 
 import owl.core.structure.*;
 import owl.core.structure.graphs.RIGEnsemble;
+import owl.core.structure.graphs.RIGGeometry;
 
 import cmview.Start;
 
@@ -84,6 +85,11 @@ public class PdbaseModel extends Model {
 					throw new ModelConstructionError("Error loading ensemble graph: " + e.getMessage());
 				}
 			}
+			
+			// this.graph and this.residues are now available
+			//TODO 4Corinna compute graph geometry and hand it over to ContactView
+			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
+			System.out.println("PdbaseModel   GraphGeometry loaded");
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();

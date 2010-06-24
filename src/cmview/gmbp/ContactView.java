@@ -66,6 +66,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_DEL_SELECTION = "DeleteSelectedRange";
 	private static final String LABEL_RES_INFO = "Switch residue labels on/off";
 	private static final String LABEL_CENTRAL_RES = "Switch central residue on/off";
+	private static final String LABEL_TEMPLATE_TRACE = "Show/Hide template trace for NBHString";
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
@@ -77,7 +78,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	JPopupMenu popup; 		 	// right-click context menu
 	
 	// Toolbar Buttons
-	JToggleButton tbSquareSel, tbClusterSel, tbPanMode, tbResInfo, tbCentralRes;
+	JToggleButton tbSquareSel, tbClusterSel, tbPanMode, tbResInfo, tbCentralRes, tbTempTrace;
 	
 	// indices of the all main menus in the frame's menu bar
 	TreeMap<String, Integer> menu2idx;
@@ -249,6 +250,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		ImageIcon icon_delete_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));
 		ImageIcon icon_toggle_res_info = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "information.png"));
 		ImageIcon icon_toggle_central_res = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "arrow_in.png"));
+		ImageIcon icon_toggle_template_trace = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "TT.png"));
 		
 		// Tool bar
 		toolBar = new JToolBar();
@@ -261,6 +263,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		toolBar.addSeparator(separatorDim);
 		tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, true, true);
 		tbCentralRes = makeToolBarToggleButton(icon_toggle_central_res, LABEL_CENTRAL_RES, true, true, true);
+		tbTempTrace =  makeToolBarToggleButton(icon_toggle_template_trace, LABEL_TEMPLATE_TRACE, false, true, true);
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
@@ -556,6 +559,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	}
 	
 	/**
+	 * Handles the user action to change flag whether to show the trace of the template nbhString or not 
+	 * @param show --> boolean flag
+	 */
+	public void handleChangeShowTemplateTrace(boolean show) {
+		this.cPane.setShowNBHStemplateTrace(show);
+	}
+	
+	/**
 	 * Handles the user action to change flag map projection should be used
 	 * @param projType --> int
 	 */
@@ -821,6 +832,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		
 		if (e.getSource() == tbCentralRes) {
 			handleChangeShowCentralRes(tbCentralRes.isSelected());
+		}
+		
+		if (e.getSource() == tbTempTrace) {
+			handleChangeShowTemplateTrace(tbTempTrace.isSelected());
 		}
 		
 		/* ---------- RightClick PopupMenu ------------ */

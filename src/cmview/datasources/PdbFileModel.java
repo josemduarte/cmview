@@ -84,6 +84,7 @@ public class PdbFileModel extends Model {
 			// this.graph and this.residues are now available
 			//TODO 4Corinna compute graph geometry and hand it over to ContactView
 			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
+			System.out.println("PdbFileModel   GraphGeometry loaded");
 
 			// assign a loadedGraphId to this model
 			String name = DEFAULT_LOADEDGRAPHID;
