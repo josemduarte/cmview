@@ -9,6 +9,7 @@ public class Ellipsoid {
 	  shortcuts for pre-defined ellipsoids of revolution.
 	  */
 	  public static enum ELL { BESSEL, HAYFORD, WGS84 }
+	  @SuppressWarnings("unused")
 	  private static final String classname = "Ellipsoid";
 	  
 	  /** parameters of Bessel ellipsoid */
@@ -45,19 +46,19 @@ public class Ellipsoid {
 	  /** */
 	  private void init(String n, double a, double f) {
 	  		//throws Msg {
-		  String r = classname+".init";
 		  _name = n;
 		  _a = a;
 		  _f = f;
-		  if(null == n || n.equals(""))
-			  System.out.println(r+" name must not be empty");
-//	                  throw new Msg(r,"name must not be empty");
-	      if(Math.abs(a-6365.E3)>5.E3)
-	    	  System.out.println(r+" "+String.format("invalid semimajor axis a= %.3f m",a));
-//	                  throw new Msg(r,String.format("invalid semimajor axis a= %.3f m",a));
-	      if(!isSphere() && (e2() < 0.006 || e2() > 0.008))
-	    	  System.out.println(r+" invalid f; 1/f="+1./f());
-//	            throw new Msg(r,"invalid f; 1/f="+1./f());
+//		  String r = classname+".init";
+//		  if(null == n || n.equals(""))
+//			  System.out.println(r+" name must not be empty");
+////	                  throw new Msg(r,"name must not be empty");
+//	      if(Math.abs(a-6365.E3)>5.E3)
+//	    	  System.out.println(r+" "+String.format("invalid semimajor axis a= %.3f m",a));
+////	                  throw new Msg(r,String.format("invalid semimajor axis a= %.3f m",a));
+//	      if(!isSphere() && (e2() < 0.006 || e2() > 0.008))
+//	    	  System.out.println(r+" invalid f; 1/f="+1./f());
+////	            throw new Msg(r,"invalid f; 1/f="+1./f());
 	  }
 	  
 	  /** @return true if ellipsoid is a sphere */

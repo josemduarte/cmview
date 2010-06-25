@@ -33,6 +33,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.vecmath.Vector3d;
 
+//import owl.core.structure.AminoAcid;
 import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGGeometry;
 import owl.core.structure.graphs.RIGNbhood;
@@ -165,7 +166,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int maxNumTraces;
 	private String atomType = "CA"; // 4traces: plot only atompositions of type atomtype
 
-	private String db = "bagler_cb8p0_alledges"; //"bagler_all13p0_alledges";
+	private String dbSphoxel = "bagler_all13p0_alledges";
+	private String dbTraces = "bagler_all5p0_alledges";
 
 	// Sphoxel-Data
 	private CMPdb_sphoxel sphoxel;
@@ -487,13 +489,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcParam() throws SQLException{
 		calcSphoxelParam();
-		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.db);
+		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.dbSphoxel);
 //		setSphoxelParam(); // performed within calcSphoxel		
 		calcSphoxel();
 
 		calcTracesParam();	
 //		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
-		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.db);
+		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
 		setTracesParam();
 		calcNbhsTraces();	
 		this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
@@ -748,7 +750,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.clusterProp = null;
 		this.nbCluster = null;
 		this.clusterAverDirec = null;
-		
+		System.out.println("INum="+this.iNum);
 		nbhsTraces.run();
 		System.out.println("NbhsTraces extracted");
 		nbhsNodes = nbhsTraces.getNBHSnodes();
@@ -819,7 +821,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.numNodesPerLine = new int[this.numLines];
 			this.minDistsJRes = new int[this.numLines];
 			this.maxDistsJRes = new int[this.numLines];
-//			System.out.println(this.numLines +" =? "+numNodesL.size());
+			System.out.println(this.numLines +" =? "+numNodesL.size());
 			for(int i=0; i<numNodesL.size(); i++){
 				this.numNodesPerLine[i] = (int) numNodesL.get(i);
 				this.minDistsJRes[i] = (int) minDists.get(i);
@@ -1744,7 +1746,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}	
 
 			nodeID++;
-		}	
+		}
 	}
 	
 	private void drawNBHSDirectEdge(Graphics2D g2d, double lambdaRad, double phiRad, double lambdaRadNB, double phiRadNB){
@@ -2054,6 +2056,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void drawNBHSTemplateTrace(Graphics2D g2d){
+//		// Alternative: directly compute geometry on demand
+//		// this.graph and this.residues are now available
+//		//TODO 4Corinna compute graph geometry and hand it over to ContactView
+//		RIGGeometry graphGeom = new RIGGeometry(this.mod.getGraph(), this.mod.getPdb().getResidues());
+//		System.out.println("PdbFtpModel   GraphGeometry loaded");
+		
+//		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
 		if (graphGeom!=null){
 			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
@@ -2076,6 +2085,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					boolean isJRes = false;
 					if (jNum==this.jNum)
 						isJRes = true;
+//					// test output
+//					System.out.println("1 , "+iNum+" , "+jNum+" , "+phi+" , "+(lambda-Math.PI)+" , "+resType+"-"
+//							+AminoAcid.getByThreeLetterCode(resType).getOneLetterCode());
+										
 					// draw node
 					drawNBHSNode(g2d, lambda, phi, true, isJRes, resType);
 					if (i+1<this.nbSerials.length){
@@ -2117,6 +2130,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		int nbhsIndexC = 0;
 		boolean specialRes = false;
 		boolean isJRes = false;
+		
+		g2d.setStroke(new BasicStroke(4));
 				
 		for(int i=0; i<this.nbhsNodes.size(); i++){
 			
@@ -2159,12 +2174,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}
 			int j=i+1;
 			
-			if (j<this.nbhsNodes.size()){				
-				drawNBHSEdges(g2d, node, nodeID, lineID, j);
+			if (j<this.nbhsNodes.size()){
+				nbNode = (float[]) this.nbhsNodes.get(j);
+				if (gID==nbNode[0] && iNum==nbNode[1]){
+					drawNBHSEdges(g2d, node, nodeID, lineID, j);					
+				}
+				else {
+					lineID++;
+					nodeID = 0;
+					g2d.setStroke(defaultBasicStroke);
+				}
 			}	
 			else {
 				lineID++;
-				nodeID = 0;
+				nodeID = 0;	
 			}		
 		}
 		
