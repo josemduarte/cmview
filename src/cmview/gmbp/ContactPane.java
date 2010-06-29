@@ -2131,7 +2131,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		boolean specialRes = false;
 		boolean isJRes = false;
 		
-		g2d.setStroke(new BasicStroke(4));
+//		g2d.setStroke(new BasicStroke(4));
 				
 		for(int i=0; i<this.nbhsNodes.size(); i++){
 			
