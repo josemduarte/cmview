@@ -1044,7 +1044,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			
 			double lambda, phi;
 //			double thres = getGeodesicDist(averL-maxRad, averP-maxRad, averL, averP);
-		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  maxRange="+String.valueOf(maxRad));
+//		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  maxRange="+String.valueOf(maxRad));
 			
 			double rad = deltaRad;
 			int id = 0;
@@ -1070,7 +1070,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				
 				nodeDistrWithinSel[id] = (double)cnt/(double)this.foundNodes[this.chosenSelection];
 				sum += nodeDistrWithinSel[id];
-				System.out.println("i="+id+"  rad<"+rad+"   "+innerT+"<dist<"+outerT+"   cnt="+cnt+"   distr="+nodeDistrWithinSel[id]+ "   sum="+sum);
+//				System.out.println("i="+id+"  rad<"+rad+"   "+innerT+"<dist<"+outerT+"   cnt="+cnt+"   distr="+nodeDistrWithinSel[id]+ "   sum="+sum);
 				id++;
 				rad+=deltaRad;
 				cnt=0;
@@ -1111,9 +1111,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			double lambda, phi;
 			double iRad=0, oRad=maxRad;
 			double iSurf = Math.PI*oRad*oRad;
-			double annulusSurf = 0;
-		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
-		    		+String.valueOf(maxRad)+" A="+iSurf);
+//			double annulusSurf = 0;
+//		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
+//		    		+String.valueOf(maxRad)+" A="+iSurf);
 			
 		    for(int i=0; i<this.nbhsNodes.size(); i++){			
 				float[] node = (float[]) this.nbhsNodes.get(i);
@@ -1136,8 +1136,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		    iRad=0;
 			oRad=maxRad;
 		    for (int j=0; j<numRanges; j++){	
-		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
-		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+this.nodeDistrAroundSel[j]);			
+//		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
+//		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+this.nodeDistrAroundSel[j]);			
 		    	iRad = oRad;
 		    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
 		    }
@@ -1160,17 +1160,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			// cluster centre
 			double averL = minMaxAverT4SelAngleRange.get(4)[this.chosenSelection]; // this.clusterProp[clusterID-1][1];
 		    double averP = minMaxAverT4SelAngleRange.get(5)[this.chosenSelection];
-		    double startRad = 0.1;		    		    
+		    double startRad = 0.05;		    		    
 		    averL-=Math.PI; // to get into range [-pi:pi]
-		    int numRanges = 10;
+		    int numRanges = 15;
 		    this.nodeDistr4Sel = new double[2][numRanges];  
 			
 			double lambda, phi;
 			double iRad=0, oRad=startRad;
 			double iSurf = Math.PI*oRad*oRad;
-			double annulusSurf = 0;
-		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
-		    		+String.valueOf(startRad)+" A="+iSurf);
+//			double annulusSurf = 0;
+//		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
+//		    		+String.valueOf(startRad)+" A="+iSurf);
 			
 		    for(int i=0; i<this.nbhsNodes.size(); i++){			
 				float[] node = (float[]) this.nbhsNodes.get(i);
@@ -1194,8 +1194,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			oRad=startRad;
 		    for (int j=0; j<numRanges; j++){	
 		    	this.nodeDistr4Sel[0][j] = oRad;
-		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
-		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+this.nodeDistr4Sel[j]);			
+//		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
+//		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+(int)this.nodeDistr4Sel[1][j]);			
 		    	iRad = oRad;
 		    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
 		    }

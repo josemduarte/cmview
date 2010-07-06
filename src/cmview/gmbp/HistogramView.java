@@ -116,8 +116,9 @@ public class HistogramView extends JFrame {
 			this.baseLineY = 0; this.baseLineX = 1*pixelWidth + this.maxHistLineLength + (2*border);
 			drawHistTraces(g2d);	
 			drawKeys(g2d);
-			drawHistInnerDistrNodes(g2d);
-			drawHistOuterDistrNodes(g2d);
+//			drawHistInnerDistrNodes(g2d);
+//			drawHistOuterDistrNodes(g2d);
+			drawHistDistrNodes(g2d);
 			
 	}
 	
@@ -217,6 +218,7 @@ public class HistogramView extends JFrame {
 				
 	}
 	
+	@SuppressWarnings("unused")
 	private void drawHistInnerDistrNodes(Graphics2D g2d){
 		double maxOccurance = 0;
 		// compute max percentage
@@ -263,6 +265,7 @@ public class HistogramView extends JFrame {
 		g2d.setStroke(ContactPane.defaultBasicStroke);
 	}
 	
+	@SuppressWarnings("unused")
 	private void drawHistOuterDistrNodes(Graphics2D g2d){
 		int maxOccurance = 0;
 		// compute max percentage
@@ -317,19 +320,18 @@ public class HistogramView extends JFrame {
 		for (int i=0; i<this.nodeDistr4Sel[1].length; i++){
 			if (this.nodeDistr4Sel[1][i]>maxOccurance)
 				maxOccurance = (int)this.nodeDistr4Sel[1][i];
-			System.out.print(this.nodeDistr4Sel[0]+":"+this.nodeDistr4Sel[1][i]+"\t");
+//			System.out.print(this.nodeDistr4Sel[0][i]+":"+(int)this.nodeDistr4Sel[1][i]+"\t");
 		}
-		System.out.println();
+//		System.out.println();
 		
 		int x = baseLineX + firstColumnX;			// where first text will be written
 		int y = baseLineY;	// where first text will be written	
 		double xS, xE, yS, yE; 	
 		double maxDY = 60;
-		double dx = 20;
 		Shape line;
 		
 		// draw title
-		String title = "Node distribution around selection"+String.valueOf(this.chosenSelection);		
+		String title = "Node distribution around selection "+String.valueOf(this.chosenSelection);		
 		x = baseLineX + firstColumnX;			// where first text will be written
 		y = baseLineY + textYOffset;	// where first text will be written		
 		g2d.setColor(Color.black);
@@ -348,18 +350,33 @@ public class HistogramView extends JFrame {
 		max = "0";
 		g2d.drawString(max, x, (int) (y+maxDY));
 		
-		x = baseLineX + secondColumnX;	
+		x = baseLineX + firstColumnX + 15;
+		double maxX = this.nodeDistr4Sel[0][this.nodeDistr4Sel[0].length-1];
+//		maxHistLineLength
+		
 //		y = baseLineY;
 		// draw line for each radius range
-		g2d.setStroke(new BasicStroke(17));
+//		g2d.setStroke(new BasicStroke(3));
+		xS = x;
+		double dx = this.nodeDistr4Sel[0][0]*(double)this.maxHistLineLength/maxX;
 		for (int i=0; i<this.nodeDistr4Sel[1].length; i++){
+//			double dx = this.nodeDistr4Sel[0][i];
+//			dx = dx*(double)this.maxHistLineLength;
+//			dx = dx/maxX;
+			if (i>0)
+				dx = (this.nodeDistr4Sel[0][i]-this.nodeDistr4Sel[0][i-1])*(double)this.maxHistLineLength/maxX;
+			xE = xS+dx;
 			double dy = maxDY*this.nodeDistr4Sel[1][i]/maxOccurance;
 			yS = y+maxDY;
 			yE = yS - dy;
-			xS = xE = x+(i*dx);
-			
-			line = new Line2D.Double(xS, yS, xE, yE);
+			Shape bar = new Rectangle2D.Double(xS, yE, (xE-xS), (yS-yE));
+			g2d.setColor(Color.black);
+			g2d.draw(bar);	
+			g2d.fill(bar);			
+			line = new Line2D.Double(xS, yS, xS, yE);
+			g2d.setColor(Color.white);
 			g2d.draw(line);
+			xS = xE;
 		}
 		g2d.setStroke(ContactPane.defaultBasicStroke);
 	}
