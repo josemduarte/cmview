@@ -1,5 +1,6 @@
 package cmview.gmbp;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -65,6 +66,9 @@ public class HistogramView extends JFrame {
 //	private int histType = ContactPane.sphoxelHist;	
 	private int chosenSelection = 0;
 	private String[] ptSelRange;
+	private double[] nodeDistrWithinSel;
+	private int[] nodeDistrAroundSel;
+	private double[][] nodeDistr4Sel;
 	
 	private final Color backgroundColor = Color.white;
 	
@@ -112,6 +116,9 @@ public class HistogramView extends JFrame {
 			this.baseLineY = 0; this.baseLineX = 1*pixelWidth + this.maxHistLineLength + (2*border);
 			drawHistTraces(g2d);	
 			drawKeys(g2d);
+			drawHistInnerDistrNodes(g2d);
+			drawHistOuterDistrNodes(g2d);
+			
 	}
 	
 	private void drawKeys(Graphics2D g2d){
@@ -208,6 +215,153 @@ public class HistogramView extends JFrame {
 			
 		}
 				
+	}
+	
+	private void drawHistInnerDistrNodes(Graphics2D g2d){
+		double maxOccurance = 0;
+		// compute max percentage
+		for (int i=0; i<this.nodeDistrWithinSel.length; i++)
+			if (this.nodeDistrWithinSel[i]>maxOccurance)
+				maxOccurance = this.nodeDistrWithinSel[i];
+		
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY;	// where first text will be written	
+		double xS, xE, yS=baseLineY, yE; 	
+		double maxDY = 60;
+		double dx = 20;
+		Shape line;
+		
+		// draw title
+		String title = "Node distribution within selection";		
+		x = baseLineX + firstColumnX;			// where first text will be written
+		y = baseLineY + textYOffset;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		title = "with increasing distance from centre";
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		String max = String.valueOf((double)(Math.round(100*maxOccurance))/100);
+		g2d.drawString(max, x, y);	
+		max = "0.00";
+		g2d.drawString(max, x, (int) (y+maxDY));
+		
+		x = baseLineX + secondColumnX;	
+//		y = baseLineY;
+		// draw line for each radius range
+		g2d.setStroke(new BasicStroke(17));
+		for (int i=0; i<this.nodeDistrWithinSel.length; i++){
+			double dy = maxDY*this.nodeDistrWithinSel[i]/maxOccurance;
+			yS = y+maxDY;
+			yE = yS - dy;
+			xS = xE = x+(i*dx);
+			
+			line = new Line2D.Double(xS, yS, xE, yE);
+			g2d.draw(line);
+		}
+		baseLineY = (int)(yS+0.5);
+		g2d.setStroke(ContactPane.defaultBasicStroke);
+	}
+	
+	private void drawHistOuterDistrNodes(Graphics2D g2d){
+		int maxOccurance = 0;
+		// compute max percentage
+		for (int i=0; i<this.nodeDistrAroundSel.length; i++)
+			if (this.nodeDistrAroundSel[i]>maxOccurance)
+				maxOccurance = this.nodeDistrAroundSel[i];
+		
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY;	// where first text will be written	
+		double xS, xE, yS, yE; 	
+		double maxDY = 60;
+		double dx = 20;
+		Shape line;
+		
+		// draw title
+		String title = "Node distribution around selection";		
+		x = baseLineX + firstColumnX;			// where first text will be written
+		y = baseLineY + textYOffset;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		title = "with increasing extent";
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		title = "and constant area";
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		String max = String.valueOf(maxOccurance);
+		g2d.drawString(max, x, y);	
+		max = "0";
+		g2d.drawString(max, x, (int) (y+maxDY));
+		
+		x = baseLineX + secondColumnX;	
+//		y = baseLineY;
+		// draw line for each radius range
+		g2d.setStroke(new BasicStroke(17));
+		for (int i=0; i<this.nodeDistrAroundSel.length; i++){
+			double dy = maxDY*this.nodeDistrAroundSel[i]/maxOccurance;
+			yS = y+maxDY;
+			yE = yS - dy;
+			xS = xE = x+(i*dx);
+			
+			line = new Line2D.Double(xS, yS, xE, yE);
+			g2d.draw(line);
+		}
+		g2d.setStroke(ContactPane.defaultBasicStroke);
+	}
+	
+	private void drawHistDistrNodes(Graphics2D g2d){
+		int maxOccurance = 0;
+		// compute max percentage
+		for (int i=0; i<this.nodeDistr4Sel[1].length; i++){
+			if (this.nodeDistr4Sel[1][i]>maxOccurance)
+				maxOccurance = (int)this.nodeDistr4Sel[1][i];
+			System.out.print(this.nodeDistr4Sel[0]+":"+this.nodeDistr4Sel[1][i]+"\t");
+		}
+		System.out.println();
+		
+		int x = baseLineX + firstColumnX;			// where first text will be written
+		int y = baseLineY;	// where first text will be written	
+		double xS, xE, yS, yE; 	
+		double maxDY = 60;
+		double dx = 20;
+		Shape line;
+		
+		// draw title
+		String title = "Node distribution around selection"+String.valueOf(this.chosenSelection);		
+		x = baseLineX + firstColumnX;			// where first text will be written
+		y = baseLineY + textYOffset;	// where first text will be written		
+		g2d.setColor(Color.black);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		title = "with increasing extent";
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		double A0 = Math.PI * Math.pow(this.nodeDistr4Sel[0][0],2);
+		A0 = (double)(Math.round(1000*A0))/1000;
+		title = "and constant area="+String.valueOf(A0);
+		g2d.drawString(title, x, y);			
+		y += this.lineHeight; 
+		String max = String.valueOf(maxOccurance);
+		g2d.drawString(max, x, y);	
+		max = "0";
+		g2d.drawString(max, x, (int) (y+maxDY));
+		
+		x = baseLineX + secondColumnX;	
+//		y = baseLineY;
+		// draw line for each radius range
+		g2d.setStroke(new BasicStroke(17));
+		for (int i=0; i<this.nodeDistr4Sel[1].length; i++){
+			double dy = maxDY*this.nodeDistr4Sel[1][i]/maxOccurance;
+			yS = y+maxDY;
+			yE = yS - dy;
+			xS = xE = x+(i*dx);
+			
+			line = new Line2D.Double(xS, yS, xE, yE);
+			g2d.draw(line);
+		}
+		g2d.setStroke(ContactPane.defaultBasicStroke);
 	}
 	
 	private void drawHistTraces(Graphics2D g2d){
@@ -544,6 +698,9 @@ public class HistogramView extends JFrame {
 		}
 		this.chosenSelection = this.cPane.getChosenSelection();
 		this.ptSelRange = this.cPane.getChosenPTRange();
+		this.nodeDistrWithinSel = this.cPane.getNodeDistrWithinSel();
+		this.nodeDistrAroundSel = this.cPane.getNodeDistrAroundSel();
+		this.nodeDistr4Sel = this.cPane.getNodeDistr4Sel();
 	}
 	
 	public double[] getScaleValues(){

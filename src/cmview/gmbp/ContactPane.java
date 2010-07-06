@@ -185,6 +185,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int [][] histTWholeAngleRange; // = new int[scale.length];
 	private Vector<int[][]> histT4SelAngleRange; // = new Vector<int[]>();
 	private Vector<double[]> minMaxAverT4SelAngleRange;
+	private double[] nodeDistrWithinSel;
+	private int[] nodeDistrAroundSel;
+	private double[][] nodeDistr4Sel;
+	private int[] foundNodes;
 	private boolean showHist = true;
 	private int histType = sphoxelHist;	
 	private int chosenSelection;
@@ -200,6 +204,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private String[] setOfOptStrings;
 	
 	// Clustering Data
+	private NbhString_ClusterAnalysis clusterAnal;
 	private int[] clusterIDs; // contains clusterID for each node of this.nbhsNodes
 	private double[][] clusterProp; // [][0]:minL, [][1]:averageL, [][2]:maxL, [][3]:minP, [][4]:averP, [][5]:maxP
 									// lambda[-Pi:+Pi] and phi[0:Pi]
@@ -864,9 +869,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void calcHistogramms(){
 		calcHistOfSphoxelMap();
 		calcHistOfNBHSTraces();
+		calcHistOfNodeCluster();
+		calcHistOfNodeDistrAroundSel();
+		calcNodeDistr4Sel();
 	}
 	
-	public void calcHistOfNBHSTraces(){
+	private void calcHistOfNBHSTraces(){
 //		ColorScaleView colView = this.contactView.getColorScaleView();
 //		double [] scale = colView.getScaleValues();
 		this.histTWholeAngleRange = new int[4][aas.length];
@@ -879,7 +887,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		double[] maxPhi = new double[this.lambdaRanges.size()];
 		double[] minLambda = new double[this.lambdaRanges.size()];
 		double[] maxLambda = new double[this.lambdaRanges.size()];
-		int[] foundNodes = new int[this.lambdaRanges.size()];
+		this.foundNodes = new int[this.lambdaRanges.size()];
 		
 		float[] node;
 		float phiRad, lambdaRad;
@@ -1004,18 +1012,245 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		ratio = 0;
 	}
 	
-	public void runClusterAnalysis(){
+	private void calcHistOfNodeCluster(){		
 
+//		this.minMaxAverT4SelAngleRange.add(minLambda);
+//		this.minMaxAverT4SelAngleRange.add(minPhi);
+//		this.minMaxAverT4SelAngleRange.add(maxLambda);
+//		this.minMaxAverT4SelAngleRange.add(maxPhi);
+//		this.minMaxAverT4SelAngleRange.add(averLambda);
+//		this.minMaxAverT4SelAngleRange.add(averPhi);
+//		int clusterID =1;
+		this.nodeDistrWithinSel = null;
+		if (this.chosenSelection>=0 && this.chosenSelection<this.lambdaRanges.size()){			
+
+			// cluster centre
+			double averL = minMaxAverT4SelAngleRange.get(4)[this.chosenSelection]; // this.clusterProp[clusterID-1][1];
+		    double averP = minMaxAverT4SelAngleRange.get(5)[this.chosenSelection];
+		    double maxRad = 0;
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(0)[this.chosenSelection]-averL)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(0)[this.chosenSelection]-averL);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(2)[this.chosenSelection]-averL)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(2)[this.chosenSelection]-averL);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(1)[this.chosenSelection]-averP)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(1)[this.chosenSelection]-averP);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(3)[this.chosenSelection]-averP)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(3)[this.chosenSelection]-averP);
+		    double deltaRad = 0.03;
+		    averL-=Math.PI;
+		    int numRanges = (int)(maxRad/deltaRad) + 1;
+		    nodeDistrWithinSel = new double[numRanges];
+		    
+			
+			double lambda, phi;
+//			double thres = getGeodesicDist(averL-maxRad, averP-maxRad, averL, averP);
+		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  maxRange="+String.valueOf(maxRad));
+			
+			double rad = deltaRad;
+			int id = 0;
+			int cnt=0;
+			double sum = 0;
+			while(rad-deltaRad < maxRad){	
+				double innerT = euclideanDist(averL-(rad-deltaRad), averP, averL, averP);
+				double outerT = euclideanDist(averL-rad, averP, averL, averP);
+//				System.out.println(innerT+"<dist<"+outerT);
+
+				
+				for(int i=0; i<this.nbhsNodes.size(); i++){			
+					float[] node = (float[]) this.nbhsNodes.get(i);
+//				for (int nodeID:nodeIDs){
+//					float[] node = (float[]) this.nbhsNodes.get(nodeID);
+					lambda = node[4]; //+Math.PI;
+					phi = node[3];
+					
+					double dist = euclideanDist(lambda, phi, averL, averP);
+					if (dist>=innerT && dist<outerT)
+						cnt++;
+				}
+				
+				nodeDistrWithinSel[id] = (double)cnt/(double)this.foundNodes[this.chosenSelection];
+				sum += nodeDistrWithinSel[id];
+				System.out.println("i="+id+"  rad<"+rad+"   "+innerT+"<dist<"+outerT+"   cnt="+cnt+"   distr="+nodeDistrWithinSel[id]+ "   sum="+sum);
+				id++;
+				rad+=deltaRad;
+				cnt=0;
+			}			
+			
+		}
+		else
+			System.out.println("Distribution can't be computed of background (noise) cluster!");
+		
+
+//		if (clusterAnal!=null)
+//			clusterAnal.analyseNodeDistributionInCluster(index);
+	}
+	
+	private void calcHistOfNodeDistrAroundSel(){		
+
+		System.out.println("calcHistOfNodeDistrAroundSel:");
+		this.nodeDistrAroundSel = null;
+		if (this.chosenSelection>=0 && this.chosenSelection<this.lambdaRanges.size()){			
+
+			// cluster centre
+			double averL = minMaxAverT4SelAngleRange.get(4)[this.chosenSelection]; // this.clusterProp[clusterID-1][1];
+		    double averP = minMaxAverT4SelAngleRange.get(5)[this.chosenSelection];
+		    double maxRad = 0;
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(0)[this.chosenSelection]-averL)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(0)[this.chosenSelection]-averL);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(2)[this.chosenSelection]-averL)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(2)[this.chosenSelection]-averL);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(1)[this.chosenSelection]-averP)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(1)[this.chosenSelection]-averP);
+		    if (Math.abs(minMaxAverT4SelAngleRange.get(3)[this.chosenSelection]-averP)>maxRad)
+		    	maxRad = Math.abs(minMaxAverT4SelAngleRange.get(3)[this.chosenSelection]-averP);
+		    		    
+		    averL-=Math.PI; // to get into range [-pi:pi]
+		    int numRanges = 5;
+		    this.nodeDistrAroundSel = new int[numRanges];  
+			
+			double lambda, phi;
+			double iRad=0, oRad=maxRad;
+			double iSurf = Math.PI*oRad*oRad;
+			double annulusSurf = 0;
+		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
+		    		+String.valueOf(maxRad)+" A="+iSurf);
+			
+		    for(int i=0; i<this.nbhsNodes.size(); i++){			
+				float[] node = (float[]) this.nbhsNodes.get(i);
+				lambda = node[4]; //+Math.PI;
+				phi = node[3];				
+				double dist = euclideanDist(lambda, phi, averL, averP);
+
+				iRad=0;
+				oRad=maxRad;
+			    for (int j=0; j<numRanges; j++){
+					if (dist>=iRad && dist<oRad)
+						this.nodeDistrAroundSel[j]++;
+					
+			    	iRad = oRad;
+			    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
+			    }
+			}
+		    
+		    // Test printout
+		    iRad=0;
+			oRad=maxRad;
+		    for (int j=0; j<numRanges; j++){	
+		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
+		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+this.nodeDistrAroundSel[j]);			
+		    	iRad = oRad;
+		    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
+		    }
+			
+		}
+		else
+			System.out.println("Distribution can't be computed of background (noise) cluster!");
+		
+
+//		if (clusterAnal!=null)
+//			clusterAnal.analyseNodeDistributionInCluster(index);
+	}
+	
+	private void calcNodeDistr4Sel(){
+		System.out.println("calc Hist Of Node Distr Within and Around Sel:");
+		this.nodeDistr4Sel = null;
+		
+		if (this.chosenSelection>=0 && this.chosenSelection<this.lambdaRanges.size()){			
+
+			// cluster centre
+			double averL = minMaxAverT4SelAngleRange.get(4)[this.chosenSelection]; // this.clusterProp[clusterID-1][1];
+		    double averP = minMaxAverT4SelAngleRange.get(5)[this.chosenSelection];
+		    double startRad = 0.1;		    		    
+		    averL-=Math.PI; // to get into range [-pi:pi]
+		    int numRanges = 10;
+		    this.nodeDistr4Sel = new double[2][numRanges];  
+			
+			double lambda, phi;
+			double iRad=0, oRad=startRad;
+			double iSurf = Math.PI*oRad*oRad;
+			double annulusSurf = 0;
+		    System.out.println("Node Distribution within selection "+this.chosenSelection+"  RadiusSel="
+		    		+String.valueOf(startRad)+" A="+iSurf);
+			
+		    for(int i=0; i<this.nbhsNodes.size(); i++){			
+				float[] node = (float[]) this.nbhsNodes.get(i);
+				lambda = node[4]; //+Math.PI;
+				phi = node[3];				
+				double dist = euclideanDist(lambda, phi, averL, averP);
+
+				iRad=0;
+				oRad=startRad;
+			    for (int j=0; j<numRanges; j++){
+					if (dist>=iRad && dist<oRad)
+						this.nodeDistr4Sel[1][j]++;
+					
+			    	iRad = oRad;
+			    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
+			    }
+			}
+		    
+		    // Test printout
+		    iRad=0;
+			oRad=startRad;
+		    for (int j=0; j<numRanges; j++){	
+		    	this.nodeDistr4Sel[0][j] = oRad;
+		    	annulusSurf = Math.PI*(Math.pow(oRad, 2) - Math.pow(iRad, 2));
+		    	System.out.println("Annulus: "+iRad+"-"+oRad+" A="+annulusSurf+" cnt="+this.nodeDistr4Sel[j]);			
+		    	iRad = oRad;
+		    	oRad = Math.sqrt( (iSurf/Math.PI) + (iRad*iRad) );
+		    }
+			
+		}
+		else
+			System.out.println("Distribution can't be computed of background (noise) cluster!");
+		
+	}
+	
+	private double euclideanDist(double l1, double p1, double l2, double p2){
+		if (Math.abs(l1-l2)>Math.PI){
+			if (l1<0 || l2<0){
+				l1 -= Math.PI;
+				l2 -= Math.PI;
+				if (l1<-Math.PI)
+					l1 += (2*Math.PI);
+				if (l2<-Math.PI)
+					l2 += (2*Math.PI);
+			}
+			else{
+				l1 -= Math.PI;
+				l2 -= Math.PI;	
+				if (l1<0)
+					l1 += (2*Math.PI);	
+				if (l2<0)
+					l2 += (2*Math.PI);		
+			}
+		}
+		double dist = Math.sqrt(Math.pow(l1-l2, 2) + Math.pow(p1-p2, 2));
+		return dist;
+	}
+	
+	public void runClusterAnalysis(){
+		
 		double alpha = this.epsilon*Math.PI/180;
 		double eps = alpha * this.rSphere;
+		
+		if (this.clusterAnal==null)
+			this.clusterAnal = new NbhString_ClusterAnalysis(this.nbhsNodes,eps,this.minNumNBs,this.rSphere);
+		else {
+			this.clusterAnal.setEpsilon(eps);
+			this.clusterAnal.setMinNumNBs(this.minNumNBs);
+			this.clusterAnal.setRadiusSphere(this.rSphere);
+			this.clusterAnal.setNbhsNodes(this.nbhsNodes);
+		}
+		
 		System.out.println("Start Clusteranalysis for "+this.nbhsNodes.size()+" nodes with epsilon="+eps);
-		NbhString_ClusterAnalysis clusterAnal = new NbhString_ClusterAnalysis(this.nbhsNodes,eps,this.minNumNBs,this.rSphere);
 		clusterAnal.runClusterAnalysis();
 		this.clusterIDs = clusterAnal.getClusterN();
 		// ToDo: evaluate clusters
 		clusterAnal.analyseClusters();
 		this.clusters = clusterAnal.getClusters();
 		this.clusterProp = clusterAnal.getClusterProp();
+		
 		clusterAnal.analyseEdgeDirection();
 		this.clusterDirProp = clusterAnal.getClusterDirProp();
 		this.nbCluster = clusterAnal.getNbCluster();
@@ -2339,13 +2574,14 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		double minL, maxL, minP, maxP;
 		double x1, x2, x3, x4, y1, y2, y3, y4;
 		double[] xCoord, yCoord;
+		double deltaBorder = 0.05;
 		g2d.setColor(selAngleRangeColor);
 		g2d.setStroke(selRangeStroke);
 		for (int i=0; i<this.clusterProp.length; i++){
-			minL = this.clusterProp[i][0] + Math.PI;
-			maxL = this.clusterProp[i][2] + Math.PI;
-			minP = this.clusterProp[i][3];
-			maxP = this.clusterProp[i][5];
+			minL = this.clusterProp[i][0] + Math.PI - deltaBorder;
+			maxL = this.clusterProp[i][2] + Math.PI + deltaBorder;
+			minP = this.clusterProp[i][3] - deltaBorder;
+			maxP = this.clusterProp[i][5] + deltaBorder;
 			
 			x1 = getScreenPosFromRad(minL, minP).getFirst();
 			y1 = getScreenPosFromRad(minL, minP).getSecond();
@@ -3629,9 +3865,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public Vector<double[]> getMinMaxAverT4SelAngleRange() {
 		return minMaxAverT4SelAngleRange;
 	}
-	public void setMinMaxAverT4SelAngleRange(
-			Vector<double[]> minMaxAverT4SelAngleRange) {
-		this.minMaxAverT4SelAngleRange = minMaxAverT4SelAngleRange;
+//	public void setMinMaxAverT4SelAngleRange(
+//			Vector<double[]> minMaxAverT4SelAngleRange) {
+//		this.minMaxAverT4SelAngleRange = minMaxAverT4SelAngleRange;
+//	}
+	public double[] getNodeDistrWithinSel(){
+		return this.nodeDistrWithinSel;
+	}
+	public int[] getNodeDistrAroundSel(){
+		return this.nodeDistrAroundSel;
+	}
+	public double[][] getNodeDistr4Sel(){
+		return this.nodeDistr4Sel;
 	}
 	public int[][] getHistTWholeAngleRange() {
 		return histTWholeAngleRange;
@@ -3794,6 +4039,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						commitSettings();
 						updateAngleRange();	
 					}
+					if (clusterAnal!=null)
+						clusterAnal.analyseNodeDistributionInCluster(index);
 					System.out.println("Chosen cluster: "+index);
 				}
 //				this.repaint();
