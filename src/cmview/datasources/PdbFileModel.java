@@ -1,12 +1,18 @@
 package cmview.datasources;
 import java.io.File;
+
 import java.io.IOException;
 
 import owl.core.structure.*;
+import owl.core.structure.graphs.RIGEdge;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGGeometry;
+import owl.core.structure.graphs.RIGNode;
 import cmview.Start;
+import java.lang.Object;
+import javax.vecmath.*;
 
+import edu.uci.ics.jung.graph.util.Pair;
 
 /** 
  * A contact map data model based on a structure loaded from a PDB file.
@@ -46,7 +52,15 @@ public class PdbFileModel extends Model {
 	 * @throws ModelConstructionError if an error occured while trying to load the structure
 	 */
 	public void load(String pdbChainCode, int modelSerial) throws ModelConstructionError {
-		load(pdbChainCode, modelSerial, false);
+		try {
+			load(pdbChainCode, modelSerial, false);
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -59,8 +73,10 @@ public class PdbFileModel extends Model {
 	 * @param modelSerial the model number to be loaded
 	 * @param loadEnsembleGraph whether to set the graph in this model to the (weighted) ensemble graph of all models
 	 * @throws ModelConstructionError if an error occured while trying to load the structure
+	 * @throws IOException 
+	 * @throws NumberFormatException 
 	 */
-	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError {
+	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError, NumberFormatException, IOException {
 		// load PDB file
 		try {
 			this.pdb.load(pdbChainCode,modelSerial);
@@ -85,9 +101,40 @@ public class PdbFileModel extends Model {
 			//TODO 4Corinna compute graph geometry and hand it over to ContactView
 			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
 			System.out.println("PdbFileModel   GraphGeometry loaded");
-			this.graphGeom.printGeom();
+//			this.graphGeom.printGeom();
 			
-
+			
+//			double score;
+//			Point3d iCoord=this.pdb.getResidue(5).getAtomsMap().get("CA").getCoords();
+//			Point3d jCoord=this.pdb.getResidue(37).getAtomsMap().get("CA").getCoords();
+//			double resDist=Math.sqrt((Math.pow((iCoord.x-jCoord.x), 2)+Math.pow((iCoord.y-jCoord.y), 2)+Math.pow((iCoord.z-jCoord.z), 2)));
+//			score=this.graphGeom.outputLogOddsScore(this.pdb.getResidue(5), this.pdb.getResidue(37), resDist);
+//			System.out.println("Final logOddsScore is : "+score);
+			
+			
+			
+			
+//			double score=0;
+//			for (RIGEdge edge:this.graph.getEdges())
+//				{
+//				
+//				Pair<RIGNode> nodes = this.graph.getEndpoints(edge);
+//				RIGNode iNode = nodes.getFirst();
+//				RIGNode jNode = nodes.getSecond();
+//				int iNum = iNode.getResidueSerial();
+//				int jNum = jNode.getResidueSerial();
+//				System.out.println(iNum+"  "+jNum);
+//				Point3d iCoord=this.pdb.getResidue(iNum).getAtomsMap().get("CA").getCoords();
+//				Point3d jCoord=this.pdb.getResidue(jNum).getAtomsMap().get("CA").getCoords();
+//				double resDist=Math.sqrt((Math.pow((iCoord.x-jCoord.x), 2)+Math.pow((iCoord.y-jCoord.y), 2)+Math.pow((iCoord.z-jCoord.z), 2)));
+//				score=score+this.graphGeom.outputLogOddsScore(this.pdb.getResidue(iNum), this.pdb.getResidue(jNum), resDist);
+//				System.out.println("Intermediate logOddsScores are : "+score);
+//				}
+//			System.out.println("Final logOddsScore is : "+score);
+			
+		
+			
+			
 			// assign a loadedGraphId to this model
 			String name = DEFAULT_LOADEDGRAPHID;
 			if (!this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
