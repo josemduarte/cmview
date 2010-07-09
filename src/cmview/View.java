@@ -1461,7 +1461,15 @@ public class View extends JFrame implements ActionListener {
 		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
 		try {
 			PdbFileModel mod = new PdbFileModel(f, ct, dist, minss, maxss);
-			mod.load(cc, modelSerial, loadAllModels);
+			try {
+				mod.load(cc, modelSerial, loadAllModels);
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if(secondModel) {
 				//handleLoadSecondModel(mod);
 				mod2 = mod;

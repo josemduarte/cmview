@@ -1087,7 +1087,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcHistOfNodeDistrAroundSel(){		
 
-		System.out.println("calcHistOfNodeDistrAroundSel:");
+//		System.out.println("calcHistOfNodeDistrAroundSel:");
 		this.nodeDistrAroundSel = null;
 		if (this.chosenSelection>=0 && this.chosenSelection<this.lambdaRanges.size()){			
 
@@ -1152,7 +1152,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void calcNodeDistr4Sel(){
-		System.out.println("calc Hist Of Node Distr Within and Around Sel:");
+//		System.out.println("calc Hist Of Node Distr Within and Around Sel:");
 		this.nodeDistr4Sel = null;
 		
 		if (this.chosenSelection>=0 && this.chosenSelection<this.lambdaRanges.size()){			
@@ -3967,7 +3967,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// This is called when the user presses the mouse anywhere
 		// in the frame
 		
-		System.out.println("mousePressed");
+//		System.out.println("mousePressed");
 
 		lastMouseButtonPressed = evt.getButton();
 		mousePressedPos = evt.getPoint();

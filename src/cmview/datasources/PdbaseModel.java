@@ -90,7 +90,7 @@ public class PdbaseModel extends Model {
 			//TODO 4Corinna compute graph geometry and hand it over to ContactView
 			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
 			System.out.println("PdbaseModel   GraphGeometry loaded");
-			this.graphGeom.printGeom();
+//			this.graphGeom.printGeom();
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();
