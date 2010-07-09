@@ -23,6 +23,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
@@ -660,6 +661,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			System.out.println("Filename= "+fn);
 //			fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
 			
+//			int zipSize = zipfile.size();
+//			Enumeration<? extends ZipEntry> entries = zipfile.entries();
+//			while (	entries.hasMoreElements() ){
+//				ZipEntry entry = entries.nextElement();
+//				if (entry.getName() == fn)
+//					System.out.println(entry.getName());
+//			}
 			ZipEntry zipentry = zipfile.getEntry(fn);
 			
 			CSVhandler csv = new CSVhandler();
