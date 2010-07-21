@@ -131,6 +131,10 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		return null;
 	}
 	
+	public ResidueContactScoringFunction[] getScoringFunctions(){
+		return this.scoringFunctions;
+	}
+	
 	/**
 	 * Initialize the group of controls for showing background overlays (distance map, contact density etc.)
 	 * TODO: Add overlay of difference map in compare mode.
@@ -165,6 +169,9 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 				secondViewCB.addItem(f.getMethodName());
 			}
 		}
+		
+		// add option for variable transferFunction
+		secondViewCB.addItem(View.BgOverlayType.TF_FUNC.getItem());
 		
 		firstViewCB.setEditable(true); // this should actually be false, but we want the white background
 		secondViewCB.setEditable(true);

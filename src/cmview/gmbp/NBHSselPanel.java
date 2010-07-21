@@ -28,7 +28,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	private final int bottomMargin = 5;		// margin between bg rectable and edge
 	private int width = (int)(0.9*ContactStatusBar.DEFAULT_WIDTH);
 	private int totalHeight = textYOffset+5;		// height for basic information and background
-	private final int numResPerLine = 8;
+	private final int numResPerLine = 10;
 	
 	
 	/*--------------------------- member variables --------------------------*/	
@@ -52,7 +52,7 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		int numLines = 1;
 		while (this.nbhString.length() > numLines*this.numResPerLine)
 			numLines++;
-		System.out.println(numLines);
+		System.out.println("numLines nbhString= "+numLines);
 		this.totalHeight = (textYOffset+ ((numLines-1) * this.lineHeight) + this.bottomMargin);
 		this.setMinimumSize(new Dimension(width,totalHeight));
 		

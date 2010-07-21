@@ -348,14 +348,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.tbPane.add(contStatBar,BorderLayout.EAST);
 		this.getContentPane().add(tbPane, BorderLayout.CENTER);
 		
-		System.out.println("Sizes of panels:");
-		System.out.println("ContactView: "+this.getSize().height+"x"+this.getSize().width);
-		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
-		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
-		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
-		System.out.println("Size of lambdaRuler: "+lambdaRuler.getSize().height+"x"+lambdaRuler.getSize().width);
-		System.out.println("Size of lampdaRul: "+lampdaRul.getSize().height+"x"+lampdaRul.getSize().width);
-		System.out.println("Size of phiRuler: "+phiRuler.getRulerSize().height+"x"+phiRuler.getRulerSize().width);
+//		System.out.println("Sizes of panels:");
+//		System.out.println("ContactView: "+this.getSize().height+"x"+this.getSize().width);
+//		System.out.println("tbPane: "+this.tbPane.getSize().getHeight()+"x"+this.tbPane.getSize().getWidth());
+//		System.out.println("svP: "+this.svP.getSize().getHeight()+"x"+this.svP.getWidth());
+//		System.out.println("cPane: "+this.cPane.getSize().getHeight()+"x"+this.cPane.getSize().getWidth());
+//		System.out.println("Size of lambdaRuler: "+lambdaRuler.getSize().height+"x"+lambdaRuler.getSize().width);
+//		System.out.println("Size of lampdaRul: "+lampdaRul.getSize().height+"x"+lampdaRul.getSize().width);
+//		System.out.println("Size of phiRuler: "+phiRuler.getRulerSize().height+"x"+phiRuler.getRulerSize().width);
 						
 		pack();
 		this.cPane.requestFocus();

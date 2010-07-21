@@ -31,6 +31,7 @@ public class GUIState {
 	private boolean showDistanceMap;	// whether showing the distance map is switched on
 	private boolean showResidueScoringMap; // whether one of the generic residue scoring function maps is switched on
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
+	private boolean showTFFctMap;       // whether showing the transferfunction based map is switched on
 	private boolean showDeltaRankMap; 	// whether showing the delta rank map is switched on
 	
 	// Maps for the bottom-left contact map background
@@ -40,6 +41,7 @@ public class GUIState {
 	private boolean showBottomDistanceMap;
 	private boolean showBottomDeltaRankMap;
 	private boolean showBottomDiffDistMap;
+	private boolean showBottomTFFctMap;
 	private boolean showBottomResidueScoringMap;
 	
 	private String bottomResidueScoringFunctionName;
@@ -74,6 +76,7 @@ public class GUIState {
 		this.showDiffDistMap = false;
 		this.showDeltaRankMap = false;
 		this.showResidueScoringMap = false;
+		this.showTFFctMap = false;
 		
 		this.showBottomNbhSizeMap = false;
 		this.showBottomDensityMap = false;
@@ -81,6 +84,7 @@ public class GUIState {
 		this.showBottomDiffDistMap = false;
 		this.showBottomDeltaRankMap = false;
 		this.showBottomResidueScoringMap = false;
+		this.showBottomTFFctMap = false;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -225,6 +229,16 @@ public class GUIState {
 		return showBottomDiffDistMap;
 	}
 	
+	/**
+	 * @return the showTFFctMap
+	 */
+	protected boolean getShowTFFctMap() {
+		return showTFFctMap;
+	}
+	
+	protected boolean getShowBottomTFFctMap() {
+		return showBottomTFFctMap;
+	}
 	/*---------------- setters ---------------*/
 	
 	/**
@@ -352,6 +366,16 @@ public class GUIState {
 	protected void setShowBottomDiffDistMap(boolean showDiffDistMap) {
 		this.showBottomDiffDistMap = showDiffDistMap;
 	}
+	
+	/**
+	 * @param showTFFctMap the showTFFctMap to set
+	 */
+	protected void setShowTFFctMap(boolean showTFFctMap) {
+		this.showTFFctMap = showTFFctMap;
+	}
+	protected void setShowBottomTFFctMap(boolean showTFFctMap) {
+		this.showBottomTFFctMap = showTFFctMap;
+	}
 
 	
 	public void setShowDeltaRankMap(boolean b) {
@@ -364,10 +388,10 @@ public class GUIState {
 	}
 
 	public boolean getShowBackground() {
-		return showDeltaRankMap || showDensityMap || showDiffDistMap || showDistanceMap || showResidueScoringMap;
+		return showDeltaRankMap || showDensityMap || showDiffDistMap || showDistanceMap || showResidueScoringMap || showTFFctMap;
 	}
 	public boolean getShowBottomBackground() {
-		return showBottomDeltaRankMap || showBottomDensityMap || showBottomDiffDistMap || showBottomDistanceMap || showBottomResidueScoringMap;
+		return showBottomDeltaRankMap || showBottomDensityMap || showBottomDiffDistMap || showBottomDistanceMap || showBottomResidueScoringMap || showBottomTFFctMap;
 	}
 
 	public void setResidueScoringFunctionName(boolean bottom, String name) {

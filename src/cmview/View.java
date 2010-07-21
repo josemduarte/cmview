@@ -126,6 +126,7 @@ public class View extends JFrame implements ActionListener {
 	JPopupMenu popup; 		 	// right-click context menu
 	JPanel tbPane;				// tool bar panel holding toolBar and cmp (necessary if toolbar is floatable)
 	StatusBar statusBar;		// A status bar with metainformation on the right
+	TransferFunctionDialog tfDialog;  // Dialogue to change the customizable transfer function
 	DeltaRankBar deltaRankBar;	// A Bar at the bottom of the contact map showing delta rank information for the sequence
 	
 	// Tool bar buttons
@@ -143,7 +144,8 @@ public class View extends JFrame implements ActionListener {
 		COMMON_NBH("Common Nbhd"), 
 		DELTA_RANK("Delta Rank"), 
 		DIFF_DIST("Difference"), 
-		ENERGY("Pairwise Energy");
+		ENERGY("Pairwise Energy"),
+		TF_FUNC("Variable Transfer Function");
 		
 		String label;
 		
@@ -2745,6 +2747,24 @@ public class View extends JFrame implements ActionListener {
 			}
 		}
 	}
+	
+	public void handleShowTFbasedMap(boolean secondView) {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning(mod);
+//		} else if(mod2== null || !mod2.has3DCoordinates()){
+//			showNo3DCoordsWarning(mod2);
+		} else {
+			if (secondView) {
+				guiState.setShowBottomTFFctMap(true); //!guiState.getShowBottomTFFctMap());
+				cmPane.toggleTFFctMap(guiState.getShowBottomTFFctMap());
+			} else { // just for second View
+//				guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
+//				cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
+			}
+		}
+	}
 
 	/* -------------------- Select menu -------------------- */
 
@@ -3566,6 +3586,12 @@ public class View extends JFrame implements ActionListener {
 			handleShowDeltaRankMap(secondView);
 		} else if (selectedItem == BgOverlayType.DIFF_DIST.getItem()) {
 			handleShowDiffDistMap(secondView);
+		} else if (selectedItem == BgOverlayType.TF_FUNC.getItem()){
+			if (tfDialog==null)
+				tfDialog = new TransferFunctionDialog(this, this.cmPane);
+			else if (!tfDialog.isDisplayable())
+				tfDialog = new TransferFunctionDialog(this, this.cmPane);
+//			handleShowTFbasedMap(secondView);			
 		} else {
 			this.guiState.setResidueScoringFunctionName(secondView, selectedItem.toString());
 			handleShowResidueScoringMap(secondView);

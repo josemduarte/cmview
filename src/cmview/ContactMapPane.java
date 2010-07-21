@@ -803,7 +803,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
 					drawContact(g2d, cont,secondMap);
 				}
+//				double val = (double)Math.round(100*densityMatrix[i][j])/100;
+//				System.out.print(val+"\t");
 			}
+//			System.out.println();
 		}
 	}
 
@@ -871,6 +874,58 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			g2d.setColor(c);
 			drawContact(g2d, cont, secondMap);
 		}
+	}
+	
+	/**
+	 * @param g2d
+	 */
+	private void drawTFFctMap(Graphics2D g2d, boolean secondMap) {
+		if (this.view.tfDialog.isDisplayable()){
+			TransferFunctionBar tfBar = this.view.tfDialog.getTransfFctBar();
+			String[] inputValTypes = tfBar.getInputValTypes();
+			// assuming that density matrix has values from [0,1]
+			int size = densityMatrix.length;
+			HashMap<Pair<Integer>,Double> distMatrix = mod.getDistMatrix();
+			for(int i = 0; i < size; i++) {
+				for(int j = i; j < size; j++) {
+					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
+					// collect all available values and hand them over to TFDialog
+					double[] inputVal = new double[inputValTypes.length];
+					for(int type=0; type<inputVal.length; type++){
+						if (inputValTypes[type] == View.BgOverlayType.COMMON_NBH.label){
+							if (this.comNbhSizes.containsKey(cont)){
+								int sizeNbh = comNbhSizes.get(cont);
+								if (allContacts.contains(cont)) 
+									inputVal[type] = 1.0/Math.sqrt((double)sizeNbh);
+								else 
+									inputVal[type] = 1.0/(double)sizeNbh;
+							}
+							else
+								inputVal[type] = 0;
+						}
+						if (inputValTypes[type] == View.BgOverlayType.DENSITY.label){
+							inputVal[type] = Math.abs(densityMatrix[i][j]);
+						}
+						if (inputValTypes[type] == View.BgOverlayType.DISTANCE.label){
+							// available to use: scaledDistCutoff
+							if (distMatrix.containsKey(cont))
+								inputVal[type] = distMatrix.get(cont);
+							else
+								inputVal[type] = 0;
+						}
+						if (inputVal[type]<0 || inputVal[type]>1)
+							System.out.println("Invalid value: "+inputVal[type]+" for "+inputValTypes[type]);
+					}
+					// get respective colour
+					Color c = tfBar.getColor(inputVal); //colorMapRedBlue(densityMatrix[i][j]);
+					if(!c.equals(backgroundColor)) {
+						g2d.setColor(c);
+						drawContact(g2d, cont,secondMap);
+					}
+				}
+			}			
+		}
+		
 	}
 
 	/**
@@ -1616,6 +1671,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawDiffDistMap(g2d, true);
 		}
 		
+		// draw transferFunction based map
+		if(view.getGUIState().getShowBottomTFFctMap() && view.tfDialog.isDisplayable()){
+			drawTFFctMap(g2d, true);
+		}
+		
 		// draw contact map if necessary (single or comparison)
 		//if(!view.getGUIState().getShowNbhSizeMap() && !view.getGUIState().getShowDistanceMap()) {
 			drawContactMap(g2d);			
@@ -2155,6 +2215,43 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				} else {
 					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 					updateDiffDistMap();
+					updateScreenBuffer();		// will repaint
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+				}
+			} else {
+				updateScreenBuffer();
+			}
+		} else {
+			updateScreenBuffer();			// will repaint
+		}
+	}
+	
+	/**
+	 * Show/hide difference distance map
+	 */	
+	protected void toggleTFFctMap(boolean state) {
+		if (state) {
+//			if(diffDistMap==null || 
+			if (mod.getDistMatrix()==null || densityMatrix==null || comNbhSizes==null) {
+				if(BACKGROUND_LOADING) {
+//					if (diffDistMap==null)
+//						updateDiffDistMapBg();
+					if (mod.getDistMatrix()==null)
+						updateDistanceMapBg();		// will update screen buffer
+					if (densityMatrix==null)
+						updateDensityMapBg();		// will update screen buffer
+					if (comNbhSizes==null)
+						updateNbhSizeMapBg();
+				} else {
+					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+//					if (diffDistMap==null)
+//						updateDiffDistMap();
+					if (mod.getDistMatrix()==null)
+						updateDistanceMap();		
+					if (densityMatrix==null)
+						updateDensityMap();		
+					if (comNbhSizes==null)
+						updateNbhSizeMap();
 					updateScreenBuffer();		// will repaint
 					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				}

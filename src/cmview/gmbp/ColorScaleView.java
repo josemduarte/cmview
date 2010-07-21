@@ -162,7 +162,7 @@ public class ColorScaleView extends JFrame {
 		x += 10;
 		g2d.drawString("jNum-iNum:", x, y);
 		y += lineHeight;
-		Font f = new Font("Dialog", Font.PLAIN, 10);
+		Font f = new Font("Dialog", Font.PLAIN, 13);
 		g2d.setFont(f);
 		for (int i=-26; i<=26; i++){
 			if (Math.abs(i)<=thres1){
@@ -193,7 +193,7 @@ public class ColorScaleView extends JFrame {
 				g2d.drawString("<-25", (x+2*dx), y);
 			else if (i==26)
 				g2d.drawString(">25", (x+2*dx), y);
-			else
+			else if (i%2 == 0)
 				g2d.drawString(String.valueOf(i), (x+2*dx), y);
 			y+=dy;
 		}

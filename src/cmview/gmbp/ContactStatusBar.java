@@ -809,7 +809,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 					this.actNBHString = this.nbhsSelPanel.getActNbhString();
 				else
 					this.actNBHString = this.setOfOptStrings[this.chosenStringID-1];
-				System.out.println("String changed to :"+this.actNBHString);
+//				System.out.println("String changed to :"+this.actNBHString);
 				// ToDo: update nbhs-print in nbhsSelPanel
 				if (this.nbhsSelPanel.getActNbhString()!=this.actNBHString){
 					this.nbhsSelPanel.setActNbhString(this.actNBHString);
@@ -927,10 +927,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String[] optStrings = new String[this.setOfOptStrings.length+1];
 		System.arraycopy(setOfOptStrings, 0, optStrings, 1, setOfOptStrings.length);
 		optStrings[0] = "*";
-		System.out.println("optStrings:");
-		for (int i=0; i<optStrings.length; i++){
-			System.out.println(optStrings[i]);
-		}
+//		System.out.println("optStrings:");
+//		for (int i=0; i<optStrings.length; i++){
+//			System.out.println(optStrings[i]);
+//		}
 		nbsCBox.removeAllItems();
 		for (int i=0; i<optStrings.length; i++)
 			nbsCBox.addItem(optStrings[i]);
