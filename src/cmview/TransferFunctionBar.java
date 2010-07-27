@@ -553,8 +553,8 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 		}
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-//			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
-			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH};
+			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
+//			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH};
 			for (View.BgOverlayType t: viewOptions2) {
 				valCB.addItem(t.getItem());
 			}
@@ -590,9 +590,151 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 	
 
 	/*---------------------------- getters and setters -------------------------*/
+	
+	public void setValInputType(char colType, String type){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			this.redValCB.setSelectedItem(type); // .getSelectedItem().toString();
+		else if (colType=='g')
+			this.greenValCB.setSelectedItem(type);
+		else if (colType=='b')
+			this.blueValCB.setSelectedItem(type);
+		else if (colType=='a')
+			this.alphaValCB.setSelectedItem(type);
+		
+	}
+	
+	public String getValInputType(char colType){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			return this.redValCB.getSelectedItem().toString();
+		else if (colType=='g')
+			return this.greenValCB.getSelectedItem().toString();
+		else if (colType=='b')
+			return this.blueValCB.getSelectedItem().toString();
+		else if (colType=='a')
+			return this.alphaValCB.getSelectedItem().toString();
+		
+		return "None";
+	}
+	
+	public void setSlopeType(char colType, String type){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			this.redSlopeType.setSelectedItem(type); // .getSelectedItem().toString();
+		else if (colType=='g')
+			this.greenSlopeType.setSelectedItem(type);
+		else if (colType=='b')
+			this.blueSlopeType.setSelectedItem(type);
+		else if (colType=='a')
+			this.alphaSlopeType.setSelectedItem(type);
+		
+	}
+	
+	public String getSlopeType(char colType){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			return this.redSlopeType.getSelectedItem().toString();
+		else if (colType=='g')
+			return this.greenSlopeType.getSelectedItem().toString();
+		else if (colType=='b')
+			return this.blueSlopeType.getSelectedItem().toString();
+		else if (colType=='a')
+			return this.alphaSlopeType.getSelectedItem().toString();
+		
+		return "none";
+	}
 
 	public String[] getInputValTypes(){
 		return this.inputValTypes;
+	}
+	
+	public void setSteep(char colType, boolean steep){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			this.redSteepB.setSelected(steep); // .getSelectedItem().toString();
+		else if (colType=='g')
+			this.greenSteepB.setSelected(steep);
+		else if (colType=='b')
+			this.blueSteepB.setSelected(steep);
+		else if (colType=='a')
+			this.alphaSteepB.setSelected(steep);
+		
+	}
+	
+	public boolean getSteep(char colType){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			return this.redSteepB.isSelected();
+		else if (colType=='g')
+			return this.greenSteepB.isSelected();
+		else if (colType=='b')
+			return this.blueSteepB.isSelected();
+		else if (colType=='a')
+			return this.alphaSteepB.isSelected();
+		
+		return false;
+	}
+	
+	public void setNVal(char colType, int val){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			this.redNField.setText(String.valueOf(val));
+		else if (colType=='g')
+			this.greenNField.setText(String.valueOf(val));
+		else if (colType=='b')
+			this.blueNField.setText(String.valueOf(val));
+		else if (colType=='a')
+			this.alphaNField.setText(String.valueOf(val));
+		
+	}
+	
+	public int getNVal(char colType){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			return Integer.valueOf(this.redNField.getText());
+		else if (colType=='g')
+			return Integer.valueOf(this.greenNField.getText());
+		else if (colType=='b')
+			return Integer.valueOf(this.blueNField.getText());
+		else if (colType=='a')
+			return Integer.valueOf(this.alphaNField.getText());
+		
+		return -1;
+	}
+	
+	public void setDefVal(char colType, int val){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r'){
+			this.redValField.setText(String.valueOf(val));
+			this.defRedVal = val;
+		}
+		else if (colType=='g'){
+			this.greenValField.setText(String.valueOf(val));
+			this.defGreenVal = val;
+		}
+		else if (colType=='b'){
+			this.blueValField.setText(String.valueOf(val));
+			this.defBlueVal = val;
+		}
+		else if (colType=='a'){
+			this.alphaValField.setText(String.valueOf(val));
+			this.defAlphaVal = val;	
+		}
+	}
+	
+	public int getDefVal(char colType){
+		colType = Character.toLowerCase(colType);
+		if (colType=='r')
+			return this.defRedVal;
+		else if (colType=='g')
+			return this.defGreenVal;
+		else if (colType=='b')
+			return this.defBlueVal;
+		else if (colType=='a')
+			return this.defAlphaVal;
+		
+		return -1;
 	}
 	
 	public Color getColor(double[] values){

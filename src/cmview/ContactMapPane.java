@@ -913,6 +913,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							else
 								inputVal[type] = 0;
 						}
+						if (inputValTypes[type] == View.BgOverlayType.DELTA_RANK.label){
+							inputVal[type] = (((double)deltaRankMatrix[i][j])/76)+0.5;
+							if (inputVal[type]<0 || inputVal[type]>1)
+								System.out.println("Invalid value: "+inputVal[type]+" for "+inputValTypes[type]);
+							if (inputVal[type]<0)
+								inputVal[type] = 0;
+							if (inputVal[type]>1)
+								inputVal[type] = 1;
+						}
 						if (inputVal[type]<0 || inputVal[type]>1)
 							System.out.println("Invalid value: "+inputVal[type]+" for "+inputValTypes[type]);
 					}
@@ -2227,15 +2236,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	/**
-	 * Show/hide difference distance map
+	 * Show/hide transferFunction-based map
 	 */	
 	protected void toggleTFFctMap(boolean state) {
 		if (state) {
-//			if(diffDistMap==null || 
+			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+			updateDeltaRankMap();
 			if (mod.getDistMatrix()==null || densityMatrix==null || comNbhSizes==null) {
 				if(BACKGROUND_LOADING) {
-//					if (diffDistMap==null)
-//						updateDiffDistMapBg();
 					if (mod.getDistMatrix()==null)
 						updateDistanceMapBg();		// will update screen buffer
 					if (densityMatrix==null)
@@ -2243,9 +2251,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (comNbhSizes==null)
 						updateNbhSizeMapBg();
 				} else {
-					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-//					if (diffDistMap==null)
-//						updateDiffDistMap();
+//					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 					if (mod.getDistMatrix()==null)
 						updateDistanceMap();		
 					if (densityMatrix==null)
@@ -2253,11 +2259,17 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if (comNbhSizes==null)
 						updateNbhSizeMap();
 					updateScreenBuffer();		// will repaint
-					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+//					getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 				}
 			} else {
 				updateScreenBuffer();
 			}
+			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+		} else {
+			updateScreenBuffer();			// will repaint
+		}
+
+		if(state) {
 		} else {
 			updateScreenBuffer();			// will repaint
 		}

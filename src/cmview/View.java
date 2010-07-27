@@ -2753,16 +2753,11 @@ public class View extends JFrame implements ActionListener {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning(mod);
-//		} else if(mod2== null || !mod2.has3DCoordinates()){
-//			showNo3DCoordsWarning(mod2);
 		} else {
 			if (secondView) {
 				guiState.setShowBottomTFFctMap(true); //!guiState.getShowBottomTFFctMap());
 				cmPane.toggleTFFctMap(guiState.getShowBottomTFFctMap());
-			} else { // just for second View
-//				guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
-//				cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
-			}
+			} 
 		}
 	}
 
