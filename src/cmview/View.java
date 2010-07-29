@@ -117,6 +117,8 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
 	
 	/*--------------------------- member variables --------------------------*/
+
+	private boolean	database_found;
 	
 	// GUI components in the main frame
 	JToolBar toolBar;			// icon tool bar
@@ -210,6 +212,7 @@ public class View extends JFrame implements ActionListener {
 	public View(Model mod, String title) {
 		super(title);
 		Start.viewInstancesCreated();
+		this.database_found = Start.isDatabaseConnectionAvailable();
 		this.mod = mod;
 		this.updateTitle();
 		if(mod == null) {
@@ -3776,6 +3779,14 @@ public class View extends JFrame implements ActionListener {
 	 */
 	protected GUIState getGUIState() {
 		return this.guiState;
+	}
+	
+	/**
+	 * Returns true if a database connection is expected to be available. This is to avoid
+	 * trying to connect when it is clear that the trial will fail.
+	 */
+	public boolean isDatabaseConnectionAvailable() {
+		return this.database_found;
 	}
 
 	

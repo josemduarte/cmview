@@ -889,7 +889,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			
 			// get min and max of delta rank matrix
 			double minDR = 0, maxDR = 0;
-			if (tfBar.useDeltaRank()){
+			if (this.view.isDatabaseConnectionAvailable()){ // tfBar.useDeltaRank()){
 				minDR=0; maxDR=0;
 				for(int i = 0; i < size; i++) {
 					for(int j = i; j < size; j++) {
@@ -928,7 +928,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							else
 								inputVal[type] = 0;
 						}
-						if (inputValTypes[type] == View.BgOverlayType.DELTA_RANK.label && tfBar.useDeltaRank()){
+						if (inputValTypes[type] == View.BgOverlayType.DELTA_RANK.label && this.view.isDatabaseConnectionAvailable()){ //tfBar.useDeltaRank()){
 							double val = deltaRankMatrix[i][j];
 							double dVal = Math.abs(maxDR-minDR); 
 							val = (val-minDR)/dVal;

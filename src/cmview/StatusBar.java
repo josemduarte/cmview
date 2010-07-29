@@ -159,14 +159,19 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		}
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
+			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH}; //, View.BgOverlayType.DELTA_RANK};
 			for (View.BgOverlayType t: viewOptions2) {
 				firstViewCB.addItem(t.getItem());
 				secondViewCB.addItem(t.getItem());
 			}
-			for (ResidueContactScoringFunction f : scoringFunctions) {
-				firstViewCB.addItem(f.getMethodName());
-				secondViewCB.addItem(f.getMethodName());
+			if (this.controller.isDatabaseConnectionAvailable()){
+				firstViewCB.addItem(View.BgOverlayType.DELTA_RANK.getItem());
+				secondViewCB.addItem(View.BgOverlayType.DELTA_RANK.getItem());
+				
+				for (ResidueContactScoringFunction f : scoringFunctions) {
+					firstViewCB.addItem(f.getMethodName());
+					secondViewCB.addItem(f.getMethodName());
+				}
 			}
 		}
 		
