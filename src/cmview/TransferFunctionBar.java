@@ -41,6 +41,8 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 	private int width = DEFAULT_WIDTH;						// width of this component, height matches contact map size
 	private int height = DEFAULT_HEIGHT-20;
 	
+	private boolean includeDeltaRank = true;  // change depending on if database was found
+	
 	TransferFunctionDialog parentFrame;
 	View controller;
 	
@@ -553,11 +555,13 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 		}
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
-//			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH};
+			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH};
+//			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH, View.BgOverlayType.DELTA_RANK};
 			for (View.BgOverlayType t: viewOptions2) {
 				valCB.addItem(t.getItem());
 			}
+			if (includeDeltaRank)
+				valCB.addItem(View.BgOverlayType.DELTA_RANK.getItem());
 //			for (ResidueContactScoringFunction f : scoringFunctions) {
 //				valCB.addItem(f.getMethodName());
 //			}
@@ -591,6 +595,10 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 
 	/*---------------------------- getters and setters -------------------------*/
 	
+	public boolean useDeltaRank(){
+		return this.includeDeltaRank;
+	}
+		
 	public void setValInputType(char colType, String type){
 		colType = Character.toLowerCase(colType);
 		if (colType=='r')

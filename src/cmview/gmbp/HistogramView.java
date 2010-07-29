@@ -530,6 +530,13 @@ public class HistogramView extends JFrame {
 		Shape line;
 		double lineLength = 0;
 		Iterator<int[][]> itrHist;
+		itrHist = this.histT4SelAngleRange.iterator();
+		int[][] hist = null;
+		int count = 0;
+		while (itrHist.hasNext() && count<=this.chosenSelection){
+			hist = itrHist.next();
+			count++;
+		}
 		// draw Hist for all residues		
 		for (int i=0; i<this.cPane.aas.length; i++){
 			xPos = 1*pixelWidth + this.maxHistLineLength + (2*border);
@@ -548,13 +555,13 @@ public class HistogramView extends JFrame {
 			g2d.draw(line);
 			
 			yS = yPos; //-(2*pixelHeight/3);
-			itrHist = this.histT4SelAngleRange.iterator();
-			int[][] hist = null;
-			int count = 0;
-			while (itrHist.hasNext() && count<=this.chosenSelection){
-				hist = itrHist.next();
-				count++;
-			}
+//			itrHist = this.histT4SelAngleRange.iterator();
+//			int[][] hist = null;
+//			int count = 0;
+//			while (itrHist.hasNext() && count<=this.chosenSelection){
+//				hist = itrHist.next();
+//				count++;
+//			}
 			for (int j=0; j<this.cPane.sstypes.length; j++){
 				lineLength = hist[j][i]*this.maxHistLineLength/maxSelHistVal;
 				xS = xPos+20;
@@ -577,6 +584,17 @@ public class HistogramView extends JFrame {
 				line = new Line2D.Double(xS, yS+2, xE, yS+2);
 				g2d.draw(line);	
 			}
+		}
+		
+		// PrintOut for test purposes:
+		System.out.println("Histogram for traces within selection "+this.chosenSelection);
+		for (int j=0; j<this.cPane.sstypes.length; j++){
+			System.out.print(this.cPane.sstypes[j]+"\t");
+			for (int i=0; i<this.cPane.aas.length; i++){
+				int val = hist[j][i];
+				System.out.print(val+",");
+			}
+			System.out.print("\n");
 		}
 	}
 	

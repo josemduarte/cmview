@@ -886,6 +886,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			// assuming that density matrix has values from [0,1]
 			int size = densityMatrix.length;
 			HashMap<Pair<Integer>,Double> distMatrix = mod.getDistMatrix();
+			
+			// get min and max of delta rank matrix
+			double minDR = 0, maxDR = 0;
+			if (tfBar.useDeltaRank()){
+				minDR=0; maxDR=0;
+				for(int i = 0; i < size; i++) {
+					for(int j = i; j < size; j++) {
+						if (deltaRankMatrix[i][j] < minDR)
+							minDR = deltaRankMatrix[i][j];
+						if (deltaRankMatrix[i][j] > maxDR)
+							maxDR = deltaRankMatrix[i][j];
+					}
+				}
+			}
+			
 			for(int i = 0; i < size; i++) {
 				for(int j = i; j < size; j++) {
 					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
@@ -913,8 +928,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 							else
 								inputVal[type] = 0;
 						}
-						if (inputValTypes[type] == View.BgOverlayType.DELTA_RANK.label){
-							inputVal[type] = (((double)deltaRankMatrix[i][j])/76)+0.5;
+						if (inputValTypes[type] == View.BgOverlayType.DELTA_RANK.label && tfBar.useDeltaRank()){
+							double val = deltaRankMatrix[i][j];
+							double dVal = Math.abs(maxDR-minDR); 
+							val = (val-minDR)/dVal;
+//							inputVal[type] = (((double)deltaRankMatrix[i][j])/76)+0.5;
+							inputVal[type] = val;
 							if (inputVal[type]<0 || inputVal[type]>1)
 								System.out.println("Invalid value: "+inputVal[type]+" for "+inputValTypes[type]);
 							if (inputVal[type]<0)
@@ -2241,7 +2260,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void toggleTFFctMap(boolean state) {
 		if (state) {
 			getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-			updateDeltaRankMap();
+			TransferFunctionBar tfBar = this.view.tfDialog.getTransfFctBar();
+			String[] inputValTypes = tfBar.getInputValTypes();			
+			if (inputValTypes[inputValTypes.length-1] == View.BgOverlayType.DELTA_RANK.label)
+				updateDeltaRankMap();
 			if (mod.getDistMatrix()==null || densityMatrix==null || comNbhSizes==null) {
 				if(BACKGROUND_LOADING) {
 					if (mod.getDistMatrix()==null)
