@@ -872,28 +872,40 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 		}
 		
 		if (e.getSource() == this.redSlopeType || e.getSource() == this.redNField){
+			if (Integer.valueOf(this.redNField.getText()) < this.minNVal)
+				this.redNField.setText(String.valueOf(this.minNVal));
+			
 			String fctName = getFctName(this.redSlopeType, this.redSteepB, this.redNField);
 			this.redFctLabel.setText(fctName);	
 			ImageIcon icon_fct = getFctIcon(this.redSlopeType, this.redSteepB, this.redNField);
-			this.iconL_red_fct.setIcon(icon_fct);		
+			this.iconL_red_fct.setIcon(icon_fct);				
 		}
 		if (e.getSource() == this.greenSlopeType || e.getSource() == this.greenNField){
+			if (Integer.valueOf(this.greenNField.getText()) < this.minNVal)
+				this.greenNField.setText(String.valueOf(this.minNVal));
+			
 			String fctName = getFctName(this.greenSlopeType, this.greenSteepB, this.greenNField);
 			this.greenFctLabel.setText(fctName);	
 			ImageIcon icon_fct = getFctIcon(this.greenSlopeType, this.greenSteepB, this.greenNField);
-			this.iconL_green_fct.setIcon(icon_fct);		
+			this.iconL_green_fct.setIcon(icon_fct);					
 		}
-		if (e.getSource() == this.blueSlopeType || e.getSource() == this.blueNField){
+		if (e.getSource() == this.blueSlopeType || e.getSource() == this.blueNField){			
+			if (Integer.valueOf(this.blueNField.getText()) < this.minNVal)
+				this.blueNField.setText(String.valueOf(this.minNVal));
+			
 			String fctName = getFctName(this.blueSlopeType, this.blueSteepB, this.blueNField);
 			this.blueFctLabel.setText(fctName);		
 			ImageIcon icon_fct = getFctIcon(this.blueSlopeType, this.blueSteepB, this.blueNField);
 			this.iconL_blue_fct.setIcon(icon_fct);	
 		}
 		if (e.getSource() == this.alphaSlopeType || e.getSource() == this.alphaNField){
+			if (Integer.valueOf(this.alphaNField.getText()) < this.minNVal)
+				this.alphaNField.setText(String.valueOf(this.minNVal));
+			
 			String fctName = getFctName(this.alphaSlopeType, this.alphaSteepB, this.alphaNField);
 			this.alphaFctLabel.setText(fctName);				
 			ImageIcon icon_fct = getFctIcon(this.alphaSlopeType, this.alphaSteepB, this.alphaNField);
-			this.iconL_alpha_fct.setIcon(icon_fct);
+			this.iconL_alpha_fct.setIcon(icon_fct);			
 		}
 		
 		if (e.getSource() == this.redValField)
