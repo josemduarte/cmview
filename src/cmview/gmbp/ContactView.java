@@ -101,7 +101,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	// Data and status variables
 	private ContactGUIState guiState;
-	private Model mod;
+	private Model mod, mod2;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
 	public AngleRuler lambdaRuler;
@@ -133,7 +133,26 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		Start.viewInstancesCreated();		
 		this.guiState = new ContactGUIState(this);
 		this.mod = mod;
+		this.mod2 = null;
 		this.cmPane = cmPane;
+		
+		initContactView();
+	}
+	
+	/** Create a new View object */
+	public ContactView(Model mod, Model mod2, String title, ContactMapPane cmPane) {
+		super(title);
+		Start.viewInstancesCreated();		
+		this.guiState = new ContactGUIState(this);
+		this.mod = mod;
+		this.mod2 = mod2;
+		this.cmPane = cmPane;
+		
+		initContactView();
+	}
+	
+	private void initContactView(){
+
 //		Dimension dim = new Dimension(150, 250);
 //		this.setPreferredSize(dim);
 		
@@ -168,6 +187,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 				parent.toFront();					// bring new window to front
 			}
 		});
+		
 	}
 	
 	/*---------------------------- private methods --------------------------*/
@@ -317,7 +337,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		
 		// Creating contact map pane and ruler if model loaded
 		if(mod != null) {	
-			cPane = new ContactPane(this.mod, this.cmPane, this);
+			if(mod2 != null)
+				cPane = new ContactPane(this.mod, this.mod2, this.cmPane, this);
+			else
+				cPane = new ContactPane(this.mod, this.cmPane, this);
 			contStatBar = new ContactStatusBar(this);	// pass reference to 'this' for handling gui actions
 			cPane.setStatusBar(contStatBar);
 			svP.add(cPane, BorderLayout.CENTER);

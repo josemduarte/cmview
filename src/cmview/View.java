@@ -85,7 +85,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_PDBASE = "Pdbase...";
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
 	private static final String LABEL_LOAD_SEQ = "Sequence...";
-	private static final String LABEL_CASP_SERVER_MOD = "Casp Server Models...";
+	private static final String LABEL_CASP_SERVER_MOD = "CASP Server Models...";
 	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
@@ -99,19 +99,22 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
-	private static final String LABEL_SHOW_SPHERES_3D = "Show threshold spheres for the selected contact in 3D";
-	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show threshold spheres for the residue pair (%s,%s) in 3D";
-	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st shell neighbor-relationships";
-	private static final String LABEL_SHOW_SEC_SHELL = "Show the 2nd shell";
-	private static final String LABEL_SHOW_SPHOXEL = "Show sphoxel and neighbourhood-traces";
-	private static final String LABEL_RUN_TINKER = "Run distance geometry";
-	private static final String LABEL_MIN_SET = "Minimal subset";
+	private static final String LABEL_SHOW_SPHERES_3D = "Show Threshold Spheres for Selected Contact in 3D";
+	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show Threshold Spheres for Residue Pair (%s,%s) in 3D";
+	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st Shell Neighbour-Relationships";
+	private static final String LABEL_SHOW_SEC_SHELL = "Show 2nd Shell";
+	private static final String LABEL_SHOW_SPHOXEL = "Show Sphoxel-Map and Neighbourhood-Traces";
+	private static final String LABEL_RUN_TINKER = "Run Distance Geometry";
+	private static final String LABEL_MIN_SET = "Minimal Subset";
 	private static final String LABEL_JPRED = "Predict Secondary Structure";
 	// Compare
-	private static final String LABEL_COMPARE_CM = "Load Second Contact Map From"; 
+	private static final String LABEL_COMPARE_CM = "Load Second Contact Map from"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
 	private static final String LABEL_SHOW_FIRST = "Show Contacts Unique to First Structure";
 	private static final String LABEL_SHOW_SECOND = "Show Contacts Unique to Second structure";
+	private static final String LABEL_SHOW_DIFF = "Show Difference Map";
+	private static final String LABEL_SUPER_SEL = "Superimpose from Selection";
+	private static final String LABEL_SHOW_ALI = "Show Corresponding Residues from Selection";
 	private static final String LABEL_SWAP_MODELS = "Swap Models";
 	private static final String LABEL_COPY_CONTACTS = "Copy Selected Contacts from Second to First";
 	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
@@ -639,11 +642,11 @@ public class View extends JFrame implements ActionListener {
 		mmShowFirst = makeMenuItem(LABEL_SHOW_FIRST, icon_selected, menu);
 		mmShowSecond = makeMenuItem(LABEL_SHOW_SECOND, icon_selected, menu);		
 		menu.addSeparator();
-		mmToggleDiffDistMap = makeMenuItem("Show Difference Map", icon_deselected, menu);
+		mmToggleDiffDistMap = makeMenuItem(LABEL_SHOW_DIFF, icon_deselected, menu);
 		menu.addSeparator();
-		mmSuperposition = makeMenuItem("Superimpose From Selection",null,menu);
+		mmSuperposition = makeMenuItem(LABEL_SUPER_SEL,null,menu);
 		mmSuperposition.setEnabled(false);
-		mmShowAlignedResidues = makeMenuItem("Show Corresponding Residues From Selection",null,menu);
+		mmShowAlignedResidues = makeMenuItem(LABEL_SHOW_ALI,null,menu);
 		mmShowAlignedResidues.setEnabled(false);
 		menu.addSeparator();
 		mmCopyContacts = makeMenuItem(LABEL_COPY_CONTACTS,null,menu);
@@ -3208,8 +3211,10 @@ public class View extends JFrame implements ActionListener {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else {		
-			contView = new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
-			
+			if (this.mod2 != null)
+				contView = new ContactView(mod, mod2, "Sphoxel-NbhsTraces Representation", cmPane);
+			else
+				contView = new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
 		}
 	}
 	/* -------------------- Compare menu -------------------- */

@@ -78,7 +78,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
-	private Model mod;
+	private Model mod, mod2;
 	private ContactMapPane cmPane;
 	private ContactView contactView;
 	
@@ -159,7 +159,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
-	private int[] nbSerials;
+	private int[] nbSerials, nbSerials2;
 	private String origNBHString; 
 //	private String jAtom = "CA";
 	private char[] nbhsRes;
@@ -264,8 +264,31 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	public ContactPane(Model mod, ContactMapPane cmPane, ContactView contactView){
 		this.mod = mod;
+		this.mod2 = null;
 		this.cmPane = cmPane;
-		this.contactView = contactView;		
+		this.contactView = contactView;	
+		
+		initContactPane();
+	}
+	
+	/**
+	 * Create a new ContactPane.
+	 * 
+	 * @param mod
+	 * @param cmPane
+	 * @param view
+	 */
+	public ContactPane(Model mod, Model mod2, ContactMapPane cmPane, ContactView contactView){
+		this.mod = mod;
+		this.mod2 = mod2;
+		this.cmPane = cmPane;
+		this.contactView = contactView;	
+		
+		initContactPane();
+	}
+	
+	private void initContactPane(){
+		
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
@@ -347,8 +370,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 //		setOutputSize(screenSize.width, screenSize.height);
 //		System.out.println("outputsize= "+this.outputSize);
+		
 	}
-	
 	/**
 	 Save so far chosen settings locally.
 	 */	
@@ -541,6 +564,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
 		this.origNBHString = this.nbhString;
 		
+		if(this.mod2 != null){
+			cnt=0;
+			RIGNode nodeI2 = this.mod2.getNodeFromSerial(this.iNum);
+			RIGNbhood nbhood2 = this.mod2.getGraph().getNbhood(nodeI2);
+			this.nbSerials2 = new int[nbhood2.getSize()];
+			for (RIGNode node:nbhood2.getNeighbors()){
+				int resSer = node.getResidueSerial();
+				this.nbSerials2[cnt] = resSer;
+				cnt++;
+				System.out.print(resSer+"_"+node.getResidueType()+"\t");
+			}
+			System.out.println();
+		}
 	}
 	
 	public void calcSphoxelParam(){
@@ -2324,23 +2360,33 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void drawNBHSTemplateTrace(Graphics2D g2d){
-//		// Alternative: directly compute geometry on demand
-//		// this.graph and this.residues are now available
-//		//TODO 4Corinna compute graph geometry and hand it over to ContactView
-//		RIGGeometry graphGeom = new RIGGeometry(this.mod.getGraph(), this.mod.getPdb().getResidues());
-//		System.out.println("PdbFtpModel   GraphGeometry loaded");
 		
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
+		g2d.setStroke(new BasicStroke(3));
+		g2d.setColor(Color.black);
+		drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, Color.black);
+		if (this.mod2 != null){
+			graphGeom = this.mod2.getGraphGeometry();
+			g2d.setColor(Color.white);
+			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, Color.green);
+		}		
+		
+		g2d.setStroke(defaultBasicStroke);	
+	}
+	
+	private void drawNBHSTemplateTrace(Graphics2D g2d, RIGGeometry graphGeom, int[] nbSer, Color col){
 		if (graphGeom!=null){
-			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
+//			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
+			HashMap<Pair<Integer>,Vector3d> contactCoord = graphGeom.getRotCoordOfContacts();
+			
 //			System.out.println("contactCoord.size()"+contactCoord.size());
-			g2d.setStroke(new BasicStroke(3));
-			if (contactCoord!=null && this.nbSerials!=null){
-				for(int i=0; i<this.nbSerials.length; i++){
-					int jNum = this.nbSerials[i];
+			if (contactCoord!=null && nbSer!=null){
+				for(int i=0; i<nbSer.length; i++){
+					int jNum = nbSer[i];
 					String resType = this.mod.getNodeFromSerial(jNum).getResidueType();
-					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
+//					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
+					Pair<Integer> key = new Pair<Integer>(iNum, jNum);
 //					System.out.print(this.iNum+"_"+jNum+contactCoord.containsKey(key)+"\t");
 					Vector3d coord_sph;
 //					if (contactCoord.containsKey(new Integer[]{this.iNum,jNum}))	
@@ -2359,9 +2405,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 										
 					// draw node
 					drawNBHSNode(g2d, lambda, phi, true, isJRes, resType);
-					if (i+1<this.nbSerials.length){
-						int jNumNB = this.nbSerials[i+1];
-						key = String.valueOf(this.iNum)+"_"+String.valueOf(jNumNB);
+					if (i+1<nbSer.length){
+						int jNumNB = nbSer[i+1];
+//						key = String.valueOf(this.iNum)+"_"+String.valueOf(jNumNB);
+						key = new Pair<Integer>(iNum, jNumNB);
 						Vector3d coord_sph_nb;
 //						if (contactCoord.containsKey(new Integer[]{this.iNum,jNumNB}))
 							coord_sph_nb = contactCoord.get(key); // (r, phi, lambda)
@@ -2371,8 +2418,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						double phiNB = coord_sph_nb.y;
 						lambdaNB += Math.PI;
 						// draw edge
-						g2d.setColor(Color.black);
-						if (this.paintCentralResidue && this.nbSerials[i]<this.iNum && this.nbSerials[i+1]>this.iNum){
+						g2d.setColor(col);
+						if (this.paintCentralResidue && nbSer[i]<this.iNum && nbSer[i+1]>this.iNum){
 							// include central residue						
 							// --- draw geodesics
 							drawNBHSGeodesicEdge(g2d, lambda, phi, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
@@ -2384,8 +2431,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						}
 					}
 				}			
-			}
-			g2d.setStroke(defaultBasicStroke);			
+			}		
 		}
 	}
 	
