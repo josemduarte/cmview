@@ -42,6 +42,10 @@ import cmview.datasources.Model;
 
 public class ContactView extends JFrame implements ActionListener{ //, KeyListener{
 	
+	/* default argument
+	-f /Users/vehlow/Documents/workspace/7ODC.pdb -c A
+	*/
+	
 	/**
 	 * 
 	 */

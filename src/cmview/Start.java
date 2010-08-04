@@ -71,6 +71,7 @@ public class Start {
 	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
+	
 	// TODO: alignment parameters
 	// TODO: DSSP three or four states
 	
@@ -116,7 +117,9 @@ public class Start {
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 								// dito
 	private static int        		DEFAULT_MIN_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
-	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
+	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito	
+
+	public static String 			DEFAULT_FILE_PATH = ""; // "/Users/vehlow/Documents/workspace/PDBs/";
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -307,6 +310,8 @@ public class Start {
 			DEFAULT_DISTANCE_CUTOFF = Double.valueOf(p.getProperty("DEFAULT_DISTANCE_CUTOFF", new Double(DEFAULT_DISTANCE_CUTOFF).toString()));
 			DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
 			DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
+			
+			DEFAULT_FILE_PATH = p.getProperty("DEFAULT_FILE_PATH");
 		} catch (NumberFormatException e) {
 			System.err.println("A numerical value in the config file was incorrectly specified: "+e.getMessage()+". Please check the config file.");
 			System.exit(1);
@@ -854,7 +859,10 @@ public class Start {
 		setLookAndFeel();
 		
 		// initialize session variables
-		fileChooser = new JFileChooser();
+		if (DEFAULT_FILE_PATH !="")
+			fileChooser = new JFileChooser(DEFAULT_FILE_PATH);
+		else
+			fileChooser = new JFileChooser();
 		colorChooser = new JColorChooser();
 		colorChooser.setPreviewPanel(new JPanel()); // removing the preview panel
 		

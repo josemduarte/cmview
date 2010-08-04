@@ -799,7 +799,6 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 
 	/*---------------------------- event listening -------------------------*/
 
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		if (e.getSource() == this.redValCB){
@@ -924,8 +923,6 @@ public class TransferFunctionBar extends JPanel implements ActionListener, ItemL
 		
 	}
 
-
-	@Override
 	public void itemStateChanged(ItemEvent e) {
 		// TODO Auto-generated method stub
 		if (e.getItemSelectable() == this.redSteepB){

@@ -74,6 +74,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected static final Color otherSSTColor = Color.yellow;	// color for helix residues
 	protected static final Color anySSTColor = Color.blue;		// color for helix residues
 	
+	protected static final Color mod1Color = Color.magenta; //.pink;
+	protected static final Color mod2Color = Color.green;
+	
 	protected static final BasicStroke defaultBasicStroke = new BasicStroke(1);
 		
 	/*--------------------------- member variables --------------------------*/		
@@ -2364,12 +2367,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
 		g2d.setStroke(new BasicStroke(3));
-		g2d.setColor(Color.black);
 		drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, Color.black);
 		if (this.mod2 != null){
+			g2d.setStroke(new BasicStroke(1.5f));
+			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, mod1Color);
+			
 			graphGeom = this.mod2.getGraphGeometry();
-			g2d.setColor(Color.white);
-			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, Color.green);
+			g2d.setStroke(new BasicStroke(3));
+			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, Color.black);
+			g2d.setStroke(new BasicStroke(1.5f));
+			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, mod2Color);
 		}		
 		
 		g2d.setStroke(defaultBasicStroke);	
