@@ -34,7 +34,7 @@ public class Start {
 
 	/* internal constants (not user changeable) */
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String		VERSION = 				"1.2.1";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"1.5.0";			// current version of this application (should match manifest)
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
