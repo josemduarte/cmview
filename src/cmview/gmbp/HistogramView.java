@@ -586,16 +586,17 @@ public class HistogramView extends JFrame {
 			}
 		}
 		
-		// PrintOut for test purposes:
-		System.out.println("Histogram for traces within selection "+this.chosenSelection);
-		for (int j=0; j<this.cPane.sstypes.length; j++){
-			System.out.print(this.cPane.sstypes[j]+"\t");
-			for (int i=0; i<this.cPane.aas.length; i++){
-				int val = hist[j][i];
-				System.out.print(val+",");
-			}
-			System.out.print("\n");
-		}
+//		// PrintOut for test purposes:
+//		System.out.println("Histogram for traces within selection "+this.chosenSelection);
+//		for (int j=0; j<this.cPane.sstypes.length; j++){
+//			System.out.print(this.cPane.sstypes[j]+"\t");
+//			for (int i=0; i<this.cPane.aas.length; i++){
+//				int val = hist[j][i];
+//				System.out.print(val+",");
+//			}
+//			System.out.print("\n");
+//		}
+		
 	}
 	
 	private void drawHistSphoxel(Graphics2D g2d){

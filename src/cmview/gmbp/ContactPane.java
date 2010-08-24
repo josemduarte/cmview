@@ -53,7 +53,7 @@ import edu.uci.ics.jung.graph.util.Pair;
 
 public class ContactPane extends JPanel implements MouseListener, MouseMotionListener, ComponentListener{ //KeyListener
 	/**
-	 * 
+	 * -f /Users/vehlow/Documents/workspace/7ODC.pdb -c A
 	 */
 	private static final long serialVersionUID = 1L;
 	
@@ -236,7 +236,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int chosenColourScale = ContactStatusBar.BLUERED;
 	
 	private boolean showResInfo = false;
-	private boolean showNBHStemplateTrace = false;
+	private boolean showNBHStemplateTrace = true;
 	
 	private int epsilon = NbhString_ClusterAnalysis.defaultEpsilon;
 	private int minNumNBs = NbhString_ClusterAnalysis.defaultMinNumNBs;
@@ -2366,16 +2366,16 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
-		g2d.setStroke(new BasicStroke(3));
+		g2d.setStroke(new BasicStroke(4));
 		drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, Color.black);
 		if (this.mod2 != null){
-			g2d.setStroke(new BasicStroke(1.5f));
+			g2d.setStroke(new BasicStroke(1));
 			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, mod1Color);
 			
 			graphGeom = this.mod2.getGraphGeometry();
 			g2d.setStroke(new BasicStroke(3));
 			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, Color.black);
-			g2d.setStroke(new BasicStroke(1.5f));
+			g2d.setStroke(new BasicStroke(1));
 			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, mod2Color);
 		}		
 		
@@ -2409,7 +2409,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //					// test output
 //					System.out.println("1 , "+iNum+" , "+jNum+" , "+phi+" , "+(lambda-Math.PI)+" , "+resType+"-"
 //							+AminoAcid.getByThreeLetterCode(resType).getOneLetterCode());
-										
+//					if (i==0)
+//						System.out.println(jNum+"_"+resType+": "+coord_sph.toString());
+															
 					// draw node
 					drawNBHSNode(g2d, lambda, phi, true, isJRes, resType);
 					if (i+1<nbSer.length){
@@ -2421,6 +2423,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 							coord_sph_nb = contactCoord.get(key); // (r, phi, lambda)
 //						else
 //							coord_sph_nb = contactCoord.get(new Integer[]{jNumNB,this.iNum}); // (r, phi, lambda)
+//						String resTypeNb = this.mod.getNodeFromSerial(jNumNB).getResidueType();
+//						System.out.println(jNumNB+"_"+resTypeNb+": "+coord_sph_nb.toString());
+							
 						double lambdaNB = coord_sph_nb.z;
 						double phiNB = coord_sph_nb.y;
 						lambdaNB += Math.PI;
@@ -3175,6 +3180,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private void updateAnglePanel(){
 		this.contStatBar.getAnglePanel().setIRes(String.valueOf(this.iRes));
 		this.contStatBar.getAnglePanel().setJRes(String.valueOf(this.jRes));
+		this.contStatBar.getAnglePanel().setINum(this.iNum);
+		this.contStatBar.getAnglePanel().setJNum(this.jNum);
 		this.contStatBar.getAnglePanel().setISSType(String.valueOf(this.iSSType));
 		this.contStatBar.getAnglePanel().setJSSType(String.valueOf(this.jSSType));
 		this.contStatBar.getAnglePanel().setNBHS(this.nbhString);

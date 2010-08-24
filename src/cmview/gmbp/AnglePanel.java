@@ -38,6 +38,8 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private String title1 = "Contact:";
 	private String iRes = "";
 	private String jRes = "";
+	private int    iNum = 0;
+	private int    jNum = 0;
 	private String iSSType = "";
 	private String jSSType = "";
 	private String nbhs = "";
@@ -100,7 +102,7 @@ public class AnglePanel extends JPanel implements MouseListener{
 		
 		g2d.drawString(title1, x, y);			
 		y += this.lineHeight;
-		g2d.drawString(iRes+"_"+iSSType.toLowerCase()+" - "+jRes+"_"+jSSType.toLowerCase(), x, y);	// selected contacts within contact map
+		g2d.drawString(iNum+iRes+"_"+iSSType.toLowerCase()+" - "+jNum+jRes+"_"+jSSType.toLowerCase(), x, y);	// selected contacts within contact map
 		
 //		// NBHS
 //		y += this.lineHeight;
@@ -147,6 +149,13 @@ public class AnglePanel extends JPanel implements MouseListener{
 	}
 	public void setIRes(String string) {
 		this.iRes = string;
+	}
+	
+	public void setJNum(int num) {
+		this.jNum = num;		
+	}
+	public void setINum(int num) {
+		this.iNum = num;
 	}
 	
 	public void setJSSType(String string) {

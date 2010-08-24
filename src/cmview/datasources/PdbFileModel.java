@@ -4,15 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import owl.core.structure.*;
-import owl.core.structure.graphs.RIGEdge;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGGeometry;
-import owl.core.structure.graphs.RIGNode;
 import cmview.Start;
-import java.lang.Object;
-import javax.vecmath.*;
-
-import edu.uci.ics.jung.graph.util.Pair;
 
 /** 
  * A contact map data model based on a structure loaded from a PDB file.
