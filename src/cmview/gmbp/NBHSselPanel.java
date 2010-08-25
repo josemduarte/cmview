@@ -20,6 +20,8 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 	private static final Color residueSwitchedOffCol = new Color(170, 170, 170);
 	private static final Color bgColor = Color.white;
 	
+	private static final int defaultNumLines = 2;
+	
 	// constants / settings
 	private final int textXOffset = 5;		// top margin between rectangle and first text
 	private final int textYOffset = 20;		// top margin between rectangle and first text
@@ -53,6 +55,8 @@ public class NBHSselPanel extends JPanel implements MouseListener{
 		while (this.nbhString.length() > numLines*this.numResPerLine)
 			numLines++;
 		System.out.println("numLines nbhString= "+numLines);
+		if (numLines<defaultNumLines)
+			numLines = defaultNumLines;
 		this.totalHeight = (textYOffset+ ((numLines-1) * this.lineHeight) + this.bottomMargin);
 		this.setMinimumSize(new Dimension(width,totalHeight));
 		
