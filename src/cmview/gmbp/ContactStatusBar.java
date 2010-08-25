@@ -29,6 +29,9 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import owl.core.structure.features.SecStrucElement;
+import owl.gmbp.CMPdb_sphoxel;
+
 
 public class ContactStatusBar extends JPanel implements ItemListener, ActionListener, ChangeListener, KeyListener{
 
@@ -47,6 +50,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //	private final static String cylProjString = "Cylindrical";
 //	private final static String pseudoCylProjString = "Kavrayskiy";
 	private final static String[] projStrings = new String[] {"Cylindrical", "Kavrayskiy", "Azimuthal"};
+	private final static String[] sstStrings = new String[] {"ANY SST", "HELIX", "STRAND", 
+		"TURN", "OTHER"};
+	private final static char[] ssTypes = new char[] {CMPdb_sphoxel.AnySStype, SecStrucElement.HELIX, SecStrucElement.STRAND, SecStrucElement.TURN, SecStrucElement.OTHER};
 	
 	/*--------------------------- member variables --------------------------*/	
 	// settings
@@ -93,13 +99,13 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private JComboBox projCBox;
 	private JButton nbhsButton;
 	private JTextField maxNumTracesField;
-	private JComboBox nbsCBox;
+	private JComboBox nbsCBox, nbsSSTCBox;
 	private JTextField epsilonField;
 	private JTextField minNumNBsField;
 	private JButton clusterButton;
 	
 	private boolean radiusRangesFixed = true;
-	private boolean diffSSType = true;
+	private boolean diffSSType = true, diffSSTypeNBHS = false;
 	private boolean removeOutliers = true;
 	private double minAllowedRatio = ContactPane.defaultMinAllowedRat;
 	private double maxAllowedRatio = ContactPane.defaultMaxAllowedRat;
@@ -108,7 +114,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	private int maxNumNBHStraces = 50;
 	private String actNBHString = "";
 	private String[] setOfOptStrings;
-	private int chosenStringID = 0;
+	private int chosenStringID = 0, chosenSSTID=0;
+	private char chosenSSTnbhS = ssTypes[chosenSSTID];
 	private int epsilon = 5;
 	private int minNumNBs = 10;
 
@@ -557,6 +564,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		maxLinePanel.setLayout(new BoxLayout(maxLinePanel,BoxLayout.LINE_AXIS));	
 		JPanel optStringLinePanel = new JPanel();
 		optStringLinePanel.setLayout(new BoxLayout(optStringLinePanel,BoxLayout.LINE_AXIS));	
+		JPanel ssTypeLinePanel = new JPanel();
+		ssTypeLinePanel.setLayout(new BoxLayout(ssTypeLinePanel,BoxLayout.LINE_AXIS));	
 		JPanel buttonLinePanel = new JPanel();
 		buttonLinePanel.setLayout(new BoxLayout(buttonLinePanel,BoxLayout.LINE_AXIS));
 		
@@ -585,12 +594,17 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		}
 		nbsCBox = new JComboBox(optStrings);
 		nbsCBox.setSelectedItem(chosenStringID);
-		nbsCBox.addActionListener(this);
+		nbsCBox.addActionListener(this);		
+
+		nbsSSTCBox = new JComboBox(sstStrings);
+		nbsSSTCBox.setSelectedItem(chosenSSTID);
+		nbsSSTCBox.addActionListener(this);
 		
 		nbhsLinePanel.add(nbhsSelPanel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxLabel, BorderLayout.LINE_START);
 		maxLinePanel.add(maxNumTracesField, BorderLayout.LINE_END);
 		optStringLinePanel.add(nbsCBox, BorderLayout.LINE_START);
+		ssTypeLinePanel.add(nbsSSTCBox, BorderLayout.LINE_START);
 		buttonLinePanel.add(nbhsButton, BorderLayout.LINE_START);
 
 		// init panel
@@ -598,15 +612,16 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "NBHString";
 		nbhsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		nbhsPanel.setVisible(true);	
-		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
-		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
-		nbhsPanel.setMaximumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 110));
+		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
+		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
+		nbhsPanel.setMaximumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
 //		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 //		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 		
 		nbhsPanel.add(nbhsLinePanel, BorderLayout.PAGE_START);
 		nbhsPanel.add(maxLinePanel);
 		nbhsPanel.add(optStringLinePanel);
+		nbhsPanel.add(ssTypeLinePanel);
 		nbhsPanel.add(buttonLinePanel, BorderLayout.PAGE_END);
 		
 //		nbhsPanel.add(nbhsSelPanel, BorderLayout.LINE_START);
@@ -815,6 +830,17 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 					this.nbhsSelPanel.setActNbhString(this.actNBHString);
 					controller.handleChangeTracesParam(this.actNBHString, this.maxNumNBHStraces);
 				}				
+			}
+		}
+		if (e.getSource() == this.nbsSSTCBox){
+			if (this.nbsSSTCBox.getSelectedIndex()>-1){
+				this.chosenSSTID = this.nbsSSTCBox.getSelectedIndex();
+				this.chosenSSTnbhS = ssTypes[chosenSSTID];
+				if (this.chosenSSTnbhS==CMPdb_sphoxel.AnySStype)
+					this.diffSSTypeNBHS = false;
+				else
+					this.diffSSTypeNBHS = true;
+				controller.handleChangeTracesParam(this.chosenSSTnbhS, this.diffSSTypeNBHS);
 			}
 		}
 		if (e.getSource() == this.nbhsButton){

@@ -57,7 +57,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final Dimension defaultDim = new Dimension(1800, 900);
+	protected static final Dimension defaultDim = new Dimension(1900, 950);
 	protected static final float g2dRatio = 0.5f; // H/W
 	protected static final double defaultMinAllowedRat = -3;
 	protected static final double defaultMaxAllowedRat = 1;
@@ -67,7 +67,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	protected final int defaultProjType = kavrayskiyMapProj;
 	protected static final int sphoxelHist = 0;
 	protected static final int tracesHist = 0;
-	protected static final int defaultMaxNrTraces = 50;
+	protected static final int defaultMaxNrTraces = 100;
 
 	protected static final Color helixSSTColor = Color.cyan; // color for helix residues
 	protected static final Color sheetSSTColor = Color.magenta;	// color for helix residues
@@ -81,7 +81,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 	/*--------------------------- member variables --------------------------*/		
 	// underlying data
-	private Model mod, mod2;
+	private Model mod, mod2, mod3;
 	private ContactMapPane cmPane;
 	private ContactView contactView;
 	
@@ -157,12 +157,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	// query data
 	private char iRes='A', jRes='A';
-	private char iSSType='H', jSSType='H';
-	private boolean diffSStype=false;
-//	private String iResType="Ala", jResType="Ala";
+	private char iSSType='H', jSSType='H', nbhSSType='H';
+	private boolean diffSStype=false, diffSStypeNBH=false;
+	//	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, jNum=0;
 	private String nbhString, nbhStringL;
-	private int[] nbSerials, nbSerials2;
+	private int[] nbSerials, nbSerials2, nbSerials3;
 	private String origNBHString; 
 //	private String jAtom = "CA";
 	private char[] nbhsRes;
@@ -268,6 +268,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public ContactPane(Model mod, ContactMapPane cmPane, ContactView contactView){
 		this.mod = mod;
 		this.mod2 = null;
+		this.mod3 = null;
 		this.cmPane = cmPane;
 		this.contactView = contactView;	
 		
@@ -284,6 +285,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public ContactPane(Model mod, Model mod2, ContactMapPane cmPane, ContactView contactView){
 		this.mod = mod;
 		this.mod2 = mod2;
+		this.mod3 = null;
 		this.cmPane = cmPane;
 		this.contactView = contactView;	
 		
@@ -580,6 +582,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			}
 			System.out.println();
 		}
+		
+		if(this.mod3 != null){
+			cnt=0;
+			RIGNode nodeI3 = this.mod3.getNodeFromSerial(this.iNum);
+			RIGNbhood nbhood3 = this.mod3.getGraph().getNbhood(nodeI3);
+			this.nbSerials3 = new int[nbhood3.getSize()];
+			for (RIGNode node:nbhood3.getNeighbors()){
+				int resSer = node.getResidueSerial();
+				this.nbSerials3[cnt] = resSer;
+				cnt++;
+				System.out.print(resSer+"_"+node.getResidueType()+"\t");
+			}
+			System.out.println();
+		}
 	}
 	
 	public void calcSphoxelParam(){
@@ -756,12 +772,28 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	private void setTracesParam(){
-		nbhsTraces.setDiffSSType(this.diffSStype);
-		nbhsTraces.setSSType(this.iSSType);
+		
+//		this.iSSType = CMPdb_sphoxel.AnySStype;
+//	}
+//	else{
+//		if (iSSelem.isHelix())
+//			this.iSSType = SecStrucElement.HELIX;
+//		else if (iSSelem.isOther())
+//			this.iSSType = SecStrucElement.OTHER;
+//		else if (iSSelem.isStrand())
+//			this.iSSType = SecStrucElement.STRAND;
+//		else if (iSSelem.isTurn())
+//			this.iSSType = SecStrucElement.TURN;
+//		
+//		this.diffSStype = true;
+		
+		nbhsTraces.setDiffSSType(this.diffSStypeNBH);
+		nbhsTraces.setSSType(this.nbhSSType);
 		nbhsTraces.setMaxNumLines(this.maxNumTraces);
 		nbhsTraces.setNBHS(this.nbhStringL);
 	}
 	
+
 	private void calcOptNbhStrings() throws SQLException{
 		optNBHString.run();
 		this.optNBHStrings = optNBHString.getOptNBHStrings();
@@ -2378,6 +2410,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			g2d.setStroke(new BasicStroke(1));
 			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, mod2Color);
 		}		
+		if (this.mod3 != null){
+			graphGeom = this.mod3.getGraphGeometry();
+			g2d.setStroke(new BasicStroke(3));
+			if (this.mod2 == null){
+				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.black);
+				g2d.setStroke(new BasicStroke(1));
+				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.lightGray);
+			}
+			else
+				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.black);			
+		}		
 		
 		g2d.setStroke(defaultBasicStroke);	
 	}
@@ -3763,6 +3806,20 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.iSSType = CMPdb_sphoxel.AnySStype;
 	}
 
+	public boolean isDiffSStypeNBH() {
+		return diffSStypeNBH;
+	}
+	public void setDiffSStypeNBH(boolean diffSStypeNBH) {
+		this.diffSStypeNBH = diffSStypeNBH;
+	}
+
+	public char getNbhSSType() {
+		return nbhSSType;
+	}
+	public void setNbhSSType(char nbhSSType) {
+		this.nbhSSType = nbhSSType;
+	}
+
 	public boolean isRemoveOutliers() {
 		return removeOutliers;
 	}
@@ -4297,6 +4354,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void componentShown(ComponentEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public void setThirdModel(Model mod3) {
+		// TODO Auto-generated method stub
+		this.mod3 = mod3;
+		calcTracesParam();
+		repaint();
 	}
 
 }

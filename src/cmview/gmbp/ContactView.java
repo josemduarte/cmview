@@ -34,11 +34,20 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import owl.core.structure.PdbLoadError;
+import owl.core.util.actionTools.Getter;
+import owl.core.util.actionTools.GetterError;
 //import javax.swing.JToolBar;
 
 import cmview.ContactMapPane;
+import cmview.LoadAction;
+import cmview.LoadDialog;
+import cmview.LoadDialogConstructionError;
 import cmview.Start;
 import cmview.datasources.Model;
+import cmview.datasources.ModelConstructionError;
+import cmview.datasources.PdbFileModel;
 
 public class ContactView extends JFrame implements ActionListener{ //, KeyListener{
 	
@@ -61,6 +70,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	private static final String LABEL_TRACES_CSV_FILE = "Traces to CSV File...";
 	private static final String LABEL_SETTINGS_CSV_FILE = "Settings to CSV File...";
 	private static final String LABEL_LSETTINGS_CSV_FILE = "Load Settings";	
+	private static final String LABEL_PDB_FILE = "Load 3rd model (PDB File)";
 	// Select
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_CLUSTER_SELECTION_MODE = "Cluster Selection Mode";
@@ -98,14 +108,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	// P -> "popup menu"
 	JMenuItem histP, deleteP;
 	// mm -> "main menu"
-	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmSaveSettings, mmLoadSettings, mmQuit;
+	JMenuItem mmInfo, mmSavePng, mmSaveSCsv, mmSaveTCsv, mmSaveSettings, mmLoadSettings, mmLoadPdb, mmQuit;
 	JMenuItem mmSelectAll;
 	
 	private Dimension screenSize;			// current size of this component on screen
 	
 	// Data and status variables
 	private ContactGUIState guiState;
-	private Model mod, mod2;
+	private Model mod, mod2, mod3;
 	public ContactMapPane cmPane;
 	public ContactPane cPane;
 	public AngleRuler lambdaRuler;
@@ -138,6 +148,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.guiState = new ContactGUIState(this);
 		this.mod = mod;
 		this.mod2 = null;
+		this.mod3 = null;
 		this.cmPane = cmPane;
 		
 		initContactView();
@@ -150,6 +161,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.guiState = new ContactGUIState(this);
 		this.mod = mod;
 		this.mod2 = mod2;
+		this.mod3 = null;
 		this.cmPane = cmPane;
 		
 		initContactView();
@@ -287,7 +299,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		toolBar.addSeparator(separatorDim);
 		tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, true, true);
 		tbCentralRes = makeToolBarToggleButton(icon_toggle_central_res, LABEL_CENTRAL_RES, true, true, true);
-		tbTempTrace =  makeToolBarToggleButton(icon_toggle_template_trace, LABEL_TEMPLATE_TRACE, false, true, true);
+		tbTempTrace =  makeToolBarToggleButton(icon_toggle_template_trace, LABEL_TEMPLATE_TRACE, true, true, true);
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
@@ -326,6 +338,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		smFile.put("Save", submenu);
 		// Load 
 		mmLoadSettings = makeMenuItem(LABEL_LSETTINGS_CSV_FILE, null, menu);
+		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, menu);
 //		// Print, Quit
 //		mmQuit = makeMenuItem(LABEL_FILE_QUIT, null, menu);
 		addToJMenuBar(menu);
@@ -698,6 +711,22 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	/**
 	 * Handles the user action to change the nbhstring to use for traces
+	 * @param ssType --> char
+	 * @param diffSSType--> boolean
+	 */
+	public void handleChangeTracesParam(char ssType, boolean diffSSType) {	
+		this.cPane.setNbhSSType(ssType);
+		this.cPane.setDiffSStypeNBH(diffSSType);
+		try {
+			this.cPane.recalcTraces(true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Handles the user action to change the nbhstring to use for traces
 	 * @param type --> string nbhs
 	 * @param maxNum--> int num
 	 */
@@ -795,6 +824,86 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		return this.screenSize;
 	}
 	
+	private void handleLoadFromPdbFile() {
+
+//		if (secondModel == SECOND_MODEL && mod == null){
+//			this.showNoContactMapWarning();
+//		} else
+		{
+			try {
+				LoadDialog dialog = new LoadDialog(this, "Load from PDB file", new LoadAction(true) {
+					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
+						doLoadFromPdbFile(f, modelSerial, loadAllModels, cc, ct, dist, minss, maxss);
+					}
+				}, "", null, "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", null, null, null);
+				dialog.setChainCodeGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbFilename    = dialog.getSelectedFileName();
+						try {
+							PdbFileModel mod = new PdbFileModel(pdbFilename,"",0.0,1,1);
+							return mod.getChains();
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to read chains from ftp:"+e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+						}
+					}
+				});
+				dialog.setModelsGetter(new Getter(dialog) {
+					public Object get() throws GetterError {
+						LoadDialog dialog = (LoadDialog) getObject();
+						String pdbFilename    = dialog.getSelectedFileName();
+						try {
+							PdbFileModel mod = new PdbFileModel(pdbFilename,"",0.0,1,1);
+							return mod.getModels();
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to read models from ftp:"+e.getMessage());
+						} catch (PdbLoadError e) {
+							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+						}
+					}
+				});
+//				LoadDialog actLoadDialog = dialog;
+				dialog.showIt();
+			} catch (LoadDialogConstructionError e1) {
+				System.err.println("Failed to load the load-dialog.");
+			}
+		}
+	}
+	
+	public void doLoadFromPdbFile(String f, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss) {
+		System.out.println("Loading from Pdb file");
+		System.out.println("Filename:\t" + f);
+		System.out.println("Model serial:\t" + modelSerial);
+		System.out.println("Chain code:\t" + cc);
+		System.out.println("Contact type:\t" + ct);
+		System.out.println("Dist. cutoff:\t" + dist);	
+		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
+		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
+		try {
+			PdbFileModel mod = new PdbFileModel(f, ct, dist, minss, maxss);
+			try {
+				mod.load(cc, modelSerial, loadAllModels);
+				this.mod3 = mod;
+				this.cPane.setThirdModel(this.mod3);
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		} catch(ModelConstructionError e) {
+			showLoadError(e.getMessage());
+		}
+	}	
+	
+	/** Error dialog to be shown if loading a model failed. */
+	private void showLoadError(String message) {
+		JOptionPane.showMessageDialog(this, "<html>Failed to load contact map:<br>" + message + "</html>", "Load Error", JOptionPane.ERROR_MESSAGE);
+	}
+	
 	/* ------------------Event Handling--------------------------*/
 
 	public void actionPerformed(ActionEvent e) {
@@ -827,6 +936,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		}
+		
+		if(e.getSource() == mmLoadPdb) {
+			handleLoadFromPdbFile();
 		}
 		
 		// Info, Print, Quit
