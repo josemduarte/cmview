@@ -3720,6 +3720,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	/*---------------------------- setters and getters -----------------------------*/
 	
+	public String getDescribingFN(){
+		String fn = mod.getLoadedGraphID()+"_"+this.iNum+this.iRes+"-"+this.jNum+this.jRes+"_"+this.nbhString+"_"+this.nbhSSType;
+		return fn;
+	}
+	
 	public String[] getSetOfOptStrings() {
 		return setOfOptStrings;
 	}

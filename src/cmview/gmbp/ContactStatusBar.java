@@ -614,7 +614,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		nbhsPanel.setVisible(true);	
 		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
 		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
-		nbhsPanel.setMaximumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 130));
+		nbhsPanel.setMaximumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height + 150));
 //		nbhsPanel.setMinimumSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 //		nbhsPanel.setPreferredSize(new Dimension(groupWidth, nbhsSelPanel.getPreferredSize().height));
 		

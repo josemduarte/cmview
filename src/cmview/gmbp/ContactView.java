@@ -419,6 +419,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
+			String fn = Start.getFileChooser().getCurrentDirectory()+"/"+this.cPane.getDescribingFN()+".png";
+			Start.getFileChooser().setSelectedFile(new File(fn));
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
