@@ -2399,33 +2399,33 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
 		g2d.setStroke(new BasicStroke(4));
-		drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, Color.black);
+		drawNBHSTemplateTrace(g2d, graphGeom, this.mod, nbSerials, Color.black);
 		if (this.mod2 != null){
 			g2d.setStroke(new BasicStroke(1));
-			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials, mod1Color);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod, nbSerials, mod1Color);
 			
 			graphGeom = this.mod2.getGraphGeometry();
 			g2d.setStroke(new BasicStroke(3));
-			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, Color.black);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, nbSerials2, Color.black);
 			g2d.setStroke(new BasicStroke(1));
-			drawNBHSTemplateTrace(g2d, graphGeom, nbSerials2, mod2Color);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, nbSerials2, mod2Color);
 		}		
 		if (this.mod3 != null){
 			graphGeom = this.mod3.getGraphGeometry();
 			g2d.setStroke(new BasicStroke(3));
 			if (this.mod2 == null){
-				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.black);
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.black);
 				g2d.setStroke(new BasicStroke(1));
-				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.lightGray);
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.lightGray);
 			}
 			else
-				drawNBHSTemplateTrace(g2d, graphGeom, nbSerials3, Color.black);			
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.black);			
 		}		
 		
 		g2d.setStroke(defaultBasicStroke);	
 	}
 	
-	private void drawNBHSTemplateTrace(Graphics2D g2d, RIGGeometry graphGeom, int[] nbSer, Color col){
+	private void drawNBHSTemplateTrace(Graphics2D g2d, RIGGeometry graphGeom, Model curMod, int[] nbSer, Color col){
 		if (graphGeom!=null){
 //			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
 			HashMap<Pair<Integer>,Vector3d> contactCoord = graphGeom.getRotCoordOfContacts();
@@ -2434,7 +2434,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			if (contactCoord!=null && nbSer!=null){
 				for(int i=0; i<nbSer.length; i++){
 					int jNum = nbSer[i];
-					String resType = this.mod.getNodeFromSerial(jNum).getResidueType();
+					RIGNode node = curMod.getNodeFromSerial(jNum);
+					String resType = curMod.getNodeFromSerial(jNum).getResidueType();
 //					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
 					Pair<Integer> key = new Pair<Integer>(iNum, jNum);
 //					System.out.print(this.iNum+"_"+jNum+contactCoord.containsKey(key)+"\t");
