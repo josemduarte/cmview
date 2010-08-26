@@ -160,7 +160,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private char iSSType='H', jSSType='H', nbhSSType='H';
 	private boolean diffSStype=false, diffSStypeNBH=false;
 	//	private String iResType="Ala", jResType="Ala";
-	private int iNum=0, jNum=0;
+	private int iNum=0, iNum2=0, jNum=0, jNum2=0;
 	private String nbhString, nbhStringL;
 	private int[] nbSerials, nbSerials2, nbSerials3;
 	private String origNBHString; 
@@ -536,6 +536,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 	
 	public void calcTracesParam(){
+				
 		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
 		System.out.println("Edge type: "+this.mod.edgeType);
 //		this.jAtom = this.mod.edgeType.toUpperCase();
@@ -571,7 +572,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 		if(this.mod2 != null){
 			cnt=0;
-			RIGNode nodeI2 = this.mod2.getNodeFromSerial(this.iNum);
+			RIGNode nodeI2 = this.mod2.getNodeFromSerial(iNum2);
 			RIGNbhood nbhood2 = this.mod2.getGraph().getNbhood(nodeI2);
 			this.nbSerials2 = new int[nbhood2.getSize()];
 			for (RIGNode node:nbhood2.getNeighbors()){
@@ -586,28 +587,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if(this.mod3 != null){
 			cnt=0;
 			RIGNode nodeI3 = this.mod3.getNodeFromSerial(this.iNum);
-			RIGNbhood nbhood3 = this.mod3.getGraph().getNbhood(nodeI3);
-			this.nbSerials3 = new int[nbhood3.getSize()];
-			for (RIGNode node:nbhood3.getNeighbors()){
-				int resSer = node.getResidueSerial();
-				this.nbSerials3[cnt] = resSer;
-				cnt++;
-				System.out.print(resSer+"_"+node.getResidueType()+"\t");
+			if (nodeI3!=null){
+				RIGNbhood nbhood3 = this.mod3.getGraph().getNbhood(nodeI3);
+				this.nbSerials3 = new int[nbhood3.getSize()];
+				for (RIGNode node:nbhood3.getNeighbors()){
+					int resSer = node.getResidueSerial();
+					this.nbSerials3[cnt] = resSer;
+					cnt++;
+					System.out.print(resSer+"_"+node.getResidueType()+"\t");
+				}
+				System.out.println();				
 			}
-			System.out.println();
+			System.out.println("Mod3: SeqIndex can not be resolved based on selected contact!");
 		}
 	}
 	
 	public void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
+//		Pair<Integer> currmousePos = screen2cm(this.mousePos);
 		Pair<Integer> currentResPair = this.cmPane.getmousePos();
 		calcSphoxelParam(currentResPair);
 	}
 		
 	public void calcSphoxelParam(Pair<Integer> currentResPair){
-		this.iNum = currentResPair.getFirst();
-		this.jNum = currentResPair.getSecond();
-		
+//		this.iNum = currentResPair.getFirst();
+//		this.jNum = currentResPair.getSecond();
+		this.iNum = this.cmPane.getISeqIdx(false);
+		this.jNum = this.cmPane.getJSeqIdx(false);
+		this.iNum2 = this.cmPane.getISeqIdx(true);
+		this.jNum2 = this.cmPane.getJSeqIdx(true);
+				
 		// use pair to get iRes and jRes, isstype, nbhstring
 		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
 		nodeJ = this.mod.getNodeFromSerial(this.jNum);		
@@ -2399,33 +2408,33 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
 		g2d.setStroke(new BasicStroke(4));
-		drawNBHSTemplateTrace(g2d, graphGeom, this.mod, nbSerials, Color.black);
+		drawNBHSTemplateTrace(g2d, graphGeom, this.mod, this.iNum, this.jNum, nbSerials, Color.black);
 		if (this.mod2 != null){
 			g2d.setStroke(new BasicStroke(1));
-			drawNBHSTemplateTrace(g2d, graphGeom, this.mod, nbSerials, mod1Color);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod, this.iNum, this.jNum, nbSerials, mod1Color);
 			
 			graphGeom = this.mod2.getGraphGeometry();
 			g2d.setStroke(new BasicStroke(3));
-			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, nbSerials2, Color.black);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, this.iNum2, this.jNum2, nbSerials2, Color.black);
 			g2d.setStroke(new BasicStroke(1));
-			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, nbSerials2, mod2Color);
+			drawNBHSTemplateTrace(g2d, graphGeom, this.mod2, this.iNum2, this.jNum2, nbSerials2, mod2Color);
 		}		
 		if (this.mod3 != null){
 			graphGeom = this.mod3.getGraphGeometry();
 			g2d.setStroke(new BasicStroke(3));
 			if (this.mod2 == null){
-				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.black);
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, this.iNum, this.jNum, nbSerials3, Color.black);
 				g2d.setStroke(new BasicStroke(1));
-				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.lightGray);
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, this.iNum, this.jNum, nbSerials3, Color.lightGray);
 			}
 			else
-				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, nbSerials3, Color.black);			
+				drawNBHSTemplateTrace(g2d, graphGeom, this.mod3, this.iNum, this.jNum, nbSerials3, Color.black);			
 		}		
 		
 		g2d.setStroke(defaultBasicStroke);	
 	}
 	
-	private void drawNBHSTemplateTrace(Graphics2D g2d, RIGGeometry graphGeom, Model curMod, int[] nbSer, Color col){
+	private void drawNBHSTemplateTrace(Graphics2D g2d, RIGGeometry graphGeom, Model curMod, int curINum, int curJNum, int[] nbSer, Color col){
 		if (graphGeom!=null){
 //			HashMap<String,Vector3d> contactCoord = graphGeom.getRotatedCoordOfContacts();
 			HashMap<Pair<Integer>,Vector3d> contactCoord = graphGeom.getRotCoordOfContacts();
@@ -2437,7 +2446,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					RIGNode node = curMod.getNodeFromSerial(jNum);
 					String resType = curMod.getNodeFromSerial(jNum).getResidueType();
 //					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
-					Pair<Integer> key = new Pair<Integer>(iNum, jNum);
+					Pair<Integer> key = new Pair<Integer>(curINum, jNum);
 //					System.out.print(this.iNum+"_"+jNum+contactCoord.containsKey(key)+"\t");
 					Vector3d coord_sph;
 //					if (contactCoord.containsKey(new Integer[]{this.iNum,jNum}))	
@@ -2448,7 +2457,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					double phi = coord_sph.y;
 					lambda += Math.PI;
 					boolean isJRes = false;
-					if (jNum==this.jNum)
+					if (jNum==curJNum)
 						isJRes = true;
 //					// test output
 //					System.out.println("1 , "+iNum+" , "+jNum+" , "+phi+" , "+(lambda-Math.PI)+" , "+resType+"-"
@@ -2461,7 +2470,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					if (i+1<nbSer.length){
 						int jNumNB = nbSer[i+1];
 //						key = String.valueOf(this.iNum)+"_"+String.valueOf(jNumNB);
-						key = new Pair<Integer>(iNum, jNumNB);
+						key = new Pair<Integer>(curINum, jNumNB);
 						Vector3d coord_sph_nb;
 //						if (contactCoord.containsKey(new Integer[]{this.iNum,jNumNB}))
 							coord_sph_nb = contactCoord.get(key); // (r, phi, lambda)
@@ -2475,7 +2484,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 						lambdaNB += Math.PI;
 						// draw edge
 						g2d.setColor(col);
-						if (this.paintCentralResidue && nbSer[i]<this.iNum && nbSer[i+1]>this.iNum){
+						if (this.paintCentralResidue && nbSer[i]<curINum && nbSer[i+1]>curINum){
 							// include central residue						
 							// --- draw geodesics
 							drawNBHSGeodesicEdge(g2d, lambda, phi, this.centerOfProjection.getFirst(), this.centerOfProjection.getSecond());
