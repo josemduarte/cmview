@@ -161,7 +161,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private boolean diffSStype=false, diffSStypeNBH=false;
 	//	private String iResType="Ala", jResType="Ala";
 	private int iNum=0, iNum2=0, jNum=0, jNum2=0;
-	private String nbhString, nbhStringL;
+	private String nbhString="", nbhStringL="%";
 	private int[] nbSerials, nbSerials2, nbSerials3;
 	private String origNBHString; 
 //	private String jAtom = "CA";
@@ -531,74 +531,90 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
 		setTracesParam();
 		calcNbhsTraces();	
-		this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
-		calcOptNbhStrings();
+		if (this.nbhString!=null){
+			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+			calcOptNbhStrings();
+		}
 	}
 	
 	public void calcTracesParam(){
 				
-		RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
-		System.out.println("Edge type: "+this.mod.edgeType);
-//		this.jAtom = this.mod.edgeType.toUpperCase();
-		// Manual change jAtom --> bagler_cb8p0 or always CA
-		this.atomType = this.mod.getGraphGeometry().getAtomType(); //"CA";
-		
-		this.nbhString = nbhood.getNbString();
-		this.nbSerials = new int[nbhood.getSize()];
-		int cnt=0;
-		for (RIGNode node:nbhood.getNeighbors()){
-			int resSer = node.getResidueSerial();
-			this.nbSerials[cnt] = resSer;
-			cnt++;
-			System.out.print(resSer+"_"+node.getResidueType()+"\t");
-//			System.out.print(resSer+"_"+this.mod.getNodeFromSerial(resSer).getResidueType()+"\t");
-		}
-		System.out.println();
-		
-		this.nbhStringL = "%";
-		int count = 0;
-//		int indexOfX = 0;
-		this.nbhsRes = new char[this.nbhString.length()];
-		for (int i=0; i<this.nbhString.length(); i++){
-			this.nbhStringL += this.nbhString.charAt(i);
-			this.nbhStringL += "%";
-			this.nbhsRes[count] = this.nbhString.charAt(i);
-//			if (this.nbhString.charAt(i) == 'x')
-//				indexOfX = count;
-			count++;
-		}
-		System.out.println(this.nbhString+"-->"+this.nbhStringL);	
-		this.origNBHString = this.nbhString;
-		
-		if(this.mod2 != null){
-			cnt=0;
-			RIGNode nodeI2 = this.mod2.getNodeFromSerial(iNum2);
-			RIGNbhood nbhood2 = this.mod2.getGraph().getNbhood(nodeI2);
-			this.nbSerials2 = new int[nbhood2.getSize()];
-			for (RIGNode node:nbhood2.getNeighbors()){
+		this.nbSerials = new int[0];
+		this.nbSerials2 = new int[0];
+		this.nbSerials3 = new int[0];
+		if(nodeI!=null){
+			RIGNbhood nbhood = this.mod.getGraph().getNbhood(nodeI);
+			System.out.println("Edge type: "+this.mod.edgeType);
+//			this.jAtom = this.mod.edgeType.toUpperCase();
+			// Manual change jAtom --> bagler_cb8p0 or always CA
+			this.atomType = this.mod.getGraphGeometry().getAtomType(); //"CA";
+			
+			this.nbhString = nbhood.getNbString();
+			this.nbSerials = new int[nbhood.getSize()];
+			int cnt=0;
+			for (RIGNode node:nbhood.getNeighbors()){
 				int resSer = node.getResidueSerial();
-				this.nbSerials2[cnt] = resSer;
+				this.nbSerials[cnt] = resSer;
 				cnt++;
 				System.out.print(resSer+"_"+node.getResidueType()+"\t");
+//				System.out.print(resSer+"_"+this.mod.getNodeFromSerial(resSer).getResidueType()+"\t");
 			}
 			System.out.println();
-		}
-		
-		if(this.mod3 != null){
-			cnt=0;
-			RIGNode nodeI3 = this.mod3.getNodeFromSerial(this.iNum);
-			if (nodeI3!=null){
-				RIGNbhood nbhood3 = this.mod3.getGraph().getNbhood(nodeI3);
-				this.nbSerials3 = new int[nbhood3.getSize()];
-				for (RIGNode node:nbhood3.getNeighbors()){
-					int resSer = node.getResidueSerial();
-					this.nbSerials3[cnt] = resSer;
-					cnt++;
-					System.out.print(resSer+"_"+node.getResidueType()+"\t");
-				}
-				System.out.println();				
+			
+			this.nbhStringL = "%";
+			int count = 0;
+//			int indexOfX = 0;
+			this.nbhsRes = new char[this.nbhString.length()];
+			for (int i=0; i<this.nbhString.length(); i++){
+				this.nbhStringL += this.nbhString.charAt(i);
+				this.nbhStringL += "%";
+				this.nbhsRes[count] = this.nbhString.charAt(i);
+//				if (this.nbhString.charAt(i) == 'x')
+//					indexOfX = count;
+				count++;
 			}
-			System.out.println("Mod3: SeqIndex can not be resolved based on selected contact!");
+			System.out.println(this.nbhString+"-->"+this.nbhStringL);	
+			this.origNBHString = this.nbhString;
+			
+			if(this.mod2 != null){
+				cnt=0;
+				RIGNode nodeI2 = this.mod2.getNodeFromSerial(iNum2);
+				if (nodeI2!=null){
+					RIGNbhood nbhood2 = this.mod2.getGraph().getNbhood(nodeI2);
+					this.nbSerials2 = new int[nbhood2.getSize()];
+					for (RIGNode node:nbhood2.getNeighbors()){
+						int resSer = node.getResidueSerial();
+						this.nbSerials2[cnt] = resSer;
+						cnt++;
+						System.out.print(resSer+"_"+node.getResidueType()+"\t");
+					}
+					System.out.println();				
+				}
+				else{
+					System.out.println("Node for residue number "+iNum2+" doesn't exist within model2");	
+				}
+			}
+			
+			if(this.mod3 != null){
+				cnt=0;
+				RIGNode nodeI3 = this.mod3.getNodeFromSerial(this.iNum);
+				if (nodeI3!=null){
+					RIGNbhood nbhood3 = this.mod3.getGraph().getNbhood(nodeI3);
+					this.nbSerials3 = new int[nbhood3.getSize()];
+					for (RIGNode node:nbhood3.getNeighbors()){
+						int resSer = node.getResidueSerial();
+						this.nbSerials3[cnt] = resSer;
+						cnt++;
+						System.out.print(resSer+"_"+node.getResidueType()+"\t");
+					}
+					System.out.println();				
+				}
+				else
+					System.out.println("Mod3: SeqIndex can not be resolved based on selected contact!");
+			}			
+		}
+		else{
+			System.out.println("Node for residue number "+iNum+" doesn't exist within model1");	
 		}
 	}
 	
@@ -619,55 +635,59 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				
 		// use pair to get iRes and jRes, isstype, nbhstring
 		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
-		nodeJ = this.mod.getNodeFromSerial(this.jNum);		
-		this.iRes = this.nodeI.toString().charAt(this.nodeI.toString().length()-1);
-		this.jRes = nodeJ.toString().charAt(nodeJ.toString().length()-1);
-		
-//		this.iResType = this.nodeI.getResidueType();
-//		this.jResType = this.nodeJ.getResidueType();
-//		System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
-
-		// Definition of sstype
-		SecStrucElement iSSelem = this.nodeI.getSecStrucElement();
-//		type = this.nodeI.getSecStrucElement().getType(); 
-		if (iSSelem == null){
-			System.out.println("No SSelement!");
-			this.diffSStype = false;
-			this.iSSType = CMPdb_sphoxel.AnySStype;
-		}
-		else{
-			if (iSSelem.isHelix())
-				this.iSSType = SecStrucElement.HELIX;
-			else if (iSSelem.isOther())
-				this.iSSType = SecStrucElement.OTHER;
-			else if (iSSelem.isStrand())
-				this.iSSType = SecStrucElement.STRAND;
-			else if (iSSelem.isTurn())
-				this.iSSType = SecStrucElement.TURN;
+		this.nodeJ = this.mod.getNodeFromSerial(this.jNum);	
+		if (this.nodeI!=null && this.nodeJ!=null){
+			this.iRes = this.nodeI.toString().charAt(this.nodeI.toString().length()-1);
+			this.jRes = nodeJ.toString().charAt(nodeJ.toString().length()-1);
 			
-			this.diffSStype = true;
+//			this.iResType = this.nodeI.getResidueType();
+//			this.jResType = this.nodeJ.getResidueType();
+//			System.out.println("iresType: "+this.iResType+"  jresType: "+this.jResType);
+
+			// Definition of sstype
+			SecStrucElement iSSelem = this.nodeI.getSecStrucElement();
+//			type = this.nodeI.getSecStrucElement().getType(); 
+			if (iSSelem == null){
+				System.out.println("No SSelement!");
+				this.diffSStype = false;
+				this.iSSType = CMPdb_sphoxel.AnySStype;
+			}
+			else{
+				if (iSSelem.isHelix())
+					this.iSSType = SecStrucElement.HELIX;
+				else if (iSSelem.isOther())
+					this.iSSType = SecStrucElement.OTHER;
+				else if (iSSelem.isStrand())
+					this.iSSType = SecStrucElement.STRAND;
+				else if (iSSelem.isTurn())
+					this.iSSType = SecStrucElement.TURN;
+				
+				this.diffSStype = true;
+			}
+//			System.out.println("i secStrucElement: "+this.iSSType);
+//			SecStrucElement jSSelem = nodeJ.getSecStrucElement();
+//			if (jSSelem == null){
+//				System.out.println("No JSSelement!");
+//				this.jSSType = this.sphoxel.AnySStype;
+//			}
+//			else{
+//				if (jSSelem.isHelix())
+//					this.jSSType = SecStrucElement.HELIX;
+//				else if (jSSelem.isOther())
+//					this.jSSType = SecStrucElement.OTHER;
+//				else if (jSSelem.isStrand())
+//					this.jSSType = SecStrucElement.STRAND;
+//				else if (jSSelem.isTurn())
+//					this.jSSType = SecStrucElement.TURN;
+//			}
+			// Standard jSStype=any --> no differentiation made
+			this.jSSType = CMPdb_sphoxel.AnySStype;
+//			System.out.println("j secStrucElement: "+this.jSSType);	
+			
+			System.out.println("Selected contact changed to: "+this.iNum+this.iRes+"_"+this.iSSType+"  "+this.jNum+this.jRes);			
 		}
-//		System.out.println("i secStrucElement: "+this.iSSType);
-//		SecStrucElement jSSelem = nodeJ.getSecStrucElement();
-//		if (jSSelem == null){
-//			System.out.println("No JSSelement!");
-//			this.jSSType = this.sphoxel.AnySStype;
-//		}
-//		else{
-//			if (jSSelem.isHelix())
-//				this.jSSType = SecStrucElement.HELIX;
-//			else if (jSSelem.isOther())
-//				this.jSSType = SecStrucElement.OTHER;
-//			else if (jSSelem.isStrand())
-//				this.jSSType = SecStrucElement.STRAND;
-//			else if (jSSelem.isTurn())
-//				this.jSSType = SecStrucElement.TURN;
-//		}
-		// Standard jSStype=any --> no differentiation made
-		this.jSSType = CMPdb_sphoxel.AnySStype;
-//		System.out.println("j secStrucElement: "+this.jSSType);	
-		
-		System.out.println("Selected contact changed to: "+this.iNum+this.iRes+"_"+this.iSSType+"  "+this.jNum+this.jRes);
+		else
+			System.out.println("Selected contact didn't change, because node for residue number "+iNum+" doesn't exist within model1!");		
 	}
 	
 	private void setSphoxelParam(){
@@ -2443,7 +2463,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			if (contactCoord!=null && nbSer!=null){
 				for(int i=0; i<nbSer.length; i++){
 					int jNum = nbSer[i];
-					RIGNode node = curMod.getNodeFromSerial(jNum);
+//					RIGNode node = curMod.getNodeFromSerial(jNum);
 					String resType = curMod.getNodeFromSerial(jNum).getResidueType();
 //					String key = String.valueOf(this.iNum)+"_"+String.valueOf(jNum);
 					Pair<Integer> key = new Pair<Integer>(curINum, jNum);
@@ -2534,7 +2554,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			// ordering is of importance
 			if (nbhsIndexC > 0 && aas[jResID]==this.nbhsRes[nbhsIndexC-1])
 				specialRes = true;
-			if (aas[jResID] == this.nbhsRes[nbhsIndexC]){
+			if (this.nbhsRes!=null && aas[jResID] == this.nbhsRes[nbhsIndexC]){
 				specialRes = true;
 				nbhsIndexC++;
 			}	
