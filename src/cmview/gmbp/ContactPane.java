@@ -20,7 +20,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -215,6 +214,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private Vector<Integer>[] clusters; //clusters contains a vector of all IDs for noise (background) and each found cluster
 	private int[] nbCluster;    // holds ID of neighbouring cluster (at the other end of edge); if any neighbouring cluster exists, ID=0
 	private Vector<double[]> clusterAverDirec;  // holds direction (vector saved as array) for each cluster
+	private Vector<Integer>[] mostFrequentResT4Clusters;
 
 	// ---- variables for representation (drawing methods)
 	private int numSteps = CMPdb_sphoxel.defaultNumSteps; //CMPdb_sphoxel.defaultNumSteps;  // change later via interface
@@ -716,19 +716,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			else if (this.minr==this.radiusThresholds[2] && this.maxr==this.radiusThresholds[3])
 				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[2];
 			
-			File dir1 = new File (".");		
-			String fn = "/Users/vehlow/Documents/workspace/CMView"+Start.SPHOXEL_DIR; // 
-//			fn = "/Users/vehlow/Documents/workspace/outputFiles/sphoxelBG/";
-			try {
-				fn = dir1.getCanonicalPath() + Start.SPHOXEL_DIR;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			String archiveFN = fn + "SphoxelBGs.zip";
+//			File dir1 = new File (".");		
+			String fn = "";
+			String archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
 			ZipFile zipfile = null;
 			try {
-				zipfile = new ZipFile(archiveFN);
+				System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
+				zipfile = new ZipFile(this.getClass().getResource(archFN).getFile());
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -976,6 +970,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcNodeDistr4Sel();
 	}
 	
+	/**
+	 * Computes the min, max and average position of nodes within each cluster.
+	 * Computes ditribution of residue types within each cluster.
+	 */
 	private void calcHistOfNBHSTraces(){
 //		ColorScaleView colView = this.contactView.getColorScaleView();
 //		double [] scale = colView.getScaleValues();
@@ -1022,7 +1020,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				pMin = lambda.getFirst();
 				pMax = lambda.getSecond();
 				
-				if (phiRad>=tMin && phiRad<tMax && lambdaRad>=pMin && lambdaRad<pMax){
+				if (phiRad>=tMin && phiRad<=tMax && lambdaRad>=pMin && lambdaRad<=pMax){
 					tempHist[index][jSSTypeID][jResID] += 1; 
 					tempHist[index][this.sstypes.length-1][jResID] += 1; 
 					
@@ -1046,6 +1044,11 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		for (int i=0; i<this.lambdaRanges.size(); i++){
 			int [][] count4Sel = tempHist[i];
 			histT4SelAngleRange.add(count4Sel);
+			
+			System.out.println("Selection Nr:"+i);
+			for (int j=0; j<aas.length; j++)
+				System.out.println(aas[j]+":   H:"+count4Sel[0][j]+":   S:"+count4Sel[1][j]
+				                         +":   O:"+count4Sel[2][j]+":   A:"+count4Sel[3][j]);
 			
 			// calculate average values
 			averPhi[i] = averPhi[i]/foundNodes[i];
@@ -1116,6 +1119,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		ratio = 0;
 	}
 	
+	/**
+	 * Computes the min, max and aver values
+	 */
 	private void calcHistOfNodeCluster(){		
 
 //		this.minMaxAverT4SelAngleRange.add(minLambda);
@@ -1255,6 +1261,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			clusterAnal.analyseNodeDistributionInCluster(index);
 	}
 	
+	/**
+	 * 
+	 */
 	private void calcNodeDistr4Sel(){
 //		System.out.println("calc Hist Of Node Distr Within and Around Sel:");
 		this.nodeDistr4Sel = null;
@@ -1359,6 +1368,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.clusterDirProp = clusterAnal.getClusterDirProp();
 		this.nbCluster = clusterAnal.getNbCluster();
 		this.clusterAverDirec = clusterAnal.getClusterAverDirec();
+		
+		clusterAnal.analyseCNodeTypes();
+		this.mostFrequentResT4Clusters = clusterAnal.getMostFrequentResT4Clusters();
 		
 		this.updateScreenBuffer();
 	}
@@ -2684,7 +2696,36 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				averLE = averLS + factor*dir[0];
 			averPE = averPS + factor*dir[1];
 			g2d.setColor(this.arrowColor);
-			drawArrowTriangle(g2d, averLS, averPS, averLE, averPE, 0.15);			
+			drawArrowTriangle(g2d, averLS, averPS, averLE, averPE, 0.15);	
+			
+			if (this.clusterAverDirec.size() == this.mostFrequentResT4Clusters.length){
+				double l = (averLS+averLE)/2;
+				double p = (averPS+averPE)/2;
+				Vector<Integer> mostFrequentRes = this.mostFrequentResT4Clusters[i];
+				String residue = "";
+				int nrOfRes = 0;
+				for (int resID:mostFrequentRes){
+					residue += (aas[resID]+",");
+					nrOfRes++;
+				}
+				residue = residue.substring(0, residue.length()-1);
+//				averPE = Math.PI-averPE;
+				double x = getScreenPosFromRad(l, p).getFirst();
+				double y = getScreenPosFromRad(l, p).getSecond();
+				
+				g2d.setColor(new Color(255, 255, 255, 150));
+			    Shape rect = new Rectangle2D.Double (x, y+this.yBorderThres-20, (double)(nrOfRes*16), (double)(20));
+			    g2d.draw(rect);
+			    g2d.fill(rect);
+//				g2d.drawRect((int)x, (int)y, nrOfRes*5, 10);
+				
+				Font f = new Font("Dialog", Font.PLAIN, 16);
+				g2d.setFont(f);
+				g2d.setColor(Color.black);
+				
+				g2d.drawString(residue, (float)(x), (float)(y+this.yBorderThres));				
+			}
+			
 		}
 	}
 	
