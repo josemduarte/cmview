@@ -20,6 +20,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -621,17 +622,23 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void calcSphoxelParam(){
 		// Get first shell neighbours of involved residues
 //		Pair<Integer> currmousePos = screen2cm(this.mousePos);
-		Pair<Integer> currentResPair = this.cmPane.getmousePos();
+//		Pair<Integer> currentResPair = this.cmPane.getmousePos();
+		Pair<Integer> currentResPair = this.cmPane.getmousePosRightClick();
+		currentResPair = this.cmPane.getRightClickCont();
 		calcSphoxelParam(currentResPair);
 	}
 		
 	public void calcSphoxelParam(Pair<Integer> currentResPair){
 //		this.iNum = currentResPair.getFirst();
 //		this.jNum = currentResPair.getSecond();
-		this.iNum = this.cmPane.getISeqIdx(false);
-		this.jNum = this.cmPane.getJSeqIdx(false);
-		this.iNum2 = this.cmPane.getISeqIdx(true);
-		this.jNum2 = this.cmPane.getJSeqIdx(true);
+//		this.iNum = this.cmPane.getISeqIdx(false);
+//		this.jNum = this.cmPane.getJSeqIdx(false);
+//		this.iNum2 = this.cmPane.getISeqIdx(true);
+//		this.jNum2 = this.cmPane.getJSeqIdx(true);
+		this.iNum = this.cmPane.getISeqIdxRC(false);
+		this.jNum = this.cmPane.getJSeqIdxRC(false);
+		this.iNum2 = this.cmPane.getISeqIdxRC(true);
+		this.jNum2 = this.cmPane.getJSeqIdxRC(true);
 				
 		// use pair to get iRes and jRes, isstype, nbhstring
 		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
@@ -722,7 +729,19 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			ZipFile zipfile = null;
 			try {
 				System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
-				zipfile = new ZipFile(this.getClass().getResource(archFN).getFile());
+				File file = new File(this.getClass().getResource(archFN).getPath());
+				System.out.println(file.toString()+"  loaded");
+				zipfile = new ZipFile(file.getPath());
+				System.out.println(file.getPath()+"  loaded");
+				zipfile = new ZipFile(file);
+//				try {
+//					File file = new File(this.getClass().getResource(archFN).toURI());
+//					zipfile = new ZipFile(file);
+//				} catch (URISyntaxException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				zipfile = new ZipFile(new File(this.getClass().getResource(archFN).getFile()) );
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

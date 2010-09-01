@@ -418,6 +418,10 @@ public class View extends JFrame implements ActionListener {
 		deltaRankBar = new DeltaRankBar();
 		
 		// Icons
+//		System.out.println("PNG: "+this.getClass().getResource(Start.ICON_DIR + "shape_square.png").getFile());
+//		System.out.println("PNG: "+this.getClass().getResource(Start.ICON_DIR + "shape_square.png").getPath());
+//		File file = new File(this.getClass().getResource(Start.ICON_DIR + "shape_square.png").getPath());
+//		ImageIcon icon = new ImageIcon(file.getPath());
 		ImageIcon icon_square_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square.png"));
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "paintcan.png"));
 		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "diagonals.png"));

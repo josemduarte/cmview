@@ -1260,6 +1260,88 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		
 	}
+	
+	public int getISeqIdxRC(boolean secondModel){
+		Pair<Integer> currentCell = this.rightClickCont;
+
+		// alignment indices
+		int iAliIdx = 0;
+		int jAliIdx = 0;
+		
+		// initialize position to be shown
+		iAliIdx = currentCell.getFirst();
+		jAliIdx = currentCell.getSecond();		
+				
+		// return if mouse position is out of bounds
+		//if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > mod.getMatrixSize() || jAliIdx > mod.getMatrixSize() ) {
+		if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > ali.getAlignmentLength() || jAliIdx > ali.getAlignmentLength() ) {
+			// TODO: reset all fields in StatusBar?
+			return -1;
+		}
+		if (!secondModel){
+			// first contact map
+			String aliTag = mod.getLoadedGraphID();
+			// converting to sequence indices
+			int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
+//			int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+			
+			return iSeqIdx;
+		}
+		else {
+			if (this.mod2!=null){
+				String aliTag2 = mod2.getLoadedGraphID();		
+				// converting to sequence indices
+				int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
+//				int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
+				
+				return iSeqIdx2;
+			}
+			else
+				return -1; //iSeqIdx;			
+		}
+		
+	}
+	
+	public int getJSeqIdxRC(boolean secondModel){
+		Pair<Integer> currentCell = this.rightClickCont;
+
+		// alignment indices
+		int iAliIdx = 0;
+		int jAliIdx = 0;
+		
+		// initialize position to be shown
+		iAliIdx = currentCell.getFirst();
+		jAliIdx = currentCell.getSecond();		
+				
+		// return if mouse position is out of bounds
+		//if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > mod.getMatrixSize() || jAliIdx > mod.getMatrixSize() ) {
+		if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > ali.getAlignmentLength() || jAliIdx > ali.getAlignmentLength() ) {
+			// TODO: reset all fields in StatusBar?
+			return -1;
+		}
+		if (!secondModel){
+			// first contact map
+			String aliTag = mod.getLoadedGraphID();
+			// converting to sequence indices
+//			int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
+			int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+			
+			return jSeqIdx;
+		}
+		else {
+			if (this.mod2!=null){
+				String aliTag2 = mod2.getLoadedGraphID();		
+				// converting to sequence indices
+//				int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
+				int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
+				
+				return jSeqIdx2;
+			}
+			else
+				return -1; //iSeqIdx;			
+		}
+		
+	}
 
 	protected void drawCrosshair(Graphics2D g2d){
 		// only in case of range selection we draw a diagonal cursor
@@ -2654,6 +2736,15 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				
 		return currmousePos;
 	}
+	
+	/**
+	 * @return Right clicked pair of residues in the contact map pane.
+	 */
+	public Pair<Integer> getmousePosRightClick() {
+//		Pair<Integer> currmousePos = screen2cm(this.mousePos);
+		return this.rightClickCont;
+	}
+	
 	
 	/** Called by residueRuler to get the current output size for drawing */
 	protected int getOutputSize(){
