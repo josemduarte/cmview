@@ -530,10 +530,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcTracesParam();	
 //		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
+		this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST);
 		setTracesParam();
 		calcNbhsTraces();	
 		if (this.nbhString!=null){
-			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+//			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD);
 			calcOptNbhStrings();
 		}
 	}
@@ -747,7 +749,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 					file = new File(this.getClass().getResource(archFN).getPath());
 				}
 				zipfile = new ZipFile(file.getPath());
-				System.out.println(file.getPath()+"  loaded");
+//				System.out.println(file.getPath()+"  loaded");
 //				zipfile = new ZipFile(file);
 //				System.out.println(file.toString()+"  loaded");		
 				

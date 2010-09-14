@@ -118,6 +118,10 @@ public class Start {
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 								// dito
 	private static int        		DEFAULT_MIN_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
 	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito	
+	
+	public static String			DB_USER;
+	public static String			DB_PWD;
+	public static String			DB_HOST;
 
 	public static String 			DEFAULT_FILE_PATH = ""; // "/Users/vehlow/Documents/workspace/PDBs/";
 	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
@@ -312,8 +316,13 @@ public class Start {
 			DEFAULT_MIN_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP)));
 			DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
 			
+			DB_USER = p.getProperty("DB_USER");
+			DB_PWD = p.getProperty("DB_PWD");
+			DB_HOST = p.getProperty("DB_HOST");
+			
 			DEFAULT_FILE_PATH = p.getProperty("DEFAULT_FILE_PATH");
 			SPHOXEL_BG_FILE_PATH = p.getProperty("SPHOXEL_BG_FILE_PATH");
+			
 		} catch (NumberFormatException e) {
 			System.err.println("A numerical value in the config file was incorrectly specified: "+e.getMessage()+". Please check the config file.");
 			System.exit(1);
@@ -375,8 +384,12 @@ public class Start {
 		p.setProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP));				// doc!
 		p.setProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP));				// doc!
 		
-		p.setProperty(DEFAULT_FILE_PATH, DEFAULT_FILE_PATH);
-		p.setProperty(SPHOXEL_BG_FILE_PATH, SPHOXEL_BG_FILE_PATH);
+		p.setProperty("DB_USER", DB_USER);
+		p.setProperty("DB_HOST", DB_HOST);
+		p.setProperty("DB_PWD", DB_PWD);
+		
+		p.setProperty("DEFAULT_FILE_PATH", DEFAULT_FILE_PATH);
+		p.setProperty("SPHOXEL_BG_FILE_PATH", SPHOXEL_BG_FILE_PATH);
 		
 		return p;
 	}
@@ -744,7 +757,7 @@ public class Start {
 		}
 		
 		// loading from user's home directory
-		File userConfigFile = new File(System.getProperty("user.home"),CONFIG_FILE_NAME);  
+		File userConfigFile = new File(System.getProperty("user.home"),CONFIG_FILE_NAME); 
 		try {
 			if (userConfigFile.exists()) {
 				System.out.println("Loading user configuration file " + userConfigFile.getAbsolutePath());
@@ -835,6 +848,11 @@ public class Start {
 			}
 		} else {
 			database_found = false;
+		}
+		
+		if(USE_EXPERIMENTAL_FEATURES && SPHOXEL_BG_FILE_PATH==null) {
+			System.out.println("SPHOXEL_BG_FILE_PATH set to currentdir = "+System.getProperty("user.dir"));
+			SPHOXEL_BG_FILE_PATH = System.getProperty("user.dir");
 		}
 
 		// check dssp
