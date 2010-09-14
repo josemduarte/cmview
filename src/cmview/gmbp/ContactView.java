@@ -122,6 +122,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	public AngleRuler phiRuler;
 	public ColorScaleView colView;
 	public HistogramView histView;
+
+	public boolean fileChooserOpened = false;
 	
 	private class MyDispatcher implements KeyEventDispatcher {
 		private ContactPane cPane;
@@ -419,6 +421,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
+			this.fileChooserOpened = true;
 			String fn = Start.getFileChooser().getCurrentDirectory()+"/"+this.cPane.getDescribingFN()+".png";
 			Start.getFileChooser().setSelectedFile(new File(fn));
 			int ret = Start.getFileChooser().showSaveDialog(this);
@@ -447,6 +450,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 					}
 				}
 			}
+			this.fileChooserOpened = false;
 		}
 	}
 	
@@ -454,6 +458,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
+			this.fileChooserOpened = true;
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
@@ -467,6 +472,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 					cPane.writeSphoxels(filename);
 				}
 			}
+			this.fileChooserOpened = false;
 		}
 	}
 	
@@ -474,6 +480,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
+			this.fileChooserOpened = true;
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
@@ -487,6 +494,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 					cPane.writeTraces(filename);
 ;				}
 			}
+			this.fileChooserOpened = false;
 		}
 	}
 	
@@ -494,6 +502,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		if(this.mod == null) {
 			showNoContactWarning();
 		} else {
+			this.fileChooserOpened = true;
 			int ret = Start.getFileChooser().showSaveDialog(this);
 			if(ret == JFileChooser.APPROVE_OPTION) {
 				File chosenFile = Start.getFileChooser().getSelectedFile();
@@ -507,11 +516,13 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 					cPane.writeSettings(filename);
 ;				}
 			}
+			this.fileChooserOpened = false;
 		}		
 	}
 	
 	private void handleLoadSettingsFromCsv() throws NumberFormatException, IOException{
 		// open global file-chooser and get the name the alignment file
+		this.fileChooserOpened = true;
 		JFileChooser fileChooser = Start.getFileChooser();
         FileFilter filter = new FileNameExtensionFilter("CSV file", "csv");
         fileChooser.setFileFilter(filter);		
@@ -523,6 +534,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 			return;
 		}
 		cPane.loadSettings(source.getPath());
+		this.fileChooserOpened = false;
 	}
 	
 	private void handleInfo() {

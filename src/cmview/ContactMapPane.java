@@ -1179,8 +1179,88 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		statusBar.repaint();
 	}
 	
+	public int getISeqIdx(Pair<Integer> currentCell, boolean secondModel){
+		
+		// alignment indices
+		int iAliIdx = 0;
+		int jAliIdx = 0;
+		
+		// initialize position to be shown
+		iAliIdx = currentCell.getFirst();
+		jAliIdx = currentCell.getSecond();		
+				
+		// return if mouse position is out of bounds
+		//if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > mod.getMatrixSize() || jAliIdx > mod.getMatrixSize() ) {
+		if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > ali.getAlignmentLength() || jAliIdx > ali.getAlignmentLength() ) {
+			// TODO: reset all fields in StatusBar?
+			return -1;
+		}
+		if (!secondModel){
+			// first contact map
+			String aliTag = mod.getLoadedGraphID();
+			// converting to sequence indices
+			int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
+//			int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+			
+			return iSeqIdx;
+		}
+		else {
+			if (this.mod2!=null){
+				String aliTag2 = mod2.getLoadedGraphID();		
+				// converting to sequence indices
+				int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
+//				int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
+				
+				return iSeqIdx2;
+			}
+			else
+				return -1; //iSeqIdx;			
+		}
+		
+	}
+	
+	public int getJSeqIdx(Pair<Integer> currentCell, boolean secondModel){
+		
+		// alignment indices
+		int iAliIdx = 0;
+		int jAliIdx = 0;
+		
+		// initialize position to be shown
+		iAliIdx = currentCell.getFirst();
+		jAliIdx = currentCell.getSecond();		
+				
+		// return if mouse position is out of bounds
+		//if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > mod.getMatrixSize() || jAliIdx > mod.getMatrixSize() ) {
+		if(iAliIdx == 0 || jAliIdx == 0 || iAliIdx > ali.getAlignmentLength() || jAliIdx > ali.getAlignmentLength() ) {
+			// TODO: reset all fields in StatusBar?
+			return -1;
+		}
+		if (!secondModel){
+			// first contact map
+			String aliTag = mod.getLoadedGraphID();
+			// converting to sequence indices
+//			int iSeqIdx = mapAl2Seq(aliTag,iAliIdx);
+			int jSeqIdx = mapAl2Seq(aliTag,jAliIdx);
+			
+			return jSeqIdx;
+		}
+		else {
+			if (this.mod2!=null){
+				String aliTag2 = mod2.getLoadedGraphID();		
+				// converting to sequence indices
+//				int iSeqIdx2 = mapAl2Seq(aliTag2,iAliIdx);
+				int jSeqIdx2 = mapAl2Seq(aliTag2,jAliIdx);
+				
+				return jSeqIdx2;
+			}
+			else
+				return -1; //iSeqIdx;			
+		}
+		
+	}
+	
 	public int getISeqIdx(boolean secondModel){
-		Pair<Integer> currentCell = screen2cm(mousePos);
+		Pair<Integer> currentCell = screen2cm(mousePressedPos);
 
 		// alignment indices
 		int iAliIdx = 0;
@@ -1221,7 +1301,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	}
 	
 	public int getJSeqIdx(boolean secondModel){
-		Pair<Integer> currentCell = screen2cm(mousePos);
+		Pair<Integer> currentCell = screen2cm(mousePressedPos);
 
 		// alignment indices
 		int iAliIdx = 0;

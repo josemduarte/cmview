@@ -120,6 +120,7 @@ public class Start {
 	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito	
 
 	public static String 			DEFAULT_FILE_PATH = ""; // "/Users/vehlow/Documents/workspace/PDBs/";
+	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -312,6 +313,7 @@ public class Start {
 			DEFAULT_MAX_SEQSEP = Integer.valueOf(p.getProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP)));
 			
 			DEFAULT_FILE_PATH = p.getProperty("DEFAULT_FILE_PATH");
+			SPHOXEL_BG_FILE_PATH = p.getProperty("SPHOXEL_BG_FILE_PATH");
 		} catch (NumberFormatException e) {
 			System.err.println("A numerical value in the config file was incorrectly specified: "+e.getMessage()+". Please check the config file.");
 			System.exit(1);
@@ -372,6 +374,9 @@ public class Start {
 		p.setProperty("DEFAULT_DISTANCE_CUTOFF",Double.toString(DEFAULT_DISTANCE_CUTOFF));		// doc!
 		p.setProperty("DEFAULT_MIN_SEQSEP",Integer.toString(DEFAULT_MIN_SEQSEP));				// doc!
 		p.setProperty("DEFAULT_MAX_SEQSEP",Integer.toString(DEFAULT_MAX_SEQSEP));				// doc!
+		
+		p.setProperty(DEFAULT_FILE_PATH, DEFAULT_FILE_PATH);
+		p.setProperty(SPHOXEL_BG_FILE_PATH, SPHOXEL_BG_FILE_PATH);
 		
 		return p;
 	}

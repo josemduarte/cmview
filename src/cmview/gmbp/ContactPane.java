@@ -629,17 +629,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	}
 		
 	public void calcSphoxelParam(Pair<Integer> currentResPair){
+//		if (currentResPair.equals(this.cmPane.getRightClickCont())){
+//			this.iNum = this.cmPane.getISeqIdxRC(false);
+//			this.jNum = this.cmPane.getJSeqIdxRC(false);
+//			this.iNum2 = this.cmPane.getISeqIdxRC(true);
+//			this.jNum2 = this.cmPane.getJSeqIdxRC(true);			
+//		}
+//		else { // left click contact
+//			this.iNum = this.cmPane.getISeqIdx(false);
+//			this.jNum = this.cmPane.getJSeqIdx(false);
+//			this.iNum2 = this.cmPane.getISeqIdx(true);
+//			this.jNum2 = this.cmPane.getJSeqIdx(true);			
+//		}		
+		this.iNum = this.cmPane.getISeqIdx(currentResPair, false);
+		this.jNum = this.cmPane.getJSeqIdx(currentResPair, false);
+		this.iNum2 = this.cmPane.getISeqIdx(currentResPair, true);
+		this.jNum2 = this.cmPane.getJSeqIdx(currentResPair, true);			
 //		this.iNum = currentResPair.getFirst();
 //		this.jNum = currentResPair.getSecond();
-//		this.iNum = this.cmPane.getISeqIdx(false);
-//		this.jNum = this.cmPane.getJSeqIdx(false);
-//		this.iNum2 = this.cmPane.getISeqIdx(true);
-//		this.jNum2 = this.cmPane.getJSeqIdx(true);
-		this.iNum = this.cmPane.getISeqIdxRC(false);
-		this.jNum = this.cmPane.getJSeqIdxRC(false);
-		this.iNum2 = this.cmPane.getISeqIdxRC(true);
-		this.jNum2 = this.cmPane.getJSeqIdxRC(true);
-				
+		
 		// use pair to get iRes and jRes, isstype, nbhstring
 		this.nodeI = this.mod.getNodeFromSerial(this.iNum); //this.mod.getGraph().getNodeFromSerial(this.iNum);
 		this.nodeJ = this.mod.getNodeFromSerial(this.jNum);	
@@ -726,14 +734,23 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			File dir1 = new File (".");		
 			String fn = "";
 			String archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
+			if (Start.SPHOXEL_BG_FILE_PATH != "")
+				archFN = Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip"; 
+//			archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
 			ZipFile zipfile = null;
 			try {
-				System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
-				File file = new File(this.getClass().getResource(archFN).getPath());
-				System.out.println(file.toString()+"  loaded");
+				File file;
+				if (Start.SPHOXEL_BG_FILE_PATH != "")
+					file = new File(archFN);
+				else {
+					System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
+					file = new File(this.getClass().getResource(archFN).getPath());
+				}
 				zipfile = new ZipFile(file.getPath());
 				System.out.println(file.getPath()+"  loaded");
-				zipfile = new ZipFile(file);
+//				zipfile = new ZipFile(file);
+//				System.out.println(file.toString()+"  loaded");		
+				
 //				try {
 //					File file = new File(this.getClass().getResource(archFN).toURI());
 //					zipfile = new ZipFile(file);
@@ -3816,6 +3833,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			fn += this.nbhSSType;
 		else
 			fn += "Any";
+		if (this.mod3 != null)
+			fn += "_Answer";
 		return fn;
 	}
 	
@@ -4395,39 +4414,41 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
 //		System.out.println("keyReleased");
-		//-- Process arrow "virtual" keys
-    	double first = this.origCoordinates.getFirst();
-    	double second = this.origCoordinates.getSecond();
-    	double fac = 2*(2.5*2*Math.PI/360); //(Math.PI / 20);
-    	fac = fac*2;
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT : first-=fac; break;
-            case KeyEvent.VK_RIGHT: first+=fac; break;
-            case KeyEvent.VK_UP   : second-=fac;   break;
-            case KeyEvent.VK_DOWN : second+=fac; break;
-        }
-        if (first!=this.origCoordinates.getFirst() || second!=this.origCoordinates.getSecond()){
-            if (first<0)
-            	first += 2*Math.PI;
-            if (first>2*Math.PI)
-            	first -= 2*Math.PI;
-            if (second<0)
-            	second += Math.PI;
-            if (second>Math.PI)
-            	second -= Math.PI;
-            
-            if (this.mapProjType!=azimuthalMapProj)
-            	second = (float) (Math.PI/2);   // --> panning just horizontally     	
-    		this.origCoordinates = new Pair<Double>(first,second); // this.tmpAngleComb;
-    		this.centerOfProjection = new Pair<Double>(2*Math.PI-this.origCoordinates.getFirst(), Math.PI-this.origCoordinates.getSecond());
-    		
-//    		System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
-//    		System.out.println("CentreCoord: "+this.centerOfProjection.getFirst()+","+this.centerOfProjection.getSecond());
-    		
-    		this.contactView.lambdaRuler.repaint();
-    		this.contactView.phiRuler.repaint();	
-    		updateScreenBuffer();        	
-        }
+		if (!this.contactView.fileChooserOpened){
+			//-- Process arrow "virtual" keys
+	    	double first = this.origCoordinates.getFirst();
+	    	double second = this.origCoordinates.getSecond();
+	    	double fac = 2*(2.5*2*Math.PI/360); //(Math.PI / 20);
+	    	fac = fac*2;
+	        switch (e.getKeyCode()) {
+	            case KeyEvent.VK_LEFT : first-=fac; break;
+	            case KeyEvent.VK_RIGHT: first+=fac; break;
+	            case KeyEvent.VK_UP   : second-=fac;   break;
+	            case KeyEvent.VK_DOWN : second+=fac; break;
+	        }
+	        if (first!=this.origCoordinates.getFirst() || second!=this.origCoordinates.getSecond()){
+	            if (first<0)
+	            	first += 2*Math.PI;
+	            if (first>2*Math.PI)
+	            	first -= 2*Math.PI;
+	            if (second<0)
+	            	second += Math.PI;
+	            if (second>Math.PI)
+	            	second -= Math.PI;
+	            
+	            if (this.mapProjType!=azimuthalMapProj)
+	            	second = (float) (Math.PI/2);   // --> panning just horizontally     	
+	    		this.origCoordinates = new Pair<Double>(first,second); // this.tmpAngleComb;
+	    		this.centerOfProjection = new Pair<Double>(2*Math.PI-this.origCoordinates.getFirst(), Math.PI-this.origCoordinates.getSecond());
+	    		
+//	    		System.out.println("OrigCoord: "+this.origCoordinates.getFirst()+","+this.origCoordinates.getSecond());
+//	    		System.out.println("CentreCoord: "+this.centerOfProjection.getFirst()+","+this.centerOfProjection.getSecond());
+	    		
+	    		this.contactView.lambdaRuler.repaint();
+	    		this.contactView.phiRuler.repaint();	
+	    		updateScreenBuffer();        	
+	        }			
+		}
 	}
 
 	public void keyTyped(KeyEvent e) {
@@ -4459,7 +4480,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// TODO Auto-generated method stub
 		this.mod3 = mod3;
 		calcTracesParam();
-		repaint();
+		this.repaint();
 	}
 
 }
