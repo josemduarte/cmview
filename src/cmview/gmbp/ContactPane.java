@@ -736,16 +736,26 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			File dir1 = new File (".");		
 			String fn = "";
 			String archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
-			if (Start.SPHOXEL_BG_FILE_PATH != "")
-				archFN = Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip"; 
+			boolean useUserDefinedPath = false;
+			if (Start.SPHOXEL_BG_FILE_PATH != ""){
+				File file = new File(Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip");
+				if (file.exists()){
+					archFN = Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip";
+					useUserDefinedPath = true;
+				}					
+			}
+			
 //			archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
 			ZipFile zipfile = null;
 			try {
 				File file;
-				if (Start.SPHOXEL_BG_FILE_PATH != "")
+				if (Start.SPHOXEL_BG_FILE_PATH != ""  && useUserDefinedPath)
 					file = new File(archFN);
-				else {
-					System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
+				else 
+//				File file = new File(archFN);
+//				if (!file.exists())
+				{
+//					System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
 					file = new File(this.getClass().getResource(archFN).getPath());
 				}
 				zipfile = new ZipFile(file.getPath());
