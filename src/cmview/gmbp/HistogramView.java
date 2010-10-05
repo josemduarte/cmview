@@ -450,7 +450,7 @@ public class HistogramView extends JFrame {
 		baseLineY = yStart;
 		baseLineX = xStart;
 		Iterator<double[]> itr;
-//		String title = "Min-Max-Average Values for Theta and Lambda";
+//		String title = "Min-Max-Average Values for Phi and Lambda";
 		String val2S = "";
 		
 		int x = baseLineX + firstColumnX;			// where first text will be written
@@ -475,20 +475,20 @@ public class HistogramView extends JFrame {
 		x = baseLineX + firstColumnX;	
 		g2d.drawString("Lambda", x, y);			
 		y += this.lineHeight;
-		g2d.drawString("Theta", x, y);			
+		g2d.drawString("Phi", x, y);			
 		y += this.lineHeight;		
 //		x = baseLineX + secondColumnX;
 //		g2d.drawString("minLambda", x, y);			
 //		y += this.lineHeight;
-//		g2d.drawString("minTheta", x, y);			
+//		g2d.drawString("minPhi", x, y);			
 //		y += this.lineHeight;
 //		g2d.drawString("maxLambda", x, y);			
 //		y += this.lineHeight;
-//		g2d.drawString("maxTheta", x, y);			
+//		g2d.drawString("maxPhi", x, y);			
 //		y += this.lineHeight;
 //		g2d.drawString("averLambda", x, y);			
 //		y += this.lineHeight;
-//		g2d.drawString("averTheta", x, y);
+//		g2d.drawString("averPhi", x, y);
 		
 		y = baseLineY;
 		itr = this.minMaxAverT4SelAngleRange.iterator();
@@ -629,8 +629,8 @@ public class HistogramView extends JFrame {
 		y += this.lineHeight;
 //		double p1 = ptSelRange[0], p2 = ptSelRange[1]; 
 //		double t1 = ptSelRange[2], t2 = ptSelRange[3];
-//		String values = "lambda["+p1+":"+p2+"]"+"  theta["+t1+":"+t2+"]";
-		String values = "lambda["+ptSelRange[0]+":"+ptSelRange[1]+"]"+"  theta["+ptSelRange[2]+":"+ptSelRange[3]+"]";
+//		String values = "lambda["+p1+":"+p2+"]"+"  phi["+t1+":"+t2+"]";
+		String values = "lambda["+ptSelRange[0]+":"+ptSelRange[1]+"]"+"  phi["+ptSelRange[2]+":"+ptSelRange[3]+"]";
 		g2d.drawString(values, x, y);
 		y += this.lineHeight;	
 		baseLineY = y;

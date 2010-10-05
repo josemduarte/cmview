@@ -701,6 +701,10 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			this.jSSType = CMPdb_sphoxel.AnySStype;
 //			System.out.println("j secStrucElement: "+this.jSSType);	
 			
+//			this.iSSType = SecStrucElement.HELIX;
+//			this.iRes = 'L';
+//			this.jRes = 'A';
+			
 			System.out.println("Selected contact changed to: "+this.iNum+this.iRes+"_"+this.iSSType+"  "+this.jNum+this.jRes);			
 		}
 		else
