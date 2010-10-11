@@ -46,8 +46,8 @@ public class AnglePanel extends JPanel implements MouseListener{
 	private String title2 = "AngleRange:";
 	private String lambdaMin = "";
 	private String lambdaMax = "";
-	private String thetaMin = "";
-	private String thetaMax = "";
+	private String phiMin = "";
+	private String phiMax = "";
 	
 	public AnglePanel() {		
 		this.setMinimumSize(new Dimension(width,totalHeight));
@@ -126,18 +126,18 @@ public class AnglePanel extends JPanel implements MouseListener{
 		y += this.lineHeight;
 //		y = baseLineY + textYOffset;
 		x = firstColumnX;
-		g2d.drawString("p:", x, y);					// Lambda	
+		g2d.drawString("l:", x, y);					// Lambda	
 		x = secondColumnX;
 		g2d.drawString(lambdaMin, x, y);
 		x = thirdColumnX;
 		g2d.drawString("- "+lambdaMax, x, y);
 		y += 20;
 		x = firstColumnX;
-		g2d.drawString("t:", x, y);					// Phi
+		g2d.drawString("p:", x, y);					// Phi
 		x = secondColumnX;
-		g2d.drawString(thetaMin, x, y);
+		g2d.drawString(phiMin, x, y);
 		x = thirdColumnX;
-		g2d.drawString("- "+thetaMax, x, y);
+		g2d.drawString("- "+phiMax, x, y);
 		y += 20;
 		
 	}
@@ -184,10 +184,10 @@ public class AnglePanel extends JPanel implements MouseListener{
 		this.lambdaMax = string;
 	}
 	public void setPhiMin(String string){
-		this.thetaMin = string;
+		this.phiMin = string;
 	}
 	public void setPhiMax(String string){
-		this.thetaMax = string;
+		this.phiMax = string;
 	}
 	
 	public int getTotalHeight(){
