@@ -1411,6 +1411,8 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		} catch (SQLException e) {
 			showLoadError(e.getMessage());
+		} catch (PdbLoadError e) {
+			showLoadError(e.getMessage());
 		}
 	}
 

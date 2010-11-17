@@ -18,9 +18,10 @@ public class PdbaseModel extends Model {
 	 * Overloaded constructor to load the data.
 	 * @throws SQLException 
 	 * @throws PdbCodeNotFoundError 
+	 * @throws PdbLoadError 
 	 */
 	public PdbaseModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) 
-	throws PdbCodeNotFoundError, SQLException   {
+	throws PdbCodeNotFoundError, SQLException, PdbLoadError   {
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
