@@ -527,11 +527,19 @@ public class View extends JFrame implements ActionListener {
 				pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
 				pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
 			}
-			if(Start.USE_CGAP){  
+		}
+		if(Start.USE_CGAP){
+			popup.addSeparator();
+			File file = new File(Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip");
+			if (file.exists()){
+				System.out.println(Start.SPHOXEL_BG_FILE_PATH+"/SphoxelBGs.zip exists");
 				if(this.database_found)
 					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXELTRACES, icon_sphoxel_traces, popup);
 				else
-					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);
+					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);					
+			}
+			else{
+				System.out.println(Start.SPHOXEL_BG_FILE_PATH+"/SphoxelBGs.zip does not exist");					
 			}
 		}
 		popup.addSeparator();		
