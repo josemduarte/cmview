@@ -528,15 +528,17 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		calcSphoxel();
 
 		calcTracesParam();	
-//		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
-		this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
-		this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST);
-		setTracesParam();
-		calcNbhsTraces();	
-		if (this.nbhString!=null){
-//			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
-			this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD);
-			calcOptNbhStrings();
+		if (this.contactView.isShowTracesFeature()){
+//			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
+			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
+			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
+			setTracesParam();
+			calcNbhsTraces();	
+			if (this.nbhString!=null){
+//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
+				calcOptNbhStrings();
+			}			
 		}
 	}
 	
@@ -1010,7 +1012,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	public void recalcTraces() throws SQLException{
 		if (this.nbhsTraces.getDiffSSType()!=this.diffSStype || this.nbhsTraces.getSSType()!=this.iSSType){
-			recalcTraces(true);
+			if (this.contactView.isShowTracesFeature())
+				recalcTraces(true);
 		}
 	}
 	
@@ -3815,9 +3818,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		// neighbourhood-string-traces
 		if (this.contactView.getGUIState().getShowNBHStraces()){
 			drawNBHSTraces(g2d);
-			if (this.showNBHStemplateTrace)
-				drawNBHSTemplateTrace(g2d);
 		}
+		if (this.showNBHStemplateTrace)
+			drawNBHSTemplateTrace(g2d);
 		if (this.contactView.getGUIState().getShowLongitudes()){
 			drawLongitudes(g2d);
 		}

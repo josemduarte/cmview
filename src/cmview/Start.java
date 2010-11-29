@@ -91,6 +91,9 @@ public class Start {
 	public static boolean			USE_DSSP = true;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static boolean           USE_EXPERIMENTAL_FEATURES = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
 																		// currently: common nbh related things, directed graph	
+	public static boolean 			USE_CGAP = false;		            // includes experimental feature contact geometry analysis 
+																		// (visualization of contact potentials and neighbourhood traces) 
+
 	/* external programs: dssp */
 	public static String			DSSP_EXECUTABLE = ""; 				
 	public static String			DSSP_PARAMETERS = "--";	
@@ -123,6 +126,7 @@ public class Start {
 	public static String			DB_USER;
 	public static String			DB_PWD;
 	public static String			DB_HOST;
+	public static String			DB_NAME;
 
 	public static String 			DEFAULT_FILE_PATH = ""; // "/Users/vehlow/Documents/workspace/PDBs/";
 	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
@@ -288,6 +292,7 @@ public class Start {
 			USE_DATABASE = Boolean.valueOf(p.getProperty("USE_DATABASE", new Boolean(USE_DATABASE).toString()));
 			USE_PYMOL = Boolean.valueOf(p.getProperty("USE_PYMOL", new Boolean(USE_PYMOL).toString()));
 			USE_EXPERIMENTAL_FEATURES = Boolean.valueOf(p.getProperty("USE_EXPERIMENTAL_FEATURES", new Boolean(USE_EXPERIMENTAL_FEATURES).toString()));
+			USE_CGAP = Boolean.valueOf(p.getProperty("USE_CGAP", new Boolean(USE_CGAP).toString()));
 			USE_DSSP = Boolean.valueOf(p.getProperty("USE_DSSP", new Boolean(USE_DSSP).toString()));
 
 			// external programs: pymol
@@ -356,6 +361,7 @@ public class Start {
 		p.setProperty("USE_DATABASE", Boolean.toString(USE_DATABASE));							// doc?
 		p.setProperty("USE_PYMOL", Boolean.toString(USE_PYMOL));								// doc
 		p.setProperty("USE_EXPERIMENTAL_FEATURES",  Boolean.toString(USE_EXPERIMENTAL_FEATURES));	// doc?																					
+		p.setProperty("USE_CGAP", Boolean.toString(USE_CGAP));
 		p.setProperty("USE_DSSP",Boolean.toString(USE_DSSP));									// doc
 		
 		// external programs: pymol
@@ -495,6 +501,31 @@ public class Start {
 		}
 		return true;
 	}	
+	
+	/**
+	 * Try connecting to the database server. Returns true on success, false otherwise.
+	 */
+	private static boolean fullTryConnectingToDb() {
+		try {
+			conn = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME); //(String dbServer, String dbUserName, String dbPassword)
+			String[] tableNames = conn.getTables4Db();
+			boolean edgesExists=false, nbhstringExists=false;
+			for(int i=0; i<tableNames.length; i++){
+				if (tableNames[i].equals("edges"))
+					edgesExists = true;
+				else if (tableNames[i].equals("nbhstrings"))
+					nbhstringExists = true;
+			}
+			if (!edgesExists || !nbhstringExists)
+				return false;
+//			if (!tableNames.contains("edges") || !tableNames.cont//ains("nbhstring"))
+//				return false;
+		}
+		catch(Exception e) {
+			return false;
+		}
+		return true;
+	}
 	
 	/**
 	 * Preload a model based on the command line parameters.
@@ -855,9 +886,19 @@ public class Start {
 			database_found = false;
 		}
 		
-		if(USE_EXPERIMENTAL_FEATURES && SPHOXEL_BG_FILE_PATH==null) {
-			System.out.println("SPHOXEL_BG_FILE_PATH set to currentdir = "+System.getProperty("user.dir"));
-			SPHOXEL_BG_FILE_PATH = System.getProperty("user.dir");
+		if(USE_CGAP) {
+			if (SPHOXEL_BG_FILE_PATH==null){
+				System.out.println("SPHOXEL_BG_FILE_PATH set to currentdir = "+System.getProperty("user.dir"));
+				SPHOXEL_BG_FILE_PATH = System.getProperty("user.dir");				
+			}
+			System.out.println("Connecting to cgap database...");
+			if(fullTryConnectingToDb() == false) {
+				System.err.println("No cgap database found. Some functionality will not be available.");
+				database_found = false;
+			} else {
+				System.out.println("Connected to cgap database.");
+				database_found = true;
+			}
 		}
 
 		// check dssp

@@ -176,8 +176,10 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		initSSTypePanel();
 		initDrawPropPanel();
 		initProjPropPanel();
-		initNBHSPanel();
-		initClusterPanel();
+		if(this.controller.isShowTracesFeature()){
+			initNBHSPanel();
+			initClusterPanel();			
+		}
 //		sphoxelGroup.setMinimumSize(new Dimension(width, height));
 	}
 	
@@ -623,7 +625,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		nbhsPanel.add(optStringLinePanel);
 		nbhsPanel.add(ssTypeLinePanel);
 		nbhsPanel.add(buttonLinePanel, BorderLayout.PAGE_END);
-		
+				
 //		nbhsPanel.add(nbhsSelPanel, BorderLayout.LINE_START);
 //		nbhsPanel.add(maxLinePanel);
 //		nbhsPanel.add(nbhsButton, BorderLayout.LINE_START);

@@ -113,6 +113,10 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	
 	private Dimension screenSize;			// current size of this component on screen
 	
+	// flags for viewing options
+	private boolean showSphoxelFeature=true;
+	private boolean showTracesFeature=false;
+
 	// Data and status variables
 	private ContactGUIState guiState;
 	private Model mod, mod2, mod3;
@@ -146,12 +150,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	/** Create a new View object */
 	public ContactView(Model mod, String title, ContactMapPane cmPane) {
 		super(title);
-		Start.viewInstancesCreated();		
+		Start.viewInstancesCreated();	
 		this.guiState = new ContactGUIState(this);
 		this.mod = mod;
 		this.mod2 = null;
 		this.mod3 = null;
 		this.cmPane = cmPane;
+		if (Start.isDatabaseConnectionAvailable())
+			this.showTracesFeature = true;
 		
 		initContactView();
 	}
@@ -296,12 +302,19 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		
 		Dimension separatorDim = new Dimension(30,toolBar.getHeight());
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
-		tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
 		tbPanMode = makeToolBarToggleButton(icon_pan_view_mode, LABEL_PAN_VIEW_MODE, true, true, true);
+		if (this.showTracesFeature)
+			tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, true, true);
+		else
+			tbClusterSel = makeToolBarToggleButton(icon_cluster_sel_mode, LABEL_CLUSTER_SELECTION_MODE, true, false, false);			
 		toolBar.addSeparator(separatorDim);
-		tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, true, true);
+		if (this.showTracesFeature)
+			tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, true, true);
+		else
+			tbResInfo = makeToolBarToggleButton(icon_toggle_res_info, LABEL_RES_INFO, false, false, false);
 		tbCentralRes = makeToolBarToggleButton(icon_toggle_central_res, LABEL_CENTRAL_RES, true, true, true);
 		tbTempTrace =  makeToolBarToggleButton(icon_toggle_template_trace, LABEL_TEMPLATE_TRACE, true, true, true);
+		
 		
 		// ButtonGroup for selection modes (so upon selecting one, others are deselected automatically)
 		ButtonGroup selectionModeButtons = new ButtonGroup();
@@ -350,7 +363,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		menu.setMnemonic(KeyEvent.VK_S);
 		submenu = new JMenu("Selection Mode");
 		squareM = makeMenuItem(LABEL_SQUARE_SELECTION_MODE, icon_square_sel_mode, submenu);
-		clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
+		if(this.showTracesFeature)
+			clusterM = makeMenuItem(LABEL_CLUSTER_SELECTION_MODE, icon_cluster_sel_mode, submenu);		
 		menu.add(submenu);
 		addToJMenuBar(menu);
 		
@@ -812,6 +826,14 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	 */
 	protected ContactGUIState getGUIState() {
 		return this.guiState;
+	}
+		
+	public boolean isShowSphoxelFeature() {
+		return showSphoxelFeature;
+	}
+
+	public boolean isShowTracesFeature() {
+		return showTracesFeature;
 	}
 	
 	public ColorScaleView getColorScaleView(){

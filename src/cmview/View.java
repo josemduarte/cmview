@@ -103,7 +103,8 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show Threshold Spheres for Residue Pair (%s,%s) in 3D";
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st Shell Neighbour-Relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show 2nd Shell";
-	private static final String LABEL_SHOW_SPHOXEL = "Show Sphoxel-Map and Neighbourhood-Traces";
+	private static final String LABEL_SHOW_SPHOXEL = "Show Sphoxel-Map";
+	private static final String LABEL_SHOW_SPHOXELTRACES = "Show Sphoxel-Map and Neighbourhood-Traces";
 	private static final String LABEL_RUN_TINKER = "Run Distance Geometry";
 	private static final String LABEL_MIN_SET = "Minimal Subset";
 	private static final String LABEL_JPRED = "Predict Secondary Structure";
@@ -525,7 +526,12 @@ public class View extends JFrame implements ActionListener {
 				triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
 				pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
 				pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
-				pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);
+			}
+			if(Start.USE_CGAP){  
+				if(this.database_found)
+					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXELTRACES, icon_sphoxel_traces, popup);
+				else
+					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);
 			}
 		}
 		popup.addSeparator();		
