@@ -12,10 +12,20 @@ classp=$2
 cmviewtag=$3
 owltag=$4
 
-# compile with Java5 to keep it backward compatible
+# set here the root of svn repository for cmview
+svnroot="svn://www.bioinformatics.org/svnroot/cmview"
+
+# set here the root of svn repository for owl
+owlroot="svn://www.bioinformatics.org/svnroot/owl"
+
+# set here the directory where the 'jar' executable is located (should be the JDK bin directory)
+jar_cmd_path=/usr/bin
+
+# compile with Java6 (MPIMG specific setting)
 JAVAVERSION=1.6.0 
 
-CLASSPATH=.:$classp/mysql-connector-java.jar:\
+# set here all jars which are required for building owl/cmview
+CLASSPATH=.:$classp/mysql-connector-java-5.0.5-bin.jar:\
 $classp/vecmath.jar:\
 $classp/commons-codec-1.3.jar:\
 $classp/drmaa.jar:\
@@ -41,7 +51,9 @@ $classp/uniprot/spring-remoting.jar:\
 $classp/uniprot/uniprotjapi.jar:\
 $classp/jung/collections-generic-4.01.jar
 
+echo $CLASSPATH
 
+# this license header will be added to each source file
 license="/*\n\
 ***************************************************************************\n\
 *   Copyright (C) 2008 Structural Proteomics Group, Max Planck Institute  *\n\
@@ -79,21 +91,21 @@ echo "Exporting source from svn"
 if [ "$cmviewtag" = "trunk" ]
 then
     cmviewtag="CMView-trunk"
-    svn export svn://black/CMView/trunk/src $cmviewtag
+    svn export $svnroot/trunk/src $cmviewtag
 else
-    svn export svn://black/CMView/tags/$cmviewtag/src $cmviewtag
+    svn export $svnroot/tags/$cmviewtag/src $cmviewtag
 fi
 
 if [ "$owltag" = "trunk" ]
 then
     owltag="owl-trunk"
-    svn export svn://bioinformatics.org/svnroot/owl/trunk/ $owltag
+    svn export $owlroot/trunk/ $owltag
     # special for CMView distribution: putting a cleaned up contactTypes.dat:
-	svn export svn://black/CMView/trunk/test/config_files/contactTypes.dat $owltag/proteinstructure/contactTypes.dat 
+	svn export $svnroot/trunk/test/config_files/contactTypes.dat $owltag/core/structure/contactTypes.dat 
 else
-    svn export svn://bioinformatics.org/svnroot/owl/tags/$owltag
+    svn export $owlroot/tags/$owltag
     # special for CMView distribution: putting a cleaned up contactTypes.dat:
-	svn export svn://black/CMView/tags/$cmviewtag/test/config_files/contactTypes.dat $owltag/proteinstructure/contactTypes.dat     
+	svn export $svnroot/tags/$cmviewtag/test/config_files/contactTypes.dat $owltag/core/structure/contactTypes.dat     
 fi
 
 
@@ -165,9 +177,11 @@ rm  ../$owltag/src/owl/core/connections/UniProtConnection.java
 #javac -classpath $CLASSPATH cmview/Start.java cmview/*.java cmview/datasources/*.java cmview/toolUtils/*.java cmview/sadpAdapter/*.java cmview/*/*.java *.java cmview/gmbp/*.java
 # creating jar file
 echo "Creating jar file: $cmviewtag-StruPPi.jar ..."
-/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
+#/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
+$jar_cmd_path/jar -cfm ../$cmviewtag-StruPPi.jar Manifest-StruPPi.txt .
 echo "Creating jar file: $cmviewtag-MacWin.jar ..."
-/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
+#/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Commands/jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
+$jar_cmd_path/jar -cfm ../$cmviewtag-MacWin.jar Manifest.txt .
 
 # removing $cmviewtag temp directory
 cd ..
