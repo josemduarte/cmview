@@ -1,12 +1,13 @@
 Main-Class: cmview.Start
-Class-Path: jars/mysql-connector-java-5.0.5-bin.jar  
+Class-Path: .
+ jars/mysql-connector-java-5.0.5-bin.jar  
  jars/vecmath.jar 
  jars/Jama-1.0.2.jar 
  jars/jaligner.jar 
  jars/java-getopt-1.0.13.jar 
  jars/collections-generic-4.01.jar 
- jars/jung-api-2.0-beta1.jar 
- jars/jung-graph-impl-2.0-beta1.jar 
+ jars/jung-api-2.0.1.jar 
+ jars/jung-graph-impl-2.0.1.jar
  jars/jh.jar
 Name: CMView
 Specification-Title: Interactive contact map visualization and analysis tool

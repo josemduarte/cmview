@@ -184,7 +184,9 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		}
 		
 		// add option for variable transferFunction
-		secondViewCB.addItem(View.BgOverlayType.TF_FUNC.getItem());
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			secondViewCB.addItem(View.BgOverlayType.TF_FUNC.getItem());
+		}
 		
 		firstViewCB.setEditable(true); // this should actually be false, but we want the white background
 		secondViewCB.setEditable(true);

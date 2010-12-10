@@ -481,9 +481,11 @@ public class View extends JFrame implements ActionListener {
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
-			minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);
-		}
 			
+		}
+		
+		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);	
+		
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();
 		tbViewRuler = new JToggleButton();
