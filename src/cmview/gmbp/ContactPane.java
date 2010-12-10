@@ -531,12 +531,12 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		if (this.contactView.isShowTracesFeature()){
 //			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
-			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
+//			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
 			setTracesParam();
 			calcNbhsTraces();	
 			if (this.nbhString!=null){
-//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
-				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
+				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
 				calcOptNbhStrings();
 			}			
 		}

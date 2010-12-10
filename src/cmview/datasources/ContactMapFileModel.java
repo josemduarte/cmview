@@ -74,13 +74,15 @@ public class ContactMapFileModel extends Model {
 					} 
 					// if pdb creation failed then pdb=null					
 				}
+				
+				
 				// if structure is available, and has secondary structure annotation, use it
 				if(this.pdb != null && pdb.getSecondaryStructure() != null) {
 					this.secondaryStructure = pdb.getSecondaryStructure(); 
 				}				
 			} else {
 				System.out.println("No pdb code and/or chain code found. Can not load structure.");
-			}
+			} 
 			
 			//super.filterContacts(seqSep);	// currently not allowed to filter contacts
 			//super.printWarnings(chainCode); // doesn't make sense here

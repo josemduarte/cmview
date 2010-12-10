@@ -855,7 +855,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				} else {
 					c = colorMapScaledHeatmap(v,0.5);
 				}
-				System.out.println(v);
 				if(!c.equals(backgroundColor)) {
 					g2d.setColor(c);
 					Pair<Integer> cont = new Pair<Integer>(i+1,j+1);
@@ -1960,6 +1959,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			deltaRankBar.setProbabilities(mod.getDeltaRankProbabilities());
 			deltaRankBar.repaint();
 		}
+		statusBar.updateScoringFunctions();
 		repaint();
 	}
 

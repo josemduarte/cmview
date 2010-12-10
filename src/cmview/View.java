@@ -3618,8 +3618,7 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			this.guiState.setResidueScoringFunctionName(secondView, selectedItem.toString());
 			handleShowResidueScoringMap(secondView);
-			String x = selectedItem.toString();
-			System.out.println(x);
+			this.statusBar.initResidueScoringFunctionGroup(statusBar.getScoringFunctionWithName((String) selectedItem), secondView);
 
 		}
 		

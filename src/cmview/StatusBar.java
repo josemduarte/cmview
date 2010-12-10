@@ -25,7 +25,6 @@ import owl.core.structure.scoring.ResidueContactScoringFunction;
 
 import cmview.datasources.Model;
 
-
 /**
  * Status bar component to the right of the contact map. The status bar holds several
  * JPanels which show information and controls depending on the type of data currently
@@ -98,6 +97,10 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	private JButton discretizeButton;						// to permanently apply discretization
 	
 	private ResidueContactScoringFunction[] scoringFunctions = new ResidueContactScoringFunction[1];
+	
+	private ScoringFunctionController topScoringFunctionController;
+	private ScoringFunctionController bottomScoringFunctionController;
+	
 	/**
 	 * Initializes the status bar
 	 * @param controller the controller which is notified on gui actions in the status bar
@@ -131,6 +134,11 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		return null;
 	}
 	
+
+	public int getGroupWidth() {
+		return this.groupWidth;
+	}
+
 	public ResidueContactScoringFunction[] getScoringFunctions(){
 		return this.scoringFunctions;
 	}
@@ -277,6 +285,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		discretizationSlider.addChangeListener(this);
 		discretizeCheckBox = new JCheckBox("discretize");
 		discretizeCheckBox.setSelected(false);
+		
 		discretizeCheckBox.setAlignmentX(CENTER_ALIGNMENT);
 		discretizeCheckBox.addItemListener(this);	// events are handled by this class because the effects are strictly local
 		discretizeButton = new JButton("Apply permanently");
@@ -295,7 +304,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		checkBoxPanel.add(l10checkBox);
 		checkBoxPanel.add(l5checkBox);
 		checkBoxPanel.setAlignmentX(CENTER_ALIGNMENT);
-		
+
 		// adding components to group
 	    multiModelGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));
 	    multiModelGroup.add(discretizeCheckBox);
@@ -328,33 +337,23 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	 * initializes controls for a generic residue scoring function background
 	 */
 	
-	public JPanel buildResidueScoringFunctionGroup(ResidueContactScoringFunction f) {
-		JPanel rfGroup = new JPanel();
-		rfGroup.setLayout(new BoxLayout(rfGroup,BoxLayout.PAGE_AXIS));
-		String title = f.getMethodName();
-		rfGroup.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
-		JLabel rfLable = new JLabel(" ");
-		rfLable.setAlignmentX(CENTER_ALIGNMENT);
-		JButton addBestButton = new JButton("add best");
-		addBestButton.addActionListener(this);
-		addBestButton.setMaximumSize(new Dimension(120,50));
-		addBestButton.setAlignmentX(CENTER_ALIGNMENT);
-		JButton removeWorstButton = new JButton("remove worst");
-		removeWorstButton.setMaximumSize(new Dimension(120,50));
-		removeWorstButton.addActionListener(this);
-		removeWorstButton.setAlignmentX(CENTER_ALIGNMENT);
+	public void initResidueScoringFunctionGroup(ResidueContactScoringFunction f,boolean bottom) {
+		if (bottom) {
+			if(this.bottomScoringFunctionController != null) {
+				groupsPanel.remove(bottomScoringFunctionController);
+			}
+			this.bottomScoringFunctionController = new ScoringFunctionController(f,this);
+			groupsPanel.add(bottomScoringFunctionController);
+			bottomScoringFunctionController.setVisible(true);
+		} else {
+			if (topScoringFunctionController!= null) {
+				groupsPanel.remove(topScoringFunctionController);
+			}
+			this.topScoringFunctionController = new ScoringFunctionController(f,this);
+			groupsPanel.add(topScoringFunctionController);
+			topScoringFunctionController.setVisible(true);
+		}
 		
-		rfGroup.add(Box.createRigidArea(new Dimension(groupWidth,5)));	// defines component width
-		rfGroup.add(rfLable);
-		rfGroup.add(Box.createRigidArea(new Dimension(0,10)));
-		rfGroup.add(addBestButton);
-		rfGroup.add(Box.createRigidArea(new Dimension(0,5)));
-		rfGroup.add(removeWorstButton);
-		rfGroup.add(Box.createRigidArea(new Dimension(0,5)));
-		
-		// add group to StatusBar
-		rfGroup.setVisible(true);
-		return rfGroup;
 	}
 	
 	/**
@@ -420,7 +419,6 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		return new Dimension(width,super.getMaximumSize().height);
 	}
 
-	
 
 	/*---------------------------- event listening -------------------------*/
 	
@@ -549,6 +547,16 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	 */
 	public void calculateHistogram(Model mod) {
 		this.histogramPanel.calculateHistogram(mod);
+	}
+
+	public void updateScoringFunctions() {
+		if(topScoringFunctionController != null) {
+			topScoringFunctionController.updateScores();
+		}
+		if(bottomScoringFunctionController != null) {
+			bottomScoringFunctionController.updateScores();
+		}
+		
 	}
 	
 	
