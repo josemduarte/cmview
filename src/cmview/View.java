@@ -3618,9 +3618,9 @@ public class View extends JFrame implements ActionListener {
 				tfDialog = new TransferFunctionDialog(this, this.cmPane);
 //			handleShowTFbasedMap(secondView);			
 		} else {
-			this.guiState.setResidueScoringFunctionName(secondView, selectedItem.toString());
-			handleShowResidueScoringMap(secondView);
-			this.statusBar.initResidueScoringFunctionGroup(statusBar.getScoringFunctionWithName((String) selectedItem), secondView);
+			//this.guiState.setResidueScoringFunctionName(secondView, selectedItem.toString());
+			//handleShowResidueScoringMap(secondView);
+			//this.statusBar.initResidueScoringFunctionGroup(statusBar.getScoringFunctionWithName((String) selectedItem), secondView);
 
 		}
 		
