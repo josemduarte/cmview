@@ -55,6 +55,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 	-f /Users/vehlow/Documents/workspace/7ODC.pdb -c A
 	*/
 	
+	protected static Dimension defaultDim = ContactPane.defaultDim; //new Dimension(1200, 880);
+	
 	/**
 	 * 
 	 */
@@ -158,6 +160,9 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.cmPane = cmPane;
 		if (Start.isDatabaseConnectionAvailable())
 			this.showTracesFeature = true;
+		else
+			defaultDim = new Dimension(1200, 600);
+		this.guiState.setShowNBHStraces(this.showTracesFeature);	
 		
 		initContactView();
 	}
@@ -171,6 +176,11 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.mod2 = mod2;
 		this.mod3 = null;
 		this.cmPane = cmPane;
+		if (Start.isDatabaseConnectionAvailable())
+			this.showTracesFeature = true;
+		else
+			defaultDim = new Dimension(1200, 600);
+		this.guiState.setShowNBHStraces(this.showTracesFeature);
 		
 		initContactView();
 	}
@@ -187,8 +197,8 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 			this.setPreferredSize(new Dimension(Start.INITIAL_SCREEN_SIZE,Start.INITIAL_SCREEN_SIZE));
 		}
 		else{
-			int xDim = ContactPane.defaultDim.width + AngleRuler.STD_RULER_WIDTH; //+ ContactStatusBar.DEFAULT_WIDTH;
-			int yDim = ContactPane.defaultDim.height + AngleRuler.STD_RULER_WIDTH;
+			int xDim = defaultDim.width + AngleRuler.STD_RULER_WIDTH; //+ ContactStatusBar.DEFAULT_WIDTH;
+			int yDim = defaultDim.height + AngleRuler.STD_RULER_WIDTH;
 			this.screenSize = new Dimension(xDim, yDim);
 			this.setPreferredSize(this.screenSize);
 		}

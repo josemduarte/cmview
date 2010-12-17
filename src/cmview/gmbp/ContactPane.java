@@ -57,7 +57,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	protected static final Dimension defaultDim = new Dimension(1900, 950);
+	protected static Dimension defaultDim = new Dimension(1200, 880);
 	protected static final float g2dRatio = 0.5f; // H/W
 	protected static final double defaultMinAllowedRat = -3;
 	protected static final double defaultMaxAllowedRat = 1;
@@ -273,6 +273,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.cmPane = cmPane;
 		this.contactView = contactView;	
 		
+		if (!this.contactView.isShowTracesFeature())
+			defaultDim = new Dimension(1200, 600);
+		
 		initContactPane();
 	}
 	
@@ -289,6 +292,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.mod3 = null;
 		this.cmPane = cmPane;
 		this.contactView = contactView;	
+		
+		if (!this.contactView.isShowTracesFeature())
+			defaultDim = new Dimension(1200, 600);
 		
 		initContactPane();
 	}
@@ -310,7 +316,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		this.ratios = new double[0][0];
 			
 		this.xDim = defaultDim.width;
-//		this.yDim = defaultDim.height;
+		this.yDim = defaultDim.height;
 		// update pixel dimensions
 		this.pixelWidth = (float)(this.xDim-2*this.border)/(float)(2*this.numSteps) ;
 		this.pixelHeight =  this.pixelWidth;
@@ -538,8 +544,9 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 			setTracesParam();
 			calcNbhsTraces();	
 			if (this.nbhString!=null){
-//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
-				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
+				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
+				this.optNBHString.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
 				calcOptNbhStrings();
 			}		
 		}
@@ -2497,7 +2504,7 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 		
 //		System.out.println("Coordinates Template Trace:");
 		RIGGeometry graphGeom = this.mod.getGraphGeometry();
-		g2d.setStroke(new BasicStroke(4));
+		g2d.setStroke(new BasicStroke(3));
 		drawNBHSTemplateTrace(g2d, graphGeom, this.mod, this.iNum, this.jNum, nbSerials, Color.black);
 		if (this.mod2 != null){
 			g2d.setStroke(new BasicStroke(1));
@@ -3819,9 +3826,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			drawSphoxelCakeMap(g2d);
 		}
 		// neighbourhood-string-traces
-		if (this.contactView.getGUIState().getShowNBHStraces()){
+		if (this.contactView.getGUIState().getShowNBHStraces())
 			drawNBHSTraces(g2d);
-		}
 		if (this.showNBHStemplateTrace)
 			drawNBHSTemplateTrace(g2d);
 		if (this.contactView.getGUIState().getShowLongitudes()){

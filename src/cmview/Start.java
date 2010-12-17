@@ -325,6 +325,7 @@ public class Start {
 			DB_USER = p.getProperty("DB_USER");
 			DB_PWD = p.getProperty("DB_PWD");
 			DB_HOST = p.getProperty("DB_HOST");
+			DB_NAME = p.getProperty("DB_NAME");
 			
 			DEFAULT_FILE_PATH = p.getProperty("DEFAULT_FILE_PATH");
 			SPHOXEL_BG_FILE_PATH = p.getProperty("SPHOXEL_BG_FILE_PATH");
@@ -394,6 +395,7 @@ public class Start {
 		p.setProperty("DB_USER", DB_USER);
 		p.setProperty("DB_HOST", DB_HOST);
 		p.setProperty("DB_PWD", DB_PWD);
+		p.setProperty("DB_NAME", DB_NAME);
 		
 		p.setProperty("DEFAULT_FILE_PATH", DEFAULT_FILE_PATH);
 		p.setProperty("SPHOXEL_BG_FILE_PATH", SPHOXEL_BG_FILE_PATH);

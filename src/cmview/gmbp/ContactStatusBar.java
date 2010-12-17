@@ -24,6 +24,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+//import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
@@ -66,6 +67,7 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 	// main panels
 	private JPanel angleGroup;							// selected angle range
 	private JPanel sphoxelGroup;						// panel holding the subgroups
+//	private JScrollPane sphoxelGroupScroller;
 	
 	// subgroups panels holding gui elements for specific purposes
 	private JPanel deltaRadiusPanel;					
@@ -152,6 +154,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 //		resolutionPanel.setPreferredSize(new Dimension(groupWidth, height));
 //		sstypePanel.setPreferredSize(new Dimension(groupWidth, 50));
 		
+//		this.sphoxelGroupScroller = new JScrollPane(sphoxelGroup);  
+//		this.add(sphoxelGroupScroller, BorderLayout.PAGE_START); 
 		this.add(sphoxelGroup,BorderLayout.PAGE_START);
 		this.add(angleGroup, BorderLayout.PAGE_END);
 		
@@ -168,12 +172,15 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		initAngleGroup();
 		showAngleGroup(true);
 		height = this.controller.cPane.getHeight()-(1*this.anglePanel.getTotalHeight())-(2*AngleRuler.STD_RULER_WIDTH);
+//		if(!this.controller.isShowTracesFeature())
+//			height *= 0.6;
 		sphoxelGroup.setSize(width, height);
 		sphoxelGroup.setPreferredSize(new Dimension(width, height));
-		
-		initDeltaRadiusPanel();
-//		initResolutionPanel();
+
 		initSSTypePanel();
+		initDeltaRadiusPanel();
+		double hRad = deltaRadiusPanel.getSize().getHeight();
+//		initResolutionPanel();
 		initDrawPropPanel();
 		initProjPropPanel();
 		if(this.controller.isShowTracesFeature()){
@@ -193,9 +200,9 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		String title = "Radius";
 		deltaRadiusPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED), title));
 		deltaRadiusPanel.setVisible(true);
-		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,120));
-		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, 120));
-		resolutionPanel.setMaximumSize(new Dimension(groupWidth,120));
+		deltaRadiusPanel.setMinimumSize(new Dimension(groupWidth,30));
+		deltaRadiusPanel.setPreferredSize(new Dimension(groupWidth, 50));
+//		resolutionPanel.setMaximumSize(new Dimension(groupWidth,100));
 		
 		deltaRadiusSliderPanel = new JPanel();
 		deltaRadiusSliderPanel.setLayout(new BoxLayout(deltaRadiusSliderPanel,BoxLayout.LINE_AXIS));
