@@ -981,7 +981,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 
 	/**
-	 * NOT USED ANYMORE. NOW, COORDINATES ARE SHOWN IN STATUS BAR.
 	 * Passes coordinates for the given model to the status bar on the right. Please 
 	 * note, that whenever an ordinate of the current mouse position in the 
 	 * graphic equals zero the coordinates will not be printed. 
@@ -1105,14 +1104,14 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			// coordinates, residue types and optionally alignment coordinates		
 			statusBar.getCoordinatesPanel().setINum2(iSeqIdx2<0?"-":iSeqIdx2+"");
 			statusBar.getCoordinatesPanel().setJNum2(jSeqIdx2<0?"-":jSeqIdx2+"");
-
+			
 			String i_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
-			if (iSeqIdx2>0) { // to skip gaps
-				i_res2 = mod.getResType(iSeqIdx2);;
+			if (iSeqIdx2>0 && iSeqIdx2 < mod2.getMatrixSize()) { // to skip gaps
+				i_res2 = mod2.getResType(iSeqIdx2);
 			}
 			String j_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
-			if (jSeqIdx2>0) { // to skip gaps
-				j_res2 = mod.getResType(jSeqIdx2);
+			if (jSeqIdx2>0 && iSeqIdx2 < mod2.getMatrixSize()) { // to skip gaps
+				j_res2 = mod2.getResType(jSeqIdx2);
 			}
 			statusBar.getCoordinatesPanel().setIRes2(i_res2);
 			statusBar.getCoordinatesPanel().setJRes2(j_res2);
