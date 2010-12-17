@@ -150,7 +150,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		cancelButton.addActionListener(this);
 		fileChooserButton.addActionListener(this);
 		
-		// sets the default botton of this dialog. hence, whenever the 
+		// sets the default button of this dialog. hence, whenever the 
 		// enter-key is being pressed and released this button is invoked
 		this.getRootPane().setDefaultButton(loadButton);
 	

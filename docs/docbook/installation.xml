@@ -132,7 +132,14 @@
 
       <programlisting>DSSP_EXECUTABLE=C:/Program Files/dssp/dssp.exe</programlisting>
     </sect2>
-
+	<sect2>
+	<title>DALI</title>
+	<para>In addition to built-in algorithms, you may also locally install DALI to perform 
+	structural alignments. See instructions at <ulink url="http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html">
+      http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html</ulink> zo install DALI. After installation,
+      add the path to the DALILITE executable in <filename>cmview.cfg</filename>, i. e.:
+      <programlisting>DALI_EXECUTABLE=/usr/bin/DaliLite</programlisting>
+      </para>
     <sect2>
 
       <title>Config file</title>

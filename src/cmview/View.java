@@ -3469,9 +3469,7 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	private void showContactsSelectedWarningforSpheres() {
-		JOptionPane.showMessageDialog(this, "Contacts are selected.\n The threshold-spheres for the selected contacts shall be displayed.\n To view " +
-				"the spheres for a general residue pair, which is not a contact,\n first de-select all the selected contacts, \n and use popup menu by right-clicking " +
-				"on the desired residue-pair", "Warning", JOptionPane.INFORMATION_MESSAGE);				
+		JOptionPane.showMessageDialog(this, "Spheres for selected contacts will be shown. Deselect all contacts and right-click the contact map to show spheres for a specific pair.", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
 	/**

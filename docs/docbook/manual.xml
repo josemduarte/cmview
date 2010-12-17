@@ -1205,7 +1205,15 @@
             coordinates are available.</para>
 
           </listitem>
+		  <listitem>
 
+            <para>DALI structural alignment</para>
+
+            <para>Compute a structural alignment via a locally installed DALILITE[3]. See <ulink url="installation.html">installation</ulink> for 
+            instructions to install DALI.</para>
+
+          </listitem>
+          
           <listitem>
 
             <para>Load alignment from FASTA file</para>
@@ -1230,6 +1238,9 @@
         Springer Lecture Notes in Computer Science, S. Hochreiter and 
         R. Wagner (Eds.): BIRD 2007, LNBI 4414, pp. 410-423. </para>
 
+		<para>[3] Holm, L. and Park, J. (1999). DaliLite workbench for protein structure comparison;
+      Bioinformatics 16, 566-567.</para>
+        
       </sect3>
 
       <sect3 id="menu.compare.showcommon">
@@ -1818,7 +1829,20 @@
           </listitem>
 
         </varlistentry>
+		<varlistentry>
 
+          <term><parameter>DALI_EXECUTABLE</parameter></term>
+
+          <listitem>
+
+            <para>Path to the locally installed DALI executable to be used for structural alignments.</para>
+
+            <para>Default: --</para>
+
+          </listitem>
+
+        </varlistentry>
+        
         <varlistentry>
 
           <term><parameter>PYMOL_EXECUTABLE</parameter></term>
