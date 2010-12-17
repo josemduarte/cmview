@@ -2689,36 +2689,37 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
-	private void handleShowResidueScoringMap(boolean secondView) {
-		if(mod == null) {
-			showNoContactMapWarning();
-			return;
-		}
-		
-		if(secondView) {
-			guiState.setShowBottomResidueScoringMap(!guiState.getShowBottomResidueScoringMap());
-			if (guiState.getShowBottomResidueScoringMap()) {
-				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-				String fn = guiState.getResidueScoringFunctionName(secondView);
-				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
-				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
-				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			}
-		} else {
-			guiState.setShowResidueScoringMap(!guiState.getShowResidueScoringMap());
-			if (guiState.getShowResidueScoringMap()) {
-				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
-				String fn = guiState.getResidueScoringFunctionName(secondView);
-				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
-				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
-				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			}
-		}
-		
-		
-		cmPane.revalidate();
-		cmPane.updateScreenBuffer();
-	}
+//  This function seems to be not used. Remove on next code review.	
+//	private void handleShowResidueScoringMap(boolean secondView) {
+//		if(mod == null) {
+//			showNoContactMapWarning();
+//			return;
+//		}
+//		
+//		if(secondView) {
+//			guiState.setShowBottomResidueScoringMap(!guiState.getShowBottomResidueScoringMap());
+//			if (guiState.getShowBottomResidueScoringMap()) {
+//				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+//				String fn = guiState.getResidueScoringFunctionName(secondView);
+//				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+//				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
+//				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+//			}
+//		} else {
+//			guiState.setShowResidueScoringMap(!guiState.getShowResidueScoringMap());
+//			if (guiState.getShowResidueScoringMap()) {
+//				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+//				String fn = guiState.getResidueScoringFunctionName(secondView);
+//				ResidueContactScoringFunction f = statusBar.getScoringFunctionWithName(fn);
+//				f.init(null, mod.getGraph(), mod.getSecondaryStructure(), mod.getPdb(), Start.getDbConnection());
+//				cmPane.getTopLevelAncestor().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+//			}
+//		}
+//		
+//		
+//		cmPane.revalidate();
+//		cmPane.updateScreenBuffer();
+//	}
 	
 	private void updateScoringFunctions() {
 		if (guiState.getShowResidueScoringMap() || guiState.getShowBottomResidueScoringMap()) {
