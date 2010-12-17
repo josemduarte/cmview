@@ -188,12 +188,12 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 			secondViewCB.addItem(View.BgOverlayType.TF_FUNC.getItem());
 		}
 		
-		firstViewCB.setEditable(true); // this should actually be false, but we want the white background
-		secondViewCB.setEditable(true);
-		firstViewCB.setSize(150, 20);
-		secondViewCB.setSize(150, 20);
-		firstViewCB.setMaximumSize(new Dimension(150,20));
-		secondViewCB.setMaximumSize(new Dimension(150,20));
+		firstViewCB.setEditable(false); // this should actually be false, but we want the white background
+		secondViewCB.setEditable(false);
+		//firstViewCB.setSize(150, 20);
+		//secondViewCB.setSize(150, 20);
+		//firstViewCB.setMaximumSize(new Dimension(150,20));
+		//secondViewCB.setMaximumSize(new Dimension(150,20));
 		secondViewCB.setMinimumSize(new Dimension(150,20));
 		firstViewCB.setMinimumSize(new Dimension(150,20));
 		firstViewCB.addActionListener(this);

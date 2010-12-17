@@ -3469,7 +3469,8 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	private void showContactsSelectedWarningforSpheres() {
-		JOptionPane.showMessageDialog(this, "Spheres for selected contacts will be shown. Deselect all contacts and right-click the contact map to show spheres for a specific pair.", "Warning", JOptionPane.INFORMATION_MESSAGE);				
+		JOptionPane.showMessageDialog(this, "Spheres for selected contacts will be shown. " +
+				"Deselect all contacts and right-click the contact map to show spheres for a specific pair.", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 
 	/**
