@@ -26,7 +26,12 @@ public class PdbaseModel extends Model {
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
 		this.maxSeqSep = maxSeqSep;		
-		this.pdb = new PdbasePdb(pdbCode, db, Start.getDbConnection());
+		try {
+			this.pdb = new PdbasePdb(pdbCode, db, Start.getDbConnection());
+		} catch (PdbLoadError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public PdbaseModel(Model mod) {

@@ -63,7 +63,7 @@ class ScoringFunctionController extends JPanel implements ActionListener {
 	public void updateScores() {
 		dataChanged();
 	}
-	@Override
+	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == addBestButton) {
 			

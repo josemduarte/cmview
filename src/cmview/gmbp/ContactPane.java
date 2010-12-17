@@ -169,8 +169,8 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	private int maxNumTraces;
 	private String atomType = "CA"; // 4traces: plot only atompositions of type atomtype
 
-	private String dbSphoxel = "bagler_all13p0_alledges";
-	private String dbTraces = "bagler_all5p0_alledges";
+//	private String dbSphoxel = "bagler_all13p0_alledges";
+//	private String dbTraces = "bagler_all5p0_alledges";
 
 	// Sphoxel-Data
 	private CMPdb_sphoxel sphoxel;
@@ -523,22 +523,25 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void calcParam() throws SQLException{
 		calcSphoxelParam();
-		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.dbSphoxel);
+		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes);
+//		this.sphoxel = new CMPdb_sphoxel(this.iRes, this.jRes, this.dbSphoxel);
+//		this.sphoxel.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, this.dbSphoxel)
 //		setSphoxelParam(); // performed within calcSphoxel		
 		calcSphoxel();
 
 		calcTracesParam();	
 		if (this.contactView.isShowTracesFeature()){
 //			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
-			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
-//			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
+//			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
+			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType);
+			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
 			setTracesParam();
 			calcNbhsTraces();	
 			if (this.nbhString!=null){
-				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
-//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
+//				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
+				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
 				calcOptNbhStrings();
-			}			
+			}		
 		}
 	}
 	
