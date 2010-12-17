@@ -470,12 +470,7 @@ public class View extends JFrame implements ActionListener {
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
-		
-		toolBar.addSeparator(separatorDim);
-		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
-		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, guiState.getShowFirst(), false, false);
-		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, guiState.getShowSecond(), false, false);
-		
+				
 		toolBar.addSeparator(separatorDim);
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
@@ -485,6 +480,11 @@ public class View extends JFrame implements ActionListener {
 		}
 		
 		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);	
+		
+		toolBar.addSeparator(separatorDim);
+		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
+		tbShowFirst = makeToolBarToggleButton(icon_show_first, LABEL_SHOW_FIRST, guiState.getShowFirst(), false, false);
+		tbShowSecond = makeToolBarToggleButton(icon_show_second, LABEL_SHOW_SECOND, guiState.getShowSecond(), false, false);
 		
 		// Toggle buttons in view menu (not being used yet)
 		tbViewPdbResSer = new JToggleButton();

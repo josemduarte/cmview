@@ -177,9 +177,8 @@ public class ContactStatusBar extends JPanel implements ItemListener, ActionList
 		sphoxelGroup.setSize(width, height);
 		sphoxelGroup.setPreferredSize(new Dimension(width, height));
 
-		initSSTypePanel();
 		initDeltaRadiusPanel();
-		double hRad = deltaRadiusPanel.getSize().getHeight();
+		initSSTypePanel();
 //		initResolutionPanel();
 		initDrawPropPanel();
 		initProjPropPanel();
