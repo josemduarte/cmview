@@ -3384,7 +3384,7 @@ public class View extends JFrame implements ActionListener {
 				"CMView v"+Start.VERSION +
 				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" +
 				"<p>&nbsp;</p>" +
-				"<p>(C) 2008 The Structural Proteomics Group</p>" +
+				"<p>(C) 2011 The Structural Proteomics Group</p>" +
 				"<p>Max Planck Institute for Molecular Genetics</p>" +
 				"<p>Berlin, Germany</p>" +
 				"<p>&nbsp;</p>" +
