@@ -182,7 +182,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 			comboCt.addItem(o);
 			if(ct.equals(showCt)) comboCt.setSelectedItem(o);
 		}
-		comboCt.setEditable(true);
+		comboCt.setEditable(false);
 		
 		// construct combo box for the present chain codes. this load-dialog 
 		// functions as popup-event handler of events fired by this combo box

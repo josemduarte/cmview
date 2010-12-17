@@ -1186,7 +1186,7 @@ public class View extends JFrame implements ActionListener {
 		}
 		// show spheres button clicked
 		if (e.getSource() == sphereM || e.getSource() == sphereP || e.getSource() == tbShowSph3D) {	
-			handleShowSpheres3D();
+			handleShowSpheres3D(e.getSource() == sphereP);
 		}
 		// send com.Nei. button clicked
 		if(e.getSource()== triangleM || e.getSource()== triangleP || e.getSource() == tbShowComNbh3D) {
@@ -2689,6 +2689,7 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 	
+
 //  This function seems to be not used. Remove on next code review.	
 //	private void handleShowResidueScoringMap(boolean secondView) {
 //		if(mod == null) {
@@ -2720,6 +2721,7 @@ public class View extends JFrame implements ActionListener {
 //		cmPane.revalidate();
 //		cmPane.updateScreenBuffer();
 //	}
+
 	
 	private void updateScoringFunctions() {
 		if (guiState.getShowResidueScoringMap() || guiState.getShowBottomResidueScoringMap()) {
@@ -3002,7 +3004,7 @@ public class View extends JFrame implements ActionListener {
 	/**
 	 * 
 	 */
-	private void handleShowSpheres3D() {
+	private void handleShowSpheres3D(boolean fromContextMenu) {
 		
 		//pymol adapter
 		PyMolAdaptor pymol = Start.getPyMolAdaptor();
@@ -3013,7 +3015,7 @@ public class View extends JFrame implements ActionListener {
 			showNo3DCoordsWarning(mod);
 		} else if(!Start.isPyMolConnectionAvailable()) {				
 			showNoPyMolConnectionWarning();
-		} else if(cmPane.getSelContacts().size() == 0) {//If no contacts are selected, spheres are shown for the current mouse position
+		} else if(fromContextMenu) {//If no contacts are selected, spheres are shown for the current mouse position
 			Pair<Integer> residuePair = cmPane.getmousePos();
 			if( residuePair.isEmpty() ) {
 				showNoContactsSelectedWarning();//return; // nothing to do!
@@ -3022,7 +3024,6 @@ public class View extends JFrame implements ActionListener {
 		} else {
 			
 			IntPairSet residuePair = cmPane.getSelContacts();	
-			showContactsSelectedWarningforSpheres();
 			if( residuePair.isEmpty() ) {
 				return; // nothing to do!
 			}
@@ -3469,10 +3470,6 @@ public class View extends JFrame implements ActionListener {
 		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
 	
-	private void showContactsSelectedWarningforSpheres() {
-		JOptionPane.showMessageDialog(this, "Spheres for selected contacts will be shown. " +
-				"Deselect all contacts and right-click the contact map to show spheres for a specific pair.", "Warning", JOptionPane.INFORMATION_MESSAGE);				
-	}
 
 	/**
 	 * Warning dialog shown if user tries to write a non-Cb contact map to a Casp RR file (which by convention is Cb)
