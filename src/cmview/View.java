@@ -1742,6 +1742,7 @@ public class View extends JFrame implements ActionListener {
 	private void handleLoadFromFtp(boolean secondModel) {
 		if (secondModel == SECOND_MODEL && mod == null){
 			this.showNoContactMapWarning();
+			
 		} else{
 			try {
 				LoadDialog dialog = new LoadDialog(this, "Load from online PDB", new LoadAction(secondModel) {

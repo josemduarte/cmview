@@ -453,13 +453,13 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		if (!comboCc.isShowing()) return null; // this happens when loading from graph/caspRR file
 		Object item = comboCc.getSelectedItem();
 		
-		if(item == null) {
+		if(item == null || item.toString().length() == 0) {
 			throw new LoadDialogInputError("<html>" +
 					"Chain code is missing. Click on the drop-down menu to see valid chain codes. " +
 					"</html>");
 		}
 		
-		String selectedCc = item.toString();		
+		String selectedCc = item.toString();
 		if(selectedCc.length() == 0) selectedCc = Pdb.NULL_CHAIN_CODE;
 		return selectedCc;
 	}
