@@ -1839,23 +1839,28 @@ public class View extends JFrame implements ActionListener {
 	 */
 	private void handlePairwiseAlignment() {
 		String error = null;
-
 		actLoadDialog.dispose();	
-		//Object[] possibilities = {"compute internal structure alignment","load alignment from file","apply greedy residue mapping","compute Needleman-Wunsch sequence alignment"};
-		Object[] possibilities = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment","compute DALI structural alignment", "load alignment from FASTA file"};		
-		String source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
 
+		Object[] possibilitiesWithDali = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment", "load alignment from FASTA file","compute DALI structural alignment"};
+		Object[] possibilitiesWithoutDali = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment", "load alignment from FASTA file"};
+		String source;
+		if (Start.DALI_FOUND) {
+			source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilitiesWithDali, possibilitiesWithDali[0]);
+		} else {
+			source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilitiesWithoutDali, possibilitiesWithoutDali[0]);
+			
+		}
 		if( source != null ) {
 			try {
-				if( source == possibilities[0] ) {
+				if( source == possibilitiesWithDali[0] ) {
 					// do a greedy residue-residue alignment
 					doPairwiseSequenceAlignment();
-				} else if( source == possibilities[1] ) {
+				} else if( source == possibilitiesWithDali[1] ) {
 					// compute contact map alignment using SADP
 					doPairwiseSadpAlignment();
-				} else if( source == possibilities[2]) {
+				} else if( source == possibilitiesWithDali[3]) {
 					doDALIAlignment();
-				} else if( source == possibilities[3] ) {
+				} else if( source == possibilitiesWithDali[2] ) {
 					// load a user provided alignment from an external source
 					doLoadPairwiseAlignment(MultipleSequenceAlignment.FASTAFORMAT);
 				//} else if( source == possibilities[4]) {

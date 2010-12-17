@@ -115,7 +115,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 *  Only allowed values: <code>""</code> or <code>null</code>  
 	 * @param showCt  contact type, sets this contact type to the selected one 
 	 *  (deprecated!)
-	 * @param showDist  contact distance threshold, initialises text of the 
+	 * @param showDist  contact distance threshold, initializes text of the 
 	 *  distance field 
 	 * @param showMinSeqSep  minimal sequence separation, ... min. seq. sep. 
 	 *  field

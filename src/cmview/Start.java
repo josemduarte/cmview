@@ -106,7 +106,7 @@ public class Start {
 	
 	/* external programs: DALI */
 	public static String			DALI_EXECUTABLE = 		"";
-	
+	public static boolean			DALI_FOUND = false;
 	/* external programs: TINKER */
 	public static String			TINKER_BINPATH = 		"";
 	public static String			TINKER_TEMP_DIR =		null;
@@ -925,6 +925,14 @@ public class Start {
             }
         });
 		
+        if (DALI_EXECUTABLE != "") {
+        	File dali = new File(DALI_EXECUTABLE);
+    			if(dali.exists()) {
+    				Start.DALI_FOUND = true;
+    			}
+        }
+ 
+    	
 		setLookAndFeel();
 		
 		// initialize session variables
