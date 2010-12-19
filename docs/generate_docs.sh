@@ -2,6 +2,11 @@
 # Pipeline to generate CMView help documents from docbook sources
 # 11/Feb/2008, stehr@molgen.mpg.de
 
+# requires:
+# * Docbook (http://docbook.sourceforge.net/) 
+# * xsltproc (http://xmlsoft.org/XSLT/)
+# * Apache FOP (http://xmlgraphics.apache.org/fop/)
+
 webhome=/home/web/lappe/cmview/
 
 # Generating HTML for web
