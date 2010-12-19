@@ -1,40 +1,17 @@
 <?xml version='1.0'?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <article lang="en">
-
   <title>Download</title>
-
-  <para>Coming soon...</para>
-
   <itemizedlist>
-
     <listitem>
-
-      <para>Current version: CMView 1.0-rc1 (zip archive)</para>
-
+      <para>Current version: CMView-1.0-rc1.zip</para>
     </listitem>
-
     <listitem>
-
       <para>PDF manual</para>
-
     </listitem>
-
     <listitem>
-
-      <para>Feature comparison with similar software</para>
-
-    </listitem>
-
-    <listitem>
-
       <para>Older versions:</para>
-
-      <para>none so far</para>
-
+      <para>CMView-0.9.6.zip</para>
     </listitem>
-
   </itemizedlist>
-
 </article>
-
