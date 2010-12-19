@@ -6,6 +6,7 @@
 # * Docbook (http://docbook.sourceforge.net/) 
 # * xsltproc (http://xmlsoft.org/XSLT/)
 # * Apache FOP (http://xmlgraphics.apache.org/fop/)
+# * HTML Tidy (http://tidy.sourceforge.net/)
 
 webhome=/home/web/lappe/cmview/
 

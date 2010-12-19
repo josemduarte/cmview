@@ -3,28 +3,33 @@
 <article lang="en">
   <title>FAQ</title>
   <qandaset>
+    
     <qandaentry>
       <question>
         <para>Who created CMView?</para>
       </question>
       <answer>
-        <para>CMView was developed by the 
+        <para>CMView was was originally created by researchers of the 
         <ulink url="http://www.molgen.mpg.de/~lappe/">Structural 
         Proteomics Group</ulink> at the 
         <ulink url="http://www.molgen.mpg.de">Max Planck Institute for 
-        Molecular Genetics</ulink>.</para>
+        Molecular Genetics</ulink>. It is now maintained by a community 
+        of developers working in academia and industry.</para>
       </answer>
     </qandaentry>
+    
     <qandaentry>
       <question>
         <para>What are the license terms for CMView?</para>
       </question>
       <answer>
-        <para>CMView will be released under an open source license. If 
-        you use CMView in published work, please cite this 
-        website.</para>
+        <para>CMView is licensed under the 
+        <ulink url="http://www.gnu.org/licenses/gpl.html">GNU General 
+        Public License</ulink>. If you use CMView in published work, we 
+        ask you to give proper citation (see below).</para>
       </answer>
     </qandaentry>
+    
     <qandaentry>
       <question>
         <para>How to cite the CMView software?</para>
@@ -34,9 +39,39 @@
         the moment, please use the following citation:</para>
         <para><emphasis>CMView: Interactive Contact Map Visualization 
         and Analysis. 
-        http://www.molgen.mpg.de/~lappe/cmview/.</emphasis></para>
+        http://www.bioinformatics.org/cmview/.</emphasis></para>
       </answer>
     </qandaentry>
+ 
+    <qandaentry>
+      <question>
+        <para>How can I obtain the source code?</para>
+      </question>
+      <answer>
+        <para>The latest development version can be downloaded from the
+        <ulink url="http://www.bioinformatics.org/websvn/listing.php?repname=cmview">
+        Subversion repository</ulink>. Please see the
+        <ulink url="http://www.bioinformatics.org/groups/?group_id=1030">
+        development page</ulink> for details.</para>
+      </answer>
+    </qandaentry>
+    
+    <qandaentry>
+      <question>
+        <para>Is there a mailing list?</para>
+      </question>
+      <answer>
+        <para>There are mailing lists for
+        <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
+        users</ulink> and for
+        <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-devel">
+        developers</ulink>. Please
+        <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
+        sign up</ulink> to the users mailing list to be notified of new
+        versions and to ask questions about the usage of CMView.</para>
+      </answer>
+    </qandaentry>   
+    
     <qandaentry>
       <question>
         <para>I am getting a Java out of memory exception. What can I 
@@ -49,5 +84,6 @@
         -Xmx512m or -Xmx1024m).</para>
       </answer>
     </qandaentry>
+  
   </qandaset>
 </article>
