@@ -52,7 +52,11 @@
         <ulink url="http://www.bioinformatics.org/websvn/listing.php?repname=cmview">
         Subversion repository</ulink>. Please see the
         <ulink url="http://www.bioinformatics.org/groups/?group_id=1030">
-        development page</ulink> for details.</para>
+        development page</ulink> for details. CMView requires the
+        <ulink url="http://www.bioinformatics.org/owl/">OWL library</ulink>
+        which can also be downloaded via
+        <ulink url="http://www.bioinformatics.org/websvn/listing.php?repname=owl">
+        Subversion</ulink>.</para>
       </answer>
     </qandaentry>
     

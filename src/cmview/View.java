@@ -71,12 +71,13 @@ public class View extends JFrame implements ActionListener {
 	private static final String TITLE_MODIFIED = " (modified)";
 	private static final String TITLE_COMPARING = "Comparing ";
 	private static final String TITLE_TO = " to ";
-	// menu item labels (used in main menu, popup menu and icon bar)
+	
+	// Menu item labels (used in main menu, popup menu and icon bar)
 	// File
 	private static final String LABEL_FILE_INFO = "Info";
 	private static final String LABEL_FILE_PRINT = "Print...";	
 	private static final String LABEL_FILE_QUIT = "Quit";
-	private static final String LABEL_ALIGNMENT_FILE = "Alignment File...";
+	private static final String LABEL_ALIGNMENT_FILE = "Alignment to File...";
 	private static final String LABEL_PNG_FILE = "PNG File...";
 	private static final String LABEL_CASP_RR_FILE = "CASP RR File...";
 	private static final String LABEL_CONTACT_MAP_FILE = "Contact Map File...";
@@ -86,6 +87,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
 	private static final String LABEL_LOAD_SEQ = "Sequence...";
 	private static final String LABEL_CASP_SERVER_MOD = "CASP Server Models...";
+	
 	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
 	private static final String LABEL_DIAGONAL_SELECTION_MODE = "Diagonal Selection Mode";
@@ -93,21 +95,22 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SQUARE_SELECTION_MODE = "Square Selection Mode";
 	private static final String LABEL_SEL_MODE_COLOR = "Select By Color Mode";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";	
-	private static final String LABEL_TOGGLE_CONTENTS = "Toggle Contacts";
+	private static final String LABEL_ADD_REMOVE_CONTACTS = "Add/Remove Contacts";
 	
 	// Action
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
 	private static final String LABEL_SHOW_TRIANGLES_3D = "Show Common Neighbour Triangles in 3D";
 	private static final String LABEL_SHOW_CONTACTS_3D = "Show Selected Contacts in 3D";
-	private static final String LABEL_SHOW_SPHERES_3D = "Show Threshold Spheres for Selected Contact in 3D";
+	private static final String LABEL_SHOW_SPHERES_3D = "Show Threshold Spheres for Selected Contacts in 3D";
 	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show Threshold Spheres for Residue Pair (%s,%s) in 3D";
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st Shell Neighbour-Relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show 2nd Shell";
 	private static final String LABEL_SHOW_SPHOXEL = "Show Sphoxel-Map";
 	private static final String LABEL_SHOW_SPHOXELTRACES = "Show Sphoxel-Map and Neighbourhood-Traces";
 	private static final String LABEL_RUN_TINKER = "Run Distance Geometry";
-	private static final String LABEL_MIN_SET = "Minimal Subset";
+	private static final String LABEL_MIN_SET = "Run Cone Peeling Algorithm";
 	private static final String LABEL_JPRED = "Predict Secondary Structure";
+	
 	// Compare
 	private static final String LABEL_COMPARE_CM = "Load Second Contact Map from"; 
 	private static final String LABEL_SHOW_COMMON = "Show Common Contacts";
@@ -118,7 +121,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SHOW_ALI = "Show Corresponding Residues from Selection";
 	private static final String LABEL_SWAP_MODELS = "Swap Models";
 	private static final String LABEL_COPY_CONTACTS = "Copy Selected Contacts from Second to First";
-	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Edge in 3D";	// used in ContactMapPane.showPopup
+	protected static final String LABEL_SHOW_PAIR_DIST_3D = "Show Residue Pair (%s,%s) as Contact in 3D";	// used in ContactMapPane.showPopup
 	
 	/*--------------------------- member variables --------------------------*/
 
@@ -136,7 +139,7 @@ public class View extends JFrame implements ActionListener {
 	DeltaRankBar deltaRankBar;	// A Bar at the bottom of the contact map showing delta rank information for the sequence
 	
 	// Tool bar buttons
-	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, minimalSubset;  
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, tbMinSubset;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 		
@@ -145,11 +148,11 @@ public class View extends JFrame implements ActionListener {
 
 	// background overlay types
 	public enum BgOverlayType {
-		DISTANCE("Distance"), 
+		DISTANCE("Distance Map"), 
 		DENSITY("Contact Density"), 
 		COMMON_NBH("Common Nbhd"), 
 		DELTA_RANK("Delta Rank"), 
-		DIFF_DIST("Difference"), 
+		DIFF_DIST("Difference Map"), 
 		ENERGY("Pairwise Energy"),
 		TF_FUNC("Variable Transfer Function");
 		
@@ -176,7 +179,7 @@ public class View extends JFrame implements ActionListener {
 
 	// Menu items
 	// M -> "menu bar"
-	JMenuItem sendM, sphereM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, mmSelModeColor;
+	JMenuItem sendM, sphereM, squareM, fillM, comNeiM, triangleM, nodeNbhSelM, rangeM, delEdgesM, minSubsetM, mmSelModeColor, mmSelModeAddRemove;
 	// P -> "popup menu"
 	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
@@ -188,7 +191,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
-	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts,mmJPred;
+	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts,mmJPred,mmRunTinker;
 	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
 
 	// Data and status variables
@@ -472,14 +475,13 @@ public class View extends JFrame implements ActionListener {
 		}
 				
 		toolBar.addSeparator(separatorDim);
-		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_TOGGLE_CONTENTS,false,true,true);
+		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_ADD_REMOVE_CONTACTS,false,true,true);
 		tbDelete = makeToolBarButton(icon_del_contacts, LABEL_DELETE_CONTACTS);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbRunTinker = makeToolBarButton(icon_run_tinker,LABEL_RUN_TINKER);
 			
-		}
-		
-		minimalSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);	
+		}		
+		tbMinSubset = makeToolBarButton(icon_min_set,LABEL_MIN_SET);	
 		
 		toolBar.addSeparator(separatorDim);
 		tbShowCommon = makeToolBarToggleButton(icon_show_common, LABEL_SHOW_COMMON, guiState.getShowCommon(), false, false);
@@ -522,8 +524,8 @@ public class View extends JFrame implements ActionListener {
 		if (Start.USE_PYMOL) {
 			popup.addSeparator();		
 			sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
+			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);			
 			sphereP = makePopupMenuItem(LABEL_SHOW_SPHERES_POPUP_3D, icon_show_sph_3d, popup);
-			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleP = makePopupMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, popup);
 				pmShowShell = makePopupMenuItem(LABEL_SHOW_SHELL_NBRS, icon_nbh_sel_mode, popup);
@@ -572,8 +574,10 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, submenu);
 		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmLoadCaspRR = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
-		mmLoadSeq = makeMenuItem(LABEL_LOAD_SEQ, null, submenu);
-		mmLoadCaspServerMods = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			mmLoadSeq = makeMenuItem(LABEL_LOAD_SEQ, null, submenu);
+			mmLoadCaspServerMods = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
+		}
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
@@ -606,6 +610,9 @@ public class View extends JFrame implements ActionListener {
 			comNeiM = makeMenuItem(LABEL_SHOW_COMMON_NBS_MODE, icon_show_com_nbs_mode, submenu);
 		}
 		mmSelModeColor = makeMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, submenu);
+		submenu.addSeparator();
+		mmSelModeAddRemove = makeMenuItem(LABEL_ADD_REMOVE_CONTACTS, icon_toggle_contacts, submenu);
+		
 		menu.add(submenu);
 		menu.addSeparator();
 		mmSelectAll = makeMenuItem("All Contacts", null, menu);
@@ -633,11 +640,15 @@ public class View extends JFrame implements ActionListener {
 			sphereM = makeMenuItem(LABEL_SHOW_SPHERES_3D, icon_show_sph_3d, menu);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
 				triangleM = makeMenuItem(LABEL_SHOW_TRIANGLES_3D, icon_show_triangles_3d, menu);
-				mmJPred = makeMenuItem(LABEL_JPRED,null,menu);
 			}
 			menu.addSeparator();
 		}		
 		delEdgesM = makeMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, menu);
+		minSubsetM = makeMenuItem(LABEL_MIN_SET, icon_min_set, menu);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {		
+			mmRunTinker = makeMenuItem(LABEL_RUN_TINKER,icon_run_tinker, menu);
+			mmJPred = makeMenuItem(LABEL_JPRED,null,menu);
+		}
 		addToJMenuBar(menu);
 
 		// Comparison Menu
@@ -656,7 +667,9 @@ public class View extends JFrame implements ActionListener {
 		mmLoadPdb2 = makeMenuItem(LABEL_PDB_FILE, null, submenu);
 		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		mmLoadCaspRR2 = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
-		mmLoadCaspServerMods2 = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			mmLoadCaspServerMods2 = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
+		}
 		menu.addSeparator();
 		mmShowCommon = makeMenuItem(LABEL_SHOW_COMMON, icon_selected, menu);
 		mmShowFirst = makeMenuItem(LABEL_SHOW_FIRST, icon_selected, menu);
@@ -668,11 +681,13 @@ public class View extends JFrame implements ActionListener {
 		mmSuperposition.setEnabled(false);
 		mmShowAlignedResidues = makeMenuItem(LABEL_SHOW_ALI,null,menu);
 		mmShowAlignedResidues.setEnabled(false);
-		menu.addSeparator();
-		mmCopyContacts = makeMenuItem(LABEL_COPY_CONTACTS,null,menu);
-		mmCopyContacts.setEnabled(false);
-		mmSwapModels = makeMenuItem(LABEL_SWAP_MODELS,null,menu);
-		mmSwapModels.setEnabled(false);
+		if(Start.USE_EXPERIMENTAL_FEATURES) {
+			menu.addSeparator();
+			mmCopyContacts = makeMenuItem(LABEL_COPY_CONTACTS,null,menu);
+			mmCopyContacts.setEnabled(false);
+			mmSwapModels = makeMenuItem(LABEL_SWAP_MODELS,null,menu);
+			mmSwapModels.setEnabled(false);
+		}
 		addToJMenuBar(menu);
 
 		// Help menu
@@ -906,9 +921,14 @@ public class View extends JFrame implements ActionListener {
 		map.put(nodeNbhSelM, hasMod); 
 		map.put(comNeiM, hasMod);
 		map.put(mmSelModeColor, hasMod); 
+		map.put(mmSelModeAddRemove, hasMod);
 		map.put(sendM, hasMod);
+		map.put(sphereM, hasMod);		
 		map.put(triangleM, hasMod); 
 		map.put(delEdgesM, hasMod);
+		map.put(minSubsetM, hasMod);
+		map.put(mmJPred, hasMod);
+		map.put(mmRunTinker, hasMod);
 		// menu -> Compare
 		map.put(smCompare.get("Load"), hasMod);
 		map.put(mmShowCommon,false);
@@ -930,11 +950,25 @@ public class View extends JFrame implements ActionListener {
 	private Map<Component,Boolean> initButtonAccessibility(boolean hasMod) {
 		HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
 
-		map.put(tbShowSel3D, hasMod);
 		map.put(tbFileInfo, hasMod);
+
+		map.put(tbSquareSel, hasMod);
+		map.put(tbFillSel, hasMod);
+		map.put(tbDiagSel, hasMod);
+		map.put(tbNbhSel, hasMod);
+		map.put(tbSelModeColor, hasMod);		
+		map.put(tbToggleContacts, hasMod);
+		map.put(tbShowComNbh, hasMod);		// experimental
+		map.put(tbShowComNbh3D, hasMod);	// experimental
+
+		map.put(tbShowSel3D, hasMod);
+		map.put(tbShowSph3D, hasMod);
+
 		map.put(tbDelete, hasMod);
-		map.put(tbShowComNbh, hasMod);
-		map.put(tbShowComNbh3D, hasMod);
+		map.put(tbMinSubset, hasMod);
+		map.put(tbRunTinker, hasMod); 		// experimental
+		
+
 		
 		return map;
 	}
@@ -953,9 +987,13 @@ public class View extends JFrame implements ActionListener {
 		map.put(comNeiP, false);
 		map.put(pmSelModeColor, false);
 		map.put(triangleP, false);
+		map.put(sphereP, false);
 		map.put(popupSendEdge, false);
 		map.put(delEdgesP, false);
-
+		map.put(pmShowShell, false);
+		map.put(pmShowSecShell, false);
+		map.put(pmShowSphoxel, false);	
+		
 		return map;
 	}
 
@@ -987,6 +1025,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSelectBetaBeta,false);
 		map.put(mmSelectInterSsContacts,false);
 		map.put(mmSelectIntraSsContacts,false);
+		map.put(mmSelModeAddRemove,false);
 		// menu -> Color
 		map.put(mmColorChoose,false);
 		map.put(mmColorPaint,false);
@@ -997,12 +1036,17 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSelModeColor,false);
 		map.put(triangleM,false);
 		map.put(delEdgesM, false);
+		map.put(minSubsetM, false);
+		map.put(mmJPred, false);
+		map.put(mmRunTinker, false);
 		// menu -> Compare
 		map.put(mmShowCommon,true);
 		map.put(mmShowFirst,true);
 		map.put(mmShowSecond,true);
 		map.put(mmToggleDiffDistMap,true);
 		map.put(smCompare.get("Load"),true); // now allowing loading of a new second contact map
+		map.put(mmSwapModels,true);
+		map.put(mmCopyContacts,true);
 
 		return map;
 	}
@@ -1021,7 +1065,10 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbShowComNbh, false);
 		map.put(tbSelModeColor, false);
 		map.put(tbShowComNbh3D, false);
-		map.put(tbDelete, true);
+		map.put(tbDelete, false);
+		map.put(tbMinSubset, false);
+		map.put(tbToggleContacts, false);
+		map.put(tbRunTinker, false);
 
 		map.put(tbShowCommon, true);
 		map.put(tbShowFirst, true);
@@ -1169,12 +1216,13 @@ public class View extends JFrame implements ActionListener {
 		}		
 		
 		// toggle contacts selection mode button clicked
-		if (e.getSource() == tbToggleContacts) {
+		if (e.getSource() == tbToggleContacts || e.getSource() == mmSelModeAddRemove) {
+			showAddDeleteContacts();
 			guiState.setSelectionMode(GUIState.SelMode.TOGGLE);
 		}
 		
 		// Start Tinker Run
-		if (e.getSource() == tbRunTinker) {
+		if (e.getSource() == tbRunTinker || e.getSource() == mmRunTinker) {
 			handleRunTinker();
 		}
 		
@@ -1274,7 +1322,7 @@ public class View extends JFrame implements ActionListener {
 		if (e.getSource() == mmCopyContacts) {
 			handleCopyContacts();
 		}		
-		if(e.getSource() == minimalSubset){
+		if(e.getSource() == tbMinSubset || e.getSource() == minSubsetM){
 			handleMinimalSet();
 		}
 
@@ -1903,8 +1951,6 @@ public class View extends JFrame implements ActionListener {
 		// corresponding residues for both structures
 		mmSuperposition.setEnabled(true);	
 		mmShowAlignedResidues.setEnabled(true);
-		mmSwapModels.setEnabled(true);
-		mmCopyContacts.setEnabled(true);
 		// disable/enable some menu-bar items, popup-menu items and buttons
 		setAccessibility(compareModeMenuBarAccessibility(),   true, getJMenuBar(), disregardedTypes);
 		setAccessibility(compareModePopupMenuAccessibility(), true, null,          disregardedTypes);
@@ -2912,36 +2958,49 @@ public class View extends JFrame implements ActionListener {
 	/* -------------------- Action menu -------------------- */
 
 	private void handleRunTinker() {
-		
-		final View v = this;
-		 tinkerDialog = new TinkerPreferencesDialog(this, new TinkerAction() {
-				public void doit(TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, boolean gmbp,boolean ss) {
-					tinkerDialog.dispose();
-					tinkerRunner = new TinkerRunAction(v,mod,parallel,refinement,models,gmbp,ss);
-				}
-			},mod.hasGMBPConstraints());
-		 
-		 tinkerDialog.createGUI();
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else {		
+			final View v = this;
+			 tinkerDialog = new TinkerPreferencesDialog(this, new TinkerAction() {
+					public void doit(TinkerRunner.PARALLEL parallel, TinkerRunner.REFINEMENT refinement, int models, boolean gmbp,boolean ss) {
+						tinkerDialog.dispose();
+						tinkerRunner = new TinkerRunAction(v,mod,parallel,refinement,models,gmbp,ss);
+					}
+				},mod.hasGMBPConstraints());
+			 
+			 tinkerDialog.createGUI();
+		}
 	}
 	
 	private void handleJPred() {
 		if(mod==null) {
-			return;
+			showNoContactMapWarning();
+		} else {
+			showJPredMessage();
+			mod.assignJPredSecondaryStructure();
 		}
-		mod.assignJPredSecondaryStructure();
 	}
 	
 	protected void handleMinimalSet (){
-		//mod.computeMinimalSubset("dummy");
-		try{
-		//Model modl = mod.copy();
-		mod2 = new PdbFtpModel(mod);
-		mod2.computeMinimalSubset();
-		this.doGreedyPairwiseAlignment();
-		doLoadSecondModel(mod2, ali);
-		}
-		catch(Exception e){
-			System.err.println("model error!!!!\n"+e.getMessage());
+		if(mod==null) 
+			showNoContactMapWarning();
+		else {
+			showConePeelingMessage();
+			//mod.computeMinimalSubset("dummy");
+			try{
+			//Model modl = mod.copy();
+			mod2 = new PdbFtpModel(mod);
+			mod2.computeMinimalSubset();
+			mod2.setLoadedGraphID("MinSet");
+			this.doGreedyPairwiseAlignment();
+			doLoadSecondModel(mod2, ali);
+			}
+			catch(AlignmentConstructionError e){
+				System.err.println("Error running Cone Peeling: "+e.getMessage());
+			} catch (DifferentContactMapSizeError e) {
+				System.err.println("Error running Cone Peeling: "+e.getMessage());
+			}
 		}
 	}
 
@@ -3017,20 +3076,22 @@ public class View extends JFrame implements ActionListener {
 		} else if(fromContextMenu) {//If no contacts are selected, spheres are shown for the current mouse position
 			Pair<Integer> residuePair = cmPane.getmousePos();
 			if( residuePair.isEmpty() ) {
-				showNoContactsSelectedWarning();//return; // nothing to do!
+				showNoContactsSelectedWarning();
+				return;
 			}
 			pymol.showSpheres(mod, residuePair);
 		} else {
 			
-			IntPairSet residuePair = cmPane.getSelContacts();	
-			if( residuePair.isEmpty() ) {
-				return; // nothing to do!
+			IntPairSet selRes = cmPane.getSelContacts();	
+			if( selRes.isEmpty() ) {
+				showNoContactsSelectedWarning();
+				return;
 			}
 			
 			//String structureId       = mod.getLoadedGraphID();
 			//disable all old objects and selections
 			//pymol.showStructureHideOthers(structureId, structureId);
-			pymol.showSpheres(mod, residuePair);
+			pymol.showSpheres(mod, selRes);
 		}
 	}
 
@@ -3094,16 +3155,18 @@ public class View extends JFrame implements ActionListener {
 		} else if(cmPane.getSelContacts().size() == 0) {
 			showNoContactsSelectedWarning();
 		} else {
-			for (Pair<Integer> cont:cmPane.getSelContacts()){
-				mod.removeEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(), cont));
-				//if (hasSecondModel()) {
-				//	mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
-				//}
+			if(reallyDeleteContacts()) {
+				for (Pair<Integer> cont:cmPane.getSelContacts()){
+					mod.removeEdge(cmPane.mapContactAl2Seq(mod.getLoadedGraphID(), cont));
+					//if (hasSecondModel()) {
+					//	mod2.removeEdge(mapContactAl2Seq(mod2.getLoadedGraphID(), cont));
+					//}
+				}
+				cmPane.resetSelections();
+				cmPane.reloadContacts();	// will update screen buffer and repaint
+				updateScoringFunctions();
+				updateTitle();
 			}
-			cmPane.resetSelections();
-			cmPane.reloadContacts();	// will update screen buffer and repaint
-			updateScoringFunctions();
-			updateTitle();
 		}
 	}
 
@@ -3468,7 +3531,6 @@ public class View extends JFrame implements ActionListener {
 	private void showNoContactsSelectedWarning() {
 		JOptionPane.showMessageDialog(this, "No contacts selected", "Warning", JOptionPane.INFORMATION_MESSAGE);				
 	}
-	
 
 	/**
 	 * Warning dialog shown if user tries to write a non-Cb contact map to a Casp RR file (which by convention is Cb)
@@ -3486,7 +3548,41 @@ public class View extends JFrame implements ActionListener {
 	private void showCannotSaveEmptyAlignment() {
 		JOptionPane.showMessageDialog(this, "Cannot save empty alignment!", "Save error", JOptionPane.ERROR_MESSAGE);
 	}
+	
+	/* -------------------- Messages -------------------- */
+	
+	/** Shown when the button "Predict Secondary Structure" is pressed. */
+	private void showJPredMessage() {
+		JOptionPane.showMessageDialog(this, "Contacting JPred server. This may take a while...", "Running JPred", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	/** Shown when the button "Run Cone Peeling Algorithm" is pressed. */
+	private void showConePeelingMessage() {
+		String msg = "<html>This will run the 'Cone Peeling Algorithm' described in<br>" +
+					 "<br>" +
+					 "Sathyapriya et al., Defining an Essence of Structure Determining Residue<br>" +
+					 "Contacts in Proteins. PLoS Computational Biology 5(12): e1000584 (2009).<br>" +
+				     "<br>" +
+				     "The algorithm attempts to calculate a minimal subset of contacts which<br>" +
+				     "keep the protein fold intact. This will open the pairwise comparison mode. <br>" +
+				     "The minimal subset is shown in black and the original contact map in magenta.</html>";
+		JOptionPane.showMessageDialog(this, msg, "Run Cone Peeling Algorithm", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	/** Shown when the button "Run Cone Peeling Algorithm" is pressed. */
+	private void showAddDeleteContacts() {
+		String msg = "<html>In this mode, individual contacts can be added and deleted<br>" +
+				     "by clicking on the respective cell in the contact map.</html>";
+		JOptionPane.showMessageDialog(this, msg, "Add/Delete Contacts", JOptionPane.INFORMATION_MESSAGE);
+	}	
 
+	/* -------------------- Questions ----------------- */
+	
+	private boolean reallyDeleteContacts() {
+		int ret = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete the selected contacts?","Confirm Delete", JOptionPane.YES_NO_OPTION);
+		return(ret == JOptionPane.YES_OPTION);
+	}
+	
 
 	/*---------------------------- public methods ---------------------------*/
 

@@ -1,4 +1,6 @@
 #!/bin/sh
+# Note: This does not work as of 2010-12-19. We are now using the Eclipse jar export.
+
 if [ -z "$3" ]
 then
     echo "usage: make-cmview-onejar.sh <tempdir> <path-to-jars> <cmviewtag> <owltag>"

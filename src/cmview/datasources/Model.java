@@ -314,6 +314,16 @@ public abstract class Model {
 		return loadedGraphID;
 	}
 
+	/**
+	 * Sets a new loadedGraphID. A number may be added to the given ID to make the ID unique.
+	 * @param newId the new id which should be set
+	 * @return the actual id that was assigned
+	 */
+	public String setLoadedGraphID(String newId) {
+		this.loadedGraphID = Start.setLoadedGraphID(newId, this);
+		return this.loadedGraphID;
+	}
+	
 	/** Returns the pdb code of the underlying structure */
 	public String getPDBCode() {
 		return graph.getPdbCode();

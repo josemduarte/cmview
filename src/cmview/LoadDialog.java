@@ -199,7 +199,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		JLabel labelFileName = new JLabel("Filename:");
 		JLabel labelGraphId = new JLabel("Graph Id:");
 		JLabel labelAc = new JLabel("PDB Code:");
-		JLabel labelAfterAc = new JLabel("e.g. 7adh");
+		JLabel labelAfterAc = new JLabel("e.g. 1ubq");
 		JLabel labelCc = new JLabel("Chain code:");
 		labelAfterCc = new JLabel(LABEL_AFTER_COMBO_BOX);
 		JLabel labelCt = new JLabel("Contact type:");
