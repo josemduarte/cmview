@@ -1,30 +1,31 @@
-CMView 1.0
+CMView 1.1
 
 Interactive Contact Map Visualization and Analysis
 
-http://molgen.mpg.de/~lappe/cmview/
+http://www.bioinformatics.org/cmview/
 
 INSTALLATION
 
-	You need Java 1.5 or newer (available from http://java.sun.com).
+        You need Java 1.6 or newer (available from http://java.com/en/).
 
-	1. Edit the file cmview.cfg and set the parameters PYMOL_EXECUTABLE and
-	   optionally DSSP_EXECUTABLE to point to your local PyMol and DSSP 
-	   executables. (CMView will still run without this step but
-	   some functionality will not be available).
-	   
-	   Free executables for academic use are available from:
-	   http://delsci.com/rel/099/ (Linux, Win, Mac)
-	   http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
-	   http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html (sources, compatible with Linux, Win, Mac)
-	   Please note the individual terms of a license for these programs.
-   
-	2. To start CMView 
-	   on Windows: run cmview.bat
-	   on Unix/MacOSX: run cmview.sh 
+        1. Edit the file cmview.cfg and set the parameters PYMOL_EXECUTABLE and
+           optionally DSSP_EXECUTABLE and DALI_EXECUTABLE to point to your local
+           PyMol, DSSP and DaliLite executables (CMView will still run without
+           this step but some functionality will not be available).
 
-	See http://molgen.mpg.de/~lappe/cmview/installation.html for more
-	information.
+           Free executables for academic use are available from:
+           http://sourceforge.net/projects/pymol/files/Legacy/ (Linux, Win, Mac)
+           http://swift.cmbi.ru.nl/gv/dssp/ (Linux, Win)
+           http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/ (Linux, source code only)
+
+           Please note the individual terms of license for these programs.
+
+        2. To start CMView
+           on Windows: run cmview.bat
+           on Linux/MaxOSX: run cmview.sh 
+
+        See http://www.bioinformatics.org/cmview/installation.html for more
+        information.
 
 THIRD PARTY LICENSE INFORMATION
 

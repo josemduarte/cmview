@@ -1906,7 +1906,7 @@ public class View extends JFrame implements ActionListener {
 		Object[] possibilitiesWithDali = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment", "load alignment from FASTA file","compute DALI structural alignment"};
 		Object[] possibilitiesWithoutDali = {"compute Needleman-Wunsch sequence alignment", "compute SADP structural alignment", "load alignment from FASTA file"};
 		String source;
-		if (Start.DALI_FOUND) {
+		if (Start.dali_found) {
 			source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilitiesWithDali, possibilitiesWithDali[0]);
 		} else {
 			source = (String) JOptionPane.showInputDialog(this, "Chose alignment source ...", "Pairwise Protein Alignment", JOptionPane.PLAIN_MESSAGE, null, possibilitiesWithoutDali, possibilitiesWithoutDali[0]);

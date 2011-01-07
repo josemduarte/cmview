@@ -35,7 +35,7 @@ public class Start {
 
 	/* internal constants (not user changeable) */
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String		VERSION = 				"1.1rc2";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"1.1rc3";			// current version of this application (should match manifest)
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
@@ -72,10 +72,7 @@ public class Start {
 	public static String			CONFIG_FILE_NAME = "cmview.cfg";	// default name of config file
 	public static String			DIST_MAP_CONTACT_TYPE = "Ca";		// contact type to be used for distance map calculation (only single atom type allowed)
 	public static String 			PDB_FTP_URL = "ftp://ftp.wwpdb.org/pub/pdb/data/structures/all/mmCIF/";
-	
-	// TODO: alignment parameters
-	// TODO: DSSP three or four states
-	
+		
 	/* gui settings */
 	public static int				INITIAL_SCREEN_SIZE = 650;			// initial size of the contactMapPane in pixels
 	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
@@ -90,10 +87,8 @@ public class Start {
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
 	public static boolean			USE_DSSP = true;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static boolean           USE_EXPERIMENTAL_FEATURES = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
-																		// currently: common nbh related things, directed graph	
 	public static boolean 			USE_CGAP = false;		            // includes experimental feature contact geometry analysis 
 																		// (visualization of contact potentials and neighbourhood traces) 
-
 	/* external programs: dssp */
 	public static String			DSSP_EXECUTABLE = ""; 				
 	public static String			DSSP_PARAMETERS = "--";	
@@ -106,36 +101,39 @@ public class Start {
 	
 	/* external programs: DALI */
 	public static String			DALI_EXECUTABLE = 		"";
-	public static boolean			DALI_FOUND = false;
+	
 	/* external programs: TINKER */
 	public static String			TINKER_BINPATH = 		"";
 	public static String			TINKER_TEMP_DIR =		null;
 	public static String			TINKER_FORCEFIELD = 	"";
-	/* database connection */
+	
+	/* DeltaRank energy function */
 	public static String			DELTA_RANK_DB = "mw";
 	
+	/* Contact Geometry Analysis Plugin */
+	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
+	
 	/* default values for loading contact maps */
+	public static String 			DEFAULT_FILE_PATH = 		"";					// file load dialog will show this location by default
 	public static String			DEFAULT_GRAPH_DB =			""; 				// shown in load from graph db dialog
 	public static String     		DEFAULT_PDB_DB = 			"";					// for loading from command line
-	
 	public static String     		DEFAULT_CONTACT_TYPE = 		"Ca";				// loading from command line and shown in LoadDialog
 	public static double 			DEFAULT_DISTANCE_CUTOFF = 	8.0; 								// dito
 	private static int        		DEFAULT_MIN_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
 	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito	
 	
+	/* database options */
 	public static String			DB_USER;
 	public static String			DB_PWD;
 	public static String			DB_HOST;
 	public static String			DB_NAME;
-
-	public static String 			DEFAULT_FILE_PATH = ""; // "/Users/vehlow/Documents/workspace/PDBs/";
-	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
 	
 	/*--------------------------- member variables --------------------------*/
 
 	// global session variables (use getter methods)
 	private static boolean			database_found = false;
 	private static boolean			dssp_found = false;
+	public static boolean			dali_found = false;
 	
 	private static MySQLConnection 	conn;
 	private static JFileChooser 	fileChooser;
@@ -930,7 +928,7 @@ public class Start {
         if (DALI_EXECUTABLE != "") {
         	File dali = new File(DALI_EXECUTABLE);
     			if(dali.exists()) {
-    				Start.DALI_FOUND = true;
+    				Start.dali_found = true;
     			}
         }
  
