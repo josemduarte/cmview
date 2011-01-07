@@ -62,8 +62,11 @@ public class View extends JFrame implements ActionListener {
 	/*------------------------------ constants ------------------------------*/
 	 
 	static final long serialVersionUID = 1l;
+	// aliases
 	private static final boolean FIRST_MODEL = false;
 	private static final boolean SECOND_MODEL = true;
+	private static final boolean PDB_FILE = false;
+	private static final boolean TS_FILE = true;	
 
 	// text shown in window title
 	private static final String TITLE_DEFAULT = Start.APP_NAME+" "+Start.VERSION;
@@ -77,11 +80,12 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_FILE_INFO = "Info";
 	private static final String LABEL_FILE_PRINT = "Print...";	
 	private static final String LABEL_FILE_QUIT = "Quit";
-	private static final String LABEL_ALIGNMENT_FILE = "Alignment to File...";
+	private static final String LABEL_ALIGNMENT_FILE = "FASTA Alignment...";
 	private static final String LABEL_PNG_FILE = "PNG File...";
 	private static final String LABEL_CASP_RR_FILE = "CASP RR File...";
 	private static final String LABEL_CONTACT_MAP_FILE = "Contact Map File...";
 	private static final String LABEL_PDB_FILE = "PDB File...";
+	private static final String LABEL_TS_FILE = "CASP TS File...";
 	private static final String LABEL_ONLINE_PDB = "Online PDB...";
 	private static final String LABEL_PDBASE = "Pdbase...";
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
@@ -183,8 +187,8 @@ public class View extends JFrame implements ActionListener {
 	// P -> "popup menu"
 	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadFtp, mmLoadSeq, mmLoadCaspServerMods;
-	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadFtp2, mmLoadCaspServerMods2;
+	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadTs, mmLoadFtp, mmLoadSeq, mmLoadCaspServerMods;
+	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadTs2, mmLoadFtp2, mmLoadCaspServerMods2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
@@ -572,12 +576,13 @@ public class View extends JFrame implements ActionListener {
 		}		
 		mmLoadFtp = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
 		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, submenu);
-		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
+		mmLoadTs = makeMenuItem(LABEL_TS_FILE, null, submenu);
 		mmLoadCaspRR = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			mmLoadSeq = makeMenuItem(LABEL_LOAD_SEQ, null, submenu);
 			mmLoadCaspServerMods = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
 		}
+		mmLoadCm = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		menu.add(submenu);
 		smFile.put("Load", submenu);
 		// Save
@@ -665,11 +670,12 @@ public class View extends JFrame implements ActionListener {
 		
 		mmLoadFtp2 = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
 		mmLoadPdb2 = makeMenuItem(LABEL_PDB_FILE, null, submenu);
-		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
+		mmLoadTs2 = makeMenuItem(LABEL_TS_FILE, null, submenu);		
 		mmLoadCaspRR2 = makeMenuItem(LABEL_CASP_RR_FILE, null, submenu);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			mmLoadCaspServerMods2 = makeMenuItem(LABEL_CASP_SERVER_MOD, null, submenu);
 		}
+		mmLoadCm2 = makeMenuItem(LABEL_CONTACT_MAP_FILE, null, submenu);
 		menu.addSeparator();
 		mmShowCommon = makeMenuItem(LABEL_SHOW_COMMON, icon_selected, menu);
 		mmShowFirst = makeMenuItem(LABEL_SHOW_FIRST, icon_selected, menu);
@@ -1101,8 +1107,11 @@ public class View extends JFrame implements ActionListener {
 
 		}		  
 		if(e.getSource() == mmLoadPdb) {
-			handleLoadFromPdbFile(FIRST_MODEL);
+			handleLoadFromPdbFile(FIRST_MODEL, PDB_FILE);
 		}
+		if(e.getSource() == mmLoadTs) {
+			handleLoadFromPdbFile(FIRST_MODEL, TS_FILE);
+		}		
 		if(e.getSource() == mmLoadFtp) {
 			handleLoadFromFtp(FIRST_MODEL);
 		}
@@ -1278,8 +1287,11 @@ public class View extends JFrame implements ActionListener {
 			handleLoadFromPdbase(SECOND_MODEL);
 		}		  
 		if(e.getSource() == mmLoadPdb2) {
-			handleLoadFromPdbFile(SECOND_MODEL);
+			handleLoadFromPdbFile(SECOND_MODEL, PDB_FILE);
 		}
+		if(e.getSource() == mmLoadTs2) {
+			handleLoadFromPdbFile(SECOND_MODEL, TS_FILE);
+		}		
 		if(e.getSource() == mmLoadFtp2) {
 			handleLoadFromFtp(SECOND_MODEL);
 		}
@@ -1480,13 +1492,14 @@ public class View extends JFrame implements ActionListener {
 		}
 	}
 
-	private void handleLoadFromPdbFile(boolean secondModel) {
+	private void handleLoadFromPdbFile(boolean secondModel, boolean tsFile) {
 
 		if (secondModel == SECOND_MODEL && mod == null){
 			this.showNoContactMapWarning();
 		} else{
 			try {
-				LoadDialog dialog = new LoadDialog(this, "Load from PDB file", new LoadAction(secondModel) {
+				String title = tsFile?"Load from Casp TS file":"Load from PDB file";
+				LoadDialog dialog = new LoadDialog(this, title, new LoadAction(secondModel) {
 					public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
 						View view = (View) o;
 						view.doLoadFromPdbFile(f, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, secondModel);

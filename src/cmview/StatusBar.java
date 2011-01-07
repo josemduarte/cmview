@@ -160,18 +160,18 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 		secondViewCB = new JComboBox();
 		firstViewCB.addItem((Object)"Top-Right BG");
 		secondViewCB.addItem((Object)"Bottom-Left BG");
-		View.BgOverlayType[] viewOptions = {View.BgOverlayType.DENSITY, View.BgOverlayType.DISTANCE}; // View.BgOverlayType.ENERGY
+		View.BgOverlayType[] viewOptions = {View.BgOverlayType.DENSITY, View.BgOverlayType.DISTANCE, View.BgOverlayType.COMMON_NBH}; // View.BgOverlayType.ENERGY
 		for (View.BgOverlayType t: viewOptions) {
 			firstViewCB.addItem(t.getItem());
 			secondViewCB.addItem(t.getItem());
 		}
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
-			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH}; //, View.BgOverlayType.DELTA_RANK};
-			for (View.BgOverlayType t: viewOptions2) {
-				firstViewCB.addItem(t.getItem());
-				secondViewCB.addItem(t.getItem());
-			}
+//			View.BgOverlayType[] viewOptions2 = {View.BgOverlayType.COMMON_NBH}; //, View.BgOverlayType.DELTA_RANK};
+//			for (View.BgOverlayType t: viewOptions2) {
+//				firstViewCB.addItem(t.getItem());
+//				secondViewCB.addItem(t.getItem());
+//			}
 			if (this.controller.isDatabaseConnectionAvailable()){
 				firstViewCB.addItem(View.BgOverlayType.DELTA_RANK.getItem());
 				secondViewCB.addItem(View.BgOverlayType.DELTA_RANK.getItem());
@@ -188,7 +188,7 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 			secondViewCB.addItem(View.BgOverlayType.TF_FUNC.getItem());
 		}
 		
-		firstViewCB.setEditable(false); // this should actually be false, but we want the white background
+		firstViewCB.setEditable(false); // old: this should actually be false, but we want the white background
 		secondViewCB.setEditable(false);
 		//firstViewCB.setSize(150, 20);
 		//secondViewCB.setSize(150, 20);
