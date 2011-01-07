@@ -20,7 +20,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -540,13 +539,13 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 //			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.jAtom, this.db);
 //			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType, this.dbTraces);
 			this.nbhsTraces = new CMPdb_nbhString_traces(this.nbhStringL, this.atomType);
-			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
+			this.nbhsTraces.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.CGAP_DB_NAME);
 			setTracesParam();
 			calcNbhsTraces();	
 			if (this.nbhString!=null){
 				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes);
 //				this.optNBHString = new OptimalSingleEnv(this.nbhString, this.iRes, Start.DB_HOST, Start.DB_USER, Start.DB_PWD, Start.DB_NAME);
-				this.optNBHString.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.DB_NAME);
+				this.optNBHString.setDBaccess(Start.DB_USER, Start.DB_PWD, Start.DB_HOST, Start.CGAP_DB_NAME);
 				calcOptNbhStrings();
 			}		
 		}
@@ -748,63 +747,18 @@ public class ContactPane extends JPanel implements MouseListener, MouseMotionLis
 				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[1];
 			else if (this.minr==this.radiusThresholds[2] && this.maxr==this.radiusThresholds[3])
 				this.radiusPrefix = CMPdb_sphoxel.radiusRanges[2];
-			
-//			File dir1 = new File (".");		
-			String fn = "";
-			String archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
-			boolean useUserDefinedPath = false;
-			if (Start.SPHOXEL_BG_FILE_PATH != ""){
-				File file = new File(Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip");
-				if (file.exists()){
-					archFN = Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip";
-					useUserDefinedPath = true;
-				}					
-			}
-			
-//			archFN = Start.SPHOXEL_DIR + "SphoxelBGs.zip";
+					
 			ZipFile zipfile = null;
 			try {
-				File file;
-				if (Start.SPHOXEL_BG_FILE_PATH != ""  && useUserDefinedPath)
-					file = new File(archFN);
-				else 
-//				File file = new File(archFN);
-//				if (!file.exists())
-				{
-//					System.out.println("ZIP: "+this.getClass().getResource(archFN).getFile());
-					file = new File(this.getClass().getResource(archFN).getPath());
-				}
-				zipfile = new ZipFile(file.getPath());
-//				System.out.println(file.getPath()+"  loaded");
-//				zipfile = new ZipFile(file);
-//				System.out.println(file.toString()+"  loaded");		
-				
-//				try {
-//					File file = new File(this.getClass().getResource(archFN).toURI());
-//					zipfile = new ZipFile(file);
-//				} catch (URISyntaxException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				zipfile = new ZipFile(new File(this.getClass().getResource(archFN).getFile()) );
+				zipfile = new ZipFile(Start.getCgapSphoxelFile());
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			fn = "";
 			
-			fn = fn+"sphoxelBG_"+this.iRes+"-"+String.valueOf(this.iSSType).toLowerCase()+"_"+this.jRes+"-"
+			String fn = "sphoxelBG_"+this.iRes+"-"+String.valueOf(this.iSSType).toLowerCase()+"_"+this.jRes+"-"
 				+String.valueOf(CMPdb_sphoxel.AnySStype).toLowerCase()+"_"+this.radiusPrefix+".csv";
 			System.out.println("Filename= "+fn);
-//			fn = "/Users/vehlow/Documents/workspace/outputFiles/LogOddsScoresBayes_fromDB-bagler_all13p0_alledges_A-A_SStype-H_radius9.2-12.8_resol90.csv";
-			
-//			int zipSize = zipfile.size();
-//			Enumeration<? extends ZipEntry> entries = zipfile.entries();
-//			while (	entries.hasMoreElements() ){
-//				ZipEntry entry = entries.nextElement();
-//				if (entry.getName() == fn)
-//					System.out.println(entry.getName());
-//			}
 			ZipEntry zipentry = zipfile.getEntry(fn);
 			
 			CSVhandler csv = new CSVhandler();

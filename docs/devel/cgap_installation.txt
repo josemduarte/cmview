@@ -1,0 +1,23 @@
+How to install the Contact Geometry Analysis Plugin (CGAP)
+
+1. Download SphoxelBGs.zip for the background information
+2. Download the database dump files
+	a. cullpdb_20_edges.txt
+	b. cullpdb_20_nbhstrings.txt
+	c. rvecs10.txt
+3. Install MySQL (if not yet installed)
+4. Run the script cgap_create_db.sql to create the database tables
+   cat cgap_create_db.sq | mysql
+5. Set the following parameters in the config file (cmview.cfg)
+	a. USE_CGAP=true
+	b. SPHOXEL_BG_FILE_PATH=/full/path/to/downloaded/file/SphoxelBGs.zip
+	c. For database access:
+		i.  DB_USER= (your username)
+		ii. DB_PWD= (your password)
+		iii.DB_HOST= (mysql host name)
+		iv.	CGAP_DB_NAME=cmview_cgap
+
+Notes:
+- To open CGAP, right click on a residue pair in the contact map windows in CMView and select 'Explore Contact Geometry'
+- CGAP will still work without the database, but no traces for similar residue environments will be shown
+- CGAP will not work without the SphoxelBG.zip file 

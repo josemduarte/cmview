@@ -224,6 +224,35 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	}
 	
 	/**
+	 * Updates the GUI state of the overlay drop down lists.
+	 * Note that the available items in the drop down lists may change dynamically
+	 * (e.g. the diff dist map is added when entering compare mode). Make sure that
+	 * the status you select here does exist.
+	 * Note also that calling this function may trigger a change event.
+	 * @param status the state to be shown, 0 means first item
+	 * @param secondView update the second drop down list (bottom left rather than upper right) 
+	 */
+	public void setOverlayStatus(View.BgOverlayType status, boolean secondView) {
+		if(secondView) {
+			secondViewCB.setSelectedItem(status);
+		} else {
+			firstViewCB.setSelectedItem(status);
+		}
+	}
+	
+	/**
+	 * Resets the overlay drop down lists to 'none selected'.
+	 * @param secondView if true, reset the second drop down list (bottom right), otherwise the first
+	 */
+	public void resetOverlayStatus(boolean secondView) {
+		if(secondView) {
+			secondViewCB.setSelectedIndex(0);
+		} else {
+			firstViewCB.setSelectedIndex(0);
+		}		
+	}
+	
+	/**
 	 * Initializes the group for showing coordinates
 	 */
 	public void initCoordinatesGroup() {

@@ -109,8 +109,7 @@ public class View extends JFrame implements ActionListener {
 	protected static final String LABEL_SHOW_SPHERES_POPUP_3D = "Show Threshold Spheres for Residue Pair (%s,%s) in 3D";
 	private static final String LABEL_SHOW_SHELL_NBRS = "Show 1st Shell Neighbour-Relationships";
 	private static final String LABEL_SHOW_SEC_SHELL = "Show 2nd Shell";
-	private static final String LABEL_SHOW_SPHOXEL = "Show Sphoxel-Map";
-	private static final String LABEL_SHOW_SPHOXELTRACES = "Show Sphoxel-Map and Neighbourhood-Traces";
+	private static final String LABEL_SHOW_SPHOXEL = "Explore Contact Geometry";
 	private static final String LABEL_RUN_TINKER = "Run Distance Geometry";
 	private static final String LABEL_MIN_SET = "Run Cone Peeling Algorithm";
 	private static final String LABEL_JPRED = "Predict Secondary Structure";
@@ -152,6 +151,7 @@ public class View extends JFrame implements ActionListener {
 
 	// background overlay types
 	public enum BgOverlayType {
+		NONE_SELECTED("None selected"),
 		DISTANCE("Distance Map"), 
 		DENSITY("Contact Density"), 
 		COMMON_NBH("Common Nbhd"), 
@@ -166,8 +166,12 @@ public class View extends JFrame implements ActionListener {
 			this.label = label;
 		}
 		
+		public String toString() {
+			return label;
+		}
+		
 		public Object getItem() {
-			return this.label;
+			return (Object)this;
 		}
 	};
 	
@@ -536,20 +540,9 @@ public class View extends JFrame implements ActionListener {
 				pmShowSecShell = makePopupMenuItem(LABEL_SHOW_SEC_SHELL, icon_nbh_sel_mode, popup);
 			}
 		}
-		if(Start.USE_CGAP){
+		if(Start.USE_CGAP && Start.getCgapSphoxelFile() != null){
 			popup.addSeparator();
-			File file = new File(Start.SPHOXEL_BG_FILE_PATH + "/SphoxelBGs.zip");
-			if (file.exists()){
-				System.out.println(Start.SPHOXEL_BG_FILE_PATH+"/SphoxelBGs.zip exists");
-				if(this.database_found)
-					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXELTRACES, icon_sphoxel_traces, popup);
-				else
-					pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);	
-				popup.addSeparator();	
-			}
-			else{
-				System.out.println(Start.SPHOXEL_BG_FILE_PATH+"/SphoxelBGs.zip does not exist");					
-			}
+			pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);	
 		}	
 		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
 
@@ -1318,7 +1311,7 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		if(e.getSource() == mmToggleDiffDistMap) {
-			handleToggleDiffDistMap();
+			handleShowDiffDistMapFromMenu(); // true=show in bottom left half
 		}
 
 		if( e.getSource() == mmSuperposition ) {
@@ -2343,10 +2336,13 @@ public class View extends JFrame implements ActionListener {
 	 */
 	private void doLoadSecondModel(Model mod2, MultipleSequenceAlignment ali) {
 		
-		// this has to come first, as it triggers the background to be redrawn, which trigger the error it is supposed to avoid if the second
+		// this has to come first, as it forces the background to be redrawn, which triggers the error it is supposed to avoid if the second
 		// model is already loaded
 		
 		disableAllBackgroundMaps();
+		// TODO: (because it is not clear what the following would refer to)
+		// disable background overlay menu (except diff dist map)
+		// disable secondary structure view
 		
 		// re-setting window title
 		System.out.println("Second contact map loaded.");
@@ -2380,12 +2376,16 @@ public class View extends JFrame implements ActionListener {
 					doSuperposition3D(mod, mod2, ali, columns);
 				}
 			}
-		}
-		
+		}	
 	}
 
 	private void disableAllBackgroundMaps() {
 	
+		// update GUI
+		mmToggleDiffDistMap.setIcon(icon_deselected);
+		statusBar.resetOverlayStatus(true);
+		statusBar.resetOverlayStatus(false);		
+		
 		if (guiState.getShowDeltaRankMap()) {
 			handleShowDeltaRankMap(false);
 		}
@@ -2822,22 +2822,53 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	/**
-	 * 
+	 * Handles the show/hide diff dist map item in the compare menu. To
+	 * keep this is sync with the status bar, this method simple updates
+	 * the drop down list which in turn triggers the actual update.
+	 */
+	private void handleShowDiffDistMapFromMenu() {
+		if(mod==null) {
+			showNoContactMapWarning();
+		} else if (!mod.has3DCoordinates()){
+			showNo3DCoordsWarning(mod);
+		} else if (!cmPane.hasSecondModel()) {
+			showNoSecondContactMapWarning();
+		} else if(mod2== null || !mod2.has3DCoordinates()){
+			showNo3DCoordsWarning(mod2);
+		} else {
+			if(!guiState.getShowDiffDistMap()) {
+				statusBar.setOverlayStatus(View.BgOverlayType.DIFF_DIST, false);
+			} else {
+				statusBar.resetOverlayStatus(false);
+			}
+		}
+	}
+	
+	/**
+	 * Handler for the show/hide difference map overlay in compare mode
 	 */
 	private void handleShowDiffDistMap(boolean secondView) {
 		if(mod==null) {
 			showNoContactMapWarning();
 		} else if (!mod.has3DCoordinates()){
 			showNo3DCoordsWarning(mod);
+		} else if (!cmPane.hasSecondModel()) {
+			showNoSecondContactMapWarning();
 		} else if(mod2== null || !mod2.has3DCoordinates()){
 			showNo3DCoordsWarning(mod2);
 		} else {
 			if (secondView) {
-				guiState.setShowBottomDiffDistMap(!guiState.getShowBottomDiffDistMap());
-				cmPane.toggleDiffDistMap(guiState.getShowBottomDiffDistMap());
+				guiState.setShowBottomDiffDistMap(!guiState.getShowBottomDiffDistMap());	// set the flag
+				cmPane.toggleDiffDistMap(guiState.getShowBottomDiffDistMap());				// show the actual map			
 			} else {
 				guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
 				cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
+			}
+			// update GUI
+			if(guiState.getShowDiffDistMap()) {								
+				mmToggleDiffDistMap.setIcon(icon_selected);								// set the icon in menu
+			} else {
+				mmToggleDiffDistMap.setIcon(icon_deselected);
 			}
 		}
 	}
@@ -3387,28 +3418,29 @@ public class View extends JFrame implements ActionListener {
 		tbShowSecond.setSelected(guiState.getShowSecond());
 	}
 
-	/**
-	 * Handler for the show/hide difference map overlay in compare mode
-	 */	
-	private void handleToggleDiffDistMap() {
-		if(mod==null) {
-			showNoContactMapWarning();
-		} else if (!mod.has3DCoordinates()) {
-			showNo3DCoordsWarning(mod);
-		} else if (!cmPane.hasSecondModel()) {
-			showNoSecondContactMapWarning();
-		} else if (!mod2.has3DCoordinates()) { // it's ok to use here the original mod2 and not the actual displayed alignMod2 (ContactMapPane.mod2) because both should have (or not) 3D coordinates 
-			showNo3DCoordsWarning(mod2);
-		} else {
-			guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());
-			cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());
-			if(guiState.getShowDiffDistMap()) {
-				mmToggleDiffDistMap.setIcon(icon_selected);
-			} else {
-				mmToggleDiffDistMap.setIcon(icon_deselected);
-			}
-		}
-	}
+//	/**
+//	 * Handler for the show/hide difference map overlay in compare mode
+//	 */	
+//	private void handleToggleDiffDistMap() {
+//		if(mod==null) {
+//			showNoContactMapWarning();
+//		} else if (!mod.has3DCoordinates()) {
+//			showNo3DCoordsWarning(mod);
+//		} else if (!cmPane.hasSecondModel()) {
+//			showNoSecondContactMapWarning();
+//		} else if (!mod2.has3DCoordinates()) { // it's ok to use here the original mod2 and not the actual displayed alignMod2 (ContactMapPane.mod2) because both should have (or not) 3D coordinates 
+//			showNo3DCoordsWarning(mod2);
+//		} else {
+//			guiState.setShowDiffDistMap(!guiState.getShowDiffDistMap());	// set the flag
+//			cmPane.toggleDiffDistMap(guiState.getShowDiffDistMap());		// show the actual map
+//			if(guiState.getShowDiffDistMap()) {								// set the icon in menu
+//				mmToggleDiffDistMap.setIcon(icon_selected);
+//			} else {
+//				mmToggleDiffDistMap.setIcon(icon_deselected);
+//			}
+//		}
+//	}
+	
 	/**
 	 * Handler for the swap models action in the comparison menu. Swaps first and
 	 * second model.
@@ -3737,6 +3769,7 @@ public class View extends JFrame implements ActionListener {
 	}
 	
 	private void clearBackgrounds(boolean secondView) {
+		mmToggleDiffDistMap.setIcon(icon_deselected);
 		if (secondView) {
 			if(guiState.getShowBottomNbhSizeMap()) {
 				handleShowNbhSizeMap(secondView);

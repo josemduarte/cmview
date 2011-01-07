@@ -40,7 +40,6 @@ public class Start {
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
 	public static final String		FCT_ICON_DIR = 			"/resources/fctIcons/";	// the directory containing the icons for different transfer functions
-	public static final String		SPHOXEL_DIR = 			"/resources/sphoxelBG/";	// the directory containing the pre-calculated sphoxel backgrounds
 	public static final String		TRASH_LOGFILE =			"cmview_jaligner.log";	// for redirecting unwanted Jaligner output (coming from a Logger)
 	/*---------------------------- configuration ---------------------------*/
 	
@@ -83,11 +82,11 @@ public class Start {
 	public static boolean			SHOW_WEIGHTS_IN_COLOR = false;		// if true, weighted contacts will be shown in colors, otherwise as shades of grey (experimental feature)
 	
 	/* enable/disable features */
-	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden 
+	public static boolean			USE_DATABASE = true; 				// if false, all functions involving a database will be hidden (except possibly CGAP)
 	public static boolean			USE_PYMOL = true;					// if false, all pymol specific functionality will be hidden
 	public static boolean			USE_DSSP = true;					// if true, secondary structure will be always taken from DSSP (if available)
 	public static boolean           USE_EXPERIMENTAL_FEATURES = false; 	// this flag shall indicate strongly experimental stuff, use it to disable features in release versions
-	public static boolean 			USE_CGAP = false;		            // includes experimental feature contact geometry analysis 
+	public static boolean 			USE_CGAP = false;		            // include experimental feature contact geometry analysis (CGAP)
 																		// (visualization of contact potentials and neighbourhood traces) 
 	/* external programs: dssp */
 	public static String			DSSP_EXECUTABLE = ""; 				
@@ -122,16 +121,18 @@ public class Start {
 	private static int        		DEFAULT_MIN_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito
 	private static int        		DEFAULT_MAX_SEQSEP = 		ProtStructGraph.NO_SEQ_SEP_VAL;		// dito	
 	
-	/* database options */
-	public static String			DB_USER;
-	public static String			DB_PWD;
-	public static String			DB_HOST;
-	public static String			DB_NAME;
+	/* database options (currently these are only used by CGAP, for pdbase/graph db, user/pw/host are taken from ~/.my.cnf) */
+	public static String			DB_USER;											// database user (needs permissions for the databases below)
+	public static String			DB_PWD;												// database password (for above user)
+	public static String			DB_HOST;											// server name for the databases below
+	public static String			CGAP_DB_NAME =					"cmview_cgap";		// name of the database containing the CGAP tables
 	
 	/*--------------------------- member variables --------------------------*/
 
 	// global session variables (use getter methods)
 	private static boolean			database_found = false;
+	private static boolean			cgap_database_found = false;
+	private static File				cgap_sphoxel_file = null;
 	private static boolean			dssp_found = false;
 	public static boolean			dali_found = false;
 	
@@ -323,7 +324,7 @@ public class Start {
 			DB_USER = p.getProperty("DB_USER");
 			DB_PWD = p.getProperty("DB_PWD");
 			DB_HOST = p.getProperty("DB_HOST");
-			DB_NAME = p.getProperty("DB_NAME");
+			CGAP_DB_NAME = p.getProperty("DB_NAME");			
 			
 			DEFAULT_FILE_PATH = p.getProperty("DEFAULT_FILE_PATH");
 			SPHOXEL_BG_FILE_PATH = p.getProperty("SPHOXEL_BG_FILE_PATH");
@@ -393,7 +394,7 @@ public class Start {
 		p.setProperty("DB_USER", DB_USER);
 		p.setProperty("DB_HOST", DB_HOST);
 		p.setProperty("DB_PWD", DB_PWD);
-		p.setProperty("DB_NAME", DB_NAME);
+		p.setProperty("DB_NAME", CGAP_DB_NAME);
 		
 		p.setProperty("DEFAULT_FILE_PATH", DEFAULT_FILE_PATH);
 		p.setProperty("SPHOXEL_BG_FILE_PATH", SPHOXEL_BG_FILE_PATH);
@@ -503,11 +504,12 @@ public class Start {
 	}	
 	
 	/**
-	 * Try connecting to the database server. Returns true on success, false otherwise.
+	 * Try connecting to the CGAP database. Returns true on success, false otherwise.
+	 * TODO: What about table rvecs10? Is that also needed?
 	 */
-	private static boolean fullTryConnectingToDb() {
+	private static boolean cgapTryConnectingToDb() {
 		try {
-			conn = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME); //(String dbServer, String dbUserName, String dbPassword)
+			conn = new MySQLConnection(DB_HOST,DB_USER,DB_PWD,CGAP_DB_NAME); //(String dbServer, String dbUserName, String dbPassword)
 			String[] tableNames = conn.getTables4Db();
 			boolean edgesExists=false, nbhstringExists=false;
 			for(int i=0; i<tableNames.length; i++){
@@ -632,6 +634,22 @@ public class Start {
 	public static boolean isDatabaseConnectionAvailable() {
 		return Start.USE_DATABASE && Start.database_found;
 		// checking for Start.USE_DATABASE should not be necessary here, but to be safe we keep it here.
+	}
+	
+	/**
+	 * Returns true if the CGAP database tables were found on startup.
+	 */
+	public static boolean isCgapDatabaseConnectionAvailable() {
+		return Start.USE_CGAP && Start.cgap_database_found;
+		// checking for Start.USE_CGAP should not be necessary here, but to be safe we keep it here.
+	}
+	
+	/**
+	 * Returns the Sphoxel file for CGAP or null if the file is not available which means CGAP will not work.
+	 * @return the Sphoxel file for CGAP or null if the file is not available which means CGAP will not work
+	 */
+	public static File getCgapSphoxelFile() {
+		return cgap_sphoxel_file;
 	}
 	
 	/**
@@ -887,17 +905,26 @@ public class Start {
 		}
 		
 		if(USE_CGAP) {
-			if (SPHOXEL_BG_FILE_PATH==null){
-				System.out.println("SPHOXEL_BG_FILE_PATH set to currentdir = "+System.getProperty("user.dir"));
-				SPHOXEL_BG_FILE_PATH = System.getProperty("user.dir");				
+			// check if zip file with pre-calculated Sphoxel backgrounds exists
+			if (SPHOXEL_BG_FILE_PATH!=null){
+				File test = new File(SPHOXEL_BG_FILE_PATH);
+				if(test.canRead()) {
+					System.out.println("Using Sphoxel background data from " + test);
+					cgap_sphoxel_file = test;
+				} else {
+					System.err.println("Could not access file " + test + ". Required file SphoxelBGs.zip for CGAP not found. CGAP will not work.");
+					cgap_sphoxel_file = null;
+				}
 			}
+			
+			// check for database connection
 			System.out.println("Connecting to cgap database...");
-			if(fullTryConnectingToDb() == false) {
-				System.err.println("No cgap database found. Some functionality will not be available.");
-				database_found = false;
+			if(cgapTryConnectingToDb() == false) {
+				System.err.println("No CGAP database found. Some functionality will not be available.");
+				cgap_database_found = false;
 			} else {
-				System.out.println("Connected to cgap database.");
-				database_found = true;
+				System.out.println("Connected to CGAP database.");
+				cgap_database_found = true;
 			}
 		}
 

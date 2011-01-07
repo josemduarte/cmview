@@ -158,7 +158,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.mod2 = null;
 		this.mod3 = null;
 		this.cmPane = cmPane;
-		if (Start.isDatabaseConnectionAvailable())
+		if (Start.isCgapDatabaseConnectionAvailable())
 			this.showTracesFeature = true;
 		else
 			defaultDim = new Dimension(1200, 600);
@@ -176,7 +176,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 		this.mod2 = mod2;
 		this.mod3 = null;
 		this.cmPane = cmPane;
-		if (Start.isDatabaseConnectionAvailable())
+		if (Start.isCgapDatabaseConnectionAvailable())
 			this.showTracesFeature = true;
 		else
 			defaultDim = new Dimension(1200, 600);

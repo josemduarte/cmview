@@ -1,0 +1,17 @@
+Developer's notes
+-----------------
+
+Development tools:
+- Eclipse 3.5.2
+- Subclipse 1.5.3 (Eclipse SVN client)
+- Docbook (see dependencies in docs/docbook/README)
+
+Build process:
+- Previously the custom script make-cmview-onejar.sh was used to build the jar file
+- Now we use the Eclipse function 'File->Export->Java->Runnable jar file'
+- Previously, the java help needs to be updated from the docbook sources
+- Afterwards, the script package_for_distribution.sh can be used to make the downloadable zip file
+
+Bug tracker:
+- Currently, there is no real online bugtracker
+- Previously, we have used an internal Twiki page and a temporary bugtracker on Google Docs

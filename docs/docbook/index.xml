@@ -3,8 +3,9 @@
 <article lang="en">
   <title>Overview</title>
   <para>CMView is an intervative contact map visualization and analysis 
-  tool. The current version is 1.1rc1. </para>
-  <para>Please send feedback to stehr ät molgen.mpg.de.</para>
+  tool. The current version is 1.1rc1.</para>
+  <para>Please sign up for the <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
+        user&apos;s mailing list</ulink> to be notified of updated versions.</para>
   <itemizedlist>
     <title>Main features:</title>
     <listitem>
