@@ -110,7 +110,7 @@ public class Start {
 	public static String			DELTA_RANK_DB = "mw";
 	
 	/* Contact Geometry Analysis Plugin */
-	public static String			SPHOXEL_BG_FILE_PATH = "";  // preferably within the same directory as cfg-file
+	public static String			SPHOXEL_BG_FILE_PATH = "";  // required by CGAP
 	
 	/* default values for loading contact maps */
 	public static String 			DEFAULT_FILE_PATH = 		"";					// file load dialog will show this location by default
@@ -906,25 +906,27 @@ public class Start {
 		
 		if(USE_CGAP) {
 			// check if zip file with pre-calculated Sphoxel backgrounds exists
-			if (SPHOXEL_BG_FILE_PATH!=null){
+			if(SPHOXEL_BG_FILE_PATH == null) {
+				System.err.println("Required file SphoxelBGs.zip for CGAP not found. Please set SPHOXEL_BG_FILE_PATH in cmview.cfg");
+			} else {
 				File test = new File(SPHOXEL_BG_FILE_PATH);
-				if(test.canRead()) {
-					System.out.println("Using Sphoxel background data from " + test);
-					cgap_sphoxel_file = test;
-				} else {
+				if(!test.isFile() || !test.canRead()) {
 					System.err.println("Could not access file " + test + ". Required file SphoxelBGs.zip for CGAP not found. CGAP will not work.");
 					cgap_sphoxel_file = null;
-				}
-			}
-			
-			// check for database connection
-			System.out.println("Connecting to cgap database...");
-			if(cgapTryConnectingToDb() == false) {
-				System.err.println("No CGAP database found. Some functionality will not be available.");
-				cgap_database_found = false;
-			} else {
-				System.out.println("Connected to CGAP database.");
-				cgap_database_found = true;
+				} else {					
+					System.out.println("Using Sphoxel background data file " + test);
+					cgap_sphoxel_file = test;
+					
+					// check for database connection
+					System.out.println("Connecting to cgap database...");
+					if(cgapTryConnectingToDb() == false) {
+						System.err.println("No CGAP database found. Some functionality will not be available.");
+						cgap_database_found = false;
+					} else {
+						System.out.println("Connected to CGAP database.");
+						cgap_database_found = true;
+					}					
+				}			
 			}
 		}
 

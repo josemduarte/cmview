@@ -531,7 +531,7 @@ public class View extends JFrame implements ActionListener {
 		pmSelModeColor = makePopupMenuItem(LABEL_SEL_MODE_COLOR, icon_sel_mode_color, popup);
 		if (Start.USE_PYMOL) {
 			popup.addSeparator();		
-			sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
+			//sendP = makePopupMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, popup);
 			popupSendEdge = makePopupMenuItem(LABEL_SHOW_PAIR_DIST_3D, icon_show_pair_dist_3d, popup);			
 			sphereP = makePopupMenuItem(LABEL_SHOW_SPHERES_POPUP_3D, icon_show_sph_3d, popup);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
@@ -543,7 +543,8 @@ public class View extends JFrame implements ActionListener {
 		if(Start.USE_CGAP && Start.getCgapSphoxelFile() != null){
 			popup.addSeparator();
 			pmShowSphoxel = makePopupMenuItem(LABEL_SHOW_SPHOXEL, icon_sphoxel_traces, popup);	
-		}	
+		}
+		popup.addSeparator();
 		delEdgesP = makePopupMenuItem(LABEL_DELETE_CONTACTS, icon_del_contacts, popup);
 
 		// Main menu
@@ -3345,11 +3346,17 @@ public class View extends JFrame implements ActionListener {
 	private void handleShowSphoxel(){
 		if(mod==null) {
 			showNoContactMapWarning();
-		} else {		
+		} else if (!mod.has3DCoordinates()) {
+			showNo3DCoordsWarning(mod);
+		} else {
 			if (this.mod2 != null)
-				contView = new ContactView(mod, mod2, "Sphoxel-NbhsTraces Representation", cmPane);
+				if(!mod2.has3DCoordinates()) {
+					showNo3DCoordsWarning(mod2);
+				} else {
+					contView = new ContactView(mod, mod2, "Sphoxel-NbhsTraces Representation", cmPane);
+				}
 			else
-				contView = new ContactView(mod,"Sphoxel-NbhsTraces Representation", cmPane);
+				contView = new ContactView(mod,"Contact Geometry Analysis", cmPane);
 		}
 	}
 	/* -------------------- Compare menu -------------------- */
