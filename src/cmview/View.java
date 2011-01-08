@@ -151,7 +151,7 @@ public class View extends JFrame implements ActionListener {
 
 	// background overlay types
 	public enum BgOverlayType {
-		NONE_SELECTED("None selected"),
+		//NONE_SELECTED("None selected"),
 		DISTANCE("Distance Map"), 
 		DENSITY("Contact Density"), 
 		COMMON_NBH("Common Nbhd"), 
@@ -1988,8 +1988,6 @@ public class View extends JFrame implements ActionListener {
 	throws IOException, FileFormatError, 
 	AlignmentConstructionError {
 
-		
-
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		// load alignment
@@ -2347,6 +2345,11 @@ public class View extends JFrame implements ActionListener {
 		
 		// re-setting window title
 		System.out.println("Second contact map loaded.");
+		
+		// disable residue rulers
+		this.cmp.remove(leftRul);
+		this.cmp.remove(topRul);
+		
 		updateTitle();
 //		String title = "Comparing " + mod.getLoadedGraphID() +" and "+mod2.getLoadedGraphID();
 //		this.setTitle(title);
@@ -2359,6 +2362,8 @@ public class View extends JFrame implements ActionListener {
 		guiState.setSelectionMode(GUIState.INITIAL_SEL_MODE);	// we reset to SQUARE_SEL in case another one (possibly not allowed in compare mode) was switched on
 		// finally repaint the whole thing to display the whole set of contacts
 		cmPane.repaint();
+		statusBar.getCoordinatesPanel().setCompareMode(true);
+		statusBar.reInitialize();		// Trying to fix bug that coordinatesPanel does not resize - not yet successful
 		
 		if (Start.isPyMolConnectionAvailable() && mod2.has3DCoordinates()) {
 			// load structure in the 3D visualizer

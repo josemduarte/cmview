@@ -51,9 +51,7 @@ import cmview.datasources.Model;
 import edu.uci.ics.jung.graph.util.Pair;
 
 public class ContactPane extends JPanel implements MouseListener, MouseMotionListener, ComponentListener{ //KeyListener
-	/**
-	 * -f /Users/vehlow/Documents/workspace/7ODC.pdb -c A
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
 	protected static Dimension defaultDim = new Dimension(1200, 880);

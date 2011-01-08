@@ -12,7 +12,7 @@ import javax.swing.JPanel;
  * This panel displays the sequence coordinates of the current mouse position if
  * the mouse is over the contact map. It is currently a subcomponent of StatusBar.  
  * 
- * The display of sequent coordinates depends on the mode and some flags which can be set
+ * The display of sequence coordinates depends on the mode and some flags which can be set
  * by the setter methods. The modes are:
  * - single contact map : show i and j sequence coordinates of current mouse position
  * - single contact map, diagonal selection mode : show additionally the sequence separation 
@@ -89,18 +89,21 @@ public class CoordinatesPanel extends JPanel {
 	/** Method called by this component to determine its minimum size */
 	@Override
 	public Dimension getMinimumSize() {
+		setTotalHeight();
 		return new Dimension(width,totalHeight);
 	}
 
 	/** Method called by this component to determine its preferred size */
 	@Override
 	public Dimension getPreferredSize() {
+		setTotalHeight();
 		return new Dimension(width,totalHeight);
 	}
 
 	/** Method called by this component to determine its maximum size */
 	@Override
 	public Dimension getMaximumSize() {
+		setTotalHeight();
 		return new Dimension(width,totalHeight);
 	}
 	
@@ -114,6 +117,19 @@ public class CoordinatesPanel extends JPanel {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g.create();
 		drawCoordinates(g2d);
+	}
+	
+	protected void setTotalHeight() {
+		totalHeight = 4 * lineHeight + bottomMargin + textYOffset;
+		if(writePDBResNum) {
+			totalHeight += lineHeight;		// for pdb res numbers
+		}	
+		if(compareMode) {
+			//totalHeight += lineHeight;	// for title
+		}
+		if(compareMode && showAliAndSeqPos ) {
+			totalHeight += lineHeight;		// for alignment coordinates
+		}		
 	}
 	
 	protected void drawCoordinates(Graphics2D g2d) {
@@ -132,16 +148,8 @@ public class CoordinatesPanel extends JPanel {
 //		int hyphenLength = 7;
 //		int lineHeight = 20;		// offset between lines
 //		int baseLineY = getHeight() - totalHeight;	// top of bg rectangle in local coordinates of this component
-		totalHeight = 3 * lineHeight + bottomMargin + textYOffset;
-		if(writePDBResNum) {
-			totalHeight += lineHeight;		// for pdb res numbers
-		}	
-		if(compareMode) {
-			totalHeight += lineHeight;		// for title
-		}
-		if(compareMode && showAliAndSeqPos ) {
-			totalHeight += lineHeight;		// for alignment coordinates
-		}	
+
+		setTotalHeight();
 		
 		int baseLineY = 0;	// top of bg rectangle in local coordinates of this component
 		
@@ -285,13 +293,11 @@ public class CoordinatesPanel extends JPanel {
 	/*-------------------------- getters and setters -----------------------*/
 	
 	public void setINum(String string) {
-		iNum = string;
-		
+		iNum = string;		
 	}
 
 	public void setJPdbNum(String string) {
-		jPdbNum = string;
-		
+		jPdbNum = string;		
 	}
 
 	public void setIPdbNum(String string) {
@@ -303,43 +309,35 @@ public class CoordinatesPanel extends JPanel {
 	}
 	
 	public void setWritePDBResNum(boolean b) {
-		writePDBResNum = false;
-		
+		writePDBResNum = false;		
 	}
 
 	public void setSeqSep(String string) {
-		seqSep = string;
-		
+		seqSep = string;		
 	}
 
 	public void setIsDiagSecMode(boolean b) {
-		seqSepMode = b;
-		
+		seqSepMode = b;		
 	}
 
 	public void setIsContact(boolean b) {
-		isContact = b;
-		
+		isContact = b;		
 	}
 
 	public void setJSSType(String string) {
-		jSSType = string;
-		
+		jSSType = string;		
 	}
 
 	public void setISSType(String string) {
-		iSSType = string;
-		
+		iSSType = string;		
 	}
 
 	public void setHasSecondaryStructure(boolean b) {
-		hasSecondaryStructure = b;
-		
+		hasSecondaryStructure = b;		
 	}
 
 	public void setJRes(String string) {
-		jRes = string;
-		
+		jRes = string;		
 	}
 
 	public void setIRes(String string) {
@@ -355,18 +353,15 @@ public class CoordinatesPanel extends JPanel {
 	}
 
 	public void setShowAliAndSeqPos(boolean b) {
-		showAliAndSeqPos = b;
-		
+		showAliAndSeqPos = b;		
 	}
 
 	public void setJNum(String string) {
 		jNum = string;
-		
 	}
 
 	public void setCompareMode(boolean b) {
 		compareMode = b;
-		
 	}
 
 	public void setIsContact2(boolean isContact2) {

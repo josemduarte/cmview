@@ -64,7 +64,6 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	private int width = 182;						// width of this component, height matches contact map size
 	private int groupWidth = width - 20;			// width of information groups within StatusBar
 	
-	
 	// general members
 	private View controller; 						// controller which is notified as a response to gui actions
 	
@@ -431,7 +430,15 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	public void showDeltaRankGroup(boolean show) {
 		this.deltaRankGroup.setVisible(show);
 	}
-		
+
+	/**
+	 * Trying to fix bug that coordinates panel is not resized properly - not yet successful
+	 */
+	public void reInitialize() {
+		coordinatesPanel.setTotalHeight();
+		coordinatesPanel.repaint();
+	}
+	
 	/** Method called by this component to determine its minimum size */
 	@Override
 	public Dimension getMinimumSize() {
@@ -566,9 +573,17 @@ public class StatusBar extends JPanel implements ItemListener, ActionListener, C
 	 * This is being called when compare mode is switched on. Currently, it
 	 * is not possible to exit compare mode (other than closing the window)
 	 * so there is no need for a disableDifferenceMapOverlay() method.
+	 * Update: Now removing all other overlay items since they should not
+	 * be available in compare mode.
 	 */
 	public void enableDifferenceMapOverlay() {
+		for (View.BgOverlayType bg:View.BgOverlayType.values()) {
+			firstViewCB.removeItem(bg);
+		}
 		firstViewCB.addItem(View.BgOverlayType.DIFF_DIST.getItem());
+		for (View.BgOverlayType bg:View.BgOverlayType.values()) {
+			secondViewCB.removeItem(bg);
+		}
 		secondViewCB.addItem(View.BgOverlayType.DIFF_DIST.getItem());			
 	}
 	
