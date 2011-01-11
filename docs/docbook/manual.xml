@@ -13,7 +13,7 @@
       and only if the two residues are in contact. Two residues are 
       considered to be in contact if they are spatially close in the 
       three dimensional structure. In CMView the definition of contact 
-      is sepcified by two paremeters: the contact type and the distance 
+      is specified by two paremeters: the contact type and the distance 
       cutoff. The contact type defines a subset of atoms of the 
       residue. Two residues i and j are then in contact if two atoms 
       out of this subset, one from i and one from j, are not further 
@@ -65,9 +65,10 @@
         <para>CMView shows the contact map of a single polypeptide 
         chain in its main window. A position (i,j) in the contact map 
         corresponds to residues i and j in the sequence of the 
-        displayed chain. In the lower left corner information is 
-        displayed about the current residue pair (or pairs in compare 
-        mode):</para>
+        displayed chain. The contact map is symmetrical with respect to 
+        the main diagonal. In the lower right corner information is 
+        displayed about the residue pair (or pairs in compare mode) at 
+        the current mouse position:</para>
         <itemizedlist>
           <listitem>
             <para>The residue numbers of i and j in the sequence</para>
@@ -79,6 +80,8 @@
             <para>The secondary structure types (alpha, beta or 
             none)</para>
           </listitem>
+        </itemizedlist>
+        <itemizedlist>
           <listitem>
             <para>The PDB residue numbers. These are shown only if a 
             tertiary structure file was loaded. By default, CMView 
@@ -86,7 +89,9 @@
             does not necessarily match the numbers assigned to residues 
             in the ATOM lines of PDB files. To compare with other data 
             where the PDB residue numbering is used, the residue 
-            numbers as found in the PDB file are printed here.</para>
+            numbers as found in the PDB file are printed here. (Note: 
+            This function has to be enabled with SHOW_PDB_RES_NUMS=true 
+            in the config file).</para>
           </listitem>
         </itemizedlist>
       </sect3>
@@ -120,6 +125,44 @@
           </listitem>
           <listitem>
             <para>Green: Turn</para>
+          </listitem>
+        </itemizedlist>
+      </sect3>
+      <sect3>
+        <title>Side bar</title>
+        <para>To the right of the contact map is the side bar which 
+        contains further elements:</para>
+        <itemizedlist>
+          <listitem>
+            <para>The overlay menu: Different background overlays can 
+            be selected which display additional information in the 
+            contact map window. The overlays can be selected seperately 
+            for the upper left and lower right half of the 
+            (symmetrical) contact map. See <link linkend="overlays">Overlays</link>.</para>
+          </listitem>
+          <listitem>
+            <para>Further context-dependent tools for experimental 
+            features (if enabled)</para>
+          </listitem>
+          <listitem>
+            <para>At the bottom: the coordinates display (information 
+            about the residue pair at the current mouse position in the 
+            contact map)</para>
+          </listitem>
+        </itemizedlist>
+        <para>The following overlays can be selected:</para>
+        <itemizedlist>
+          <listitem>
+            <para><link linkend="overlays.distancemap">Distance map</link> (shows distances between C-alpha atoms 
+            if a 3D structure is loaded)</para>
+          </listitem>
+          <listitem>
+            <para><link linkend="overlays.density">Contact density</link> (helps to identify domain- and 
+            subdomain structures)</para>
+          </listitem>
+          <listitem>
+            <para><link linkend="overlays.commonnbs">Common neighbours</link> (triangle inequality 
+            relationships)</para>
           </listitem>
         </itemizedlist>
       </sect3>
@@ -260,19 +303,20 @@
         specified contact type and distance cutoff, the structure will 
         be automatically loaded into PyMol and the 3D visualization 
         features will be available.</para>
-        <para>For contact map files, only the main contact map window 
-        will be available.</para>
-        <para>CMView contact map files are special in the sense that 
-        they store the PDB code of the structure they were derived from 
-        (if applicable). When opening a .cm file, the application then 
-        tries to retrieve the 3D coordinates from the online PDB.</para>
+        <para>For contact map files (e.g. Casp RR files), only the main 
+        contact map window will be available.</para>
+        <para>Contact map files saved by CMView in its native text 
+        format are special in the sense that they store the PDB code of 
+        the structure they were derived from (if applicable). When 
+        opening such a .cm file, the application tries to retrieve the 
+        3D coordinates from the online PDB.</para>
         <sect4 id="menu.file.load.onlinepdb">
           <title>Load from online PDB</title>
           <para>Loads a structure from the PDB ftp site. The file is 
           downloaded in mmCIF format and cached locally.</para>
         </sect4>
         <sect4>
-          <title>Load from PDB file</title>
+          <title>Load from PDB file / Load from Casp TS file</title>
           <para>Loads a structure from a local PDB file. The file needs 
           to contain an initial HEADER line and one or more ATOM lines 
           following the PDB file specification [1]. Alternatively, 
@@ -325,8 +369,8 @@
         </sect4>
         <sect4>
           <title>Save to PNG file</title>
-          <para>Exports the contents of the main contact map window as 
-          a PNG image file.</para>
+          <para>Exports the current contents of the main contact map 
+          window as a PNG image file.</para>
         </sect4>
         <sect4>
           <title>Save Alignment to file</title>
@@ -339,37 +383,7 @@
         <title>Quit</title>
         <para>Closes all windows and exits CMView.</para>
       </sect3>
-    </sect2>
-    <sect2 id="menu.view">
-      <title>View</title>
-      <sect3>
-        <title>Show contact density</title>
-        <para>Displays/hides the contact density map.</para>
-        <para>The contact density map shows for every residue pair 
-        (i,j) the density of contacts within the backbone fragment 
-        ranging from i to j. The density is defined as the number of 
-        contacts within the fragment normalized by the average number 
-        of contacts over all fragments of the same size. High densities 
-        are shown in red, low densities are shown in blue.</para>
-        <para>High-density regions often coincide with structural units 
-        like domains, secondary- and super-secondary structure 
-        elements.</para>
-      </sect3>
-      <sect3>
-        <title>Show distance map</title>
-        <para>Displays/hides a distance map showing all pairwise 
-        distances between residues.</para>
-        <para>Distances are visualized as colors. The color coding 
-        depends on the distance cutoff of the current contact map. 
-        Distances above the cutoff are shown in blue, distances around 
-        the cutoff are shown in green and distances below the cutoff 
-        are shown in red, where the darkest blue is the longest 
-        distance and the darkest red is the shortest distance. 
-        Distances are calculated between C-alpha atoms.</para>
-        <para>The distance map can only be calculated if 3D coordinates 
-        for the structure are available.</para>
-      </sect3>
-    </sect2>
+    </sect2>      
     <sect2 id="menu.select">
       <title>Select</title>
       <sect3 id="menu.select.mode">
@@ -831,6 +845,51 @@
         <para>Shows the common neighborhood sizes for all residue pairs 
         as colors in the contact map.</para>
         <para />
+      </sect3>
+    </sect2>
+    <sect2 id="overlays">
+      <title>Overlays</title>
+      <para>Overlays can be selected from the overlay menu in the side bar on the right. They display additional information in the contact map windows.</para>
+      <sect3 id="overlays.density">
+        <title>Contact density</title>
+        <para>Displays/hides the contact density map.</para>
+        <para>The contact density map shows for every residue pair 
+        (i,j) the density of contacts within the backbone fragment 
+        ranging from i to j. The density is defined as the number of 
+        contacts within the fragment normalized by the average number 
+        of contacts over all fragments of the same size. High densities 
+        are shown in red, low densities are shown in blue.</para>
+        <para>High-density regions often coincide with structural units 
+        like domains, secondary- and super-secondary structure 
+        elements.</para>
+      </sect3>
+      <sect3 id="overlays.distmap">
+        <title>Distance map</title>
+        <para>Displays/hides a distance map showing all pairwise 
+        distances between residues.</para>
+        <para>Distances are visualized as colors. The color coding 
+        depends on the distance cutoff of the current contact map. 
+        Distances above the cutoff are shown in blue, distances around 
+        the cutoff are shown in green and distances below the cutoff 
+        are shown in red, where the darkest blue is the longest 
+        distance and the darkest red is the shortest distance. 
+        Distances are calculated between C-alpha atoms.</para>
+        <para>The distance map can only be calculated if 3D coordinates 
+        for the structure are available.</para>
+      </sect3>
+      <sect3 id="overlays.commonnbs">
+        <title>Common neighbours</title>
+        <para>Displays/hides common neighbor relationships.</para>
+        <para>If two residues i and j are each in contact with a third residue
+        k they are said to share the common neihgbour k. Then by the triangle
+        inequality one can infer that i and j can be no further apart than twice the
+        contact distance cutoff (even if i and j are not in contact themselves). For
+        predicted or incomplete contact maps this gives information that is not
+        immediately visible in the raw contact map. For example, short range
+        contacts (those, close to the diagonal) can often be infered from long range
+        contacts by common neighbor relationships.</para>
+        <para>The darker the shade of green in the overlay, the more common neighbours
+        the particular residues share.</para>
       </sect3>
     </sect2>
   </sect1>
