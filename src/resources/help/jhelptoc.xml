@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no"?>
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN" "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 <toc version="1.0">
-  <tocitem target="top" text="CMView 1.1 User's manual">
+  <tocitem target="top" text="CMView 1.1 User's Manual">
     <tocitem target="overview" text="Overview">
       <tocitem target="id2572685" text="Contact map definition"/>
       <tocitem target="id2550908" text="Contact types"/>
