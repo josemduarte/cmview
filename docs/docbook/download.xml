@@ -4,14 +4,14 @@
   <title>Download</title>
   <itemizedlist>
     <listitem>
-      <para>Current version: CMView-1.1-rc3.zip</para>
+      <para>Current version: <ulink url="downloads/CMView-1.1-rc3.zip">CMView-1.1-rc3.zip</ulink></para>
     </listitem>
     <listitem>
-      <para>PDF manual</para>
+      <para><ulink url="downloads/manual.pdf">PDF manual</ulink></para>
     </listitem>
     <listitem>
       <para>Older versions:</para>
-      <para>CMView-0.9.6.zip</para>
+      <para><ulink url="downloads/CMView-0.9.6.zip">CMView-0.9.6.zip</ulink></para>
     </listitem>
   </itemizedlist>
 </article>

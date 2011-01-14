@@ -1,40 +1,53 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>Manual</title><meta name="generator" content="DocBook XSL Stylesheets V1.73.2"><link rel="start" href="index.html" title="Manual"><link rel="next" href="ar01s02.html" title="Function Reference"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="top"></a>Manual</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="index.html#overview">Overview</a></span></dt><dd><dl><dt><span class="sect2"><a href="index.html#id2582642">Contact map definition</a></span></dt><dt><span class="sect2"><a href="index.html#id2582113">Contact types</a></span></dt><dt><span class="sect2"><a href="index.html#id2571044">Screen elements</a></span></dt></dl></dd><dt><span class="sect1"><a href="ar01s02.html">Function Reference</a></span></dt><dd><dl><dt><span class="sect2"><a href="ar01s02.html#menu.file">File</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.view">View</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.select">Select</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.color">Color</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.action">Action</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.compare">Compare</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.help">Help</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#popup">Context menu</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#experimental">Experimental features (unsupported)</a></span></dt></dl></dd><dt><span class="sect1"><a href="ar01s03.html">Command line parameters</a></span></dt><dt><span class="sect1"><a href="ar01s04.html">Configuration</a></span></dt><dd><dl><dt><span class="sect2"><a href="ar01s04.html#id2583000">Overview</a></span></dt><dt><span class="sect2"><a href="ar01s04.html#id2583068">Available configuration parameters:</a></span></dt></dl></dd></dl></div><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="overview"></a>Overview</h2></div></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2582642"></a>Contact map definition</h3></div></div></div><p>CMView is a software tool for visualizing and analyzing the 
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>CMView 1.1 User's manual</title><meta name="generator" content="DocBook XSL Stylesheets V1.73.2"><link rel="start" href="index.html" title="CMView 1.1 User's manual"><link rel="next" href="ar01s02.html" title="Function Reference"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="top"></a>CMView 1.1 User's manual</h2></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="index.html#overview">Overview</a></span></dt><dd><dl><dt><span class="sect2"><a href="index.html#id2572685">Contact map definition</a></span></dt><dt><span class="sect2"><a href="index.html#id2550908">Contact types</a></span></dt><dt><span class="sect2"><a href="index.html#id2573197">Screen elements</a></span></dt></dl></dd><dt><span class="sect1"><a href="ar01s02.html">Function Reference</a></span></dt><dd><dl><dt><span class="sect2"><a href="ar01s02.html#menu.file">File</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.select">Select</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.color">Color</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.action">Action</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.compare">Compare</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#menu.help">Help</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#popup">Context menu</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#experimental">Experimental features (unsupported)</a></span></dt><dt><span class="sect2"><a href="ar01s02.html#overlays">Overlays</a></span></dt></dl></dd><dt><span class="sect1"><a href="ar01s03.html">Command line parameters</a></span></dt><dt><span class="sect1"><a href="ar01s04.html">Configuration</a></span></dt><dd><dl><dt><span class="sect2"><a href="ar01s04.html#id2578368">Overview</a></span></dt><dt><span class="sect2"><a href="ar01s04.html#id2528059">Available configuration parameters</a></span></dt></dl></dd></dl></div><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="overview"></a>Overview</h2></div></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2572685"></a>Contact map definition</h3></div></div></div><p>CMView is a software tool for visualizing and analyzing the 
       network of contacts between amino acid residues in a protein 
       structure. Formally, this network is a graph where each residue 
       corresponds to a node and two nodes are connected by an edge if 
       and only if the two residues are in contact. Two residues are 
-      considered to be in contact if they are spacially close in the 
-      three dimensional structure. The exact definition of contact 
-      depends on two parameters which can be chosen interactively in 
-      the program: the contact type and the distance cutoff. The 
-      contact type defines a subset of atoms of the residue. Two 
-      residues i and j are then in contact if two atoms out of this 
-      subset, one from i and one from j, are not further apart than the 
-      distance cutoff. The depiction of the contact network as a matrix 
-      is often called a contact map. CMView shows the contact map of a 
-      single polypeptide chain in its main window.</p></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2582113"></a>Contact types</h3></div></div></div><p>The supported contact types are:</p><p>
-
+      considered to be in contact if they are spatially close in the 
+      three dimensional structure. In CMView the definition of contact 
+      is specified by two paremeters: the contact type and the distance 
+      cutoff. The contact type defines a subset of atoms of the 
+      residue. Two residues i and j are then in contact if two atoms 
+      out of this subset, one from i and one from j, are not further 
+      apart than the distance cutoff. The depiction of the contact 
+      network as a matrix (formally, the adjacency matrix of the 
+      contact graph) is called a contact map.</p></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2550908"></a>Contact types</h3></div></div></div><p>The supported contact types are:</p><p>
         </p><div class="informaltable"><table border="1"><colgroup><col><col></colgroup><tbody><tr><td>AL</td><td>All atoms</td></tr><tr><td>BB</td><td>All backbone atoms</td></tr><tr><td>SC</td><td>All side-chain atoms</td></tr><tr><td>C</td><td>The C atom of the backbone</td></tr><tr><td>Ca</td><td>The C-alpha atom of the backbone</td></tr><tr><td>Cb</td><td>The C-beta atom of the side-chain (C-alpha for 
                 glycine)</td></tr></tbody></table></div><p>
-
-      </p></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2571044"></a>Screen elements</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2529203"></a>Contact map window</h4></div></div></div><p>CMView shows the contact map of a single polypeptide 
+      </p></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2573197"></a>Screen elements</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2546144"></a>Contact map window</h4></div></div></div><p>CMView shows the contact map of a single polypeptide 
         chain in its main window. A position (i,j) in the contact map 
         corresponds to residues i and j in the sequence of the 
-        displayed chain. In the lower left corner information is 
-        displayed about the current residue pair (or pairs in compare 
-        mode):</p><div class="itemizedlist"><ul type="disc"><li><p>The residue numbers of i and j in the 
-              sequence</p></li><li><p>The residue types (in three letter notation)</p></li><li><p>The secondary structure types (alpha, beta or 
-              none)</p></li><li><p>The PDB residue numbers. These are shown only if a 
-              tertiary structure file was loaded. By default, CMView 
-              numbers residues by their position in the sequence. This 
-              does not necessarily match the numbers assigned to 
-              residues in the ATOM lines of PDB files. To compare with 
-              other data where the PDB residue numbering is used, the 
-              residue numbers as found in the PDB file are printed 
-              here.</p></li></ul></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2529259"></a>Secondary structure rulers</h4></div></div></div><p>The rulers shown above and to the left of the contact map 
+        displayed chain. The contact map is symmetrical with respect to 
+        the main diagonal. In the lower right corner information is 
+        displayed about the residue pair (or pairs in compare mode) at 
+        the current mouse position:</p><div class="itemizedlist"><ul type="disc"><li><p>The residue numbers of i and j in the sequence</p></li><li><p>The residue types (in three letter notation)</p></li><li><p>The secondary structure types (alpha, beta or 
+            none)</p></li></ul></div><div class="itemizedlist"><ul type="disc"><li><p>The PDB residue numbers. These are shown only if a 
+            tertiary structure file was loaded. By default, CMView 
+            numbers residues by their position in the sequence. This 
+            does not necessarily match the numbers assigned to residues 
+            in the ATOM lines of PDB files. To compare with other data 
+            where the PDB residue numbering is used, the residue 
+            numbers as found in the PDB file are printed here. (Note: 
+            This function has to be enabled with SHOW_PDB_RES_NUMS=true 
+            in the config file).</p></li></ul></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2561343"></a>Secondary structure rulers</h4></div></div></div><p>The rulers shown above and to the left of the contact map 
         are used for:</p><div class="itemizedlist"><ul type="disc"><li><p>Displaying secondary structure elements</p></li><li><p>Selecting residues (see 
             <a class="link" href="ar01s02.html#menu.select.mode" title="Selection modes">selection 
             modes</a>)</p></li><li><p>Selecting secondary structure elements (see 
             <a class="link" href="ar01s02.html#menu.select.mode" title="Selection modes">selection 
             modes</a>)</p></li></ul></div><p>The color scheme for secondary structure elements 
-        is:</p><div class="itemizedlist"><ul type="disc"><li><p>Blue: Alpha-helix</p></li><li><p>Red: Beta-sheet</p></li><li><p>Green: Turn</p></li></ul></div></div></div></div></div></body></html>
+        is:</p><div class="itemizedlist"><ul type="disc"><li><p>Blue: Alpha-helix</p></li><li><p>Red: Beta-sheet</p></li><li><p>Green: Turn</p></li></ul></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2581377"></a>Side bar</h4></div></div></div><p>To the right of the contact map is the side bar which 
+        contains further elements:</p><div class="itemizedlist"><ul type="disc"><li><p>The overlay menu: Different background overlays can 
+            be selected which display additional information in the 
+            contact map window. The overlays can be selected seperately 
+            for the upper left and lower right half of the 
+            (symmetrical) contact map. See <a class="link" href="ar01s02.html#overlays" title="Overlays">
+            Overlays</a>.</p></li><li><p>Further context-dependent tools for experimental 
+            features (if enabled)</p></li><li><p>At the bottom: the coordinates display (information 
+            about the residue pair at the current mouse position in the 
+            contact map)</p></li></ul></div><p>The following overlays can be selected from the overlay 
+        menu:</p><div class="itemizedlist"><ul type="disc"><li><p><a class="link" href="ar01s02.html#overlays.distmap" title="Distance map">Distance 
+            map</a> (shows distances between C-alpha atoms if a 3D 
+            structure is loaded)</p></li><li><p><a class="link" href="ar01s02.html#overlays.density" title="Contact density">Contact 
+            density</a> (helps to identify domain- and subdomain 
+            structures)</p></li><li><p><a class="link" href="ar01s02.html#overlays.commonnbs" title="Common neighbours">Common 
+            neighbours</a> (triangle inequality relationships)</p></li></ul></div></div></div></div></div></body></html>

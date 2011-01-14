@@ -59,6 +59,10 @@
           </listitem>
         </itemizedlist>
       </listitem>
+      <listitem>     
+        <para>Sign up for the <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
+        user&apos;s mailing list</ulink> to get help and to be notified of updated versions.</para>
+      </listitem>      
     </orderedlist>
   </sect1>
   <sect1>
@@ -86,7 +90,7 @@
       <ulink url="http://swift.cmbi.ru.nl/gv/dssp/">
       http://swift.cmbi.ru.nl/gv/dssp/</ulink>. To enable using 
       <acronym>DSSP</acronym> in CMView you need to set the parameter 
-      <parameter>DSSP_EXECUTABLE</parameter> in <filename>
+      <parameter>DSSP_EXECUTABLE</parameter>  in <filename>
       cmview.cfg</filename> to point to your <acronym>DSSP</acronym> 
       executable. For example:</para>
       <programlisting>DSSP_EXECUTABLE=C:/Program Files/dssp/dssp.exe</programlisting>
@@ -99,8 +103,8 @@
         at 
         <ulink url="http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html">
         http://ekhidna.biocenter.helsinki.fi/dali_lite/downloads/download.html</ulink>
-         to install DALI. After installation, add the path to the 
-        DALILITE executable in 
+         to install DALI (currently only available for Linux). After 
+        installation, add the path to the DALILITE executable in 
         <filename>cmview.cfg</filename>
          , i. e.:
         <programlisting>DALI_EXECUTABLE=/usr/bin/DaliLite</programlisting>

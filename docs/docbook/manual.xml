@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <article id="top" lang="en">
-  <title>Manual</title>
+  <title>CMView 1.1 User's manual</title>
   <sect1 id="overview">
     <title>Overview</title>
     <sect2>
@@ -155,7 +155,7 @@
         menu:</para>
         <itemizedlist>
           <listitem>
-            <para><link linkend="overlays.distancemap">Distance 
+            <para><link linkend="overlays.distmap">Distance 
             map</link> (shows distances between C-alpha atoms if a 3D 
             structure is loaded)</para>
           </listitem>
@@ -703,15 +703,14 @@
       <sect3 id="menu.action.conepeeling">
         <title>Run Cone Peeling Algorithm</title>
         <para>Runs the Cone Peeling algorithm described in</para>
-        <para><emph>Sathyapriya et al., Defining an Essence of 
+        <para><emphasis>Sathyapriya et al., Defining an Essence of 
         Structure Determining Residue Contacts in Proteins. PLoS 
-        Computational Biology 5(12): e1000584 (2009).</emph></para>
+        Computational Biology 5(12): e1000584 (2009).</emphasis></para>
         <para>This algorithm attempts to calculate a minimal subset of 
         contacts which are sufficient to reconstruct the fold with 
         distance geometry. See the reference for more information. This 
         will modify the current contact map and show the minimal subset 
-        and the original contact map in compare mode</para>
-        .
+        and the original contact map in compare mode.</para>
       </sect3>
     </sect2>
     <sect2 id="menu.compare">

@@ -85,8 +85,7 @@
     </qandaentry>
     <qandaentry>
       <question>
-        <para>The cmview.cfg file does not properly display under 
-        Windows. What can I do?</para>
+        <para>Why does the cmview.cfg file not properly display in Windows?</para>
       </question>
       <answer>
         <para>The file uses Unix-style line terminators wich causes 
