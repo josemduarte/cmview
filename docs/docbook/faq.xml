@@ -3,7 +3,6 @@
 <article lang="en">
   <title>FAQ</title>
   <qandaset>
-    
     <qandaentry>
       <question>
         <para>Who created CMView?</para>
@@ -17,7 +16,6 @@
         of developers working in academia and industry.</para>
       </answer>
     </qandaentry>
-    
     <qandaentry>
       <question>
         <para>What are the license terms for CMView?</para>
@@ -29,7 +27,6 @@
         ask you to give proper citation (see below).</para>
       </answer>
     </qandaentry>
-    
     <qandaentry>
       <question>
         <para>How to cite the CMView software?</para>
@@ -42,52 +39,75 @@
         http://www.bioinformatics.org/cmview/.</emphasis></para>
       </answer>
     </qandaentry>
- 
     <qandaentry>
       <question>
         <para>How can I obtain the source code?</para>
       </question>
       <answer>
-        <para>The latest development version can be downloaded from the
+        <para>The latest development version can be downloaded from the 
         <ulink url="http://www.bioinformatics.org/websvn/listing.php?repname=cmview">
-        Subversion repository</ulink>. Please see the
+        Subversion repository</ulink>. Please see the 
         <ulink url="http://www.bioinformatics.org/groups/?group_id=1030">
-        development page</ulink> for details. CMView requires the
-        <ulink url="http://www.bioinformatics.org/owl/">OWL library</ulink>
-        which can also be downloaded via
+        development page</ulink> for details. CMView requires the 
+        <ulink url="http://www.bioinformatics.org/owl/">OWL 
+        library</ulink> which can also be downloaded via 
         <ulink url="http://www.bioinformatics.org/websvn/listing.php?repname=owl">
         Subversion</ulink>.</para>
       </answer>
     </qandaentry>
-    
     <qandaentry>
       <question>
         <para>Is there a mailing list?</para>
       </question>
       <answer>
-        <para>There are mailing lists for
+        <para>There are mailing lists for 
         <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
-        users</ulink> and for
+        users</ulink> and for 
         <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-devel">
-        developers</ulink>. Please
+        developers</ulink>. Please 
         <ulink url="http://www.bioinformatics.org/mailman/listinfo/cmview-users">
-        sign up</ulink> to the users mailing list to be notified of new
+        sign up</ulink> to the users mailing list to be notified of new 
         versions and to ask questions about the usage of CMView.</para>
       </answer>
-    </qandaentry>   
-    
+    </qandaentry>
     <qandaentry>
       <question>
-        <para>I am getting a Java out of memory exception. What can I 
-        do?</para>
+        <para>Haw can I avoid Java out of memory exceptions?</para>
       </question>
       <answer>
         <para>For large proteins the contact map calculation may use 
         more than the preset amount of memory. Try setting the -Xmx 
         parameter in the startup script to a higher value (e.g. 
-        -Xmx512m or -Xmx1024m).</para>
+        -Xmx512m or -Xmx1024m). Alternatively, if CMView does not start 
+        because you have limited memory available, you can also set a 
+        lower value.</para>
       </answer>
     </qandaentry>
-  
+    <qandaentry>
+      <question>
+        <para>The cmview.cfg file does not properly display under 
+        Windows. What can I do?</para>
+      </question>
+      <answer>
+        <para>The file uses Unix-style line terminators wich causes 
+        some Windows editors to ignore the line breaks. If you use the 
+        Wordpad application instead of Notepad, the file should display 
+        properly.</para>
+      </answer>
+    </qandaentry>
+    <qandaentry>
+      <question>
+        <para>Is there a DSSP version for MacOSX?</para>
+      </question>
+      <answer>
+        <para>The DSSP version for Mac available from 
+        <ulink url="http://swift.cmbi.ru.nl/gv/dssp/">
+        http://swift.cmbi.ru.nl/gv/dssp/</ulink> is for the classic 
+        environment which is not supported anymore by current MacOS 
+        versions. However, we were able to successfully compile DSSP 
+        for MacOSX from source code using the included make file. The 
+        source code is available from the above URL.</para>
+      </answer>
+    </qandaentry>
   </qandaset>
 </article>

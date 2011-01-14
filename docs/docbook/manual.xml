@@ -138,7 +138,8 @@
             be selected which display additional information in the 
             contact map window. The overlays can be selected seperately 
             for the upper left and lower right half of the 
-            (symmetrical) contact map. See <link linkend="overlays">Overlays</link>.</para>
+            (symmetrical) contact map. See <link linkend="overlays">
+            Overlays</link>.</para>
           </listitem>
           <listitem>
             <para>Further context-dependent tools for experimental 
@@ -150,19 +151,22 @@
             contact map)</para>
           </listitem>
         </itemizedlist>
-        <para>The following overlays can be selected:</para>
+        <para>The following overlays can be selected from the overlay 
+        menu:</para>
         <itemizedlist>
           <listitem>
-            <para><link linkend="overlays.distancemap">Distance map</link> (shows distances between C-alpha atoms 
-            if a 3D structure is loaded)</para>
+            <para><link linkend="overlays.distancemap">Distance 
+            map</link> (shows distances between C-alpha atoms if a 3D 
+            structure is loaded)</para>
           </listitem>
           <listitem>
-            <para><link linkend="overlays.density">Contact density</link> (helps to identify domain- and 
-            subdomain structures)</para>
+            <para><link linkend="overlays.density">Contact 
+            density</link> (helps to identify domain- and subdomain 
+            structures)</para>
           </listitem>
           <listitem>
-            <para><link linkend="overlays.commonnbs">Common neighbours</link> (triangle inequality 
-            relationships)</para>
+            <para><link linkend="overlays.commonnbs">Common 
+            neighbours</link> (triangle inequality relationships)</para>
           </listitem>
         </itemizedlist>
       </sect3>
@@ -383,7 +387,7 @@
         <title>Quit</title>
         <para>Closes all windows and exits CMView.</para>
       </sect3>
-    </sect2>      
+    </sect2>
     <sect2 id="menu.select">
       <title>Select</title>
       <sect3 id="menu.select.mode">
@@ -535,6 +539,32 @@
             </listitem>
           </itemizedlist>
         </sect4>
+        <sect4 id="menu.select.mode.addremove">
+          <title>Add/remove contacts mode</title>
+          <para>Add or remove individual contacts. Note that this will 
+          modify the contact map and possibly make it inconsistent with 
+          the loaded 3D structure. To exit this mode, choose one of the 
+          other selection modes.</para>
+          <itemizedlist>
+            <title>In contact map</title>
+            <listitem>
+              <para>Click on an existing contact to remove it from the 
+              contact map</para>
+            </listitem>
+            <listitem>
+              <para>Click on a white cell to add the respective contact 
+              to the contact map</para>
+            </listitem>
+          </itemizedlist>
+          <itemizedlist>
+            <title>In ruler</title>
+            <listitem>
+              <para>Same behavior as in 
+              <link linkend="menu.select.mode.rect">rectangular 
+              selection mode</link></para>
+            </listitem>
+          </itemizedlist>
+        </sect4>
       </sect3>
       <sect3>
         <title>Select all contacts</title>
@@ -601,7 +631,7 @@
         <para>Visualizes the currently selected contacts as edges in 
         the 3D viewer. The edges are drawn between the C-alpha atoms of 
         the residues in contact.</para>
-        <para>In single contact map mode, two selection object are 
+        <para>In single contact map mode, two selection objects are 
         created in the 3D viewer:</para>
         <orderedlist>
           <listitem>
@@ -653,10 +683,35 @@
         grouped together for a better overview. Earlier versions of 
         PyMol do not support this feature.</para>
       </sect3>
+      <sect3 id="menu.action.thresholdspheres">
+        <title>Show threshold spheres for selected contacts in 
+        3D</title>
+        <para>For selected contacts (i,j) draws spheres around residues 
+        i and j in the 3D viewer, where the sphere radius is the 
+        current contact threshold. This shows the sphere of influence 
+        of the individual residues under the chosen contact definition. 
+        Threshold spheres can also be drawn for residue pairs not in 
+        contact by right-clicking on the residue pair in the contact 
+        map and choosing <guimenuitem>Show Threshold Spheres For Residue 
+        Pair</guimenuitem> from the context menu.</para>
+      </sect3>
       <sect3 id="menu.action.delete">
         <title>Delete selected contacts</title>
         <para>Permanently deletes the currently selected contacts from 
         the contact map.</para>
+      </sect3>
+      <sect3 id="menu.action.conepeeling">
+        <title>Run Cone Peeling Algorithm</title>
+        <para>Runs the Cone Peeling algorithm described in</para>
+        <para><emph>Sathyapriya et al., Defining an Essence of 
+        Structure Determining Residue Contacts in Proteins. PLoS 
+        Computational Biology 5(12): e1000584 (2009).</emph></para>
+        <para>This algorithm attempts to calculate a minimal subset of 
+        contacts which are sufficient to reconstruct the fold with 
+        distance geometry. See the reference for more information. This 
+        will modify the current contact map and show the minimal subset 
+        and the original contact map in compare mode</para>
+        .
       </sect3>
     </sect2>
     <sect2 id="menu.compare">
@@ -692,8 +747,9 @@
             <para>Calculates a global sequence alignment using the 
             classic Needleman-Wunsch-Gotoh algorithm with standard 
             parameters (Matrix: BLOSSUM50, Gap-open: 10, Gap-extend: 
-            0.5). The JAligner package [1] is used for the 
-            calculation.</para>
+            0.5). The JAligner package [1] is used for the calculation. 
+            Use this for sequence identical structures (e.g. different 
+            conformations of the same protein).</para>
           </listitem>
           <listitem>
             <para>Maximum contact map overlap structural 
@@ -707,17 +763,23 @@
           </listitem>
           <listitem>
             <para>DALI structural alignment</para>
-            <para>Compute a structural alignment via a locally 
-            installed DALILITE[3]. See <ulink url="installation.html">
-            installation</ulink> for instructions to install 
-            DALI.</para>
+            <para>Computes a structural alignment using DALI[3]. DALI 
+            needs to be installed locally and the parameter <parameter>
+            DALI_EXECUTABLE</parameter> has to be set in the <filename>
+            cmview.cfg</filename> config file. See 
+            <ulink url="http://www.bioinformatics.org/cmview/installation.html">
+            installation</ulink> for instructions on how to install 
+            DALI. This feature can only be selected if 3D coordinates 
+            for both structures to be compared are available.</para>
           </listitem>
           <listitem>
             <para>Load alignment from FASTA file</para>
             <para>Loads an alignment from a text file in FASTA 
             alignment format. This format can be exported by many 
             standard sequence alignment programs (e.g. Muscle, 
-            T-Coffee, EMBOSS, Bioperl).</para>
+            T-Coffee, EMBOSS, Bioperl). The sequences in the alignment 
+            file have to match the ones of the structures to be 
+            compared.</para>
           </listitem>
         </orderedlist>
         <para>References:</para>
@@ -809,6 +871,13 @@
         independent of whether the two residues are in contact or 
         not.</para>
       </sect3>
+      <sect3>
+        <title>Show threshold spheres for residue pair in 3D</title>
+        <para>Draws the <link linkend="menu.action.thresholdspheres">
+        threshold spheres</link> for the selected pair of residues in the 3D viewer.
+        This feature is independent of whether the two residues are in
+        contact or not.</para>
+      </sect3>
     </sect2>
     <sect2 id="experimental">
       <title>Experimental features (unsupported)</title>
@@ -849,7 +918,9 @@
     </sect2>
     <sect2 id="overlays">
       <title>Overlays</title>
-      <para>Overlays can be selected from the overlay menu in the side bar on the right. They display additional information in the contact map windows.</para>
+      <para>Overlays can be selected from the overlay menu in the side 
+      bar on the right. They display additional information in the 
+      contact map windows.</para>
       <sect3 id="overlays.density">
         <title>Contact density</title>
         <para>Displays/hides the contact density map.</para>
@@ -880,16 +951,18 @@
       <sect3 id="overlays.commonnbs">
         <title>Common neighbours</title>
         <para>Displays/hides common neighbor relationships.</para>
-        <para>If two residues i and j are each in contact with a third residue
-        k they are said to share the common neihgbour k. Then by the triangle
-        inequality one can infer that i and j can be no further apart than twice the
-        contact distance cutoff (even if i and j are not in contact themselves). For
-        predicted or incomplete contact maps this gives information that is not
-        immediately visible in the raw contact map. For example, short range
-        contacts (those, close to the diagonal) can often be infered from long range
-        contacts by common neighbor relationships.</para>
-        <para>The darker the shade of green in the overlay, the more common neighbours
-        the particular residues share.</para>
+        <para>If two residues i and j are each in contact with a third 
+        residue k they are said to share the common neihgbour k. Then 
+        by the triangle inequality one can infer that i and j can be no 
+        further apart than twice the contact distance cutoff (even if i 
+        and j are not in contact themselves). For predicted or 
+        incomplete contact maps this gives information that is not 
+        immediately visible in the raw contact map. For example, short 
+        range contacts (those, close to the diagonal) can often be 
+        infered from long range contacts by common neighbor 
+        relationships.</para>
+        <para>The darker the shade of green in the overlay, the more 
+        common neighbours the particular residues share.</para>
       </sect3>
     </sect2>
   </sect1>
@@ -1116,23 +1189,14 @@
         <varlistentry>
           <term><parameter>DALI_EXECUTABLE</parameter></term>
           <listitem>
-            <para>Path to the locally installed DALI executable to be 
-            used for structural alignments.</para>
-            <para>Default: --</para>
+            <para>The path to the locally installed DALI executable to 
+            be used for structural alignments.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term><parameter>PYMOL_EXECUTABLE</parameter></term>
           <listitem>
             <para>The path to the local PyMol executable</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term><parameter>PYMOL_PORT</parameter></term>
-          <listitem>
-            <para>The port on which the PyMol server is listening to 
-            commands</para>
-            <para>Default: 9123</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -1219,13 +1283,6 @@
             <term><parameter>DEFAULT_GRAPH_DB</parameter></term>
             <listitem>
               <para>The default database for loading contact maps</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term><parameter>DEFAULT_MSDSD_DB</parameter></term>
-            <listitem>
-              <para>The default database for loading structures in 
-              MSDSD format</para>
             </listitem>
           </varlistentry>
         </variablelist>

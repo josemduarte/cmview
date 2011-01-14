@@ -3626,10 +3626,12 @@ public class View extends JFrame implements ActionListener {
 		JOptionPane.showMessageDialog(this, msg, "Run Cone Peeling Algorithm", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
-	/** Shown when the button "Run Cone Peeling Algorithm" is pressed. */
+	/** Shown when "Add/remove contacts" is selected. */
 	private void showAddDeleteContacts() {
 		String msg = "<html>In this mode, individual contacts can be added and deleted<br>" +
-				     "by clicking on the respective cell in the contact map.</html>";
+				     "by clicking on the respective cell in the contact map.<br>" +
+				     "<br>" +
+				     "To exit this mode, choose one of the other selection modes.</html>";
 		JOptionPane.showMessageDialog(this, msg, "Add/Delete Contacts", JOptionPane.INFORMATION_MESSAGE);
 	}	
 
