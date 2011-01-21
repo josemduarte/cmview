@@ -49,7 +49,7 @@ public class ContactMapFileModel extends Model {
 						this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
 						this.pdb.load(pdbChainCode,modelSerial);
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-					} catch (PdbCodeNotFoundError e) {
+					} catch (PdbCodeNotFoundException e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
 						pdb = null;
 					} catch (PdbLoadError e) {

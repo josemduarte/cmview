@@ -16,7 +16,7 @@ import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGraph;
 import owl.graphAveraging.GraphAverager;
-import owl.graphAveraging.GraphAveragerError;
+import owl.graphAveraging.GraphAveragerException;
 
 public class CaspServerPredictionsModel extends Model {
 
@@ -70,7 +70,7 @@ public class CaspServerPredictionsModel extends Model {
 		GraphAverager ga = null;
 		try {
 		ga = new GraphAverager(ensemble);
-		} catch (GraphAveragerError e) {
+		} catch (GraphAveragerException e) {
 			System.err.println("Could not create graphAverager: " + e.getMessage());
 			throw new ModelConstructionError(e);
 		}

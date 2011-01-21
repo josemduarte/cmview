@@ -48,7 +48,7 @@ public class GraphDbModel extends Model {
 			} catch (PdbLoadError e) {
 				System.err.println("Failed to load structure: "+e.getMessage());
 				pdb = null;
-			} catch (PdbCodeNotFoundError e) {
+			} catch (PdbCodeNotFoundException e) {
 				System.err.println("Failed to load structure. Pdb code "+pdbCode+" was not found in database "+Start.DEFAULT_PDB_DB);
 				pdb = null;
 			}

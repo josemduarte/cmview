@@ -2,7 +2,7 @@ package cmview.sadpAdapter;
 
 import java.util.TreeSet;
 
-import owl.core.sequence.alignment.AlignmentConstructionError;
+import owl.core.sequence.alignment.AlignmentConstructionException;
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseAlignmentConverter;
 import owl.core.structure.graphs.RIGraph;
@@ -10,7 +10,7 @@ import owl.core.util.actionTools.Doer;
 import owl.core.util.actionTools.Retriever;
 import owl.core.util.actionTools.Runner;
 import owl.sadp.SADPContactMap;
-import owl.sadp.ContactMapConstructorError;
+import owl.sadp.ContactMapConstructorException;
 import owl.sadp.SADP;
 
 import cmview.Start;
@@ -80,13 +80,13 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 		
 		try {
 			cm1 = new SADPContactMap(inG1);
-		} catch( ContactMapConstructorError e ) {
+		} catch( ContactMapConstructorException e ) {
 			System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 			return null;
 		}
 		try {
 			cm2 = new SADPContactMap(inG2);
-		} catch( ContactMapConstructorError e ) {
+		} catch( ContactMapConstructorException e ) {
 			System.err.println("Error: Converting first graph into a contact map failed: "+e.getMessage());
 			return null;
 		}
@@ -100,7 +100,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 
 		try {
 			ali = makeAlignment(matching);
-		} catch(AlignmentConstructionError e) {
+		} catch(AlignmentConstructionException e) {
 			System.err.println("Error: Construction of alignment from mapping failed: " + e.getMessage());
 			return null;
 		}
@@ -160,7 +160,7 @@ public class SADPRunner extends ToolRunner<SADPResult> {
 	/**
 	 * Makes the alignment based an a set of alignment edges.
 	 * */
-	private MultipleSequenceAlignment makeAlignment( TreeSet<Pair<Integer>> matching ) throws AlignmentConstructionError {
+	private MultipleSequenceAlignment makeAlignment( TreeSet<Pair<Integer>> matching ) throws AlignmentConstructionException {
 		MultipleSequenceAlignment ali;
 		if( inG1.getSequence() == null ) {
 			if( inG2.getSequence() == null ) {

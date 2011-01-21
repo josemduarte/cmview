@@ -35,7 +35,7 @@ import edu.uci.ics.jung.graph.util.Pair;
 
 import owl.core.runners.DaliRunner;
 import owl.core.runners.tinker.TinkerRunner;
-import owl.core.sequence.alignment.AlignmentConstructionError;
+import owl.core.sequence.alignment.AlignmentConstructionException;
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment;
 import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAlignmentException;
@@ -708,7 +708,7 @@ public class View extends JFrame implements ActionListener {
 			MultipleSequenceAlignment al = null;
 			try {
 				al = new MultipleSequenceAlignment(tags,seqs);
-			} catch(AlignmentConstructionError e) {
+			} catch(AlignmentConstructionException e) {
 				//should be safe to ignore the error because it shouldn't happen, if it does we print anyway an error
 				System.err.println("Unexpected error, something wrong in alignment construction: "+e.getMessage());
 			}
@@ -1420,7 +1420,7 @@ public class View extends JFrame implements ActionListener {
 							try {
 								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
 								return mod.getChains();
-							} catch (PdbCodeNotFoundError e) {
+							} catch (PdbCodeNotFoundException e) {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
@@ -1437,7 +1437,7 @@ public class View extends JFrame implements ActionListener {
 							try {
 								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
 								return mod.getModels();
-							} catch (PdbCodeNotFoundError e) {
+							} catch (PdbCodeNotFoundException e) {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
@@ -1477,7 +1477,7 @@ public class View extends JFrame implements ActionListener {
 			}
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
-		} catch (PdbCodeNotFoundError e) {	
+		} catch (PdbCodeNotFoundException e) {	
 			showLoadError(e.getMessage());
 		} catch (SQLException e) {
 			showLoadError(e.getMessage());
@@ -1571,7 +1571,7 @@ public class View extends JFrame implements ActionListener {
 		mod2 = m;
 		try {
 			doPairwiseSequenceAlignment();
-		} catch (AlignmentConstructionError e) {
+		} catch (AlignmentConstructionException e) {
 			showLoadError(e.getMessage());
 		}
 		updateTitle();
@@ -1587,7 +1587,7 @@ public class View extends JFrame implements ActionListener {
 			
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
-		} catch (AlignmentConstructionError e) {
+		} catch (AlignmentConstructionException e) {
 			showLoadError(e.getMessage());
 		}
 		updateTitle();
@@ -1928,7 +1928,7 @@ public class View extends JFrame implements ActionListener {
 					System.err.println("Error: Detected unhandled input option for the alignment retrieval!");
 					return;
 				}
-			} catch (AlignmentConstructionError e) {
+			} catch (AlignmentConstructionException e) {
 				error = e.getMessage();
 			} catch (FileNotFoundException e) {
 				error = e.getMessage();
@@ -1965,7 +1965,7 @@ public class View extends JFrame implements ActionListener {
 		statusBar.enableDifferenceMapOverlay();
 	}
 	
-	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionError {
+	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionException {
 		
 		// open global file-chooser and get the name the alignment file
 		JFileChooser fileChooser = Start.getFileChooser();
@@ -1986,7 +1986,7 @@ public class View extends JFrame implements ActionListener {
 	
 	public void doLoadPairwiseAlignment(String format, String source)
 	throws IOException, FileFormatError, 
-	AlignmentConstructionError {
+	AlignmentConstructionException {
 
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
@@ -2014,7 +2014,7 @@ public class View extends JFrame implements ActionListener {
 			} catch (PairwiseSequenceAlignmentException e) {
 				// pairwise alignment didn't succeed, we do nothing 
 			}
-			throw new AlignmentConstructionError("First sequence from given alignment and sequence of first loaded contact map differ!");
+			throw new AlignmentConstructionException("First sequence from given alignment and sequence of first loaded contact map differ!");
 		}
 		if (!mod2.getSequence().equals(ali.getSequenceNoGaps(name2))) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -2028,7 +2028,7 @@ public class View extends JFrame implements ActionListener {
 			} catch (PairwiseSequenceAlignmentException e) {
 				// pairwise alignment didn't succeed, we do nothing 
 			}
-			throw new AlignmentConstructionError("Second sequence from given alignment and sequence of second loaded contact map differ!");
+			throw new AlignmentConstructionException("Second sequence from given alignment and sequence of second loaded contact map differ!");
 		}
 
 		// load stuff onto the contact map pane and the 3D visualizer
@@ -2073,11 +2073,11 @@ public class View extends JFrame implements ActionListener {
 	 * Unfortunately, DALI only produces html output. We create a temporary folder, write/copy the
 	 * PDBs there, perform the alignment, parse the html output and delete everything.
 	 * @throws IOException
-	 * @throws AlignmentConstructionError 
+	 * @throws AlignmentConstructionException 
 	 * @throws FileFormatError 
 	 */
 	
-	private void doDALIAlignment() throws IOException, FileFormatError, AlignmentConstructionError {
+	private void doDALIAlignment() throws IOException, FileFormatError, AlignmentConstructionException {
 		
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
@@ -2086,7 +2086,7 @@ public class View extends JFrame implements ActionListener {
 			doLoadPairwiseAlignment(MultipleSequenceAlignment.CLUSTALFORMAT,dali.getClustalFile());
 		} catch (InterruptedException e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			throw new AlignmentConstructionError("Could not construct alignment: Execution Interrupted");
+			throw new AlignmentConstructionException("Could not construct alignment: Execution Interrupted");
 		}
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
 		
@@ -2095,9 +2095,9 @@ public class View extends JFrame implements ActionListener {
 	
 	/**
 	 * Constructs a pairwise sequence alignment using the Needleman-Wunsch algorithm with default parameters.
-	 * @throws AlignmentConstructionError
+	 * @throws AlignmentConstructionException
 	 */
-	public void doPairwiseSequenceAlignment() throws AlignmentConstructionError {
+	public void doPairwiseSequenceAlignment() throws AlignmentConstructionException {
 		
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
@@ -2106,7 +2106,7 @@ public class View extends JFrame implements ActionListener {
 
 		if(seq1 == null || seq2 == null || seq1.length() == 0 || seq2.length() == 0) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			throw new AlignmentConstructionError("No sequence found.");
+			throw new AlignmentConstructionException("No sequence found.");
 		}
 
 		String name1 = mod.getLoadedGraphID();
@@ -2117,7 +2117,7 @@ public class View extends JFrame implements ActionListener {
 			jalign = new PairwiseSequenceAlignment(seq1, seq2, name1, name2);
 		} catch (PairwiseSequenceAlignmentException e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
-			throw new AlignmentConstructionError("Error during alignment: " + e.getMessage());
+			throw new AlignmentConstructionException("Error during alignment: " + e.getMessage());
 		}
 		jalign.printAlignment();
 		String[] alignedSeqs = jalign.getAlignedSequences();
@@ -2149,10 +2149,10 @@ public class View extends JFrame implements ActionListener {
 	 * not provide sequence information the sequence length is being estimated 
 	 * by size of the underlying graph structure (i.e. the maximum node index). 
 	 * In that case, the sequences do only consist of X's.  
-	 * @throws AlignmentConstructionError
+	 * @throws AlignmentConstructionException
 	 */
 	public void doGreedyPairwiseAlignment() 
-	throws AlignmentConstructionError, DifferentContactMapSizeError {
+	throws AlignmentConstructionException, DifferentContactMapSizeError {
 
 		String alignedSeq1 = mod.getSequence();
 		String alignedSeq2 = mod2.getSequence();
@@ -3046,7 +3046,7 @@ public class View extends JFrame implements ActionListener {
 			this.doGreedyPairwiseAlignment();
 			doLoadSecondModel(mod2, ali);
 			}
-			catch(AlignmentConstructionError e){
+			catch(AlignmentConstructionException e){
 				System.err.println("Error running Cone Peeling: "+e.getMessage());
 			} catch (DifferentContactMapSizeError e) {
 				System.err.println("Error running Cone Peeling: "+e.getMessage());

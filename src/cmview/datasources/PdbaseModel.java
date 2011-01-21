@@ -17,11 +17,11 @@ public class PdbaseModel extends Model {
 	/**
 	 * Overloaded constructor to load the data.
 	 * @throws SQLException 
-	 * @throws PdbCodeNotFoundError 
+	 * @throws PdbCodeNotFoundException 
 	 * @throws PdbLoadError 
 	 */
 	public PdbaseModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) 
-	throws PdbCodeNotFoundError, SQLException, PdbLoadError   {
+	throws PdbCodeNotFoundException, SQLException, PdbLoadError   {
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
@@ -87,7 +87,7 @@ public class PdbaseModel extends Model {
 					this.setIsGraphWeighted(true);
 				} catch (SQLException e) {
 					throw new ModelConstructionError("Error loading ensemble graph: " + e.getMessage());
-				} catch (PdbCodeNotFoundError e) {
+				} catch (PdbCodeNotFoundException e) {
 					throw new ModelConstructionError("Error loading ensemble graph: " + e.getMessage());
 				}
 			}
