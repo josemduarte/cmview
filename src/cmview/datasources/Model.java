@@ -12,7 +12,7 @@ import owl.core.runners.DsspRunner;
 import owl.core.runners.tinker.TinkerError;
 import owl.core.runners.tinker.TinkerRunner;
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
-import owl.core.structure.AAinfo;
+import owl.core.structure.AminoAcid;
 import owl.core.structure.Pdb;
 import owl.core.structure.PdbLoadError;
 import owl.core.structure.features.SecondaryStructure;
@@ -474,8 +474,7 @@ public abstract class Model {
 	 *         serial resser
 	 */
 	public String getResType(int resser) {
-		return AAinfo.oneletter2threeletter(String.valueOf(this.getSequence()
-				.charAt(resser - 1)));
+		return AminoAcid.one2three(this.getSequence().charAt(resser - 1));
 
 		// NOTE, we used to take the residue type from the RIGNode, but this
 		// causes problems
