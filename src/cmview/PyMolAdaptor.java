@@ -119,7 +119,7 @@ public class PyMolAdaptor {
 	 * definition and residue type 
 	 */
 	private String getAtom(Model mod, int resser) {
-		Set<String> atomSet = AAinfo.getAtomsForCTAndRes(mod.getContactType(),mod.getResType(resser));
+		Set<String> atomSet = ContactType.getAtomsForCTAndRes(mod.getContactType(),mod.getResType(resser));
 		if (atomSet==null || atomSet.size()==0) { 
 			// This happens in some strange cases: 
 			// a) if a contact is assigned wrongly e.g. a Cg contact for a 

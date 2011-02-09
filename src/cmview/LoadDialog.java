@@ -12,7 +12,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.text.Document;
 
-import owl.core.structure.AAinfo;
+import owl.core.structure.ContactType;
 import owl.core.structure.Pdb;
 import owl.core.util.actionTools.Getter;
 import owl.core.util.actionTools.GetterError;
@@ -174,7 +174,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		
 		// get present contact types from file and put their identifiers as 
 		// items into the combo box
-		Set<String> contactTypes = AAinfo.getAllContactTypes();
+		Set<String> contactTypes = ContactType.getAllContactTypes();
 		comboCt = new JComboBox();
 		Object o;
 		for(String ct:contactTypes) {
@@ -470,7 +470,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 	 */
 	public String getSelectedCt() throws LoadDialogInputError {
 		String selectedCt = comboCt.getSelectedItem().toString();
-		if(!AAinfo.isValidContactType(selectedCt)) {
+		if(!ContactType.isValidContactType(selectedCt)) {
 			//System.err.println("The contact type " + selectedCt + " is invalid.");
 			throw new LoadDialogInputError("The contact type " + selectedCt + " is invalid.");
 		}
