@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.border.Border;
 
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
-import owl.core.structure.AAinfo;
 import owl.core.structure.features.SecStrucElement;
 import owl.core.structure.graphs.RIGCommonNbhood;
 import owl.core.structure.graphs.RIGNbhood;
@@ -1038,11 +1037,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		statusBar.getCoordinatesPanel().setINum(iSeqIdx<0?"-":iSeqIdx+"");
 		statusBar.getCoordinatesPanel().setJNum(jSeqIdx<0?"-":jSeqIdx+"");
 
-		String i_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
+		String i_res = String.valueOf(MultipleSequenceAlignment.GAPCHARACTER);
 		if (iSeqIdx>0) { // to skip gaps
 			i_res = mod.getResType(iSeqIdx);;
 		}
-		String j_res = String.valueOf(AAinfo.getGapCharacterOneLetter());
+		String j_res = String.valueOf(MultipleSequenceAlignment.GAPCHARACTER);
 		if (jSeqIdx>0) { // to skip gaps
 			j_res = mod.getResType(jSeqIdx);
 		}
@@ -1105,11 +1104,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			statusBar.getCoordinatesPanel().setINum2(iSeqIdx2<0?"-":iSeqIdx2+"");
 			statusBar.getCoordinatesPanel().setJNum2(jSeqIdx2<0?"-":jSeqIdx2+"");
 			
-			String i_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
+			String i_res2 = String.valueOf(MultipleSequenceAlignment.GAPCHARACTER);
 			if (iSeqIdx2>0 && iSeqIdx2 < mod2.getMatrixSize()) { // to skip gaps
 				i_res2 = mod2.getResType(iSeqIdx2);
 			}
-			String j_res2 = String.valueOf(AAinfo.getGapCharacterOneLetter());
+			String j_res2 = String.valueOf(MultipleSequenceAlignment.GAPCHARACTER);
 			if (jSeqIdx2>0 && iSeqIdx2 < mod2.getMatrixSize()) { // to skip gaps
 				j_res2 = mod2.getResType(jSeqIdx2);
 			}
