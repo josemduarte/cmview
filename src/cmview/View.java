@@ -75,6 +75,8 @@ public class View extends JFrame implements ActionListener {
 	private static final String TITLE_COMPARING = "Comparing ";
 	private static final String TITLE_TO = " to ";
 	
+	private static final String LOUP_WINDOW_TITLE = "Loupe";
+	
 	// Menu item labels (used in main menu, popup menu and icon bar)
 	// File
 	private static final String LABEL_FILE_INFO = "Info";
@@ -91,6 +93,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
 	private static final String LABEL_LOAD_SEQ = "Sequence...";
 	private static final String LABEL_CASP_SERVER_MOD = "CASP Server Models...";
+	private static final String LABEL_LOUPE = "Show Loupe";
 	
 	// Select
 	private static final String LABEL_NODE_NBH_SELECTION_MODE = "Neighbourhood Selection Mode";
@@ -142,7 +145,7 @@ public class View extends JFrame implements ActionListener {
 	DeltaRankBar deltaRankBar;	// A Bar at the bottom of the contact map showing delta rank information for the sequence
 	
 	// Tool bar buttons
-	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, tbMinSubset;  
+	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, tbMinSubset, tbLoupe;  
 	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 		
@@ -200,7 +203,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
 	JMenuItem mmToggleDiffDistMap;
 	JMenuItem mmSuperposition, mmShowAlignedResidues,mmSwapModels,mmCopyContacts,mmJPred,mmRunTinker;
-	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig;
+	JMenuItem mmInfo, mmPrint, mmQuit, mmHelpAbout, mmHelpHelp, mmHelpWriteConfig, mmLoupe;
 
 	// Data and status variables
 	private GUIState guiState;
@@ -214,12 +217,17 @@ public class View extends JFrame implements ActionListener {
 	ImageIcon icon_selected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "tick.png"));
 	ImageIcon icon_deselected = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "bullet_blue.png"));
 
+	// Windows/Dialogs
 	LoadDialog actLoadDialog;
+	JDialog loupeWindow;
+	LoupePanel loupePanel;
+	public ContactView contView;
+
+	// Tinker stuff
 	TinkerPreferencesDialog tinkerDialog;
 	TinkerRunAction tinkerRunner;
 	// invisible notifiers
 	SADPDialogDoneNotifier sadpNotifier;
-	public ContactView contView;
 
 	/*----------------------------- constructors ----------------------------*/
 
@@ -429,6 +437,15 @@ public class View extends JFrame implements ActionListener {
 		statusBar= new StatusBar(this);				// pass reference to 'this' for handling gui actions
 		deltaRankBar = new DeltaRankBar();
 		
+		// init loupe function
+		loupeWindow = new JDialog(this, LOUP_WINDOW_TITLE);
+		loupePanel = new LoupePanel();
+		//loupePanel.add(new JLabel("Test"));
+		loupeWindow.getContentPane().add(loupePanel);
+		loupeWindow.pack();
+		loupeWindow.setLocationRelativeTo(this);
+		loupeWindow.setVisible(false);
+		
 		// Icons
 //		System.out.println("PNG: "+this.getClass().getResource(Start.ICON_DIR + "shape_square.png").getFile());
 //		System.out.println("PNG: "+this.getClass().getResource(Start.ICON_DIR + "shape_square.png").getPath());
@@ -446,6 +463,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_wheel.png"));
 		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "information.png"));						
+		ImageIcon icon_loupe = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "zoom.png"));
 		ImageIcon icon_show_common = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_copy.png"));
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_add.png"));
@@ -464,6 +482,7 @@ public class View extends JFrame implements ActionListener {
 
 		Dimension separatorDim = new Dimension(30,toolBar.getHeight());
 		tbFileInfo = makeToolBarButton(icon_file_info, LABEL_FILE_INFO);
+		tbLoupe = makeToolBarButton(icon_loupe, LABEL_LOUPE);
 		toolBar.addSeparator(separatorDim);
 		tbSquareSel = makeToolBarToggleButton(icon_square_sel_mode, LABEL_SQUARE_SELECTION_MODE, true, true, true);
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
@@ -560,7 +579,8 @@ public class View extends JFrame implements ActionListener {
 		// File menu
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
-		mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);		
+		mmInfo = makeMenuItem(LABEL_FILE_INFO, null, menu);	
+		mmLoupe = makeMenuItem(LABEL_LOUPE, null, menu);
 		// Load
 		submenu = new JMenu("Load from");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
@@ -897,6 +917,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSaveAli,false);
 		map.put(mmPrint,hasMod);	
 		map.put(mmInfo,hasMod);
+		map.put(mmLoupe,hasMod);
 		// menu -> View
 		map.put(mmViewShowPdbResSers, hasMod);
 		map.put(mmViewHighlightComNbh, hasMod);
@@ -1013,6 +1034,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSaveCaspRRFile, false);
 		map.put(mmSaveGraphDb, false);
 		map.put(mmSaveAli, true);
+		map.put(mmLoupe,false);		
 		// menu -> View
 		map.put(mmViewShowPdbResSers,true);
 		map.put(mmViewHighlightComNbh,false);
@@ -1139,7 +1161,7 @@ public class View extends JFrame implements ActionListener {
 			handleSaveAlignment();
 		}
 
-		// Info, Print, Quit
+		// Info, Print, Quit, Loupe
 		if(e.getSource() == mmInfo || e.getSource() == tbFileInfo) {
 			handleInfo();
 		}		  		  
@@ -1149,6 +1171,9 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmQuit) {
 			handleQuit();
 		}
+		if(e.getSource() == mmLoupe || e.getSource() == tbLoupe) {
+			handleLoupe();
+		}		
 
 		/* ---------- View Menu ---------- */		
 
@@ -2653,6 +2678,15 @@ public class View extends JFrame implements ActionListener {
 			infoDialog.setVisible(true);
 		}
 	}
+	
+	private void handleLoupe() {
+		if(this.mod == null) {
+			//System.out.println("No contact map loaded yet.");
+			showNoContactMapWarning();
+		} else {
+			loupeWindow.setVisible(!loupeWindow.isVisible());
+		}
+	}	
 
 	private void handlePrint() {
 		if(this.mod == null) {
@@ -3510,9 +3544,9 @@ public class View extends JFrame implements ActionListener {
 				"CMView v"+Start.VERSION +
 				"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>" +
 				"<p>&nbsp;</p>" +
-				"<p>(C) 2011 The Structural Proteomics Group</p>" +
-				"<p>Max Planck Institute for Molecular Genetics</p>" +
-				"<p>Berlin, Germany</p>" +
+				"<p>(C) 2011 The CMView development team</p>" +
+				"<p>&nbsp;</p>" +				
+				"<p>http://www.bioinformatics.org/cmview/</p>" +
 				"<p>&nbsp;</p>" +
 				"</center></html>",
 				"About",

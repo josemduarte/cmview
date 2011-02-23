@@ -35,7 +35,7 @@ public class Start {
 
 	/* internal constants (not user changeable) */
 	public static final String		APP_NAME = 				"CMView";			// name of this application
-	public static final String		VERSION = 				"1.1rc3";			// current version of this application (should match manifest)
+	public static final String		VERSION = 				"1.1rc4";			// current version of this application (should match manifest)
 	public static final String		RESOURCE_DIR = 			"/resources/"; 		// path within the jar archive where resources are located
 	public static final String		HELPSET =               "/resources/help/jhelpset.hs"; // the path to the inline help set
 	public static final String		ICON_DIR = 				"/resources/icons/";	// the directory containing the icons
@@ -74,6 +74,8 @@ public class Start {
 		
 	/* gui settings */
 	public static int				INITIAL_SCREEN_SIZE = 650;			// initial size of the contactMapPane in pixels
+	public static int				LOUPE_WINDOW_SIZE = 200;			// size of the loupe component in pixels
+	public static int				LOUPE_CONTACT_SIZE = 15;			// size of each contact in the loupe in pixels
 	public static boolean			SHOW_RULERS = true;					// if true, rulers will be shown by default
 	public static boolean			SHOW_ICON_BAR = true;				// if true, icon bar is used
 	public static boolean 			SHOW_ALIGNMENT_COORDS = false;		// if true, alignment coordinates also shown in bottom left corner of contact map

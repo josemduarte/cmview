@@ -513,6 +513,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
 				drawCoordinates();
 				drawCrosshair(g2d);
+				view.loupePanel.updateLoupe(screenBuffer.getImage(), mousePos, contactSquareSize);
 			} 
 
 		// draw common neighbours
