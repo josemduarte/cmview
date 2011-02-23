@@ -440,6 +440,24 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	/*------------------------ drawing methods --------------------*/
 
+	/** 
+	 * Some additional stuff to draw for the loupe. This is very dirty
+	 * for multiple reasons but it does what we want. 
+	 * */
+	protected synchronized void paintLoupe(Graphics2D g2d) {
+		
+		// draw temporary selection
+		if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT
+				      || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
+			drawContacts(g2d,tmpContacts,selContactsColor,true);
+			drawContacts(g2d,tmpContacts,selContactsColor,false);
+		}
+		
+		// draw permanent selection in red
+		drawContacts(g2d,selContacts,selContactsColor,true);
+		drawContacts(g2d,selContacts,selContactsColor,false);
+	}
+	
 	/**
 	 * Main method to draw the component on screen. This method is called each
 	 * time the component has to be (re) drawn on screen. It is called
@@ -447,6 +465,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 */
 	@Override
 	protected synchronized void paintComponent(Graphics g) {
+		//Image bufferImage = this.createImage(getWidth(), getHeight());
+		//Graphics2D g2d = (Graphics2D) bufferImage.getGraphics();
+		
 		Graphics2D g2d = (Graphics2D) g.create();
 
 		// draw screen buffer
@@ -486,6 +507,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		// draw permanent selection in red
 		drawContacts(g2d,selContacts,selContactsColor,true);
 		drawContacts(g2d,selContacts,selContactsColor,false);
+		
 		// draw node selections
 		if(selHorNodes.size() > 0 || selVertNodes.size() > 0)
 			g2d.setColor(Color.white);
@@ -500,7 +522,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawVerticalNodeSelection(g2d, intv);
 		}
 		g2d.setPaintMode();
-
+		
 		// draw crosshair and coordinates
 		if((showRulerCoord || showRulerCrosshair) && (currentRulerCoord > 0 && currentRulerCoord <= contactMapSize)) {
 			if(showRulerCoord) {
@@ -513,7 +535,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			if (mouseIn && (mousePos.x <= outputSize) && (mousePos.y <= outputSize)){ // second term needed if window is not square shape
 				drawCoordinates();
 				drawCrosshair(g2d);
-				view.loupePanel.updateLoupe(screenBuffer.getImage(), mousePos, contactSquareSize);
 			} 
 
 		// draw common neighbours
@@ -522,6 +543,12 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			drawCommonNeighbors(g2d, cont);
 			this.showCommonNbs = false;
 		}
+		
+		// actually draw bufferImage to screen
+		//((Graphics2D) g).drawImage(bufferImage, null, this);
+		
+		// update loupe (without crosshair)
+		view.loupePanel.updateLoupe(screenBuffer.getImage(), mousePos, contactSquareSize, this);
 	}
 
 	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
@@ -715,7 +742,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * @param contactSet
 	 * @param color
 	 */
-	private void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color, boolean secondMap) {
+	protected void drawContacts(Graphics2D g2d, IntPairSet contactSet, Color color, boolean secondMap) {
 		g2d.setColor(color);
 		for(Pair<Integer> cont:contactSet){
 			drawContact(g2d, cont, secondMap,(view.getGUIState().getShowBackground() && !secondMap) || (view.getGUIState().getShowBottomBackground() && secondMap) );

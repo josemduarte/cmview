@@ -32,6 +32,7 @@ public class LoupePanel extends JPanel {
 	private int width;
 	private int height;
 	private int contactSize;
+	private ContactMapPane parent;
 	
 	/*----------------------------- constructors ----------------------------*/
 	public LoupePanel() {
@@ -43,10 +44,12 @@ public class LoupePanel extends JPanel {
 	 * Method which is called by ContentMapPane to update this component.
 	 * @param image
 	 */
-	public void updateLoupe(Image image, Point mousePos, int contactSize) {
+	public void updateLoupe(Image image, Point mousePos, int contactSize, ContactMapPane parent) {
 		this.image = image;
 		this.mousePos = mousePos;
 		this.contactSize = contactSize;
+		this.parent = parent;
+		
 		this.repaint();
 	}
 	
@@ -61,6 +64,10 @@ public class LoupePanel extends JPanel {
 		
 	protected synchronized void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g.create();
+		
+		Image image2=parent.createImage(parent.getPreferredSize().width,parent.getPreferredSize().height);
+		Graphics2D g2d2 = (Graphics2D) image2.getGraphics();
+		
 		width = this.getWidth();
 		height = this.getHeight();
 		
@@ -69,9 +76,14 @@ public class LoupePanel extends JPanel {
 		double yOffs = -1.0 * (mousePos.y * scaleFactor - 0.5 * height);
 		AffineTransform transform = new AffineTransform(scaleFactor, 0.0, 0.0, scaleFactor, xOffs, yOffs);
 		
+		g2d2.drawImage(image,null,this);
+		parent.paintLoupe(g2d2);
+		
 		g2d.setColor(bgColor);
-		g2d.fill(new Rectangle2D.Float(0,0,width,height));		
-		g2d.drawImage(image,transform,this);
+		g2d.fill(new Rectangle2D.Float(0,0,width,height));
+		
+		g2d.drawImage(image2,transform,this);		
+		
 		g2d.draw(new Line2D.Float(0.5f * width, 0.0f, 0.5f * width, height));
 		g2d.draw(new Line2D.Float(0.0f, 0.5f * height, width, 0.5f * height));
 		
