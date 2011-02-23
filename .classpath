@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/owl"/>
 	<classpathentry kind="lib" path="jars/java-getopt-1.0.13.jar"/>
 	<classpathentry kind="lib" path="jars/jh.jar"/>
 	<classpathentry kind="lib" path="jars/jung-api-2.0.1.jar"/>
 	<classpathentry kind="lib" path="jars/jung-graph-impl-2.0.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/aglappe-owl"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

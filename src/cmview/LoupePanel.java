@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JPanel;
@@ -71,6 +72,9 @@ public class LoupePanel extends JPanel {
 		g2d.setColor(bgColor);
 		g2d.fill(new Rectangle2D.Float(0,0,width,height));		
 		g2d.drawImage(image,transform,this);
+		g2d.draw(new Line2D.Float(0.5f * width, 0.0f, 0.5f * width, height));
+		g2d.draw(new Line2D.Float(0.0f, 0.5f * height, width, 0.5f * height));
+		
 		//g2d.drawString(mousePos.toString(), 10, 10);
 		
 	}
