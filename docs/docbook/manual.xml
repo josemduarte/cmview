@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <article id="top" lang="en">
-  <title>CMView 1.1 User's Manual</title>
+  <title>CMView 1.1 User&apos;s Manual</title>
   <sect1 id="overview">
     <title>Overview</title>
     <sect2>
@@ -21,7 +21,7 @@
       network as a matrix (formally, the adjacency matrix of the 
       contact graph) is called a contact map.</para>
     </sect2>
-    <sect2>
+    <sect2 id="contacttypes">
       <title>Contact types</title>
       <para>The supported contact types are:</para>
       <para>
@@ -155,9 +155,9 @@
         menu:</para>
         <itemizedlist>
           <listitem>
-            <para><link linkend="overlays.distmap">Distance 
-            map</link> (shows distances between C-alpha atoms if a 3D 
-            structure is loaded)</para>
+            <para><link linkend="overlays.distmap">Distance map</link> 
+            (shows distances between C-alpha atoms if 3D coordinates 
+            are available)</para>
           </listitem>
           <listitem>
             <para><link linkend="overlays.density">Contact 
@@ -289,6 +289,16 @@
           <para>[1] Tanimoto, T.T. (1957) IBM Internal Report 17th Nov. 
           1957.</para>
         </sect4>
+      </sect3>
+      <sect3 id="menu.file.loupe">
+        <title>Loupe</title>
+        <para>Opens a window with a magnified view of the contact map 
+        around the current mouse position. This is helpful when working 
+        with large contact maps. The size of the loupe window and 
+        magnification can be set with the variables <parameter>
+        LOUPE_WINDOW_SIZE</parameter> and <parameter>
+        LOUPE_CONTACT_SIZE</parameter> in the <link linkend="config">
+        config</link> file.</para>
       </sect3>
       <sect3 id="menu.file.load">
         <title>Load from</title>
@@ -692,8 +702,8 @@
         of the individual residues under the chosen contact definition. 
         Threshold spheres can also be drawn for residue pairs not in 
         contact by right-clicking on the residue pair in the contact 
-        map and choosing <guimenuitem>Show Threshold Spheres For Residue 
-        Pair</guimenuitem> from the context menu.</para>
+        map and choosing <guimenuitem>Show Threshold Spheres For 
+        Residue Pair</guimenuitem> from the context menu.</para>
       </sect3>
       <sect3 id="menu.action.delete">
         <title>Delete selected contacts</title>
@@ -873,9 +883,9 @@
       <sect3>
         <title>Show threshold spheres for residue pair in 3D</title>
         <para>Draws the <link linkend="menu.action.thresholdspheres">
-        threshold spheres</link> for the selected pair of residues in the 3D viewer.
-        This feature is independent of whether the two residues are in
-        contact or not.</para>
+        threshold spheres</link> for the selected pair of residues in 
+        the 3D viewer. This feature is independent of whether the two 
+        residues are in contact or not.</para>
       </sect3>
     </sect2>
     <sect2 id="experimental">
@@ -983,17 +993,18 @@
       <listitem>
         <para><command>-c &lt;chain code&gt;</command>: a PDB chain 
         code. This will be the chain selected either from the PDB file 
-        or for the given PDB code. If one is not given then default 
-        chain &apos;A&apos; will be chosen.</para>
+        or for the given PDB code. If none is given the first chain in 
+        the file will be loaded.</para>
       </listitem>
       <listitem>
         <para><command>-t &lt;contact type&gt;</command>: the contact 
-        type for the Contact Map to be loaded in CMView.</para>
+        type for the contact map to be loaded in CMView. See 
+        <link linkend="config">contact types</link>.</para>
       </listitem>
       <listitem>
         <para><command>-d &lt;distance cutoff&gt;</command>: the 
-        distance cutoff for the Contact Map to be loaded in 
-        CMView.</para>
+        contact distance cutoff in Angstrom for the contact map to be 
+        loaded in CMView.</para>
       </listitem>
       <listitem>
         <para><command>-o &lt;config file&gt;</command>: a file to read 
@@ -1118,6 +1129,22 @@
             <para>The initial size in pixels of the main window on 
             startup</para>
             <para>Default: 650</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><parameter>LOUPE_WINDOW_SIZE</parameter></term>
+          <listitem>
+            <para>The initial size in pixels of the 
+            <link linkend="menu.file.loupe">loupe</link> window</para>
+            <para>Default: 200</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><parameter>LOUPE_CONTACT_SIZE</parameter></term>
+          <listitem>
+            <para>The size of each contact in the 
+            <link linkend="menu.file.loupe">loupe</link> window</para>
+            <para>Default: 15</para>
           </listitem>
         </varlistentry>
         <varlistentry>

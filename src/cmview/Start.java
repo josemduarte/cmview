@@ -14,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import owl.core.structure.Pdb;
 import owl.core.structure.PdbCodeNotFoundException;
 import owl.core.structure.PdbLoadError;
 import owl.core.structure.graphs.ProtStructGraph;
@@ -282,6 +281,8 @@ public class Start {
 
 			// gui settings
 			INITIAL_SCREEN_SIZE = Integer.valueOf(p.getProperty("INITIAL_SCREEN_SIZE", new Integer(INITIAL_SCREEN_SIZE).toString()));
+			LOUPE_WINDOW_SIZE = Integer.valueOf(p.getProperty("LOUPE_WINDOW_SIZE", new Integer(LOUPE_WINDOW_SIZE).toString()));
+			LOUPE_CONTACT_SIZE = Integer.valueOf(p.getProperty("LOUPE_CONTACT_SIZE", new Integer(LOUPE_CONTACT_SIZE).toString())); 
 			SHOW_RULERS = Boolean.valueOf(p.getProperty("SHOW_RULERS", new Boolean(SHOW_RULERS).toString()));
 			SHOW_ICON_BAR = Boolean.valueOf(p.getProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR)));
 			SHOW_ALIGNMENT_COORDS = Boolean.valueOf(p.getProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS)));
@@ -352,6 +353,9 @@ public class Start {
 		
 		// gui settings
 		p.setProperty("INITIAL_SCREEN_SIZE", Integer.toString(INITIAL_SCREEN_SIZE));			// doc
+		p.setProperty("LOUPE_WINDOW_SIZE", Integer.toString(LOUPE_WINDOW_SIZE));				// doc
+		p.setProperty("LOUPE_CONTACT_SIZE", Integer.toString(LOUPE_CONTACT_SIZE));				// doc
+		
 		p.setProperty("SHOW_RULERS", Boolean.toString(SHOW_RULERS));							// doc?
 		p.setProperty("SHOW_ICON_BAR",Boolean.toString(SHOW_ICON_BAR));							// doc?
 		p.setProperty("SHOW_ALIGNMENT_COORDS",Boolean.toString(SHOW_ALIGNMENT_COORDS));			// doc
