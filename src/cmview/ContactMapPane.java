@@ -83,6 +83,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 											// square selection
 	private Point mousePos;             	// current position of mouse (being
 											// updated by mouseMoved)
+	private Pair<Integer> mouseCell; 		// current contact map coordinate of mouse
+											// updated by mouseMoved
+	private Pair<Integer> lastMouseCell; 	// last known contact map coordinate of mouse	
+											// updated by mouseMoved
 	private int currentRulerCoord;	 		// the residue number shown if
 											// showRulerSer=true
 	private int currentRulerMousePos;		// the current position of the mouse
@@ -277,6 +281,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.comNbhSizes = null;
 		this.diffDistMap = null;
 
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().clearCurrentContact();
+			Start.getPyMolAdaptor().clearCurrentSelection();			
+		}
+		
 	}
 
 	/** 
@@ -350,6 +359,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.diffDistMap = null;
 		this.deltaRankMatrix = null;
 		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().clearCurrentContact();
+			Start.getPyMolAdaptor().clearCurrentSelection();			
+		}
 
 	}
 
@@ -548,7 +561,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		//((Graphics2D) g).drawImage(bufferImage, null, this);
 		
 		// update loupe (without crosshair)
-		view.loupePanel.updateLoupe(screenBuffer.getImage(), mousePos, contactSquareSize, this);
+		if(mouseIn) view.loupePanel.updateLoupe(screenBuffer.getImage(), mousePos, contactSquareSize, this);
 	}
 
 	private void drawHorizontalNodeSelection(Graphics2D g2d, Interval residues) {
@@ -1644,7 +1657,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			
 			if (view.contView!=null && view.contView.isDisplayable()){ // view.contView==null if closed?
 				Pair<Integer> c = screen2cm(mousePressedPos); 
-				System.out.println("CMPane MouseReleased first:"+c.getFirst()+"  second:"+c.getSecond());
+				//System.out.println("CMPane MouseReleased first:"+c.getFirst()+"  second:"+c.getSecond());
 				view.contView.cPane.commitSettings();
 				view.contView.cPane.calcSphoxelParam(c);
 				view.contView.cPane.calcTracesParam();
@@ -1667,7 +1680,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				dragging = false;
 				showCommonNbs = true;
 				this.repaint();
-				return;
+				break;
 
 			case COLOR:
 				dragging=false;		// TODO: can we pull this up?
@@ -1694,7 +1707,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 				}
 				this.repaint();
-				return;	
+				break;	
 
 			case RECT:
 
@@ -1735,7 +1748,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 				}
 				dragging = false;
-				return;
+				break;
 
 
 			case FILL:
@@ -1748,7 +1761,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				fillSelect(getCurrentContactSet(), screen2cm(new Point(evt.getX(),evt.getY())));
 
 				this.repaint();
-				return;
+				break;
 
 			case NBH:
 
@@ -1777,7 +1790,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					selectNodeNbh(cont.getFirst());
 				}
 				this.repaint();
-				return;
+				break;
 
 			case DIAG:
 				if (!dragging){
@@ -1801,13 +1814,19 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					}
 				}
 				dragging = false;			
-				return;
+				break;
+			
 			case TOGGLE:
 
 				Pair<Integer> clicked = screen2cm(mousePressedPos);
 				view.handleToggleContact(clicked);
-				return;
+				break;
 
+			}
+			
+			// update current selection in PyMol
+			if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
 			}
 		}
 	}
@@ -1834,11 +1853,18 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	public void mouseEntered(MouseEvent evt) { 
 		mouseIn = true;
+		mouseCell = screen2cm(mousePos);
+		lastMouseCell = mouseCell;
 	}
 
 	public void mouseExited(MouseEvent evt) {
 		mouseIn = false;
 		this.repaint();
+		view.loupePanel.clear();
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().clearCurrentContact();
+			//Start.getPyMolAdaptor().clearCurrentSelection();
+		}
 	}
 
 	public void mouseClicked(MouseEvent evt) {
@@ -1846,7 +1872,22 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 	public void mouseMoved(MouseEvent evt) {
 		mousePos = evt.getPoint();
+		mouseCell = screen2cm(mousePos);
 		this.repaint();
+		
+		// update 'real time contact' in PyMol
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+				if(mouseCell != null && lastMouseCell != null
+				&& mouseCell.getFirst() > 0 && mouseCell.getSecond() > 0 
+				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
+					//System.out.println(mouseCell);
+					if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
+						Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+					}
+					Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);					
+					lastMouseCell = mouseCell; 
+				}
+		}
 	}
 
 	/*--------------------------- component events --------------------------*/
@@ -2274,6 +2315,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		selContacts.addAll(getCurrentContactSet());
 
 		this.repaint();
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
 	}
 
 	/** Called by view to select all helix-helix contacts */
@@ -2287,6 +2332,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 		this.repaint();
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
 	}
 
 	/** Called by view to select all strand-strand contacts */
@@ -2299,7 +2348,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				selContacts.add(e);
 			}
 		}
-		this.repaint();		
+		this.repaint();
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
 	}
 
 	/** Called by view to select all contacts between secondary structure elements */
@@ -2312,7 +2365,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				selContacts.add(e);
 			}
 		}
-		this.repaint();		
+		this.repaint();
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
 	}
 
 	/** Called by view to select all contacts within secondary structure elements */
@@ -2326,6 +2383,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 		this.repaint();		
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
 	}
 
 	/**
@@ -2348,6 +2409,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 		this.repaint();
+		
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+		}
+		
 		return selContacts.size();
 	}
 
@@ -2745,7 +2811,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		System.out.println("Neighbours: " + nbh.getCommaSeparatedResSerials());
 		for (RIGNode j:nbh.getNeighbors()){
 			selContacts.add(new Pair<Integer>(Math.min(seqIdx, j.getResidueSerial()),Math.max(seqIdx, j.getResidueSerial())));
-		}		
+		}
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+		}
 	}
 
 	/** Resets the current contact- and residue selections to the empty set */
@@ -2758,7 +2827,11 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** Resets the current contact selection */
 	protected void resetContactSelection() {
 		this.selContacts = new IntPairSet();
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			Start.getPyMolAdaptor().clearCurrentSelection();
+		}
 	}
+	
 	public double getRatio() {
 		return ratio;
 	}

@@ -39,6 +39,8 @@ public class PyMolAdaptor {
 	private static final long 		TIMEOUT = 60000;
 	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
 	private static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes (with -s on startup)
+	private static final String		CURR_CONT_NAME = "CurrentContact";
+	private static final String		CURR_SEL_NAME = "CurrentSelection";	
 	
 	// COLORS
 	// colors for triangles, the one with index triangleColorCounter%COLORS.length is chosen
@@ -54,7 +56,9 @@ public class PyMolAdaptor {
 	// color for matching residues from alignment 
 	private static final String 	MATCHING_RESIDUES_COLOR = "blue";
 	// color for single edge between 2 residues (contact or not) as distance object
-	private static final String 	SINGLE_EDGE_COLOR = "orange";		
+	private static final String 	SINGLE_EDGE_COLOR = "orange";
+	//private static final String 	TEMP_EDGE_COLOR = "gray";
+	private static final String 	CURR_SEL_COLOR = "red";
 	
 	// the default atom for distance objects, it must be an atom of the backbone, i.e. only possible values one could use would be CA, C, N, O
 	private static final String 	DEFAULT_ATOM = "CA";
@@ -71,6 +75,7 @@ public class PyMolAdaptor {
 	private int triangleColorCounter;   // auto-increment counter for the COLORS array (triangleColorCounter%COLORS.length)
 	// Sphere settings for PyMol:
 	//private int SPHERE_SCALE = 2; // sphere scale
+	private TreeSet<String> loadedStructures;	// set of object names which are currently loaded in PyMol
 	
 	/*----------------------------- constructors ----------------------------*/
 
@@ -87,6 +92,7 @@ public class PyMolAdaptor {
 		this.selCounter = 0;
 		this.triangleColorCounter = 0;
 		this.callbackFile = new File(Start.TEMP_DIR,PYMOL_CALLBACK_FILE);
+		this.loadedStructures = new TreeSet<String>();
 	}
 
 	/*---------------------------- private methods --------------------------*/
@@ -522,6 +528,7 @@ public class PyMolAdaptor {
 		sendCommand("run "+Start.getResourcePath(PYMOLFUNCTIONS_SCRIPT));
 		sendCommand("set dash_gap, 0");
 		sendCommand("set dash_width, 1.5");
+		sendCommand("viewport " + Start.INITIAL_SCREEN_SIZE + ", " + Start.INITIAL_SCREEN_SIZE);
 		
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();		
@@ -563,6 +570,8 @@ public class PyMolAdaptor {
 		// flush the buffer and send commands to PyMol via log-file
 		this.flush();
 		
+		this.loadedStructures.add(structureID);
+		
 	}
 
 	/**
@@ -598,6 +607,10 @@ public class PyMolAdaptor {
 	 * @param chunksSecond an interval set of residues in the second structure
 	 */
 	public void pairFitSuperposition(String structureID1, String structureID2, IntervalSet chunksFirst, IntervalSet chunksSecond) {
+		// remove temporary selections because we are going to relocate structures
+		sendCommand("delete " + CURR_CONT_NAME);
+		sendCommand("delete " + CURR_SEL_NAME);
+		
 		// put edge set into the recommended string format
 		StringBuffer chunkSeq = new StringBuffer(chunksFirst.size()*2);
 		for( Interval e : chunksFirst ) {
@@ -952,7 +965,63 @@ public class PyMolAdaptor {
 		
 		// call to flush() is not missing here!: for this case we flush 5 times separately after each block
 	}
+	
+	/**
+	 * Shows the residue pair at the current mouse position as a distance in the structure.
+	 * This was introduces because a reviewer of the paper was asking for
+	 * 'more interaction', so this is for showing contacts 'in real time'
+	 * while the mouse is moving.
+	 */
+	public void showCurrentContact(Model mod, Pair<Integer> cont) {
 		
+		if(!loadedStructures.contains(mod.getLoadedGraphID())) return;
+		
+		String edgeSel = CURR_CONT_NAME;
+		sendCommand("delete " + CURR_CONT_NAME);
+		drawSingleEdge(edgeSel, mod, mod, cont);
+		//sendCommand("color "+TEMP_EDGE_COLOR+", " + edgeSel);
+		this.flush();
+	}
+
+	/**
+	 * Shows the currently selected contacts in the structure.
+	 */
+	public void showCurrentSelection(Model mod, IntPairSet selContacts) {
+		
+		if(!loadedStructures.contains(mod.getLoadedGraphID())) return;
+		
+		String edgeSel = CURR_SEL_NAME;
+		
+		sendCommand("delete " + CURR_SEL_NAME);
+		if(!selContacts.isEmpty()) {
+			for (Pair<Integer> cont:selContacts){ 
+				// draws an edge between the selected residues
+				this.drawSingleEdge(edgeSel, mod, mod, cont);
+			}
+			sendCommand("color "+CURR_SEL_COLOR+", " + edgeSel);
+			sendCommand("hide labels, " + edgeSel);
+		}
+		
+		// flush the buffer and send commands to PyMol via log-file
+		this.flush();
+	}
+	
+	/**
+	 * Clears the temporary contact created with showTemporarySingleContact()
+	 */
+	public void clearCurrentContact() {
+		sendCommand("delete " + CURR_CONT_NAME);
+		this.flush();
+	}
+	
+	/**
+	 * Clears the temporary contact created with showTemporarySingleContact()
+	 */
+	public void clearCurrentSelection() {
+		sendCommand("delete " + CURR_SEL_NAME);
+		this.flush();
+	}
+	
 	/** 
 	 * Show a single contact or non-contact as distance object in pymol
 	 * @param mod

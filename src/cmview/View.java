@@ -1121,7 +1121,6 @@ public class View extends JFrame implements ActionListener {
 		}
 		if(e.getSource() == mmLoadPdbase) {
 			handleLoadFromPdbase(FIRST_MODEL);
-
 		}		  
 		if(e.getSource() == mmLoadPdb) {
 			handleLoadFromPdbFile(FIRST_MODEL, PDB_FILE);
@@ -3676,6 +3675,10 @@ public class View extends JFrame implements ActionListener {
 	private void showAddDeleteContacts() {
 		String msg = "<html>In this mode, individual contacts can be added and deleted<br>" +
 				     "by clicking on the respective cell in the contact map.<br>" +
+				     "<br>" +
+				     "Note that this will modify the current contact map so that it may <br>" +
+				     "become inconsistent with the loaded structure. Also note that<br>" +
+				     "there is currently no undo function.<br>" +
 				     "<br>" +
 				     "To exit this mode, choose one of the other selection modes.</html>";
 		JOptionPane.showMessageDialog(this, msg, "Add/Delete Contacts", JOptionPane.INFORMATION_MESSAGE);

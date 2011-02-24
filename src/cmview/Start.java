@@ -98,6 +98,7 @@ public class Start {
 	public static String			PYMOL_LOGFILE = 		 "CMView_pymol.log";
 	public static String			PYMOL_PARAMETERS =  	 "-q -p"; 	  // listen to standard input and skip splash screen (plus -s in main())
 	public static boolean			PYMOL_SHUTDOWN_ON_EXIT = true;		  // if true, pymol will be shut down on exit
+	public static boolean			SHOW_CONTACTS_IN_REALTIME = true;	  // whether current contact and selection are shown in PyMol in 'real time'
 	
 	/* external programs: DALI */
 	public static String			DALI_EXECUTABLE = 		"";
@@ -302,7 +303,8 @@ public class Start {
 			PYMOL_LOGFILE = p.getProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);
 			PYMOL_PARAMETERS = p.getProperty("PYMOL_PARAMETERS", PYMOL_PARAMETERS);
 			PYMOL_SHUTDOWN_ON_EXIT = Boolean.valueOf(p.getProperty("PYMOL_SHUTDOWN_ON_EXIT", new Boolean(PYMOL_SHUTDOWN_ON_EXIT).toString()));
-
+			SHOW_CONTACTS_IN_REALTIME = Boolean.valueOf(p.getProperty("SHOW_CONTACTS_IN_REALTIME", new Boolean(SHOW_CONTACTS_IN_REALTIME).toString()));
+			
 			// external programs: dssp
 			DSSP_EXECUTABLE = p.getProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);
 			DSSP_PARAMETERS = p.getProperty("DSSP_PARAMETERS",DSSP_PARAMETERS);
@@ -375,6 +377,7 @@ public class Start {
 		p.setProperty("PYMOL_LOGFILE",PYMOL_LOGFILE);											// doc
 		p.setProperty("PYMOL_PARAMETERS",PYMOL_PARAMETERS);										// doc?
 		p.setProperty("PYMOL_SHUTDOWN_ON_EXIT", Boolean.toString(PYMOL_SHUTDOWN_ON_EXIT));		// doc
+		p.setProperty("SHOW_CONTACTS_IN_REALTIME", Boolean.toString(SHOW_CONTACTS_IN_REALTIME));		
 
 		// external programs: dssp
 		p.setProperty("DSSP_EXECUTABLE",DSSP_EXECUTABLE);										// doc!

@@ -1249,6 +1249,16 @@
             <para>Default: 15000</para>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term><parameter>SHOW_CONTACTS_IN_REALTIME</parameter></term>
+          <listitem>
+            <para>Whether currently selected contacts will be shown in PyMol
+            in real time. This can be switched off to increase performance.
+            In this case, contacts can be shown in PyMol
+            <link linkend="menu.action.show3d">manually</link>.</para>
+            <para>Default: true</para>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <sect3>
         <title>Parameters affecting experimental features</title>
