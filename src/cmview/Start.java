@@ -538,7 +538,8 @@ public class Start {
 	private static Model preloadModel(String pdbCode, String inFile, String pdbChainCode, String contactType, double cutoff) {
 		Model mod = null;
 		if(pdbChainCode==null) {
-			pdbChainCode = Pdb.NULL_CHAIN_CODE;
+			System.out.println("No chain code given, loading first chain.");
+			//pdbChainCode = Pdb.NULL_CHAIN_CODE;
 		}
 		if (contactType == null) contactType = DEFAULT_CONTACT_TYPE;
 		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
@@ -724,7 +725,7 @@ public class Start {
 			"File can be a PDB file, CMView contact map file, Casp TS file or Casp RR file.\n" +
 			"If the -o  option is used, the given config file will override settings from system-wide or user's config file\n" +
 			"If the -I option is given, a png image with the current contact map will be written instead of starting CMView.\n"+
-			"With the -Y option, pymol will not be started.";
+			"With the -Y option, PyMol will not be started.";
 		String pdbCode = null;
 		String inFile = null;
 		String pdbChainCode = null;
@@ -789,6 +790,14 @@ public class Start {
 		}
 		if(imageFile != null && pdbCode == null && inFile == null) {
 			System.err.println("-I options requires -p or -f");
+			System.exit(1);
+		}
+		if(inFile != null && !(new File(inFile).canRead())) {
+			System.err.println("Error: Could not open file: " + inFile);
+			System.exit(1);
+		}
+		if(pdbCode != null && (pdbCode.length() != 4 || !Character.isDigit(pdbCode.charAt(0)))) {
+			System.err.println("Error: This does not look like a PDB code: " + pdbCode);
 			System.exit(1);
 		}
 		

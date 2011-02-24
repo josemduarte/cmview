@@ -65,6 +65,8 @@ public class PdbaseModel extends Model {
 	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError {
 		// load structure from Pdbase
 		try {
+			if(pdbChainCode == null) pdbChainCode = this.pdb.getChains()[0]; else
+			if(!this.pdb.hasChain(pdbChainCode)) throw new ModelConstructionError("Chain '" + pdbChainCode + "' not found");
 			this.pdb.load(pdbChainCode,modelSerial);
 			this.secondaryStructure = pdb.getSecondaryStructure(); 	// in case, dssp is n/a, use ss from pdb
 			super.checkAndAssignSecondaryStructure(); 				// if dssp is a/, recalculate ss
@@ -94,9 +96,11 @@ public class PdbaseModel extends Model {
 			
 			// this.graph and this.residues are now available
 			//TODO 4Corinna compute graph geometry and hand it over to ContactView
-			this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
-			System.out.println("PdbaseModel   GraphGeometry loaded");
-//			this.graphGeom.printGeom();
+			if(Start.USE_CGAP) {
+				this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
+				System.out.println("PdbaseModel   GraphGeometry loaded");
+				//this.graphGeom.printGeom();
+			}
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();
