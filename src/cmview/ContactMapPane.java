@@ -281,13 +281,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.comNbhSizes = null;
 		this.diffDistMap = null;
 
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().clearCurrentContact();
-				Start.getPyMolAdaptor().clearCurrentSelection();
-			}
-		}
-		
+		selContactsChanged(); // not sure if we need this call here but just in
+		tmpContactsChanged(); // case sel- or tmpContact had some value before
+				
 	}
 
 	/** 
@@ -361,12 +357,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.diffDistMap = null;
 		this.deltaRankMatrix = null;
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().clearCurrentContact();
-				Start.getPyMolAdaptor().clearCurrentSelection();
-			}
-		}
+		selContactsChanged(); // not sure if we need this call here but just in
+		tmpContactsChanged(); // case sel- or tmpContact had some value before
 
 	}
 
@@ -380,6 +372,20 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		IntPairSet aliContacts = new IntPairSet();
 		for (Pair<Integer> cont:contacts) {
 			aliContacts.add(new Pair<Integer>(mapSeq2Al(tag,cont.getFirst()),mapSeq2Al(tag,cont.getSecond())));
+		}
+		return aliContacts;
+	}
+
+	/**
+	 * Given a set of contacts with alignment indexing returns a new set of 
+	 * contacts with sequence indexing (with possible gap values).
+	 * @param contacts
+	 * @param tag 
+	 */
+	private IntPairSet mapContactSetToSequence(String tag, IntPairSet contacts) {
+		IntPairSet aliContacts = new IntPairSet();
+		for (Pair<Integer> cont:contacts) {
+			aliContacts.add(new Pair<Integer>(mapAl2Seq(tag,cont.getFirst()),mapAl2Seq(tag,cont.getSecond())));
 		}
 		return aliContacts;
 	}
@@ -1828,12 +1834,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			}
 			
-			// update current selection in PyMol
-			if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-				if(!this.hasSecondModel()) {
-					Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-				}
-			}
+			selContactsChanged(); // at least potentially
 		}
 	}
 
@@ -1891,19 +1892,50 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
 					if(this.hasSecondModel()) {
 						Start.getPyMolAdaptor().showCurrentContacts(mod, mod2, mapContactAl2Seq(mod.getLoadedGraphID(), mouseCell), mapContactAl2Seq(mod2.getLoadedGraphID(), mouseCell));
+					
+						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
+							Start.getPyMolAdaptor().showCurrentSelections(mod, mod2, mapContactSetToSequence(mod.getLoadedGraphID(),tmpContacts), mapContactSetToSequence(mod2.getLoadedGraphID(),tmpContacts));
+						}
+					
 					} else {
-						//System.out.println(mouseCell);
+						Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);
+						
+						// we are doing this here instead because it is triggered less often than tmpContactsChanged:
 						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
 							Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
 						}
-						Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);					
-						lastMouseCell = mouseCell; 
 					}
+					lastMouseCell = mouseCell; 
 				}
 			
 		}
 	}
 
+	/*---------------------------- custom event -----------------------------*/
+	// some event-handler like methods but have to be called manually
+	
+	
+	/**
+	 * this should be called whenever we change the variable tmpContacts
+	 */
+	private void tmpContactsChanged() {
+		// nothing to do, update of real time contacts happens in mouseMoved (for performance)
+	}
+	
+	/**
+	 * this should be called whenever we change the variable selContacts
+	 */
+	private void selContactsChanged() {
+		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			} else {
+				Start.getPyMolAdaptor().showCurrentSelections(mod, mod2, mapContactSetToSequence(mod.getLoadedGraphID(),selContacts), mapContactSetToSequence(mod2.getLoadedGraphID(),selContacts));
+			}
+		}
+	}
+	
+	
 	/*--------------------------- component events --------------------------*/
 
 	public void componentHidden(ComponentEvent evt) {
@@ -2330,11 +2362,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 		this.repaint();
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 	}
 
 	/** Called by view to select all helix-helix contacts */
@@ -2349,11 +2377,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 	}
 
 	/** Called by view to select all strand-strand contacts */
@@ -2368,11 +2392,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 	}
 
 	/** Called by view to select all contacts between secondary structure elements */
@@ -2387,11 +2407,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 	}
 
 	/** Called by view to select all contacts within secondary structure elements */
@@ -2406,11 +2422,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();		
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 	}
 
 	/**
@@ -2434,11 +2446,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		}
 		this.repaint();
 		
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
-			}
-		}
+		selContactsChanged();
 		
 		return selContacts.size();
 	}
@@ -2704,7 +2712,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				tmpContacts.add(cont);
 			}
 		}
-
 	}
 
 	/**
@@ -2855,11 +2862,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/** Resets the current contact selection */
 	protected void resetContactSelection() {
 		this.selContacts = new IntPairSet();
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().clearCurrentSelection();
-			}
-		}
+		selContactsChanged();
 	}
 	
 	public double getRatio() {

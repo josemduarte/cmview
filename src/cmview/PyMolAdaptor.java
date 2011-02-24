@@ -39,8 +39,8 @@ public class PyMolAdaptor {
 	private static final long 		TIMEOUT = 60000;
 	private static final File 		CMD_BUFFER_FILE = new File(Start.TEMP_DIR,"CMView_pymol.cmd");
 	private static final String		PYMOL_INTERNAL_LOGFILE= "cmview_internal_pymol.log"; // log that pymol itself writes (with -s on startup)
-	private static final String		CURR_CONT_NAME = "CurrentContact";
-	private static final String		CURR_SEL_NAME = "CurrentSelection";	
+	private static final String		CURR_CONT_NAME = "CurrentCont";
+	private static final String		CURR_SEL_NAME = "CurrentSel";	
 	
 	// COLORS
 	// colors for triangles, the one with index triangleColorCounter%COLORS.length is chosen
@@ -990,19 +990,16 @@ public class PyMolAdaptor {
 		
 		if(loadedStructures.contains(mod1.getLoadedGraphID()) || loadedStructures.contains(mod2.getLoadedGraphID())) {
 			
-			sendCommand("delete " + CURR_CONT_NAME + "1");
-			sendCommand("delete " + CURR_CONT_NAME + "2");
-			
 			if(loadedStructures.contains(mod1.getLoadedGraphID()) && cont1.getFirst() > 0 && cont1.getSecond() > 0) {
+				sendCommand("delete " + CURR_CONT_NAME + "1");
 				String edgeSel = CURR_CONT_NAME + "1";
-				sendCommand("delete " + CURR_CONT_NAME);
 				drawSingleEdge(edgeSel, mod1, mod1, cont1);
 				sendCommand("color "+FIRST_STRUCTURE_EDGE_COLOR+", " + edgeSel);
 			}
 			
 			if(loadedStructures.contains(mod2.getLoadedGraphID()) && cont2.getFirst() > 0 && cont2.getSecond() > 0) {
+				sendCommand("delete " + CURR_CONT_NAME + "2");
 				String edgeSel = CURR_CONT_NAME + "2";
-				sendCommand("delete " + CURR_CONT_NAME);
 				drawSingleEdge(edgeSel, mod2, mod2, cont2);
 				sendCommand("color "+SECOND_STRUCTURE_EDGE_COLOR+", " + edgeSel);			
 			}
@@ -1035,6 +1032,46 @@ public class PyMolAdaptor {
 	}
 	
 	/**
+	 * Like showCurrentSelection but for compare mode.
+	 */
+	public void showCurrentSelections(Model mod1, Model mod2, IntPairSet selContacts1, IntPairSet selContacts2) {
+		
+		if(loadedStructures.contains(mod1.getLoadedGraphID()) || loadedStructures.contains(mod2.getLoadedGraphID())) {
+					
+			if(loadedStructures.contains(mod1.getLoadedGraphID())) {
+				sendCommand("delete " + CURR_SEL_NAME + "1");				
+				String edgeSel = CURR_SEL_NAME + "1";
+				if(!selContacts1.isEmpty()) {
+					for (Pair<Integer> cont:selContacts1){ 
+						if(cont.getFirst() > 0 && cont.getSecond() > 0) {
+							this.drawSingleEdge(edgeSel, mod1, mod1, cont);
+						}
+					}
+					sendCommand("color "+CURR_SEL_COLOR+", " + edgeSel);
+					sendCommand("hide labels, " + edgeSel);
+				}
+			}
+			
+			if(loadedStructures.contains(mod2.getLoadedGraphID())) {
+				sendCommand("delete " + CURR_SEL_NAME + "2");
+				String edgeSel = CURR_SEL_NAME + "2";
+				if(!selContacts2.isEmpty()) {
+					for (Pair<Integer> cont:selContacts2){ 
+						if(cont.getFirst() > 0 && cont.getSecond() > 0) {
+							this.drawSingleEdge(edgeSel, mod2, mod2, cont);
+						}
+					}
+					sendCommand("color "+CURR_SEL_COLOR+", " + edgeSel);
+					sendCommand("hide labels, " + edgeSel);
+				}
+			}
+									
+			// flush the buffer and send commands to PyMol via log-file
+			this.flush();
+		}
+	}
+	
+	/**
 	 * Clears the temporary contact created with showTemporarySingleContact()
 	 */
 	public void clearCurrentContact() {
@@ -1056,6 +1093,15 @@ public class PyMolAdaptor {
 	 */
 	public void clearCurrentSelection() {
 		sendCommand("delete " + CURR_SEL_NAME);
+		this.flush();
+	}
+	
+	/**
+	 * Like clearCurrentSelection() but for compare mode.
+	 */
+	public void clearCurrentSelections() {
+		sendCommand("delete " + CURR_SEL_NAME + "1");
+		sendCommand("delete " + CURR_SEL_NAME + "2");
 		this.flush();
 	}
 	
