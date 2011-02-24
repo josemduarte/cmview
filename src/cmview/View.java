@@ -1031,7 +1031,7 @@ public class View extends JFrame implements ActionListener {
 
 		// menu -> File
 		map.put(mmInfo,true);
-		map.put(mmSaveCmFile,false);
+		map.put(mmSaveCmFile,true);
 		map.put(mmSaveCaspRRFile, false);
 		map.put(mmSaveGraphDb, false);
 		map.put(mmSaveAli, true);
@@ -3074,12 +3074,21 @@ public class View extends JFrame implements ActionListener {
 			showConePeelingMessage();
 			//mod.computeMinimalSubset("dummy");
 			try{
-			//Model modl = mod.copy();
-			mod2 = new PdbFtpModel(mod);
-			mod2.computeMinimalSubset();
-			mod2.setLoadedGraphID("MinSet");
+			
+			// new:
+			mod2 = new PdbFtpModel(mod);	// <=> mod2 = mod.copy()
+			mod.computeMinimalSubset();
+			mod.setLoadedGraphID("MinSet");
 			this.doGreedyPairwiseAlignment();
 			doLoadSecondModel(mod2, ali);
+			
+			// old:
+//			mod2 = new PdbFtpModel(mod);	// <=> mod2 = mod.copy()
+//			mod2.computeMinimalSubset();
+//			mod2.setLoadedGraphID("MinSet");
+//			this.doGreedyPairwiseAlignment();
+//			doLoadSecondModel(mod2, ali);
+			
 			}
 			catch(AlignmentConstructionException e){
 				System.err.println("Error running Cone Peeling: "+e.getMessage());
@@ -3657,7 +3666,9 @@ public class View extends JFrame implements ActionListener {
 				     "<br>" +
 				     "The algorithm attempts to calculate a minimal subset of contacts which<br>" +
 				     "keep the protein fold intact. This will open the pairwise comparison mode. <br>" +
-				     "The minimal subset is shown in black and the original contact map in magenta.</html>";
+				     "The minimal subset is shown in black and the original contact map in green.<br>" +
+				     "<br>" +
+				     "To save the minimal set to a file use File->Save to->Contact Map File.</html>";
 		JOptionPane.showMessageDialog(this, msg, "Run Cone Peeling Algorithm", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
