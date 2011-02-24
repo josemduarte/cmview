@@ -972,6 +972,7 @@ public class View extends JFrame implements ActionListener {
 		HashMap<Component,Boolean> map = new HashMap<Component, Boolean>();
 
 		map.put(tbFileInfo, hasMod);
+		map.put(tbLoupe, hasMod);
 
 		map.put(tbSquareSel, hasMod);
 		map.put(tbFillSel, hasMod);
@@ -1034,7 +1035,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmSaveCaspRRFile, false);
 		map.put(mmSaveGraphDb, false);
 		map.put(mmSaveAli, true);
-		map.put(mmLoupe,false);		
+		map.put(mmLoupe,true);		
 		// menu -> View
 		map.put(mmViewShowPdbResSers,true);
 		map.put(mmViewHighlightComNbh,false);

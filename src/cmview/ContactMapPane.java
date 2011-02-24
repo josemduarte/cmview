@@ -231,8 +231,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.contactColor = Color.black;
 		this.selContactsColor = Color.red;
 		this.backgroundColor = Color.white;
-		this.squareSelColor = Color.black;	
-		this.crosshairColor = Color.black;
+		this.squareSelColor = Color.lightGray;	
+		this.crosshairColor = Color.lightGray;
 		this.diagCrosshairColor = Color.lightGray;
 		this.inBoxTriangleColor = Color.cyan;
 		this.outBoxTriangleColor = Color.red;
