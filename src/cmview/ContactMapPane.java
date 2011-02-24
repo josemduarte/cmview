@@ -282,8 +282,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.diffDistMap = null;
 
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().clearCurrentContact();
-			Start.getPyMolAdaptor().clearCurrentSelection();			
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().clearCurrentContact();
+				Start.getPyMolAdaptor().clearCurrentSelection();
+			}
 		}
 		
 	}
@@ -360,8 +362,10 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.deltaRankMatrix = null;
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().clearCurrentContact();
-			Start.getPyMolAdaptor().clearCurrentSelection();			
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().clearCurrentContact();
+				Start.getPyMolAdaptor().clearCurrentSelection();
+			}
 		}
 
 	}
@@ -1826,7 +1830,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			
 			// update current selection in PyMol
 			if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+				if(!this.hasSecondModel()) {
+					Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+				}
 			}
 		}
 	}
@@ -1862,8 +1868,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		view.loupePanel.clear();
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().clearCurrentContact();
-			//Start.getPyMolAdaptor().clearCurrentSelection();
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().clearCurrentContact();
+			}
 		}
 	}
 
@@ -1877,6 +1884,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		// update 'real time contact' in PyMol
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+			if(!this.hasSecondModel()) {
 				if(mouseCell != null && lastMouseCell != null
 				&& mouseCell.getFirst() > 0 && mouseCell.getSecond() > 0 
 				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
@@ -1887,6 +1895,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);					
 					lastMouseCell = mouseCell; 
 				}
+			}
 		}
 	}
 
@@ -2317,7 +2326,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 	}
 
@@ -2334,7 +2345,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 	}
 
@@ -2351,7 +2364,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 	}
 
@@ -2368,7 +2383,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 	}
 
@@ -2385,7 +2402,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();		
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 	}
 
@@ -2411,7 +2430,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
+			}
 		}
 		
 		return selContacts.size();
@@ -2813,7 +2834,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			selContacts.add(new Pair<Integer>(Math.min(seqIdx, j.getResidueSerial()),Math.max(seqIdx, j.getResidueSerial())));
 		}
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+			}
 		}
 	}
 
@@ -2828,7 +2851,9 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	protected void resetContactSelection() {
 		this.selContacts = new IntPairSet();
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			Start.getPyMolAdaptor().clearCurrentSelection();
+			if(!this.hasSecondModel()) {
+				Start.getPyMolAdaptor().clearCurrentSelection();
+			}
 		}
 	}
 	
