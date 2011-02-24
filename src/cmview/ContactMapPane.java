@@ -1870,6 +1870,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
 			if(!this.hasSecondModel()) {
 				Start.getPyMolAdaptor().clearCurrentContact();
+			} else {
+				Start.getPyMolAdaptor().clearCurrentContacts();
 			}
 		}
 	}
@@ -1884,18 +1886,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		
 		// update 'real time contact' in PyMol
 		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
 				if(mouseCell != null && lastMouseCell != null
 				&& mouseCell.getFirst() > 0 && mouseCell.getSecond() > 0 
 				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
-					//System.out.println(mouseCell);
-					if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
-						Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+					if(this.hasSecondModel()) {
+						Start.getPyMolAdaptor().showCurrentContacts(mod, mod2, mapContactAl2Seq(mod.getLoadedGraphID(), mouseCell), mapContactAl2Seq(mod2.getLoadedGraphID(), mouseCell));
+					} else {
+						//System.out.println(mouseCell);
+						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
+							Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+						}
+						Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);					
+						lastMouseCell = mouseCell; 
 					}
-					Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);					
-					lastMouseCell = mouseCell; 
 				}
-			}
+			
 		}
 	}
 
@@ -2996,7 +3001,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		secondOnly[SECOND]      = new IntPairSet();
 
 		int pos1,pos2;
-
 
 		for (Pair<Integer> cont : selContacts) {
 			if (commonContacts.contains(cont)) {

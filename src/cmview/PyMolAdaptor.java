@@ -982,6 +982,34 @@ public class PyMolAdaptor {
 		//sendCommand("color "+TEMP_EDGE_COLOR+", " + edgeSel);
 		this.flush();
 	}
+	
+	/**
+	 * Like showCurrentContact() but for compare mode.
+	 */
+	public void showCurrentContacts(Model mod1, Model mod2, Pair<Integer> cont1, Pair<Integer> cont2) {
+		
+		if(loadedStructures.contains(mod1.getLoadedGraphID()) || loadedStructures.contains(mod2.getLoadedGraphID())) {
+			
+			sendCommand("delete " + CURR_CONT_NAME + "1");
+			sendCommand("delete " + CURR_CONT_NAME + "2");
+			
+			if(loadedStructures.contains(mod1.getLoadedGraphID()) && cont1.getFirst() > 0 && cont1.getSecond() > 0) {
+				String edgeSel = CURR_CONT_NAME + "1";
+				sendCommand("delete " + CURR_CONT_NAME);
+				drawSingleEdge(edgeSel, mod1, mod1, cont1);
+				sendCommand("color "+FIRST_STRUCTURE_EDGE_COLOR+", " + edgeSel);
+			}
+			
+			if(loadedStructures.contains(mod2.getLoadedGraphID()) && cont2.getFirst() > 0 && cont2.getSecond() > 0) {
+				String edgeSel = CURR_CONT_NAME + "2";
+				sendCommand("delete " + CURR_CONT_NAME);
+				drawSingleEdge(edgeSel, mod2, mod2, cont2);
+				sendCommand("color "+SECOND_STRUCTURE_EDGE_COLOR+", " + edgeSel);			
+			}
+			this.flush();
+		}
+		
+	}
 
 	/**
 	 * Shows the currently selected contacts in the structure.
@@ -1011,6 +1039,15 @@ public class PyMolAdaptor {
 	 */
 	public void clearCurrentContact() {
 		sendCommand("delete " + CURR_CONT_NAME);
+		this.flush();
+	}
+	
+	/**
+	 * Like clearCurrentContact() but for compare mode.
+	 */
+	public void clearCurrentContacts() {
+		sendCommand("delete " + CURR_CONT_NAME + "1");
+		sendCommand("delete " + CURR_CONT_NAME + "2");
 		this.flush();
 	}
 	

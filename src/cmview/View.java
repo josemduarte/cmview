@@ -3119,7 +3119,6 @@ public class View extends JFrame implements ActionListener {
 				showNo3DCoordsWarning(mod2);
 				return;
 			}
-
 			
 			TreeMap<ContactMapPane.ContactSelSet, IntPairSet[]> selMap = cmPane.getSetsOfSelectedContactsFor3D();
 			
