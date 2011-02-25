@@ -2848,11 +2848,6 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		for (RIGNode j:nbh.getNeighbors()){
 			selContacts.add(new Pair<Integer>(Math.min(seqIdx, j.getResidueSerial()),Math.max(seqIdx, j.getResidueSerial())));
 		}
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
-			if(!this.hasSecondModel()) {
-				Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
-			}
-		}
 	}
 
 	/** Resets the current contact- and residue selections to the empty set */
