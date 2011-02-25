@@ -103,7 +103,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SEL_MODE_COLOR = "Select By Color Mode";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";	
 	private static final String LABEL_ADD_REMOVE_CONTACTS = "Add/Remove Contacts";
-	private static final String LABEL_TOGGLE_REALTIME = "Toggle real-time Displaying of Contacts";
+	private static final String LABEL_TOGGLE_REALTIME = "Toggle Real-Time Displaying of Contacts";
 	
 	// Action
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
@@ -496,13 +496,12 @@ public class View extends JFrame implements ActionListener {
 		}
 		tbSelModeColor = makeToolBarToggleButton(icon_sel_mode_color, LABEL_SEL_MODE_COLOR, false, true, true);
 		toolBar.addSeparator(separatorDim);		
+		tbToggleRealTime = makeToolBarToggleButton(icon_toggle_realtime, LABEL_TOGGLE_REALTIME, true, true, true);
 		tbShowSel3D = makeToolBarButton(icon_show_sel_cont_3d, LABEL_SHOW_CONTACTS_3D);
 		tbShowSph3D = makeToolBarButton(icon_show_sph_3d, LABEL_SHOW_SPHERES_3D);
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
-		tbToggleRealTime = makeToolBarToggleButton(icon_toggle_realtime, LABEL_TOGGLE_REALTIME, true, true, true);
-
 				
 		toolBar.addSeparator(separatorDim);
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_ADD_REMOVE_CONTACTS,false,true,true);
@@ -1256,6 +1255,11 @@ public class View extends JFrame implements ActionListener {
 		// toggle real-time selection of contacts clicked
 		if (e.getSource() == tbToggleRealTime) {
 			guiState.toggleRealTimeContacts();
+			if(guiState.getShowRealTimeContacts()) {
+				cmPane.selContactsChanged(); // to trigger update of selected contacts in PyMol
+			} else {
+				Start.getPyMolAdaptor().clearAllCurrent();
+			}
 		}		
 
 		// Start Tinker Run

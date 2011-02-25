@@ -1073,6 +1073,20 @@ public class PyMolAdaptor {
 	}
 	
 	/**
+	 * Clear all temporary selections.
+	 * This is called when real time display is being switched off in the menu.
+	 */
+	public void clearAllCurrent() {
+		sendCommand("delete " + CURR_CONT_NAME);
+		sendCommand("delete " + CURR_SEL_NAME);
+		sendCommand("delete " + CURR_CONT_NAME + "1");
+		sendCommand("delete " + CURR_CONT_NAME + "2");
+		sendCommand("delete " + CURR_SEL_NAME + "1");
+		sendCommand("delete " + CURR_SEL_NAME + "2");
+		this.flush();
+	}
+	
+	/**
 	 * Clears the temporary contact created with showTemporarySingleContact()
 	 */
 	public void clearCurrentContact() {
