@@ -33,6 +33,7 @@ public class GUIState {
 	private boolean showDiffDistMap; 	// whether showing the difference distance map is switched on
 	private boolean showTFFctMap;       // whether showing the transferfunction based map is switched on
 	private boolean showDeltaRankMap; 	// whether showing the delta rank map is switched on
+	private boolean showRealTimeContacts;   // whether real time contacts mode is on or not
 	
 	// Maps for the bottom-left contact map background
 	
@@ -85,6 +86,8 @@ public class GUIState {
 		this.showBottomDeltaRankMap = false;
 		this.showBottomResidueScoringMap = false;
 		this.showBottomTFFctMap = false;
+		
+		this.showRealTimeContacts = Start.SHOW_CONTACTS_IN_REALTIME;
 	}
 	
 	/*---------------------------- public methods ---------------------------*/
@@ -239,6 +242,10 @@ public class GUIState {
 	protected boolean getShowBottomTFFctMap() {
 		return showBottomTFFctMap;
 	}
+	
+	protected boolean getShowRealTimeContacts() {
+		return showRealTimeContacts;
+	}
 	/*---------------- setters ---------------*/
 	
 	/**
@@ -257,6 +264,10 @@ public class GUIState {
 		default: System.err.println("Error in setSelectionMode. Unknown selection mode " + mode); return;
 		}
 		this.selectionMode = mode;
+	}
+	
+	protected void toggleRealTimeContacts() {
+		this.showRealTimeContacts = !this.showRealTimeContacts;
 	}
 	
 	/**

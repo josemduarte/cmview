@@ -103,6 +103,7 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_SEL_MODE_COLOR = "Select By Color Mode";
 	private static final String LABEL_SHOW_COMMON_NBS_MODE = "Show Common Neighbours Mode";	
 	private static final String LABEL_ADD_REMOVE_CONTACTS = "Add/Remove Contacts";
+	private static final String LABEL_TOGGLE_REALTIME = "Toggle real-time Displaying of Contacts";
 	
 	// Action
 	private static final String LABEL_DELETE_CONTACTS = "Delete Selected Contacts";
@@ -146,7 +147,7 @@ public class View extends JFrame implements ActionListener {
 	
 	// Tool bar buttons
 	JButton tbFileInfo, tbShowSel3D, tbShowComNbh3D,  tbDelete, tbShowSph3D, tbRunTinker, tbMinSubset, tbLoupe;  
-	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts;
+	JToggleButton tbSquareSel, tbFillSel, tbDiagSel, tbNbhSel, tbShowComNbh, tbSelModeColor, tbToggleContacts, tbToggleRealTime;
 	JToggleButton tbViewPdbResSer, tbViewRuler, tbViewNbhSizeMap, tbViewDistanceMap, tbViewDensityMap, tbShowCommon, tbShowFirst, tbShowSecond;
 		
 	// indices of the all main menus in the frame's menu bar
@@ -455,6 +456,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "paintcan.png"));
 		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "diagonals.png"));
 		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "group.png"));
+		ImageIcon icon_toggle_realtime = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
 		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square_go.png"));
 		ImageIcon icon_show_sph_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "spheres.png"));
 		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_flip_horizontal.png"));
@@ -488,7 +490,7 @@ public class View extends JFrame implements ActionListener {
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
 		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
-		
+		tbToggleRealTime = makeToolBarToggleButton(icon_toggle_realtime, LABEL_TOGGLE_REALTIME, true, true, true);
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
@@ -982,6 +984,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbToggleContacts, hasMod);
 		map.put(tbShowComNbh, hasMod);		// experimental
 		map.put(tbShowComNbh3D, hasMod);	// experimental
+		map.put(tbToggleRealTime, hasMod);
 
 		map.put(tbShowSel3D, hasMod);
 		map.put(tbShowSph3D, hasMod);
@@ -1248,7 +1251,12 @@ public class View extends JFrame implements ActionListener {
 			showAddDeleteContacts();
 			guiState.setSelectionMode(GUIState.SelMode.TOGGLE);
 		}
-		
+
+		// toggle real-time selection of contacts clicked
+		if (e.getSource() == tbToggleRealTime) {
+			guiState.toggleRealTimeContacts();
+		}		
+
 		// Start Tinker Run
 		if (e.getSource() == tbRunTinker || e.getSource() == mmRunTinker) {
 			handleRunTinker();

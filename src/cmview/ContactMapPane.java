@@ -1868,7 +1868,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		mouseIn = false;
 		this.repaint();
 		view.loupePanel.clear();
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+		if(view.getGUIState().getShowRealTimeContacts() && Start.isPyMolConnectionAvailable()) {
 			if(!this.hasSecondModel()) {
 				Start.getPyMolAdaptor().clearCurrentContact();
 			} else {
@@ -1886,7 +1886,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 		this.repaint();
 		
 		// update 'real time contact' in PyMol
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+		if(view.getGUIState().getShowRealTimeContacts() && Start.isPyMolConnectionAvailable()) {
 				if(mouseCell != null && lastMouseCell != null
 				&& mouseCell.getFirst() > 0 && mouseCell.getSecond() > 0 
 				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
@@ -1929,7 +1929,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	 * this should be called whenever we change the variable selContacts
 	 */
 	private void selContactsChanged() {
-		if(Start.SHOW_CONTACTS_IN_REALTIME && Start.isPyMolConnectionAvailable()) {
+		if(view.getGUIState().getShowRealTimeContacts() && Start.isPyMolConnectionAvailable()) {
 			if(!this.hasSecondModel()) {
 				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
 			} else {
