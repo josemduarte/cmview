@@ -456,7 +456,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_fill_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "paintcan.png"));
 		ImageIcon icon_diag_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "diagonals.png"));
 		ImageIcon icon_nbh_sel_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "group.png"));
-		ImageIcon icon_toggle_realtime = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
+		ImageIcon icon_toggle_realtime = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "lightning.png"));
 		ImageIcon icon_show_sel_cont_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_square_go.png"));
 		ImageIcon icon_show_sph_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "spheres.png"));
 		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_flip_horizontal.png"));
