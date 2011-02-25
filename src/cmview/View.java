@@ -462,7 +462,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_show_sph_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "spheres.png"));
 		ImageIcon icon_show_com_nbs_mode = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_flip_horizontal.png"));
 		ImageIcon icon_show_triangles_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "shape_rotate_clockwise.png"));
-		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cross.png"));	
+		ImageIcon icon_del_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "cut_red.png"));	
 		ImageIcon icon_show_pair_dist_3d = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "user_go.png"));
 		ImageIcon icon_colorwheel = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_wheel.png"));
 		ImageIcon icon_file_info = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "information.png"));						
@@ -471,7 +471,7 @@ public class View extends JFrame implements ActionListener {
 		ImageIcon icon_show_first = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_delete.png"));
 		ImageIcon icon_show_second = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "page_add.png"));
 		ImageIcon icon_sel_mode_color = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "color_swatch.png"));
-		ImageIcon icon_toggle_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "toggle.png"));
+		ImageIcon icon_toggle_contacts = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "map_edit.png"));
 		ImageIcon icon_run_tinker = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "plugin_go.png"));
 		ImageIcon icon_min_set  = new ImageIcon(getClass().getResource(Start.ICON_DIR+"arrow_in.png"));	//icon to run cone peeling algorithm
 //		ImageIcon icon_sphoxel_traces = new ImageIcon(this.getClass().getResource(Start.ICON_DIR + "sphoxel_traces.png"));
@@ -637,8 +637,6 @@ public class View extends JFrame implements ActionListener {
 		
 		menu.add(submenu);
 		menu.addSeparator();
-		mmToggleRealTime = makeMenuItem(LABEL_TOGGLE_REALTIME, icon_toggle_realtime, menu);
-		menu.addSeparator();
 		mmSelectAll = makeMenuItem("All Contacts", null, menu);
 		mmSelectByResNum = makeMenuItem("By Residue Number...", null, menu);
 		menu.addSeparator();
@@ -660,6 +658,7 @@ public class View extends JFrame implements ActionListener {
 		menu = new JMenu("Action");
 		menu.setMnemonic(KeyEvent.VK_A);
 		if (Start.USE_PYMOL) {
+			mmToggleRealTime = makeMenuItem(LABEL_TOGGLE_REALTIME, icon_toggle_realtime, menu);
 			sendM = makeMenuItem(LABEL_SHOW_CONTACTS_3D, icon_show_sel_cont_3d, menu);
 			sphereM = makeMenuItem(LABEL_SHOW_SPHERES_3D, icon_show_sph_3d, menu);
 			if(Start.USE_EXPERIMENTAL_FEATURES) {
@@ -1261,8 +1260,10 @@ public class View extends JFrame implements ActionListener {
 			guiState.toggleRealTimeContacts();
 			if(guiState.getShowRealTimeContacts()) {
 				cmPane.selContactsChanged(); // to trigger update of selected contacts in PyMol
+				tbToggleRealTime.setSelected(true);
 			} else {
 				Start.getPyMolAdaptor().clearAllCurrent();
+				tbToggleRealTime.setSelected(false);
 			}
 		}		
 
