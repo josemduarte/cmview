@@ -490,7 +490,6 @@ public class View extends JFrame implements ActionListener {
 		tbFillSel = makeToolBarToggleButton(icon_fill_sel_mode, LABEL_FILL_SELECTION_MODE, false, true, true);
 		tbDiagSel = makeToolBarToggleButton(icon_diag_sel_mode, LABEL_DIAGONAL_SELECTION_MODE, false, true, true);
 		tbNbhSel = makeToolBarToggleButton(icon_nbh_sel_mode, LABEL_NODE_NBH_SELECTION_MODE, false, true, true);
-		tbToggleRealTime = makeToolBarToggleButton(icon_toggle_realtime, LABEL_TOGGLE_REALTIME, true, true, true);
 		
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh = makeToolBarToggleButton(icon_show_com_nbs_mode, LABEL_SHOW_COMMON_NBS_MODE, false, true, true);
@@ -502,6 +501,8 @@ public class View extends JFrame implements ActionListener {
 		if(Start.USE_EXPERIMENTAL_FEATURES) {
 			tbShowComNbh3D = makeToolBarButton(icon_show_triangles_3d, LABEL_SHOW_TRIANGLES_3D);
 		}
+		tbToggleRealTime = makeToolBarToggleButton(icon_toggle_realtime, LABEL_TOGGLE_REALTIME, true, true, true);
+
 				
 		toolBar.addSeparator(separatorDim);
 		tbToggleContacts = makeToolBarToggleButton(icon_toggle_contacts,LABEL_ADD_REMOVE_CONTACTS,false,true,true);
@@ -984,10 +985,10 @@ public class View extends JFrame implements ActionListener {
 		map.put(tbToggleContacts, hasMod);
 		map.put(tbShowComNbh, hasMod);		// experimental
 		map.put(tbShowComNbh3D, hasMod);	// experimental
-		map.put(tbToggleRealTime, hasMod);
 
 		map.put(tbShowSel3D, hasMod);
 		map.put(tbShowSph3D, hasMod);
+		map.put(tbToggleRealTime, hasMod);
 
 		map.put(tbDelete, hasMod);
 		map.put(tbMinSubset, hasMod);
