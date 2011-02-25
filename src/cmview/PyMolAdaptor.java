@@ -1,5 +1,6 @@
 package cmview;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -516,7 +517,7 @@ public class PyMolAdaptor {
 			new StreamGobbler("pymol_stdout", pymolProcess.getInputStream()).start();
 			new StreamGobbler("pymol_stderr", pymolProcess.getErrorStream()).start();
 			
-			this.Out = new PrintWriter(pymolProcess.getOutputStream());
+			this.Out = new PrintWriter(new BufferedOutputStream(pymolProcess.getOutputStream()));
 			this.connected = true;
 	}
 	
