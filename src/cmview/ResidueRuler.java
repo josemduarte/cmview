@@ -311,6 +311,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 					}
 				}
 				cmPane.repaint();
+				cmPane.selContactsChanged();	// to trigger real time contacts in PyMol
 				
 			}
 		}
@@ -335,6 +336,7 @@ public class ResidueRuler extends JPanel implements MouseListener,
 	}
 
 	public void mouseReleased(MouseEvent evt) {
+		cmPane.selContactsChanged();	// to trigger real time contacts in PyMol
 	}
 
 	public void mouseDragged(MouseEvent evt) {

@@ -1834,7 +1834,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 
 			}
 			
-			selContactsChanged(); // at least potentially
+			selContactsChanged(); // we call this here instead of each case above
 		}
 	}
 
@@ -1928,7 +1928,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 	/**
 	 * this should be called whenever we change the variable selContacts
 	 */
-	private void selContactsChanged() {
+	protected void selContactsChanged() {
 		if(view.getGUIState().getShowRealTimeContacts() && Start.isPyMolConnectionAvailable()) {
 			if(!this.hasSecondModel()) {
 				Start.getPyMolAdaptor().showCurrentSelection(mod, selContacts);
