@@ -1891,18 +1891,21 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 				&& mouseCell.getFirst() > 0 && mouseCell.getSecond() > 0 
 				&& (mouseCell.getFirst() != lastMouseCell.getFirst() || mouseCell.getSecond() != lastMouseCell.getSecond())) {
 					if(this.hasSecondModel()) {
-						Start.getPyMolAdaptor().showCurrentContacts(mod, mod2, mapContactAl2Seq(mod.getLoadedGraphID(), mouseCell), mapContactAl2Seq(mod2.getLoadedGraphID(), mouseCell));
 					
 						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
 							Start.getPyMolAdaptor().showCurrentSelections(mod, mod2, mapContactSetToSequence(mod.getLoadedGraphID(),tmpContacts), mapContactSetToSequence(mod2.getLoadedGraphID(),tmpContacts));
+						} else {
+							Start.getPyMolAdaptor().showCurrentContacts(mod, mod2, mapContactAl2Seq(mod.getLoadedGraphID(), mouseCell), mapContactAl2Seq(mod2.getLoadedGraphID(), mouseCell));
 						}
 					
 					} else {
-						Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);
+
 						
 						// we are doing this here instead because it is triggered less often than tmpContactsChanged:
 						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
 							Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+						} else {
+							Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);							
 						}
 					}
 					lastMouseCell = mouseCell; 
@@ -2734,7 +2737,7 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 			}
 		}
 	}
-
+	
 	/**
 	 * Update selContacts with the result of a fill selection starting from the
 	 * given contact.
