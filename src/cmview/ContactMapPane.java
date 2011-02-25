@@ -1893,7 +1893,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 					if(this.hasSecondModel()) {
 					
 						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
-							Start.getPyMolAdaptor().showCurrentSelections(mod, mod2, mapContactSetToSequence(mod.getLoadedGraphID(),tmpContacts), mapContactSetToSequence(mod2.getLoadedGraphID(),tmpContacts));
+							// disabling real-time tmpContacts showing for now (was too slow)
+							//Start.getPyMolAdaptor().showCurrentSelections(mod, mod2, mapContactSetToSequence(mod.getLoadedGraphID(),tmpContacts), mapContactSetToSequence(mod2.getLoadedGraphID(),tmpContacts));
 						} else {
 							Start.getPyMolAdaptor().showCurrentContacts(mod, mod2, mapContactAl2Seq(mod.getLoadedGraphID(), mouseCell), mapContactAl2Seq(mod2.getLoadedGraphID(), mouseCell));
 						}
@@ -1903,7 +1904,8 @@ implements MouseListener, MouseMotionListener, ComponentListener {
 						
 						// we are doing this here instead because it is triggered less often than tmpContactsChanged:
 						if (dragging && (view.getGUIState().getSelectionMode()==GUIState.SelMode.RECT || view.getGUIState().getSelectionMode()==GUIState.SelMode.DIAG)) {
-							Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
+							// disabling real-time tmpContacts showing for now (was too slow)
+							//Start.getPyMolAdaptor().showCurrentSelection(mod, tmpContacts);
 						} else {
 							Start.getPyMolAdaptor().showCurrentContact(mod, mouseCell);							
 						}
