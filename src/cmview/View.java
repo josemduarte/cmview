@@ -199,6 +199,7 @@ public class View extends JFrame implements ActionListener {
 	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadTs2, mmLoadFtp2, mmLoadCaspServerMods2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
+	JMenuItem mmToggleRealTime;
 	JMenuItem mmSelectAll, mmSelectByResNum, mmSelectHelixHelix, mmSelectBetaBeta, mmSelectInterSsContacts, mmSelectIntraSsContacts;
 	JMenuItem mmColorReset, mmColorPaint, mmColorChoose;
 	JMenuItem mmShowCommon,  mmShowFirst,  mmShowSecond;
@@ -636,6 +637,8 @@ public class View extends JFrame implements ActionListener {
 		
 		menu.add(submenu);
 		menu.addSeparator();
+		mmToggleRealTime = makeMenuItem(LABEL_TOGGLE_REALTIME, icon_toggle_realtime, menu);
+		menu.addSeparator();
 		mmSelectAll = makeMenuItem("All Contacts", null, menu);
 		mmSelectByResNum = makeMenuItem("By Residue Number...", null, menu);
 		menu.addSeparator();
@@ -927,6 +930,7 @@ public class View extends JFrame implements ActionListener {
 		map.put(mmViewShowDeltaRank, hasMod);
 		map.put(mmViewShowDistMatrix, hasMod);
 		// menu -> Select
+		map.put(mmToggleRealTime, hasMod);
 		map.put(mmSelectAll, hasMod);
 		map.put(mmSelectByResNum, hasMod);
 		map.put(mmSelectHelixHelix, hasMod);
@@ -1253,7 +1257,7 @@ public class View extends JFrame implements ActionListener {
 		}
 
 		// toggle real-time selection of contacts clicked
-		if (e.getSource() == tbToggleRealTime) {
+		if (e.getSource() == mmToggleRealTime || e.getSource() == tbToggleRealTime) {
 			guiState.toggleRealTimeContacts();
 			if(guiState.getShowRealTimeContacts()) {
 				cmPane.selContactsChanged(); // to trigger update of selected contacts in PyMol
