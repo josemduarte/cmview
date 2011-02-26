@@ -636,6 +636,14 @@
     </sect2>
     <sect2 id="menu.action">
       <title>Action</title>
+      <sect3 id="menu.action.realtimemode">
+        <title>Toggle Real-Time Displaying of Contacts</title>
+        <para>Toggles the real time mode on and off. In real time mode, 
+        the current position in the contact map as well as the 
+        currently selected contacts are immediately shown as edges in 
+        the 3D viewer. This can be switched off to increase 
+        performance.</para>
+      </sect3>
       <sect3 id="menu.action.show3d">
         <title>Show selected contacts in 3D</title>
         <para>Visualizes the currently selected contacts as edges in 
@@ -1252,9 +1260,9 @@
         <varlistentry>
           <term><parameter>SHOW_CONTACTS_IN_REALTIME</parameter></term>
           <listitem>
-            <para>Whether currently selected contacts will be shown in PyMol
-            in real time. This can be switched off to increase performance.
-            In this case, contacts can be shown in PyMol
+            <para>Whether currently selected contacts will be shown in 
+            PyMol in real time. This can be switched off to increase 
+            performance. In this case, contacts can be shown in PyMol 
             <link linkend="menu.action.show3d">manually</link>.</para>
             <para>Default: true</para>
           </listitem>

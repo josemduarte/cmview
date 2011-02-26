@@ -3,8 +3,9 @@
 <article lang="en">
   <title>Download</title>
   <itemizedlist>
+    <title>CMView</title>
     <listitem>
-      <para>Current version: <ulink url="downloads/CMView-1.1rc3.zip">CMView-1.1rc3.zip</ulink></para>
+      <para>Current version: <ulink url="downloads/CMView-1.1rc4.zip">CMView-1.1rc4.zip</ulink></para>
     </listitem>
     <listitem>
       <para><ulink url="downloads/manual.pdf">PDF manual</ulink></para>
@@ -14,4 +15,12 @@
       <para><ulink url="downloads/CMView-0.9.6.zip">CMView-0.9.6.zip</ulink></para>
     </listitem>
   </itemizedlist>
+  <itemizedlist>
+    <title>Additional tools (experimental)</title>
+    <listitem>
+     <para><ulink url="http://www.bioinformatics.org/owl/reconstruct/">Reconstruct</ulink> - Command 
+     line tool for reconstructing 3D structures from contact maps</para>
+    </listitem>   
+  </itemizedlist>
+  
 </article>

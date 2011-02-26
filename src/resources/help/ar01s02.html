@@ -10,12 +10,18 @@
               bottom.</p></dd><dt><span class="term">Sequence length</span></dt><dd><p>The number of residues in the full protein 
               sequence</p></dd><dt><span class="term">Unobserved residues</span></dt><dd><p>The number of residues for which no 3D coordinates 
               are available</p></dd><dt><span class="term">Secondary structure source</span></dt><dd><p>The source of the secondary structure annotation 
-              (author, DSSP or none)</p></dd><dt><span class="term">Number of contacts</span></dt><dd><p>The number of contacts in the contact map</p></dd><dt><span class="term">Number of selected contacts</span></dt><dd><p>The number of contacts currently selected</p></dd></dl></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2550215"></a>Only in compare mode:</h5></div></div></div><div class="variablelist"><dl><dt><span class="term">Number of unique contacts</span></dt><dd><p>The number of contacts unique to this 
+              (author, DSSP or none)</p></dd><dt><span class="term">Number of contacts</span></dt><dd><p>The number of contacts in the contact map</p></dd><dt><span class="term">Number of selected contacts</span></dt><dd><p>The number of contacts currently selected</p></dd></dl></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2561359"></a>Only in compare mode:</h5></div></div></div><div class="variablelist"><dl><dt><span class="term">Number of unique contacts</span></dt><dd><p>The number of contacts unique to this 
                 structure</p></dd><dt><span class="term">Number of common contacts</span></dt><dd><p>The number of contacts present in both 
                 structures</p></dd><dt><span class="term">Contact map overlap</span></dt><dd><p>The overlap between the two contact maps measured 
                 by the Tanimoto coefficient [1]:</p><p>T(A,B) = common contacts / (contacts(A) + 
                 contacts(B) - common contacts)</p></dd></dl></div><p>[1] Tanimoto, T.T. (1957) IBM Internal Report 17th Nov. 
-          1957.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.file.load"></a>Load from</h4></div></div></div><p>CMView can import two general classes of data 
+          1957.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.file.loupe"></a>Loupe</h4></div></div></div><p>Opens a window with a magnified view of the contact map 
+        around the current mouse position. This is helpful when working 
+        with large contact maps. The size of the loupe window and 
+        magnification can be set with the variables <em class="parameter"><code>
+        LOUPE_WINDOW_SIZE</code></em> and <em class="parameter"><code>
+        LOUPE_CONTACT_SIZE</code></em> in the <a class="link" href="ar01s04.html" title="Configuration">
+        config</a> file.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.file.load"></a>Load from</h4></div></div></div><p>CMView can import two general classes of data 
         files:</p><div class="orderedlist"><ol type="1"><li><p>Tertiary structure files (3D coordinates)</p></li><li><p>Contact map files</p></li></ol></div><p>For tertiary structure files (e.g. PDB files), a contact 
         map will be calculated from the 3D coordinates using the user 
         specified contact type and distance cutoff, the structure will 
@@ -26,35 +32,35 @@
         the structure they were derived from (if applicable). When 
         opening such a .cm file, the application tries to retrieve the 
         3D coordinates from the online PDB.</p><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="menu.file.load.onlinepdb"></a>Load from online PDB</h5></div></div></div><p>Loads a structure from the PDB ftp site. The file is 
-          downloaded in mmCIF format and cached locally.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2577974"></a>Load from PDB file / Load from Casp TS file</h5></div></div></div><p>Loads a structure from a local PDB file. The file needs 
+          downloaded in mmCIF format and cached locally.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2564947"></a>Load from PDB file / Load from Casp TS file</h5></div></div></div><p>Loads a structure from a local PDB file. The file needs 
           to contain an initial HEADER line and one or more ATOM lines 
           following the PDB file specification [1]. Alternatively, 
           files may also follow the <acronym class="acronym">CASP</acronym> tertiary 
           structure prediction format [2].</p><p>[1] <a class="ulink" href="http://www.wwpdb.org/docs.html" target="_top">
           http://www.wwpdb.org/docs.html</a></p><p>[2] 
           <a class="ulink" href="http://predictioncenter.org/casp7/doc/casp7-format.html" target="_top">
-          http://predictioncenter.org/casp7/doc/casp7-format.html#TS</a></p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2574720"></a>Load from contact map file</h5></div></div></div><p>Loads a file in the native CMView contact map file 
+          http://predictioncenter.org/casp7/doc/casp7-format.html#TS</a></p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2573659"></a>Load from contact map file</h5></div></div></div><p>Loads a file in the native CMView contact map file 
           format. A file saved in this format contains some metadata 
           including the PDB-four-letter code of the structure it was 
           derived from (if applicable). The corresponding structure 
           will then be retrieved from the PDB when the file is loaded 
-          again.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2568094"></a>Load from <acronym class="acronym">CASP</acronym> RR file</h5></div></div></div><p>Loads a contact map in CASP residue-residue contact 
+          again.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2574014"></a>Load from <acronym class="acronym">CASP</acronym> RR file</h5></div></div></div><p>Loads a contact map in CASP residue-residue contact 
           prediction format.</p><p>See 
           <a class="ulink" href="http://predictioncenter.org/casp7/doc/casp7-format.html#RR" target="_top">
           http://predictioncenter.org/casp7/doc/casp7-format.html#RR</a> 
-          for the format specification.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2572142"></a>Save to</h4></div></div></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2556657"></a>Save to contact map file</h5></div></div></div><p>Saves the current contact map in CMView contact map 
+          for the format specification.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2573443"></a>Save to</h4></div></div></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2566418"></a>Save to contact map file</h5></div></div></div><p>Saves the current contact map in CMView contact map 
           file format. The sequence, the residue-residue contacts and 
           some meta data (original PDB four-letter code and chain code, 
           contact type, distance cutoff) will be stored in the 
-          file.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2561192"></a>Save to <acronym class="acronym">CASP</acronym> RR file</h5></div></div></div><p>Saves the current contact map in 
+          file.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2577881"></a>Save to <acronym class="acronym">CASP</acronym> RR file</h5></div></div></div><p>Saves the current contact map in 
           <acronym class="acronym">CASP</acronym> residue-residue contact prediction 
           format.</p><p>See 
           <a class="ulink" href="http://predictioncenter.org/casp7/doc/casp7-format.html#RR" target="_top">
           http://predictioncenter.org/casp7/doc/casp7-format.html#RR</a> 
-          for the format specification.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2577881"></a>Save to PNG file</h5></div></div></div><p>Exports the current contents of the main contact map 
-          window as a PNG image file.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2584040"></a>Save Alignment to file</h5></div></div></div><p>Saves the current alignment to a text file in FASTA 
+          for the format specification.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2557589"></a>Save to PNG file</h5></div></div></div><p>Exports the current contents of the main contact map 
+          window as a PNG image file.</p></div><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="id2564888"></a>Save Alignment to file</h5></div></div></div><p>Saves the current alignment to a text file in FASTA 
           alignment format. This function is only available in 
-          comparison mode.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2569879"></a>Quit</h4></div></div></div><p>Closes all windows and exits CMView.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.select"></a>Select</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.select.mode"></a>Selection modes</h4></div></div></div><p>The selection mode defines the mouse behavior for 
+          comparison mode.</p></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2585480"></a>Quit</h4></div></div></div><p>Closes all windows and exits CMView.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.select"></a>Select</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.select.mode"></a>Selection modes</h4></div></div></div><p>The selection mode defines the mouse behavior for 
         selecting contacts in the main contact map window and in the 
         secondary structure rulers at the left and at the top of the 
         contact map window.</p><div class="sect4" lang="en"><div class="titlepage"><div><div><h5 class="title"><a name="menu.select.mode.rect"></a>Rectangular selection mode</h5></div></div></div><div class="itemizedlist"><p class="title"><b>In contact map</b></p><ul type="disc"><li><p>Drag to select rectangular region of contacts</p></li><li><p>Drag to select rectangular region of contacts</p></li><li><p>Click on contact to select single contact</p></li><li><p>Ctrl+click to add to current selection</p></li><li><p>Click on white space to reset selection</p></li></ul></div><div class="itemizedlist"><p class="title"><b>In ruler</b></p><ul type="disc"><li><p>Click on secondary structure element to select the 
@@ -80,22 +86,26 @@
               contact map</p></li><li><p>Click on a white cell to add the respective contact 
               to the contact map</p></li></ul></div><div class="itemizedlist"><p class="title"><b>In ruler</b></p><ul type="disc"><li><p>Same behavior as in 
               <a class="link" href="ar01s02.html#menu.select.mode.rect" title="Rectangular selection mode">rectangular 
-              selection mode</a></p></li></ul></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2583299"></a>Select all contacts</h4></div></div></div><p>Selects all currently visible contacts.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2540452"></a>Select by residue number</h4></div></div></div><p>Selects all contacts between elements from a user 
+              selection mode</a></p></li></ul></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2576402"></a>Select all contacts</h4></div></div></div><p>Selects all currently visible contacts.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2580549"></a>Select by residue number</h4></div></div></div><p>Selects all contacts between elements from a user 
         selected set of residues. The residue set is specified by a 
         selection string. A selection string is a comma separated list 
         of residue numbers and/or residue ranges where a residue range 
         r1-r2 specifies all residues between and including r1 and 
-        r2.</p><p>Example: 1,3,5-7,10-12</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2584470"></a>Select helix-helix contacts</h4></div></div></div><p>Selects all contacts between distinct alpha 
-        helices.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2581515"></a>Select sheet-sheet contacts</h4></div></div></div><p>Selects all contacts between distinct beta strands.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2576848"></a>Select contacts between secondary structure 
+        r2.</p><p>Example: 1,3,5-7,10-12</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2570549"></a>Select helix-helix contacts</h4></div></div></div><p>Selects all contacts between distinct alpha 
+        helices.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2580284"></a>Select sheet-sheet contacts</h4></div></div></div><p>Selects all contacts between distinct beta strands.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2560380"></a>Select contacts between secondary structure 
         elements</h4></div></div></div><p>Selects all contacts between distinct secondary structure 
-        elements.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2575666"></a>Select contacts within secondary structure 
+        elements.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2570500"></a>Select contacts within secondary structure 
         elements</h4></div></div></div><p>Selects all contacts between two residues from the same 
         secondary structure element.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.color"></a>Color</h3></div></div></div><p>Different regions of interest in the contact map can be 
       assigned user-defined colors, e.g. to highlight different domains 
       or a particular functional site.</p><p>See also: <a class="link" href="ar01s02.html#menu.select.mode.color" title="Color selection mode">Select by 
-      color</a></p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2558804"></a>Choose color</h4></div></div></div><p>Chooses the active color for coloring contacts using the 
+      color</a></p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2561282"></a>Choose color</h4></div></div></div><p>Chooses the active color for coloring contacts using the 
         Paint selection contacts function.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.color.paint"></a>Color selected contacts</h4></div></div></div><p>Assigns the active color to the currently selected 
-        contacts</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2564276"></a>Reset contact colors to black</h4></div></div></div><p>Resets all contacts to the default color (black)</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.action"></a>Action</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.show3d"></a>Show selected contacts in 3D</h4></div></div></div><p>Visualizes the currently selected contacts as edges in 
+        contacts</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2583054"></a>Reset contact colors to black</h4></div></div></div><p>Resets all contacts to the default color (black)</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.action"></a>Action</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.realtimemode"></a>Toggle Real-Time Displaying of Contacts</h4></div></div></div><p>Toggles the real time mode on and off. In real time mode, 
+        the current position in the contact map as well as the 
+        currently selected contacts are immediately shown as edges in 
+        the 3D viewer. This can be switched off to increase 
+        performance.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.show3d"></a>Show selected contacts in 3D</h4></div></div></div><p>Visualizes the currently selected contacts as edges in 
         the 3D viewer. The edges are drawn between the C-alpha atoms of 
         the residues in contact.</p><p>In single contact map mode, two selection objects are 
         created in the 3D viewer:</p><div class="orderedlist"><ol type="1"><li><p>The set of contacts (drawn as solid yellow 
@@ -122,15 +132,15 @@
         of the individual residues under the chosen contact definition. 
         Threshold spheres can also be drawn for residue pairs not in 
         contact by right-clicking on the residue pair in the contact 
-        map and choosing <span class="guimenuitem">Show Threshold Spheres For Residue 
-        Pair</span> from the context menu.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.delete"></a>Delete selected contacts</h4></div></div></div><p>Permanently deletes the currently selected contacts from 
+        map and choosing <span class="guimenuitem">Show Threshold Spheres For 
+        Residue Pair</span> from the context menu.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.delete"></a>Delete selected contacts</h4></div></div></div><p>Permanently deletes the currently selected contacts from 
         the contact map.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.action.conepeeling"></a>Run Cone Peeling Algorithm</h4></div></div></div><p>Runs the Cone Peeling algorithm described in</p><p><span class="emphasis"><em>Sathyapriya et al., Defining an Essence of 
         Structure Determining Residue Contacts in Proteins. PLoS 
         Computational Biology 5(12): e1000584 (2009).</em></span></p><p>This algorithm attempts to calculate a minimal subset of 
         contacts which are sufficient to reconstruct the fold with 
         distance geometry. See the reference for more information. This 
         will modify the current contact map and show the minimal subset 
-        and the original contact map in compare mode.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.compare"></a>Compare</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2580671"></a>Load second contact map</h4></div></div></div><p>Loads a second contact map (in the following called B) to 
+        and the original contact map in compare mode.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.compare"></a>Compare</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2552608"></a>Load second contact map</h4></div></div></div><p>Loads a second contact map (in the following called B) to 
         compare it to the currently open one (A). For the different 
         input options see <a class="link" href="ar01s02.html#menu.file.load" title="Load from">Load 
         from</a></p><p>After a second contact map has been loaded, contacts are 
@@ -171,7 +181,7 @@
         protein structure comparison; Bioinformatics 16, 566-567.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.compare.showcommon"></a>Show common contacts</h4></div></div></div><p>Shows/hides contacts present in both structure A and 
         structure B.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.compare.showfirst"></a>Show contacts unique to first structure</h4></div></div></div><p>Shows/hides contacts present in contact map A but absent 
         in B (displayed in pink).</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="menu.compare.showsecond"></a>Show contacts unique to second structure</h4></div></div></div><p>Shows/hides contacts present in structure B but absent in 
-        A (displayed in green).</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2579850"></a>Show difference map</h4></div></div></div><p>Displays/hides the difference distance map of the two 
+        A (displayed in green).</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2576790"></a>Show difference map</h4></div></div></div><p>Displays/hides the difference distance map of the two 
         structures.</p><p>The difference distance map is a powerful tool to 
         visualize conformational changes between two protein 
         structures. For a pair of residues (i,j) the distance map 
@@ -181,7 +191,7 @@
         remain unchanged appear in blue.</p><p>For each pair of residues, the absolute difference 
         between the distance in structure A and the distance in 
         structure B.</p><p>The difference map can only be shown if 3D coordinates 
-        for both structures are available.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2567424"></a>Superimpose from selection</h4></div></div></div><p>Superimposes the structures in the 3D viewer based on the 
+        for both structures are available.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2584212"></a>Superimpose from selection</h4></div></div></div><p>Superimposes the structures in the 3D viewer based on the 
         currently selected contacts.</p><p>When two structure are loaded for comparison, they are 
         initially superimposed using an all-residue C-alpha minimum 
         RMSD fit. In such a rigid-body superimposition, some regions 
@@ -190,26 +200,26 @@
         on the residues participating in the contact selection.</p><p>Note: When changing the orientation of structures in 
         PyMol (e.g. using the custom superposition function), earlier 
         contact objects are not moved with the original structure. 
-        There is currently no workaround for this.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2556870"></a>Show corresponding residues from selection</h4></div></div></div><p>Visualizes aligned residues in the 3D viewer.</p><p>To highlights the correspondence between residues in 
+        There is currently no workaround for this.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2553779"></a>Show corresponding residues from selection</h4></div></div></div><p>Visualizes aligned residues in the 3D viewer.</p><p>To highlights the correspondence between residues in 
         structure A and structure B, lines are drawn between 
         corresponding residues. This gives a visual three dimensional 
-        impression of the underlying alignment.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.help"></a>Help</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2561024"></a>Help</h4></div></div></div><p>Shows the inline help.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2575514"></a>About</h4></div></div></div><p>Shows version and licensing information.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="popup"></a>Context menu</h3></div></div></div><p>Available by right-clicking on the main contact map 
-      window.</p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2548085"></a>Show residue pair as edge in 3D</h4></div></div></div><p>Draws a line in the 3D viewer labeled with the distance 
+        impression of the underlying alignment.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="menu.help"></a>Help</h3></div></div></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2548085"></a>Help</h4></div></div></div><p>Shows the inline help.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2556577"></a>About</h4></div></div></div><p>Shows version and licensing information.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="popup"></a>Context menu</h3></div></div></div><p>Available by right-clicking on the main contact map 
+      window.</p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2568524"></a>Show residue pair as edge in 3D</h4></div></div></div><p>Draws a line in the 3D viewer labeled with the distance 
         between the respective residues in Angstroms. This feature is 
         independent of whether the two residues are in contact or 
-        not.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2556577"></a>Show threshold spheres for residue pair in 3D</h4></div></div></div><p>Draws the <a class="link" href="ar01s02.html#menu.action.thresholdspheres" title="Show threshold spheres for selected contacts in 3D">
-        threshold spheres</a> for the selected pair of residues in the 3D viewer.
-        This feature is independent of whether the two residues are in
-        contact or not.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="experimental"></a>Experimental features (unsupported)</h3></div></div></div><p>Experimental features can be enabled by setting <em class="parameter"><code>
+        not.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2563879"></a>Show threshold spheres for residue pair in 3D</h4></div></div></div><p>Draws the <a class="link" href="ar01s02.html#menu.action.thresholdspheres" title="Show threshold spheres for selected contacts in 3D">
+        threshold spheres</a> for the selected pair of residues in 
+        the 3D viewer. This feature is independent of whether the two 
+        residues are in contact or not.</p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="experimental"></a>Experimental features (unsupported)</h3></div></div></div><p>Experimental features can be enabled by setting <em class="parameter"><code>
       USE_EXPERIMENTAL_FEATURES = true</code></em> in the config 
-      file.</p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2569547"></a>Load structure from relational database</h4></div></div></div><p>Loads PDB structures from a relational database in 
+      file.</p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2549996"></a>Load structure from relational database</h4></div></div></div><p>Loads PDB structures from a relational database in 
         PDBase[1] or MSD[2] format.</p><p>[1] 
         <a class="ulink" href="http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html" target="_top">
         http://openmms.sdsc.edu/OpenMMS-1.5.1_Std/openmms/docs/guides/PDBase.html</a></p><p>[2] <a class="ulink" href="http://www.ebi.ac.uk/msd-srv/docs/dbdoc/" target="_top">
-        http://www.ebi.ac.uk/msd-srv/docs/dbdoc/</a></p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2541483"></a>Load from/save to graph database</h4></div></div></div><p>Loads and saves contact maps from/to a simple relational 
-        database with tables for graphs, nodes and edges.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2577284"></a>Show common neighbor triangles in contact map</h4></div></div></div><p>Shows the common neighborhood for a pair of residues as 
-        triangles in the contact map.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2545001"></a>Show common neighbor triangles in 3D</h4></div></div></div><p>Shows the common neighborhood for a pair of residues as 
-        triangles in the 3D viewer.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2553852"></a>Show common neighborhood size map</h4></div></div></div><p>Shows the common neighborhood sizes for all residue pairs 
+        http://www.ebi.ac.uk/msd-srv/docs/dbdoc/</a></p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2565083"></a>Load from/save to graph database</h4></div></div></div><p>Loads and saves contact maps from/to a simple relational 
+        database with tables for graphs, nodes and edges.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2582772"></a>Show common neighbor triangles in contact map</h4></div></div></div><p>Shows the common neighborhood for a pair of residues as 
+        triangles in the contact map.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2567296"></a>Show common neighbor triangles in 3D</h4></div></div></div><p>Shows the common neighborhood for a pair of residues as 
+        triangles in the 3D viewer.</p></div><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="id2575914"></a>Show common neighborhood size map</h4></div></div></div><p>Shows the common neighborhood sizes for all residue pairs 
         as colors in the contact map.</p><p></p></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="overlays"></a>Overlays</h3></div></div></div><p>Overlays can be selected from the overlay menu in the side 
       bar on the right. They display additional information in the 
       contact map windows.</p><div class="sect3" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="overlays.density"></a>Contact density</h4></div></div></div><p>Displays/hides the contact density map.</p><p>The contact density map shows for every residue pair 
