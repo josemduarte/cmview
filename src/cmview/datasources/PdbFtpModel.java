@@ -114,7 +114,7 @@ public class PdbFtpModel extends Model {
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
 			
-		} catch (PdbLoadError e) {
+		} catch (PdbLoadException e) {
 			System.err.println("Failed to load structure.");
 			throw new ModelConstructionError(e.getMessage());
 		}

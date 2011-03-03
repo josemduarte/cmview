@@ -45,7 +45,7 @@ public class GraphDbModel extends Model {
 				this.pdb.load(pdbChainCode,modelSerial);
 				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from pdbase database "+Start.DEFAULT_PDB_DB);
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-			} catch (PdbLoadError e) {
+			} catch (PdbLoadException e) {
 				System.err.println("Failed to load structure: "+e.getMessage());
 				pdb = null;
 			} catch (PdbCodeNotFoundException e) {

@@ -150,7 +150,7 @@ public class PdbFileModel extends Model {
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
 			
-		} catch (PdbLoadError e) {
+		} catch (PdbLoadException e) {
 			throw new ModelConstructionError(e.getMessage());
 		}
 	}

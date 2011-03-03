@@ -42,7 +42,7 @@ import owl.core.sequence.alignment.PairwiseSequenceAlignment.PairwiseSequenceAli
 import owl.core.structure.*;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.scoring.ResidueContactScoringFunction;
-import owl.core.util.FileFormatError;
+import owl.core.util.FileFormatException;
 import owl.core.util.IntPairSet;
 import owl.core.util.Interval;
 import owl.core.util.IntervalSet;
@@ -1467,7 +1467,7 @@ public class View extends JFrame implements ActionListener {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
-							} catch (PdbLoadError e) {
+							} catch (PdbLoadException e) {
 								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 							}
 						}
@@ -1484,7 +1484,7 @@ public class View extends JFrame implements ActionListener {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
 							} catch (SQLException e) {
 								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
-							} catch (PdbLoadError e) {
+							} catch (PdbLoadException e) {
 								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 							}
 						}				
@@ -1524,7 +1524,7 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		} catch (SQLException e) {
 			showLoadError(e.getMessage());
-		} catch (PdbLoadError e) {
+		} catch (PdbLoadException e) {
 			showLoadError(e.getMessage());
 		}
 	}
@@ -1551,7 +1551,7 @@ public class View extends JFrame implements ActionListener {
 							return mod.getChains();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read chains from ftp:"+e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
@@ -1565,7 +1565,7 @@ public class View extends JFrame implements ActionListener {
 							return mod.getModels();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read models from ftp:"+e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
@@ -1865,7 +1865,7 @@ public class View extends JFrame implements ActionListener {
 							return mod.getChains();
 						} catch (IOException e) {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
@@ -1886,7 +1886,7 @@ public class View extends JFrame implements ActionListener {
 							return mod.getModels();
 						} catch (IOException e) {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
@@ -1975,7 +1975,7 @@ public class View extends JFrame implements ActionListener {
 				error = e.getMessage();
 			} catch (FileNotFoundException e) {
 				error = e.getMessage();
-			} catch (FileFormatError e) {
+			} catch (FileFormatException e) {
 				error = e.getMessage();
 			} catch (IOException e) {
 				error = e.getMessage();
@@ -2008,7 +2008,7 @@ public class View extends JFrame implements ActionListener {
 		statusBar.enableDifferenceMapOverlay();
 	}
 	
-	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatError, AlignmentConstructionException {
+	public void doLoadPairwiseAlignment(String format) throws IOException, FileFormatException, AlignmentConstructionException {
 		
 		// open global file-chooser and get the name the alignment file
 		JFileChooser fileChooser = Start.getFileChooser();
@@ -2028,7 +2028,7 @@ public class View extends JFrame implements ActionListener {
 	 */
 	
 	public void doLoadPairwiseAlignment(String format, String source)
-	throws IOException, FileFormatError, 
+	throws IOException, FileFormatException, 
 	AlignmentConstructionException {
 
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
@@ -2117,10 +2117,10 @@ public class View extends JFrame implements ActionListener {
 	 * PDBs there, perform the alignment, parse the html output and delete everything.
 	 * @throws IOException
 	 * @throws AlignmentConstructionException 
-	 * @throws FileFormatError 
+	 * @throws FileFormatException 
 	 */
 	
-	private void doDALIAlignment() throws IOException, FileFormatError, AlignmentConstructionException {
+	private void doDALIAlignment() throws IOException, FileFormatException, AlignmentConstructionException {
 		
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		

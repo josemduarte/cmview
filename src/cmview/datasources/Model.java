@@ -14,7 +14,7 @@ import owl.core.runners.tinker.TinkerRunner;
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.structure.AminoAcid;
 import owl.core.structure.Pdb;
-import owl.core.structure.PdbLoadError;
+import owl.core.structure.PdbLoadException;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGCommonNbhood;
 import owl.core.structure.graphs.RIGEdge;
@@ -246,7 +246,7 @@ public abstract class Model {
 	 * 
 	 * @throws GetterError
 	 */
-	public String[] getChains() throws PdbLoadError {
+	public String[] getChains() throws PdbLoadException {
 		return pdb.getChains();
 	}
 
@@ -256,7 +256,7 @@ public abstract class Model {
 	 * @return array of model identifiers, null if such thing
 	 * @throws GetterError
 	 */
-	public Integer[] getModels() throws PdbLoadError {
+	public Integer[] getModels() throws PdbLoadException {
 		return pdb.getModels();
 	}
 

@@ -18,17 +18,17 @@ public class PdbaseModel extends Model {
 	 * Overloaded constructor to load the data.
 	 * @throws SQLException 
 	 * @throws PdbCodeNotFoundException 
-	 * @throws PdbLoadError 
+	 * @throws PdbLoadException 
 	 */
 	public PdbaseModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep, String db) 
-	throws PdbCodeNotFoundException, SQLException, PdbLoadError   {
+	throws PdbCodeNotFoundException, SQLException, PdbLoadException   {
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
 		this.maxSeqSep = maxSeqSep;		
 		try {
 			this.pdb = new PdbasePdb(pdbCode, db, Start.getDbConnection());
-		} catch (PdbLoadError e) {
+		} catch (PdbLoadException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -113,7 +113,7 @@ public class PdbaseModel extends Model {
 			super.filterContacts(minSeqSep, maxSeqSep);
 			super.printWarnings(pdbChainCode);
 			
-		} catch (PdbLoadError e) {
+		} catch (PdbLoadException e) {
 			System.err.println("Failed to load structure");
 			throw new ModelConstructionError(e.getMessage());
 		}		

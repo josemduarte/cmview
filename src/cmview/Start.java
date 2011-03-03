@@ -15,7 +15,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import owl.core.structure.PdbCodeNotFoundException;
-import owl.core.structure.PdbLoadError;
+import owl.core.structure.PdbLoadException;
 import owl.core.structure.graphs.ProtStructGraph;
 import owl.core.util.FileTypeGuesser;
 import owl.core.util.MySQLConnection;
@@ -569,7 +569,7 @@ public class Start {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
 					return null;
-				} catch (PdbLoadError e) {
+				} catch (PdbLoadException e) {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
 					return null;					

@@ -35,7 +35,7 @@ import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import owl.core.structure.PdbLoadError;
+import owl.core.structure.PdbLoadException;
 import owl.core.util.actionTools.Getter;
 import owl.core.util.actionTools.GetterError;
 //import javax.swing.JToolBar;
@@ -891,7 +891,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 							return mod.getChains();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read chains from ftp:"+e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}
@@ -905,7 +905,7 @@ public class ContactView extends JFrame implements ActionListener{ //, KeyListen
 							return mod.getModels();
 						} catch (ModelConstructionError e) {
 							throw new GetterError("Failed to read models from ftp:"+e.getMessage());
-						} catch (PdbLoadError e) {
+						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
 						}
 					}

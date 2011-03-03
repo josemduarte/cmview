@@ -6,7 +6,7 @@ import java.io.IOException;
 import owl.core.sequence.Sequence;
 import owl.core.structure.AminoAcid;
 import owl.core.structure.graphs.RIGraph;
-import owl.core.util.FileFormatError;
+import owl.core.util.FileFormatException;
 import cmview.Start;
 
 public class SequenceModel extends Model {
@@ -24,7 +24,7 @@ public class SequenceModel extends Model {
 		} catch (IOException e) {
 			System.err.println("Error while reading from fasta file " + seqFile);
 			throw new ModelConstructionError(e);
-		} catch (FileFormatError e) {
+		} catch (FileFormatException e) {
 			System.err.println("Errors in fasta file format of " + seqFile);
 			throw new ModelConstructionError(e);
 		}

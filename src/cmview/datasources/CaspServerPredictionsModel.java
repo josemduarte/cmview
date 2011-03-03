@@ -10,7 +10,7 @@ import cmview.Start;
 import owl.core.runners.DsspRunner;
 import owl.core.sequence.Sequence;
 import owl.core.structure.Pdb;
-import owl.core.structure.PdbLoadError;
+import owl.core.structure.PdbLoadException;
 import owl.core.structure.PdbfilePdb;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGEnsemble;
@@ -144,7 +144,7 @@ public class CaspServerPredictionsModel extends Model {
 							} //else dsspError = true;
 						}
 						
-					} catch (PdbLoadError e) {
+					} catch (PdbLoadException e) {
 						//System.err.println(e.getMessage());					
 						pdbErrors++;
 						continue;
@@ -189,7 +189,7 @@ public class CaspServerPredictionsModel extends Model {
 					String[] chains = pdb.getChains();
 					Integer[] models = pdb.getModels();
 					pdb.load(chains[0], models[0]);	// load first chain and first model
-				} catch (PdbLoadError e) {
+				} catch (PdbLoadException e) {
 					//System.err.println(e.getMessage());					
 					pdbErrors++;
 					continue;

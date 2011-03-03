@@ -3,7 +3,7 @@ package cmview.datasources;
 import java.io.IOException;
 
 import owl.core.structure.graphs.CaspRRFileRIGraph;
-import owl.core.util.FileFormatError;
+import owl.core.util.FileFormatException;
 
 import cmview.Start;
 
@@ -43,7 +43,7 @@ public class CaspRRFileModel extends Model {
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from CASP RR file.");
 			throw new ModelConstructionError(e.getMessage());
-		} catch (FileFormatError e){
+		} catch (FileFormatException e){
 			System.err.println("Error while trying to load graph from CASP RR file. Wrong CASP file format.");
 			throw new ModelConstructionError(e.getMessage());			
 		}

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import owl.core.structure.*;
 import owl.core.structure.graphs.FileRIGraph;
-import owl.core.util.FileFormatError;
+import owl.core.util.FileFormatException;
 
 /** 
  * A contact map data model based on a graph loaded from a Contact map file.
@@ -52,7 +52,7 @@ public class ContactMapFileModel extends Model {
 					} catch (PdbCodeNotFoundException e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
 						pdb = null;
-					} catch (PdbLoadError e) {
+					} catch (PdbLoadException e) {
 						System.err.println("Failed to load structure:" + e.getMessage());
 						pdb = null;
 					} catch(SQLException e) {
@@ -65,7 +65,7 @@ public class ContactMapFileModel extends Model {
 						this.pdb = new CiffilePdb(pdbCode);
 						this.pdb.load(pdbChainCode,modelSerial);
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-					} catch (PdbLoadError e) {
+					} catch (PdbLoadException e) {
 						System.err.println("Failed to load structure:" + e.getMessage());
 						pdb = null;
 					} catch(IOException e) {
@@ -91,7 +91,7 @@ public class ContactMapFileModel extends Model {
 		} catch (IOException e) {
 			System.err.println("Error while trying to load graph from contact map file.");
 			throw new ModelConstructionError(e.getMessage());
-		} catch (FileFormatError e){
+		} catch (FileFormatException e){
 			System.err.println("Error while trying to load graph from contact map file. Wrong graph file format.");
 			throw new ModelConstructionError(e.getMessage());			
 		}
