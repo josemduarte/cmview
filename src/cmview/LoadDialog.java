@@ -13,7 +13,7 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.text.Document;
 
 import owl.core.structure.ContactType;
-import owl.core.structure.Pdb;
+import owl.core.structure.PdbAsymUnit;
 import owl.core.util.actionTools.Getter;
 import owl.core.util.actionTools.GetterError;
 
@@ -460,7 +460,7 @@ public class LoadDialog extends JDialog implements ActionListener, PopupMenuList
 		}
 		
 		String selectedCc = item.toString();
-		if(selectedCc.length() == 0) selectedCc = Pdb.NULL_CHAIN_CODE;
+		if(selectedCc.length() == 0) selectedCc = PdbAsymUnit.NULL_CHAIN_CODE;
 		return selectedCc;
 	}
 

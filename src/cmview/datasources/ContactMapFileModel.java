@@ -37,13 +37,13 @@ public class ContactMapFileModel extends Model {
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();
-			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+			if (this.graph.getPdbCode().equals(PdbAsymUnit.NO_PDB_CODE)) {
 				name = DEFAULT_LOADEDGRAPHID;
 			} 
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			// load structure from pdbase/online if possible
-			if(!pdbCode.equals(Pdb.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
+			if(!pdbCode.equals(PdbAsymUnit.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
 				if (Start.isDatabaseConnectionAvailable()) {
 					try {
 						this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase

@@ -135,7 +135,7 @@ public class PdbFileModel extends Model {
 			
 			// assign a loadedGraphId to this model
 			String name = DEFAULT_LOADEDGRAPHID;
-			if (!this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+			if (!this.graph.getPdbCode().equals(PdbAsymUnit.NO_PDB_CODE)) {
 				name = this.graph.getPdbCode()+this.graph.getChainCode();
 			} else 
 			if (this.graph.getTargetNum()!=0) {

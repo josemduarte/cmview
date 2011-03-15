@@ -34,7 +34,7 @@ public class GraphDbModel extends Model {
 			
 			// assign a loadedGraphId to this model
 			String name = this.graph.getPdbCode()+this.graph.getChainCode();
-			if (this.graph.getPdbCode().equals(Pdb.NO_PDB_CODE)) {
+			if (this.graph.getPdbCode().equals(PdbAsymUnit.NO_PDB_CODE)) {
 				name = DEFAULT_LOADEDGRAPHID;
 			} 
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
