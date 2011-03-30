@@ -11,5 +11,5 @@ Class-Path: .
  jars/jh.jar
 Name: CMView
 Specification-Title: Interactive contact map visualization and analysis tool
-Specification-Version: 1.1rc5
+Specification-Version: 1.1rc6
 Specification-Vendor: AG Lappe, MPI for Molecular Genetics, Berlin
