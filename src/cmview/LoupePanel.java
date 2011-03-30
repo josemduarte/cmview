@@ -89,7 +89,12 @@ public class LoupePanel extends JPanel {
 			width = this.getWidth();
 			height = this.getHeight();
 			
-			double scaleFactor = newContactSize / contactSize;
+			// if chain is really long (e.g. 2j8sA 1050 residues) or contact map window small
+			// then contactSize rounds to 0 and we need to deal with it specially
+			double scaleFactor = newContactSize;
+			if (contactSize>0) {
+				scaleFactor = newContactSize / contactSize;
+			}
 			double xOffs = -1.0 * (mousePos.x * scaleFactor - 0.5 * width);
 			double yOffs = -1.0 * (mousePos.y * scaleFactor - 0.5 * height);
 			AffineTransform transform = new AffineTransform(scaleFactor, 0.0, 0.0, scaleFactor, xOffs, yOffs);
