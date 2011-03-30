@@ -111,8 +111,8 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		String accStr = null;
 		String covStr = null;
 		
-//		pdbCode = (mod.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod.getPDBCode());
-//		chainCode = (mod.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod.getChainCode());
+//		pdbCode = (mod.getPDBCode()==PdbChain.NO_PDB_CODE?"none":mod.getPDBCode());
+//		chainCode = (mod.getChainCode()==PdbChain.NO_CHAIN_CODE?"none":mod.getChainCode());
 //		model = Integer.toString(mod.getPdbModelNumber());
 		contactType = mod.getContactType();
 		distCutoff = Double.toString(mod.getDistanceCutoff());
@@ -125,8 +125,8 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		secStrucSrc = mod.getSecondaryStructure().getComment();
 		selectedContactsStr = Integer.toString(numSelectedContacts);
 		if(mod2 != null) {
-//			pdbCode2 = (mod2.getPDBCode()==Pdb.NO_PDB_CODE?"none":mod2.getPDBCode());
-//			chainCode2 = (mod2.getChainCode()==Pdb.NO_CHAIN_CODE?"none":mod2.getChainCode());
+//			pdbCode2 = (mod2.getPDBCode()==PdbChain.NO_PDB_CODE?"none":mod2.getPDBCode());
+//			chainCode2 = (mod2.getChainCode()==PdbChain.NO_CHAIN_CODE?"none":mod2.getChainCode());
 //			model2 = Integer.toString(mod2.getPdbModelNumber());
 			contactType2 = mod2.getContactType();
 			distCutoff2 = Double.toString(mod2.getDistanceCutoff());

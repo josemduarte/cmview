@@ -13,8 +13,7 @@ import owl.core.runners.tinker.TinkerError;
 import owl.core.runners.tinker.TinkerRunner;
 import owl.core.sequence.alignment.MultipleSequenceAlignment;
 import owl.core.structure.AminoAcid;
-import owl.core.structure.Pdb;
-import owl.core.structure.PdbLoadException;
+import owl.core.structure.PdbChain;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGCommonNbhood;
 import owl.core.structure.graphs.RIGEdge;
@@ -22,8 +21,8 @@ import owl.core.structure.graphs.RIGGeometry;
 import owl.core.structure.graphs.RIGNbhood;
 import owl.core.structure.graphs.RIGNode;
 import owl.core.structure.graphs.RIGraph;
+import owl.core.util.FileFormatException;
 import owl.core.util.IntPairSet;
-import owl.core.util.actionTools.GetterError;
 import owl.core.util.actionTools.TinkerStatusNotifier;
 import owl.deltaRank.DeltaRank;
 import owl.embed.ConePeeler;
@@ -56,7 +55,7 @@ public abstract class Model {
 	/*--------------------------- member variables --------------------------*/
 
 	// structure and contact map data
-	protected Pdb pdb; // this can be null if there are no 3D coordinates
+	protected PdbChain pdb; // this can be null if there are no 3D coordinates
 						// available
 	protected RIGraph graph; // currently every model must have a valid graph
 								// object
@@ -136,7 +135,7 @@ public abstract class Model {
 
 	public abstract void load(String pdbChainCode, int modelSerial)
 			throws ModelConstructionError;
-
+	
 	/*---------------------------- private methods --------------------------*/
 
 	/**
@@ -242,31 +241,12 @@ public abstract class Model {
 	}
 
 	/**
-	 * Gets chain codes for all chains being present in the source.
-	 * 
-	 * @throws GetterError
-	 */
-	public String[] getChains() throws PdbLoadException {
-		return pdb.getChains();
-	}
-
-	/**
-	 * Gets model indices for all models being present in the source.
-	 * 
-	 * @return array of model identifiers, null if such thing
-	 * @throws GetterError
-	 */
-	public Integer[] getModels() throws PdbLoadException {
-		return pdb.getModels();
-	}
-
-	/**
 	 * Get pdb
 	 * 
 	 * @return pdb
 	 */
 
-	public Pdb getPdb() {
+	public PdbChain getPdb() {
 		return pdb;
 	}
 
@@ -659,7 +639,7 @@ public abstract class Model {
 	 *         available.
 	 * @see #has3DCoordinates()
 	 */
-	public Pdb get3DCoordinates() {
+	public PdbChain get3DCoordinates() {
 		return pdb;
 	}
 
@@ -851,6 +831,8 @@ public abstract class Model {
 		} catch (TinkerError e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (FileFormatException e) {
 			System.out.println(e.getMessage());
 		}
 		return null;

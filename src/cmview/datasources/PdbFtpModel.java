@@ -5,6 +5,7 @@ import java.io.IOException;
 import owl.core.structure.*;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGGeometry;
+import owl.core.util.FileFormatException;
 
 
 import cmview.Start;
@@ -16,27 +17,37 @@ public class PdbFtpModel extends Model {
     
 	
 	private File cifFile;		// the cached cif file downloaded from the PDB
+	private CiffileParser parser;
 		
 	/**
 	 * Overloaded constructor to load the data.
 	 * @throws IOException 
+	 * @throws FileFormatException 
 	 */
-	public PdbFtpModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws IOException  {
+	public PdbFtpModel(String pdbCode, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws IOException, ModelConstructionError {
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
 		this.maxSeqSep = maxSeqSep;
-		this.pdb = new CiffilePdb(pdbCode, Start.PDB_FTP_URL);
-		this.cifFile = ((CiffilePdb) this.pdb).getCifFile();
+		try {
+			this.parser = new CiffileParser(pdbCode, Start.PDB_FTP_URL);
+		} catch (FileFormatException e) {
+			throw new ModelConstructionError(e.getMessage());
+		}
+		this.cifFile = parser.getCifFile();
 	}
 	
-	public PdbFtpModel(File cifFile, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws IOException  {
+	public PdbFtpModel(File cifFile, String edgeType, double distCutoff, int minSeqSep, int maxSeqSep) throws IOException, ModelConstructionError {
 		this.cifFile = cifFile;
 		this.edgeType = edgeType; 
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
 		this.maxSeqSep = maxSeqSep;
-		this.pdb = new CiffilePdb(cifFile);
+		try {
+			this.parser = new CiffileParser(cifFile);
+		} catch (FileFormatException e) {
+			throw new ModelConstructionError(e.getMessage());
+		}
 	}
 	
 	public PdbFtpModel(Model mod) {
@@ -65,7 +76,7 @@ public class PdbFtpModel extends Model {
 	/**
 	 * Loads the chain corresponding to the passed chain code identifier.
 	 * If loadEnsembleGraph is true, the graph in this model will be the average graph of the ensemble of all models
-	 * instead of the graph of the specified model only. The Pdb object will still correspond to the given model number.
+	 * instead of the graph of the specified model only. The PdbChain object will still correspond to the given model number.
 	 * @param pdbChainCode  pdb chain code of the chain to be loaded
 	 * @param modelSerial  a model serial
 	 * @param loadEnsembleGraph whether to set the graph in this model to the (weighted) ensemble graph of all models
@@ -74,12 +85,18 @@ public class PdbFtpModel extends Model {
 	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError {
 		// load CIF file from online pdb
 		try {
-			if(pdbChainCode == null) pdbChainCode = this.pdb.getChains()[0]; else
-			if(!this.pdb.hasChain(pdbChainCode)) throw new ModelConstructionError("Chain '" + pdbChainCode + "' not found");
-			this.pdb.load(pdbChainCode,modelSerial);
+			PdbAsymUnit fullpdb = new PdbAsymUnit(cifFile,modelSerial);
+			if(pdbChainCode == null) {
+				this.pdb = fullpdb.getFirstChain();
+				pdbChainCode = this.pdb.getPdbChainCode(); 
+			} else if(!fullpdb.containsPdbChainCode(pdbChainCode)) {
+				throw new ModelConstructionError("Chain '" + pdbChainCode + "' not found");
+			} else {
+				this.pdb = fullpdb.getChain(pdbChainCode);	
+			}
 			this.secondaryStructure = pdb.getSecondaryStructure();	// in case, dssp is n/a, use ss from pdb
 			super.checkAndAssignSecondaryStructure();				// if dssp is a/, recalculate ss
-			if(loadEnsembleGraph == false || this.pdb.getModels().length == 1) {
+			if(loadEnsembleGraph == false || this.parser.getModels().length == 1) {
 				this.graph = pdb.getRIGraph(edgeType, distCutoff);
 			} else {
 				RIGEnsemble e = new RIGEnsemble(edgeType, distCutoff);
@@ -117,6 +134,31 @@ public class PdbFtpModel extends Model {
 		} catch (PdbLoadException e) {
 			System.err.println("Failed to load structure.");
 			throw new ModelConstructionError(e.getMessage());
+		} catch (IOException e) {
+			System.err.println("Failed to load structure.");
+			throw new ModelConstructionError(e.getMessage());
+		} catch (FileFormatException e) {
+			System.err.println("Failed to load structure.");
+			throw new ModelConstructionError(e.getMessage());
 		}
+	}
+	
+	/**
+	 * Gets chain codes for all chains being present in the source.
+	 * 
+	 * @throws GetterError
+	 */
+	public String[] getChains() throws PdbLoadException {
+		return parser.getChains();
+	}
+
+	/**
+	 * Gets model indices for all models being present in the source.
+	 * 
+	 * @return array of model identifiers, null if such thing
+	 * @throws GetterError
+	 */
+	public Integer[] getModels() throws PdbLoadException {
+		return parser.getModels();
 	}
 }

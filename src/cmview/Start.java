@@ -15,7 +15,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import owl.core.structure.PdbCodeNotFoundException;
-import owl.core.structure.PdbLoadException;
 import owl.core.structure.graphs.ProtStructGraph;
 import owl.core.util.FileTypeGuesser;
 import owl.core.util.MySQLConnection;
@@ -546,7 +545,7 @@ public class Start {
 		Model mod = null;
 		if(pdbChainCode==null) {
 			System.out.println("No chain code given, loading first chain.");
-			//pdbChainCode = Pdb.NULL_CHAIN_CODE;
+			//pdbChainCode = PdbChain.NULL_CHAIN_CODE;
 		}
 		if (contactType == null) contactType = DEFAULT_CONTACT_TYPE;
 		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
@@ -569,11 +568,7 @@ public class Start {
 					System.err.println("Could not load structure for given command line parameters:");
 					System.err.println(e.getMessage());
 					return null;
-				} catch (PdbLoadException e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;					
-				}
+				} 
 			} else {
 				// load from online pdb
 				try {

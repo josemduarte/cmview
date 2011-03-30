@@ -6,6 +6,7 @@ import java.io.IOException;
 import owl.core.structure.*;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGGeometry;
+import owl.core.util.FileFormatException;
 import cmview.Start;
 
 /** 
@@ -14,6 +15,7 @@ import cmview.Start;
 public class PdbFileModel extends Model {
 
 	private String fileName;	// needed to load ensembl graph from all models in the file
+	private PdbfileParser parser;
 	
 	/**
 	 * Overloaded constructor to load the data.
@@ -24,7 +26,7 @@ public class PdbFileModel extends Model {
 		this.distCutoff = distCutoff;
 		this.minSeqSep = minSeqSep;
 		this.maxSeqSep = maxSeqSep;
-		this.pdb = new PdbfilePdb(fileName);
+		this.parser = new PdbfileParser(fileName);
 		this.fileName = fileName;
 	}
 
@@ -62,7 +64,7 @@ public class PdbFileModel extends Model {
 	/**
 	 * Loads the chain corresponding to the given chain code identifier and model number.
 	 * If loadEnsembleGraph is true, the graph in this model will be the average graph of the ensemble of all models
-	 * instead of the graph of the specified model only. The Pdb object will still correspond to the given model number.
+	 * instead of the graph of the specified model only. The PdbChain object will still correspond to the given model number.
 	 * @param pdbChainCode  pdb chain code of the chain to be loaded
 	 * @param modelSerial the model number to be loaded
 	 * @param loadEnsembleGraph whether to set the graph in this model to the (weighted) ensemble graph of all models
@@ -73,12 +75,18 @@ public class PdbFileModel extends Model {
 	public void load(String pdbChainCode, int modelSerial, boolean loadEnsembleGraph) throws ModelConstructionError, NumberFormatException, IOException {
 		// load PDB file
 		try {
-			if(pdbChainCode == null) pdbChainCode = this.pdb.getChains()[0]; else
-			if(!this.pdb.hasChain(pdbChainCode)) throw new ModelConstructionError("Chain '" + pdbChainCode + "' not found");
-			this.pdb.load(pdbChainCode,modelSerial);
+			PdbAsymUnit fullpdb = new PdbAsymUnit(new File(fileName),modelSerial);
+			if(pdbChainCode == null) {
+				this.pdb = fullpdb.getFirstChain();
+				pdbChainCode = this.pdb.getPdbChainCode();
+			} else if(!fullpdb.containsPdbChainCode(pdbChainCode)) {
+				throw new ModelConstructionError("Chain '" + pdbChainCode + "' not found");
+			} else {
+				this.pdb = fullpdb.getChain(pdbChainCode);
+			}
 			this.secondaryStructure = pdb.getSecondaryStructure(); 	// in case, dssp is n/a, use ss from pdb
 			super.checkAndAssignSecondaryStructure();				// if dssp is a/, recalculate ss
-			if(loadEnsembleGraph == false || this.pdb.getModels().length == 1) {
+			if(loadEnsembleGraph == false || this.parser.getModels().length == 1) {
 				this.graph = pdb.getRIGraph(edgeType, distCutoff);
 			} else {
 				RIGEnsemble e = new RIGEnsemble(edgeType, distCutoff);
@@ -89,6 +97,8 @@ public class PdbFileModel extends Model {
 					this.graph.setChainCode(pdbChainCode);
 					this.setIsGraphWeighted(true);
 				} catch (IOException e1) {
+					throw new ModelConstructionError("Error loading ensemble graph: " + e1.getMessage());
+				} catch (FileFormatException e1) {
 					throw new ModelConstructionError("Error loading ensemble graph: " + e1.getMessage());
 				}
 			}
@@ -152,6 +162,27 @@ public class PdbFileModel extends Model {
 			
 		} catch (PdbLoadException e) {
 			throw new ModelConstructionError(e.getMessage());
+		} catch (FileFormatException e) {
+			throw new ModelConstructionError(e.getMessage());
 		}
+	}
+	
+	/**
+	 * Gets chain codes for all chains being present in the source.
+	 * 
+	 * @throws GetterError
+	 */
+	public String[] getChains() throws PdbLoadException {
+		return parser.getChains();
+	}
+
+	/**
+	 * Gets model indices for all models being present in the source.
+	 * 
+	 * @return array of model identifiers, null if such thing
+	 * @throws GetterError
+	 */
+	public Integer[] getModels() throws PdbLoadException {
+		return parser.getModels();
 	}
 }

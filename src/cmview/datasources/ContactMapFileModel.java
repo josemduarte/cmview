@@ -1,8 +1,8 @@
 package cmview.datasources;
 import cmview.Start;
 
+import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 
 import owl.core.structure.*;
 import owl.core.structure.graphs.FileRIGraph;
@@ -43,11 +43,11 @@ public class ContactMapFileModel extends Model {
 			this.loadedGraphID = Start.setLoadedGraphID(name, this);
 			
 			// load structure from pdbase/online if possible
-			if(!pdbCode.equals(PdbAsymUnit.NO_PDB_CODE) && !pdbChainCode.equals(Pdb.NO_PDB_CHAIN_CODE)) {
+			if(!pdbCode.equals(PdbAsymUnit.NO_PDB_CODE) && !pdbChainCode.equals(PdbChain.NO_PDB_CHAIN_CODE)) {
 				if (Start.isDatabaseConnectionAvailable()) {
 					try {
-						this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection()); // by default loading from pdbase
-						this.pdb.load(pdbChainCode,modelSerial);
+						PdbAsymUnit fullpdb = new PdbAsymUnit(pdbCode,modelSerial,Start.getDbConnection(),Start.DEFAULT_PDB_DB);
+						this.pdb = fullpdb.getChain(pdbChainCode);
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 					} catch (PdbCodeNotFoundException e) {
 						System.err.println("Failed to load structure because accession code was not found in Pdbase");
@@ -55,15 +55,14 @@ public class ContactMapFileModel extends Model {
 					} catch (PdbLoadException e) {
 						System.err.println("Failed to load structure:" + e.getMessage());
 						pdb = null;
-					} catch(SQLException e) {
-						System.err.println("Failed to load structure because of database error");
-						pdb = null;
 					} 
 					// if pdb creation failed then pdb=null
 				} else { // we try to load from online cif file
 					try {
-						this.pdb = new CiffilePdb(pdbCode);
-						this.pdb.load(pdbChainCode,modelSerial);
+						File cifFile = new File(Start.TEMP_DIR,pdbCode + ".cif");
+						PdbAsymUnit.grabCifFile(null, Start.PDB_FTP_URL, pdbCode, cifFile, true);
+						PdbAsymUnit fullpdb = new PdbAsymUnit(cifFile, modelSerial);
+						this.pdb = fullpdb.getChain(pdbChainCode);
 						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 					} catch (PdbLoadException e) {
 						System.err.println("Failed to load structure:" + e.getMessage());

@@ -1524,9 +1524,7 @@ public class View extends JFrame implements ActionListener {
 			showLoadError(e.getMessage());
 		} catch (SQLException e) {
 			showLoadError(e.getMessage());
-		} catch (PdbLoadException e) {
-			showLoadError(e.getMessage());
-		}
+		} 
 	}
 
 	private void handleLoadFromPdbFile(boolean secondModel, boolean tsFile) {
@@ -1867,6 +1865,8 @@ public class View extends JFrame implements ActionListener {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
 						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to load chains: " + e.getMessage());
 						}
 					}
 				});
@@ -1888,6 +1888,8 @@ public class View extends JFrame implements ActionListener {
 							throw new GetterError("Failed to load structure from ftp:" + e.getMessage());
 						} catch (PdbLoadException e) {
 							throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
+						} catch (ModelConstructionError e) {
+							throw new GetterError("Failed to load chains: " + e.getMessage());
 						}
 					}
 				});

@@ -41,8 +41,8 @@ public class GraphDbModel extends Model {
 			
 			// load structure from pdbase (to display in Pymol)
 			try {
-				this.pdb = new PdbasePdb(pdbCode, Start.DEFAULT_PDB_DB, Start.getDbConnection());
-				this.pdb.load(pdbChainCode,modelSerial);
+				PdbAsymUnit fullpdb = new PdbAsymUnit(pdbCode,modelSerial,Start.getDbConnection(),Start.DEFAULT_PDB_DB);
+				this.pdb = fullpdb.getChain(pdbChainCode);
 				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from pdbase database "+Start.DEFAULT_PDB_DB);
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 			} catch (PdbLoadException e) {

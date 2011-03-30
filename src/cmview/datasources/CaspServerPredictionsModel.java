@@ -9,12 +9,14 @@ import cmview.Start;
 
 import owl.core.runners.DsspRunner;
 import owl.core.sequence.Sequence;
-import owl.core.structure.Pdb;
+import owl.core.structure.PdbChain;
+import owl.core.structure.PdbAsymUnit;
 import owl.core.structure.PdbLoadException;
-import owl.core.structure.PdbfilePdb;
+import owl.core.structure.PdbfileParser;
 import owl.core.structure.features.SecondaryStructure;
 import owl.core.structure.graphs.RIGEnsemble;
 import owl.core.structure.graphs.RIGraph;
+import owl.core.util.FileFormatException;
 import owl.graphAveraging.GraphAverager;
 import owl.graphAveraging.GraphAveragerException;
 
@@ -114,7 +116,8 @@ public class CaspServerPredictionsModel extends Model {
 		File[] files = modelDirectory.listFiles();
 		int numLoaded = 0;
 		int pdbErrors = 0;
-		Pdb pdb;
+		PdbAsymUnit fullpdb;
+		PdbChain pdb;
 		ssList = new ArrayList<SecondaryStructure>();	// load also secondary structure
 		System.out.println("Loading sequence information...");
 		System.out.println("Files in directory: " + files.length);
@@ -122,13 +125,14 @@ public class CaspServerPredictionsModel extends Model {
 			if(f.isFile()) {
 				//System.out.println(f);
 				// load structure
-				pdb = new PdbfilePdb(f.getAbsolutePath());
-				if(pdb==null) pdbErrors++; else {
+				PdbfileParser parser = new PdbfileParser(f.getAbsolutePath());
+				//if(pdb==null) pdbErrors++; else {
 					try {
-						String[] chains = pdb.getChains();
-						Integer[] models = pdb.getModels();
+						String[] chains = parser.getChains();
+						Integer[] models = parser.getModels();
 						if(chains==null || models==null || (onlyFirstModels && models[0] != 1)) continue;	// skip if not model 1
-						pdb.load(chains[0], models[0]);	// load first chain and first model
+						fullpdb = new PdbAsymUnit(f,models[0]);
+						pdb = fullpdb.getChain(chains[0]); // load first chain and first model	
 						if(caspTargetNum <= 0) caspTargetNum = pdb.getTargetNum();
 						
 						// extract secondary structure
@@ -148,8 +152,14 @@ public class CaspServerPredictionsModel extends Model {
 						//System.err.println(e.getMessage());					
 						pdbErrors++;
 						continue;
+					} catch (IOException e) {
+						pdbErrors++;
+						continue;
+					} catch (FileFormatException e) {
+						pdbErrors++;
+						continue;
 					}
-				}
+				//}
 				numLoaded++;
 					
 				// extract meta data
@@ -159,7 +169,7 @@ public class CaspServerPredictionsModel extends Model {
 			}
 		}
 		//System.out.println("Structures loaded: " + numLoaded);
-		//System.out.println("Pdb errors: " + pdbErrors);
+		//System.out.println("PdbChain errors: " + pdbErrors);
 		System.out.println("Sequence length: " + newSeq.length());
 		return (newSeq.length() > 0?newSeq:null);
 	}
@@ -170,7 +180,7 @@ public class CaspServerPredictionsModel extends Model {
 		// load files
 		File[] files = modelDirectory.listFiles();
 		int numLoaded = 0;
-		Pdb pdb;
+		PdbChain pdb;
 		RIGraph rig;
 		LinkedList<SecondaryStructure> ssList = new LinkedList<SecondaryStructure>();
 		int caspModNum = 0;
@@ -184,13 +194,20 @@ public class CaspServerPredictionsModel extends Model {
 			if(f.isFile() && (!onlyFirstModels || f.getName().indexOf("TS1") >= 0)) {
 				System.out.println(f);
 				// load structure
-				pdb = new PdbfilePdb(f.getAbsolutePath());
+				PdbfileParser parser = new PdbfileParser(f.getAbsolutePath());
 				try {
-					String[] chains = pdb.getChains();
-					Integer[] models = pdb.getModels();
-					pdb.load(chains[0], models[0]);	// load first chain and first model
+					String[] chains = parser.getChains();
+					Integer[] models = parser.getModels();
+					PdbAsymUnit fullpdb = new PdbAsymUnit(f,models[0]);
+					pdb = fullpdb.getChain(chains[0]);// load first chain and first model
 				} catch (PdbLoadException e) {
 					//System.err.println(e.getMessage());					
+					pdbErrors++;
+					continue;
+				} catch (IOException e) {
+					pdbErrors++;
+					continue;
+				} catch (FileFormatException e) {
 					pdbErrors++;
 					continue;
 				}
@@ -217,7 +234,7 @@ public class CaspServerPredictionsModel extends Model {
 				}
 				
 				// create graph
-				System.out.println(pdb.getObsLength() + " " + pdb.getSequence().length());
+				System.out.println(pdb.getObsLength() + " " + pdb.getSequence().getLength());
 				if(sequence.equals(pdb.getObsSequence())) {
 					rig = pdb.getRIGraph(edgeType, distCutoff);
 					rigs.addRIG(rig);
