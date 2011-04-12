@@ -1,0 +1,68 @@
+<html>
+<head><title>CMView Contact Geometry Analysis Plugin (CGAP)</title></head>
+<body>
+<p></p>
+<p>
+<div style="font-size:110%">The <b>C</b>ontact <b>G</b>eometry <b>A</b>nalysis <b>P</b>lugin (CGAP) for CMView</div>
+</p>
+<p>
+<img src="cgap_screenshot.png">
+</p>
+<p>
+<i>What is CGAP?</i>
+</p>
+<p>
+CGAP is an experimental plugin for the <a href="http://www.bioinformatics.org/cmview/" target="_blank">CMView</a> contact map analysis software. It provides rich,
+interactive tools for analysing the geometric environment of residue-residue contacts in protein structures. The idea is similar to that of the
+well-known <a href="http://en.wikipedia.org/wiki/Ramachandran_plot" target="_blank">Ramachandran plot</a>. But instead of dihedral angles CGAP
+visualises angular preferences for arbitrary contacts. It also shows how a selected contact compares to angular preferences observed in the PDB.
+This information can be used in an explorative way to find and understand residue interaction patterns or in a more applied way for structure modelling.
+</p>
+<p>
+<i>Installation</i>
+<ol>
+<li>Install <a href="http://www.bioinformatics.org/cmview/installation.html" target="_blank">CMView</a> (if not yet installed)</li>
+<li>Download the file <a href="http://bio.cc/cmview/cgap/SphoxelBGs.zip">SphoxelBGs.zip</a> with the background statistics (don't unzip!)</li>
+<li>Download <i>and unzip</i> the file <a href="http://bio.cc/cmview/cgap/cgap_db_data.zip">cgap_db_data.zip</a> with the database dumps</li>
+<li>You should now have the following files in your download directory:
+        <ul>
+        <li>SphoxelBGs.zip (866MB)</li>
+        <li>cullpdb_20_edges.txt (1.3GB)</li>
+        <li>cullpdb_20_nbhstrings.txt (5.7MB)</li>
+        <li>rvecs10.txt (58MB)</li>
+        <li>cgap_create_db.sql (<1KB)</li>
+        </ul></li>
+<li>Install <a href="http://dev.mysql.com/downloads/mysql/" target="_blank">MySQL</a> (if not yet installed) and create a user with sufficient privileges to create a database <i>cmview_cgap</i></li>
+<li>Run the script <i>cgap_create_db.sql</i> from MySQL to create the database and tables and load the data, e.g.</li>
+        <pre>cat cgap_create_db.sq | mysql</pre>
+<li>You can now move <i>SphoxelBGs.zip</i> to a permanent location (e.g. the CMView installation directory) and delete the other downloaded files</li>
+<li>Set the following parameters in your CMView config file (<i>cmview.cfg</i>):
+        <ol>
+        <li>USE_CGAP=true</li>
+        <li>SPHOXEL_BG_FILE_PATH=/full/path/to/downloaded/file/SphoxelBGs.zip</li>
+        <li>DB_USER= (your username)</li>
+        <li>DB_PWD= (your password)</li>
+        <li>DB_HOST= (mysql host name, usually <i>localhost</i>)</li>
+        <li>CGAP_DB_NAME=cmview_cgap</li>
+        </ol></li>
+</ol>
+</p>
+<p>
+<i>Notes</i>
+<ul>
+<li>To use CGAP from CMView, load a protein structure (e.g. from Online PDB), then right click on a residue pair in the contact map windows and select <i>Explore Contact Geometry</i>.</li>
+<li>At least the file <i>SphoxelBG.zip</i> is required. Without it, CGAP will not work.</li>
+<li>Without the database, CGAP will still work but no traces for similar residue environments will be shown.</li>
+<li>Please send feedback and questions to the <a href="http://www.bioinformatics.org/mailman/listinfo/cmview-users" target="_blank">cmview-users</a> mailing list.</li>
+</ul>
+</p>
+<p>
+<i>Downloads</i>
+<p>
+  <a href="http://bio.cc/cmview/cgap/SphoxelBGs.zip">SphoxelBGs.zip (866MB)</a> (<a href="http://www.molgen.mpg.de/~lappe/cmview/cgap/SphoxelBGs.zip">Mirror</a>)<br>
+  <a href="http://bio.cc/cmview/cgap/cgap_db_data.zip">cgap_db_data.zip (506MB)</a> (<a href="http://www.molgen.mpg.de/~lappe/cmview/cgap/cgap_db_data.zip">Mirror</a>)<br>
+  <a href="downloads/CGAP_manual.pdf">Manual (PDF)</a><br>
+</p>
+</body>
+</html>
+
