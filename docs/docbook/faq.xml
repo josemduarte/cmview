@@ -32,11 +32,12 @@
         <para>How to cite the CMView software?</para>
       </question>
       <answer>
-        <para>A publication describing CMView is being prepared. For 
-        the moment, please use the following citation:</para>
-        <para><emphasis>CMView: Interactive Contact Map Visualization 
-        and Analysis. 
-        http://www.bioinformatics.org/cmview/.</emphasis></para>
+        <para>Please use the following citation:</para>
+        <para><emphasis>Corinna Vehlow, Henning Stehr, Matthias 
+        Winkelmann, Jose M. Duarte, Lars Petzold, Juliane Dinse and 
+        Michael Lappe. CMView: Interactive contact map visualization 
+        and analysis. Bioinformatics 2011; doi: 
+        10.1093/bioinformatics/btr163</emphasis></para>
       </answer>
     </qandaentry>
     <qandaentry>
@@ -85,7 +86,8 @@
     </qandaentry>
     <qandaentry>
       <question>
-        <para>Why does the cmview.cfg file not properly display in Windows?</para>
+        <para>Why does the cmview.cfg file not properly display in 
+        Windows?</para>
       </question>
       <answer>
         <para>The file uses Unix-style line terminators wich causes 
