@@ -29,7 +29,7 @@
     </qandaentry>
     <qandaentry>
       <question>
-        <para>How to cite the CMView software?</para>
+        <para>How to cite CMView?</para>
       </question>
       <answer>
         <para>Please use the following citation:</para>
@@ -38,6 +38,10 @@
         Michael Lappe. CMView: Interactive contact map visualization 
         and analysis. Bioinformatics 2011; doi: 
         10.1093/bioinformatics/btr163</emphasis></para>
+        <para>You can access the paper here: 
+        <ulink url="http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btr163?ijkey=fJTexbbzle3K8f7">Abstract</ulink>,
+        <ulink url="http://bioinformatics.oxfordjournals.org/cgi/reprint/btr163?ijkey=fJTexbbzle3K8f7">PDF</ulink>.
+        </para>        
       </answer>
     </qandaentry>
     <qandaentry>
