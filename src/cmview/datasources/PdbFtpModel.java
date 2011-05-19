@@ -114,7 +114,7 @@ public class PdbFtpModel extends Model {
 			// this.graph and this.residues are now available
 			//TODO 4Corinna compute graph geometry and hand it over to ContactView
 			if(Start.USE_CGAP) {
-				this.graphGeom = new RIGGeometry(this.graph, this.pdb.getResidues());
+				this.graphGeom = new RIGGeometry(this.graph, this.pdb);
 				System.out.println("PdbFtpModel   GraphGeometry loaded");
 				//this.graphGeom.printGeom();
 			}

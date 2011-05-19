@@ -234,7 +234,7 @@ public class CaspServerPredictionsModel extends Model {
 				}
 				
 				// create graph
-				System.out.println(pdb.getObsLength() + " " + pdb.getSequence().getLength());
+				System.out.println(pdb.getStdAaObsLength() + " " + pdb.getSequence().getLength());
 				if(sequence.equals(pdb.getObsSequence())) {
 					rig = pdb.getRIGraph(edgeType, distCutoff);
 					rigs.addRIG(rig);
