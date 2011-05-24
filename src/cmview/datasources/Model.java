@@ -144,7 +144,7 @@ public abstract class Model {
 	 */
 	protected void writeTempPdbFile() {
 		try {
-			pdb.writeToPDBFile(getTempPdbFileName());
+			pdb.writeToPDBFile(getTempPdbFile());
 		} catch (IOException e) {
 			System.err.println("Error writing temporary PDB file "
 					+ getTempPdbFileName());
