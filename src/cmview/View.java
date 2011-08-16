@@ -2125,7 +2125,7 @@ public class View extends JFrame implements ActionListener {
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 		
 		try {
-			DaliRunner dali = new DaliRunner(mod.getPdb(), mod2.getPdb(),Start.DALI_EXECUTABLE,Start.TEMP_DIR);
+			DaliRunner dali = new DaliRunner(mod.getPdb(), mod2.getPdb(), mod.getLoadedGraphID(), mod2.getLoadedGraphID(), Start.DALI_EXECUTABLE,Start.TEMP_DIR);
 			doLoadPairwiseAlignment(MultipleSequenceAlignment.CLUSTALFORMAT,dali.getClustalFile());
 		} catch (InterruptedException e) {
 			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
