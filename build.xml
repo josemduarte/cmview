@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Aug 17, 2011 10:22:07 AM                                                        
+
+     CMView    
+     
+     	An ant script to build CMView into a single CMView.jar file in subdir build/jar
+     	The jar file contains all external jar dependencies repacked into it and is executable.
+     	Make sure to define the variables "version" and "owl.jar.location"
+     	e.g. -Dversion=1.1 -Dowl.jar.location=../owl/build/jar
+                   
+     duarte_j                                                                
+     ====================================================================== -->
+<project name="CMView" default="default">
+    <description>
+            description
+    </description>
+	
+	<!-- CHANGE THESE VALUES OR PASS IN ANT COMMAND WITH -Dname=value -->
+	<!--
+	<property name="version" value="1.1.1"/>
+	<property name="owl.jar.location" value="../owl-for-cmview-1.9-bugfixing/build/jar"/>
+	-->
+	<!-- ============================================================ -->
+
+	<property name="src.dir" value="src"/>
+	<property name="lib.dir" value="jars"/>
+	<property name="build.dir" value="build"/>
+	<property name="bin.dir" value="${build.dir}/bin"/>
+	<property name="jar.dir" value="${build.dir}/jar"/>
+	<property name="main-class" value="cmview.Start"/>
+	<property name="owl.jar.name" value="owl.jar"/>
+
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar">
+		</fileset>
+		<fileset dir="${jar.dir}" includes="${owl.jar.name}">
+		</fileset>
+	</path>
+
+    <target name="default" depends="clean,jar">
+        
+    </target>
+
+	<target name="clean">
+		<delete dir="${build.dir}"></delete>
+	</target>
+	
+	<target name="cp-owl-jar">
+		<copy file="${owl.jar.location}/${owl.jar.name}" todir="${jar.dir}"></copy>
+	</target>
+	
+	<target name="compile" depends="cp-owl-jar">
+		<mkdir dir="${bin.dir}"/> 
+		<javac srcdir="${src.dir}"
+         destdir="${bin.dir}"
+         classpathref="classpath"
+		/>
+		<!-- resources -->
+		<copy todir="${bin.dir}">
+			<fileset dir="${src.dir}" excludes="**/*.java"></fileset>
+		</copy>
+	</target>
+	
+	<target name="pack-external-jars">
+		<mkdir dir="${jar.dir}"/>
+		<jar destfile="${jar.dir}/external-libs.jar">
+		  <zipgroupfileset dir="${lib.dir}">
+		    <include name="**/*.jar"/>
+		  </zipgroupfileset>
+		  <zipgroupfileset dir="${jar.dir}">
+		    <include name="**/${owl.jar.name}"/>
+		  </zipgroupfileset>
+
+		</jar>
+	</target>
+	
+	<target name="jar" depends="compile,pack-external-jars">
+		<mkdir dir="${jar.dir}"/>
+		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${bin.dir}">
+			<!-- following solution is very neat but doesn't work because of jh.jar contains a signature file 
+			     that when repacked java complains about a security exception 
+			<zipgroupfileset dir="${lib.dir}" includes="**/*.jar">
+			</zipgroupfileset>
+			-->
+			<manifest>
+				<attribute name="Main-class" value="${main-class}"/>
+				<section name="${ant.project.name}"></section>
+				<attribute name="Specification-Title" value="Interactive contact map visualization and analysis tool"/>
+				<attribute name="Specification-Vendor" value="AG Lappe, MPI for Molecular Genetics, Berlin"/>
+				<attribute name="Specification-Version" value="${version}"/>
+			</manifest>
+			<!-- for external jars we first repack them in a separate jar with pack-external-jars target above 
+			     and then repack them into our main jar here but excluding the signature files that cause a 
+			     security exceptions if repacked (only jh.jar package have them as far as I know) 
+			     See http://stackoverflow.com/questions/1274879/ant-exclude-files-from-merged-jar-file -->
+			<zipfileset src="${jar.dir}/external-libs.jar">
+			    <exclude name="**/META-INF/SUN_MICR*"/>
+			</zipfileset>
+			
+		</jar>
+	</target>
+	
+
+</project>
