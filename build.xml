@@ -5,7 +5,8 @@
      CMView    
      
      	An ant script to build CMView into a single CMView.jar file in subdir build/jar
-     	The jar file contains all external jar dependencies repacked into it and is executable.
+     	The jar file contains all external jar dependencies repacked into it and it's executable.
+     	Use "default" target to clean and build the jar and "package" to create final zip package for distribution 
      	Make sure to define the variables "version" and "owl.jar.location"
      	e.g. -Dversion=1.1 -Dowl.jar.location=../owl/build/jar
                    
@@ -101,5 +102,20 @@
 		</jar>
 	</target>
 	
+	<target name="package" depends="jar">
+		
+		<zip destfile="${build.dir}/${ant.project.name}-${version}.zip">
+			<zipfileset dir="."
+				includes="${jar.dir}/${ant.project.name}.jar" 
+				fullpath="${ant.project.name}-${version}/${ant.project.name}.jar"/>
+			<zipfileset dir="." 
+				includes="cmview.sh,cmview.bat" 
+				prefix="${ant.project.name}-${version}" 
+				filemode="755"/>
+			<zipfileset dir="."
+				includes="README,LICENSE,gpl.txt,cmview.cfg" 
+				prefix="${ant.project.name}-${version}"/>
+		</zip>
+	</target>
 
 </project>
