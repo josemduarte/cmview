@@ -30,8 +30,12 @@
 	<property name="build.dir" value="build"/>
 	<property name="bin.dir" value="${build.dir}/bin"/>
 	<property name="jar.dir" value="${build.dir}/jar"/>
-	<property name="main-class" value="cmview.Start"/>
+	
 	<property name="owl.jar.name" value="owl.jar"/>
+	
+	<property name="main-class" value="cmview.Start"/>
+	<property name="title" value="Interactive contact map visualization and analysis tool"/>
+	<property name="vendor" value="Otto Warburg Laboratory, MPI for Molecular Genetics, Berlin"/>
 
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="**/*.jar">
@@ -88,8 +92,8 @@
 			<manifest>
 				<attribute name="Main-class" value="${main-class}"/>
 				<section name="${ant.project.name}"></section>
-				<attribute name="Specification-Title" value="Interactive contact map visualization and analysis tool"/>
-				<attribute name="Specification-Vendor" value="AG Lappe, MPI for Molecular Genetics, Berlin"/>
+				<attribute name="Specification-Title" value="${title}"/>
+				<attribute name="Specification-Vendor" value="${vendor}"/>
 				<attribute name="Specification-Version" value="${version}"/>
 			</manifest>
 			<!-- for external jars we first repack them in a separate jar with pack-external-jars target above 
