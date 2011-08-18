@@ -9,6 +9,7 @@
      	Use "default" target to clean and build the jar and "package" to create final zip package for distribution 
      	Make sure to define the variables "version" and "owl.jar.location"
      	e.g. -Dversion=1.1 -Dowl.jar.location=../owl/build/jar
+     	The owl.jar.location is the directory (relative to this one) where a jar for owl library (named owl.jar) is located
                    
      duarte_j                                                                
      ====================================================================== -->
