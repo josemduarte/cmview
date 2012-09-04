@@ -266,7 +266,7 @@ public class TransferFunctionDialog extends JFrame implements ActionListener{
 	
 	private String openTXTFile() {
 		String sFileName = null;
-		final JFileChooser chooser = new JFileChooser("Verzeichnis wählen");
+		final JFileChooser chooser = new JFileChooser("Choose directory");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         FileFilter filter = new FileNameExtensionFilter("TXT file", "txt");
