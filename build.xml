@@ -19,10 +19,11 @@
     </description>
 	
 	<!-- CHANGE THESE VALUES OR PASS IN ANT COMMAND WITH -Dname=value -->
-	<!--
+	
 	<property name="version" value="1.1.1"/>
-	<property name="owl.jar.location" value="../owl-for-cmview-1.9-bugfixing/build/jar"/>
-	-->
+	
+	<property name="owl.jar.location" value="../owl/build/jar"/>
+	
 	<!-- ============================================================ -->
 
 	<property name="src.dir" value="src"/>
