@@ -2,7 +2,6 @@ package cmview;
 import gnu.getopt.Getopt;
 
 import java.io.*;
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -14,7 +13,6 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import owl.core.structure.PdbCodeNotFoundException;
 import owl.core.structure.graphs.ProtStructGraph;
 import owl.core.util.FileTypeGuesser;
 import owl.core.util.MySQLConnection;
@@ -551,39 +549,21 @@ public class Start {
 		if (cutoff == 0.0) cutoff = DEFAULT_DISTANCE_CUTOFF;
 		// parameters should be pdb code and chain code
 		if (pdbCode!=null) {
-			if(isDatabaseConnectionAvailable()) {
-				// load from pdbase
-				try {
-					mod = new PdbaseModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP, DEFAULT_PDB_DB);
-					mod.load(pdbChainCode, 1);
-				} catch(ModelConstructionError e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;
-				} catch (PdbCodeNotFoundException e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;
-				} catch (SQLException e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;
-				} 
-			} else {
-				// load from online pdb
-				try {
-					mod = new PdbFtpModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
-					mod.load(pdbChainCode, 1);
-				} catch (IOException e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;
-				} catch (ModelConstructionError e) {
-					System.err.println("Could not load structure for given command line parameters:");
-					System.err.println(e.getMessage());
-					return null;
-				}				
-			}
+			
+			// load from online pdb
+			try {
+				mod = new PdbFtpModel(pdbCode, contactType, cutoff, DEFAULT_MIN_SEQSEP, DEFAULT_MAX_SEQSEP);
+				mod.load(pdbChainCode, 1);
+			} catch (IOException e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+				return null;
+			} catch (ModelConstructionError e) {
+				System.err.println("Could not load structure for given command line parameters:");
+				System.err.println(e.getMessage());
+				return null;
+			}				
+
 		} else if (inFile!=null) {
 			try {
 				int fileType = FileTypeGuesser.guessFileType(new File(inFile));

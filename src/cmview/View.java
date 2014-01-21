@@ -89,7 +89,6 @@ public class View extends JFrame implements ActionListener {
 	private static final String LABEL_PDB_FILE = "PDB File...";
 	private static final String LABEL_TS_FILE = "CASP TS File...";
 	private static final String LABEL_ONLINE_PDB = "Online PDB...";
-	private static final String LABEL_PDBASE = "Pdbase...";
 	private static final String LABEL_GRAPH_DB = "Graph Database...";
 	private static final String LABEL_LOAD_SEQ = "Sequence...";
 	private static final String LABEL_CASP_SERVER_MOD = "CASP Server Models...";
@@ -195,8 +194,8 @@ public class View extends JFrame implements ActionListener {
 	// P -> "popup menu"
 	JMenuItem sendP, sphereP, squareP, fillP, comNeiP, triangleP, nodeNbhSelP, rangeP,  delEdgesP, popupSendEdge, pmSelModeColor, pmShowShell, pmShowSecShell, pmShowSphoxel;
 	// mm -> "main menu"
-	JMenuItem mmLoadGraph, mmLoadPdbase, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadTs, mmLoadFtp, mmLoadSeq, mmLoadCaspServerMods;
-	JMenuItem mmLoadGraph2, mmLoadPdbase2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadTs2, mmLoadFtp2, mmLoadCaspServerMods2;
+	JMenuItem mmLoadGraph, mmLoadCm, mmLoadCaspRR, mmLoadPdb, mmLoadTs, mmLoadFtp, mmLoadSeq, mmLoadCaspServerMods;
+	JMenuItem mmLoadGraph2, mmLoadCm2, mmLoadCaspRR2, mmLoadPdb2, mmLoadTs2, mmLoadFtp2, mmLoadCaspServerMods2;
 	JMenuItem mmSaveGraphDb, mmSaveCmFile, mmSaveCaspRRFile, mmSavePng, mmSaveAli;
 	JMenuItem mmViewShowPdbResSers, mmViewHighlightComNbh, mmViewShowDensity, mmViewShowDeltaRank, mmViewShowDistMatrix;
 	JMenuItem mmToggleRealTime;
@@ -588,8 +587,7 @@ public class View extends JFrame implements ActionListener {
 		submenu = new JMenu("Load from");
 		popupMenu2Parent.put(submenu.getPopupMenu(),submenu);
 		if(Start.USE_DATABASE && Start.USE_EXPERIMENTAL_FEATURES) {
-			mmLoadGraph = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
-			mmLoadPdbase = makeMenuItem(LABEL_PDBASE,null,submenu);
+			mmLoadGraph = makeMenuItem(LABEL_GRAPH_DB,null,submenu);			
 		}		
 		mmLoadFtp = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
 		mmLoadPdb = makeMenuItem(LABEL_PDB_FILE, null, submenu);
@@ -683,7 +681,6 @@ public class View extends JFrame implements ActionListener {
 		smCompare.put("Load", submenu);
 		if(Start.USE_DATABASE && Start.USE_EXPERIMENTAL_FEATURES) {
 			mmLoadGraph2 = makeMenuItem(LABEL_GRAPH_DB,null,submenu);
-			mmLoadPdbase2 = makeMenuItem(LABEL_PDBASE,null,submenu);
 		}		
 		
 		mmLoadFtp2 = makeMenuItem(LABEL_ONLINE_PDB, null, submenu);
@@ -1125,9 +1122,6 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmLoadGraph) {
 			handleLoadFromGraphDb(FIRST_MODEL);
 		}
-		if(e.getSource() == mmLoadPdbase) {
-			handleLoadFromPdbase(FIRST_MODEL);
-		}		  
 		if(e.getSource() == mmLoadPdb) {
 			handleLoadFromPdbFile(FIRST_MODEL, PDB_FILE);
 		}
@@ -1320,9 +1314,6 @@ public class View extends JFrame implements ActionListener {
 		if(e.getSource() == mmLoadGraph2) {
 			handleLoadFromGraphDb(SECOND_MODEL);
 		}
-		if(e.getSource() == mmLoadPdbase2) {
-			handleLoadFromPdbase(SECOND_MODEL);
-		}		  
 		if(e.getSource() == mmLoadPdb2) {
 			handleLoadFromPdbFile(SECOND_MODEL, PDB_FILE);
 		}
@@ -1439,92 +1430,6 @@ public class View extends JFrame implements ActionListener {
 		} catch(ModelConstructionError e) {
 			showLoadError(e.getMessage());
 		}
-	}
-
-	private void handleLoadFromPdbase(boolean secondModel) {
-		if(!Start.isDatabaseConnectionAvailable()) {
-			showNoDatabaseConnectionWarning();
-		} else {
-			if (secondModel == SECOND_MODEL && mod == null){
-				this.showNoContactMapWarning();
-			} else{
-				try {
-					LoadDialog dialog = new LoadDialog(this, "Load from Pdbase", new LoadAction(secondModel) {
-						public void doit(Object o, String f, String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, int gid, String seq) {
-							View view = (View) o;
-							view.doLoadFromPdbase(ac, modelSerial, loadAllModels, cc, ct, dist, minss, maxss, db, secondModel);
-						}
-					}, null, "", "1", "", "", Start.DEFAULT_CONTACT_TYPE, String.valueOf(Start.DEFAULT_DISTANCE_CUTOFF), "", "", Start.DEFAULT_PDB_DB, null, null);
-					dialog.setChainCodeGetter(new Getter(dialog) {
-						public Object get() throws GetterError {
-							LoadDialog dialog = (LoadDialog) getObject();
-							String pdbCode    = dialog.getSelectedAc();
-							String db         = dialog.getSelectedDb();
-							try {
-								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
-								return mod.getChains();
-							} catch (PdbCodeNotFoundException e) {
-								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
-							} catch (SQLException e) {
-								throw new GetterError("Failed to read chains from pdbase:" + e.getMessage());
-							} catch (PdbLoadException e) {
-								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
-							}
-						}
-					});
-					dialog.setModelsGetter(new Getter(dialog) {
-						public Object get() throws GetterError {
-							LoadDialog dialog = (LoadDialog) getObject();
-							String pdbCode    = dialog.getSelectedAc();
-							String db         = dialog.getSelectedDb();
-							try {
-								PdbaseModel mod = new PdbaseModel(pdbCode,"",0.0,1,1,db);
-								return mod.getModels();
-							} catch (PdbCodeNotFoundException e) {
-								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
-							} catch (SQLException e) {
-								throw new GetterError("Failed to read models from pdbase:" + e.getMessage());
-							} catch (PdbLoadException e) {
-								throw new GetterError("Failed to load chains from pdb object: " + e.getMessage());
-							}
-						}				
-					});
-					actLoadDialog = dialog;
-					dialog.showIt();
-				} catch (LoadDialogConstructionError e) {
-					System.err.println("Failed to load the load-dialog.");
-				}
-			}
-		}
-	}
-
-	public void doLoadFromPdbase(String ac, int modelSerial, boolean loadAllModels, String cc, String ct, double dist, int minss, int maxss, String db, boolean secondModel) {
-		System.out.println("Loading from Pdbase");
-		System.out.println("PDB code:\t" + ac);
-		System.out.println("Model serial:\t" + modelSerial);
-		System.out.println("Chain code:\t" + cc);
-		System.out.println("Contact type:\t" + ct);
-		System.out.println("Dist. cutoff:\t" + dist);	
-		System.out.println("Min. Seq. Sep.:\t" + (minss==-1?"none":minss));
-		System.out.println("Max. Seq. Sep.:\t" + (maxss==-1?"none":maxss));
-		System.out.println("Database:\t" + db);	
-		try{
-			PdbaseModel mod = new PdbaseModel(ac, ct, dist, minss, maxss, db);
-			mod.load(cc, modelSerial, loadAllModels);
-			if(secondModel) {
-				//handleLoadSecondModel(mod);
-				mod2 = mod;
-				handlePairwiseAlignment();
-			} else {
-				this.spawnNewViewWindow(mod);
-			}
-		} catch(ModelConstructionError e) {
-			showLoadError(e.getMessage());
-		} catch (PdbCodeNotFoundException e) {	
-			showLoadError(e.getMessage());
-		} catch (SQLException e) {
-			showLoadError(e.getMessage());
-		} 
 	}
 
 	private void handleLoadFromPdbFile(boolean secondModel, boolean tsFile) {

@@ -44,35 +44,22 @@ public class ContactMapFileModel extends Model {
 			
 			// load structure from pdbase/online if possible
 			if(!pdbCode.equals(PdbAsymUnit.NO_PDB_CODE) && !pdbChainCode.equals(PdbChain.NO_PDB_CHAIN_CODE)) {
-				if (Start.isDatabaseConnectionAvailable()) {
-					try {
-						PdbAsymUnit fullpdb = new PdbAsymUnit(pdbCode,modelSerial,Start.getDbConnection(),Start.DEFAULT_PDB_DB);
-						this.pdb = fullpdb.getChain(pdbChainCode);
-						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-					} catch (PdbCodeNotFoundException e) {
-						System.err.println("Failed to load structure because accession code was not found in Pdbase");
-						pdb = null;
-					} catch (PdbLoadException e) {
-						System.err.println("Failed to load structure:" + e.getMessage());
-						pdb = null;
-					} 
-					// if pdb creation failed then pdb=null
-				} else { // we try to load from online cif file
-					try {
-						File cifFile = new File(Start.TEMP_DIR,pdbCode + ".cif");
-						PdbAsymUnit.grabCifFile(null, Start.PDB_FTP_URL, pdbCode, cifFile, true);
-						PdbAsymUnit fullpdb = new PdbAsymUnit(cifFile, modelSerial);
-						this.pdb = fullpdb.getChain(pdbChainCode);
-						super.writeTempPdbFile(); // this doesn't make sense without a pdb object
-					} catch (PdbLoadException e) {
-						System.err.println("Failed to load structure:" + e.getMessage());
-						pdb = null;
-					} catch(IOException e) {
-						System.err.println("Failed to load structure because of error while downloading/reading the CIF file: "+e.getMessage());
-						pdb = null;
-					} 
-					// if pdb creation failed then pdb=null					
-				}
+				// we try to load from online cif file
+				try {
+					File cifFile = new File(Start.TEMP_DIR,pdbCode + ".cif");
+					PdbAsymUnit.grabCifFile(null, Start.PDB_FTP_URL, pdbCode, cifFile, true);
+					PdbAsymUnit fullpdb = new PdbAsymUnit(cifFile, modelSerial);
+					this.pdb = fullpdb.getChain(pdbChainCode);
+					super.writeTempPdbFile(); // this doesn't make sense without a pdb object
+				} catch (PdbLoadException e) {
+					System.err.println("Failed to load structure:" + e.getMessage());
+					pdb = null;
+				} catch(IOException e) {
+					System.err.println("Failed to load structure because of error while downloading/reading the CIF file: "+e.getMessage());
+					pdb = null;
+				} 
+				// if pdb creation failed then pdb=null					
+
 				
 				
 				// if structure is available, and has secondary structure annotation, use it

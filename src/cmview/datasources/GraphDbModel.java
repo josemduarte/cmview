@@ -1,11 +1,13 @@
 package cmview.datasources;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 
 import owl.core.structure.*;
 import owl.core.structure.graphs.DbRIGraph;
 import owl.core.structure.graphs.GraphIdNotFoundError;
-
+import owl.core.util.FileFormatException;
 import cmview.Start;
 
 /** 
@@ -41,16 +43,20 @@ public class GraphDbModel extends Model {
 			
 			// load structure from pdbase (to display in Pymol)
 			try {
-				PdbAsymUnit fullpdb = new PdbAsymUnit(pdbCode,modelSerial,Start.getDbConnection(),Start.DEFAULT_PDB_DB);
+				File cifFile = new File(Start.TEMP_DIR,pdbCode + ".cif");
+				PdbAsymUnit.grabCifFile(null, Start.PDB_FTP_URL, pdbCode, cifFile, true);
+				PdbAsymUnit fullpdb = new PdbAsymUnit(cifFile, modelSerial);
 				this.pdb = fullpdb.getChain(pdbChainCode);
-				System.out.println("Loaded structure "+pdbCode+" "+pdbChainCode+" from pdbase database "+Start.DEFAULT_PDB_DB);
 				super.writeTempPdbFile(); // this doesn't make sense without a pdb object
 			} catch (PdbLoadException e) {
+				System.err.println("Failed to load structure: " + e.getMessage());
+				pdb = null;
+			} catch(IOException e) {
+				System.err.println("Failed to load structure because of error while downloading/reading the CIF file: "+e.getMessage());
+				pdb = null;
+			} catch (FileFormatException e) {
 				System.err.println("Failed to load structure: "+e.getMessage());
-				pdb = null;
-			} catch (PdbCodeNotFoundException e) {
-				System.err.println("Failed to load structure. Pdb code "+pdbCode+" was not found in database "+Start.DEFAULT_PDB_DB);
-				pdb = null;
+				pdb = null;				
 			}
 			// if pdb created failed then pdb=null
 			
