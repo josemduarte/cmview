@@ -103,13 +103,14 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		String contactMapSize = null, contactMapSize2 = null;
 		String unobservedResidues = null, unobservedResidues2 = null;
 		String numContacts = null, numContacts2 = null;
+		String contactOrder = null, contactOrder2 = null; 
 		String directed = null, directed2 = null;
 		String secStrucSrc = null, secStrucSrc2 = null;
 		String commonContactsStr = null, selectedContactsStr = null;
 		String uniqueContactsStr1 = null, uniqueContactsStr2 = null;
 		String cmoStr = null;
 		String accStr = null;
-		String covStr = null;
+		String covStr = null; 
 		
 //		pdbCode = (mod.getPDBCode()==PdbChain.NO_PDB_CODE?"none":mod.getPDBCode());
 //		chainCode = (mod.getChainCode()==PdbChain.NO_CHAIN_CODE?"none":mod.getChainCode());
@@ -121,6 +122,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		contactMapSize = Integer.toString(mod.getMatrixSize());
 		unobservedResidues = Integer.toString(mod.getNumberOfUnobservedResidues());
 		numContacts = Integer.toString(mod.getNumberOfContacts());
+		contactOrder = String.format("%5.2f",mod.getGraph().getContactOrder());
 		directed = (mod.isDirected()?"Yes":"No");
 		secStrucSrc = mod.getSecondaryStructure().getComment();
 		selectedContactsStr = Integer.toString(numSelectedContacts);
@@ -135,6 +137,7 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 			contactMapSize2 = Integer.toString(mod2.getMatrixSize());
 			unobservedResidues2 = Integer.toString(mod2.getNumberOfUnobservedResidues());
 			numContacts2 = Integer.toString(mod2.getNumberOfContacts());
+			contactOrder2 = String.format("%5.2f",mod2.getGraph().getContactOrder());
 			directed2 = (mod2.isDirected()?"Yes":"No");
 			secStrucSrc2 = mod2.getSecondaryStructure().getComment();
 			int commonContacts = cmPane.getCommonContacts().size();
@@ -306,6 +309,14 @@ public class ContactMapInfoDialog extends JDialog implements ActionListener {
 		dataPane.add(new JLabel(numContacts));
 		if(mod2 != null) {
 			dataPane.add(new JLabel(numContacts2));
+		}
+		rows++;
+		
+		// contact order
+		dataPane.add(new JLabel("Contact order:"));
+		dataPane.add(new JLabel(contactOrder));
+		if (mod2 != null) {
+			dataPane.add(new JLabel(contactOrder2));
 		}
 		rows++;
 		
