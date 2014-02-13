@@ -18,7 +18,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
-import javax.help.*;
+import javax.help.HelpSet;
+import javax.help.HelpSetException;
+import javax.help.CSH;
+import javax.help.HelpBroker;
 
 import cmview.datasources.*;
 import cmview.gmbp.ContactView;
