@@ -1,0 +1,174 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>CMView</groupId>
+	<artifactId>CMView</artifactId>
+	<packaging>jar</packaging>
+	<version>1.1.2-SNAPSHOT</version>
+	<name>CMView</name>
+	<url>http://www.bioinformatics.org/cmview</url>
+	
+	
+	<repositories>
+		<!-- 
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net Maven 2 Repository</name>
+			<url>http://download.java.net/maven/2</url>
+		</repository>	
+		 -->
+		 
+	</repositories>
+	
+	
+	<dependencies>
+	
+		<!-- main dependency: owl package -->
+		<dependency>
+			<groupId>org.owl</groupId>
+			<artifactId>owl</artifactId>
+			<version>2.0.6-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+	
+		<!-- junit -->
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- vecmath (coming from geotools) -->
+		
+		<dependency>
+			<groupId>java3d</groupId>
+			<artifactId>vecmath</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+
+		<!-- java help -->
+		
+		<dependency>
+			<groupId>com.sun.woodstock.dependlibs</groupId>
+			<artifactId>jh</artifactId>
+			<version>2.0</version>
+		</dependency>
+				
+		<!-- jung -->
+            
+		<dependency>
+			<groupId>net.sf.jung</groupId>
+			<artifactId>jung-api</artifactId>
+			<version>2.0.1</version>
+		</dependency>		
+
+		<dependency>
+			<groupId>net.sf.jung</groupId>
+			<artifactId>jung-algorithms</artifactId>
+			<version>2.0.1</version>
+		</dependency>		
+
+		<dependency>
+			<groupId>net.sf.jung</groupId>
+			<artifactId>jung-graph-impl</artifactId>
+			<version>2.0.1</version>
+		</dependency>		
+				
+		<!-- others -->
+
+		<dependency>
+			<groupId>gnu.getopt</groupId>
+			<artifactId>java-getopt</artifactId>
+			<version>1.0.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.14</version>
+		</dependency>                        
+		
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<!-- the shade plugin to repack all jars into one uber-jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+	              			<artifactSet>
+	                			<excludes>
+	                  				<!-- excluding jars that are only needed for some non-core owl packages and not for cmview -->
+	                  				<exclude>batik</exclude>	                  				
+	                  				
+	                  				<!-- these 2 jars have signature repackaging problems!!! -->
+	                  				<!-- <exclude>java3d</exclude> -->	                  				
+	                  				<!-- <exclude>gnu.getopt</exclude> -->
+	                  				
+	                  				<!-- all these don't have signature repackaging problems -->
+	                  				<!-- <exclude>net.sf.jung</exclude> -->
+	                  				<!-- <exclude>org.springframework</exclude> -->
+	                  				<!-- <exclude>aopalliance</exclude> -->
+	                  				<!-- <exclude>commons-*</exclude> -->
+	                  				<!-- <exclude>org.apache.commons</exclude> -->
+	                  				<!-- <exclude>log4j</exclude> -->
+	                  				<!-- <exclude>net.sourceforge.collections</exclude> -->
+	                  				
+	                			</excludes>
+	              			</artifactSet>
+	              			<filters>
+        						<filter>
+        							<!-- solution to the signature repackaging problem is this filter: exclude the signatures!  -->
+            						<artifact>*:*</artifact>
+            						<excludes>
+                						<exclude>META-INF/*.SF</exclude>
+                						<exclude>META-INF/*.DSA</exclude>
+                						<exclude>META-INF/*.RSA</exclude>
+            						</excludes>
+        						</filter>
+    						</filters>
+           				</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<finalName>uber-${project.artifactId}-${project.version}</finalName>
+				</configuration>
+			</plugin>
+			
+			<!-- assembly plugin for final packaging -->
+			<plugin>
+  				<groupId>org.apache.maven.plugins</groupId>
+  				<artifactId>maven-assembly-plugin</artifactId>
+  				<configuration>
+    				<descriptor>src/assembly/bin.xml</descriptor>
+    				<finalName>${project.artifactId}-${project.version}</finalName>
+  				</configuration>
+  				
+  				<executions>
+    				<execution>
+      					<phase>package</phase>
+      					<goals>
+        					<goal>single</goal>
+      					</goals>
+    				</execution>
+  				</executions>
+			</plugin>
+			
+		</plugins>
+		
+	</build>
+	
+	
+	
+</project>
