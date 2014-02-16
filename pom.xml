@@ -41,13 +41,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- vecmath (coming from geotools) -->
 		
-		<dependency>
-			<groupId>java3d</groupId>
-			<artifactId>vecmath</artifactId>
-			<version>1.5.2</version>
-		</dependency>
 
 		<!-- java help -->
 		
