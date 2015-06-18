@@ -8,8 +8,6 @@ from pymol import cmd
 from math import *
 from pymol import string
 
-from cmd import lock,unlock,_cmd # for dist counter
-
 #-------------------------------------------------
 # Create the given file to notify CMView that
 # PyMol is running and receiving commands.
