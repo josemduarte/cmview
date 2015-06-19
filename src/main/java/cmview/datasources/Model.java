@@ -454,7 +454,7 @@ public abstract class Model {
 	 *         serial resser
 	 */
 	public String getResType(int resser) {
-		return AminoAcid.one2three(this.getSequence().charAt(resser - 1));
+		return AminoAcid.one2three(getRes(resser));
 
 		// NOTE, we used to take the residue type from the RIGNode, but this
 		// causes problems
@@ -479,7 +479,14 @@ public abstract class Model {
 	 * @see {@#getResType(int)}
 	 */
 	public String getResType1Letter(int resser) {
-		return String.valueOf(this.getSequence().charAt(resser - 1));
+		return String.valueOf(getRes(resser));
+	}
+	
+	private char getRes(int resser) {
+		if (resser<1 || this.getSequence().length()<resser) {
+			return AminoAcid.XXX.getOneLetterCode();
+		}
+		return this.getSequence().charAt(resser - 1);
 	}
 
 	/**
